@@ -1,0 +1,26 @@
+# Build
+node_modules/
+dist/
+
+# Secrets & Auth
+.env
+.cookie
+.browser-data/
+*.enc
+
+# Runtime Data
+data/
+
+# Scratch / Analysis Artifacts
+*.har
+analyze_har.js
+api_endpoints.txt
+api_analysis.txt
+api_auth_analysis.txt
+cookie_details.txt
+cookie_check.txt
+cookie_extract.txt
+cookie_extract2.txt
+
+# Global Agent Toolkit (not project-specific)
+.agent/

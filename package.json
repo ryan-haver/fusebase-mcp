@@ -1,0 +1,25 @@
+{
+  "name": "fusebase-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for Fusebase (formerly Nimbus Note) integration",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "fusebase-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "postinstall": "npx playwright install chromium || true"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "playwright": "^1.58.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}
