@@ -25,7 +25,7 @@ An [MCP](https://modelcontextprotocol.io/) server that lets AI assistants manage
 **Option A — Install from GitHub (recommended):**
 
 ```bash
-npm install -g github:<username>/fusebase-mcp
+npm install -g github:ryan-haver/fusebase-mcp
 ```
 
 This automatically installs dependencies, compiles TypeScript, and downloads Chromium for auth.
@@ -33,7 +33,7 @@ This automatically installs dependencies, compiles TypeScript, and downloads Chr
 **Option B — Clone and build manually:**
 
 ```bash
-git clone https://github.com/<username>/fusebase-mcp.git
+git clone https://github.com/ryan-haver/fusebase-mcp.git
 cd fusebase-mcp
 npm install
 ```
