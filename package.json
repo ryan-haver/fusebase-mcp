@@ -16,10 +16,14 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "playwright": "^1.58.2"
+    "playwright": "^1.58.2",
+    "socket.io-client": "^4.8.3",
+    "y-protocols": "^1.0.7",
+    "yjs": "^13.6.29"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/ws": "^8.18.1",
     "typescript": "^5.7.0"
   }
 }
