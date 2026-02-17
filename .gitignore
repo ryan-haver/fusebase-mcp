@@ -10,17 +10,22 @@ dist/
 
 # Runtime Data
 data/
+*.db
+*.sqlite
 
 # Scratch / Analysis Artifacts
 *.har
-analyze_har.js
-api_endpoints.txt
-api_analysis.txt
-api_auth_analysis.txt
-cookie_details.txt
-cookie_check.txt
-cookie_extract.txt
-cookie_extract2.txt
+*.log
+*.txt
+analyze_*.js
+*_output.txt
+api_*.txt
+cookie_*.txt
+verify_output.txt
+ws_reader_output.txt
+har_write_analysis.txt
+table_har_analysis.txt
 
 # Global Agent Toolkit (not project-specific)
 .agent/
+.gemini/
