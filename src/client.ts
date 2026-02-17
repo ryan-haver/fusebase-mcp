@@ -6,6 +6,7 @@
  */
 
 import * as fs from "fs";
+import { decodeYjsToHtml } from "./yjs-html-decoder.js";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import * as http from "http";
@@ -696,7 +697,15 @@ export class FusebaseClient {
 
   /** Get raw page content (HTML dump) */
   async getPageContent(workspaceId: string, noteId: string): Promise<string> {
-    return this.request<string>(`/dump/${workspaceId}/${noteId}`);
+    const res = await fetch(`${this.baseUrl}/dump/${workspaceId}/${noteId}`, {
+      headers: { cookie: this.cookie },
+      // @ts-expect-error — Node.js fetch supports agent option
+      agent: keepAliveAgent,
+      signal: AbortSignal.timeout(TIMEOUT_GET),
+    });
+    if (!res.ok) throw new Error(`Page content fetch failed: ${res.status}`);
+    const binary = new Uint8Array(await res.arrayBuffer());
+    return decodeYjsToHtml(binary);
   }
 
   /** Get database/table view data */

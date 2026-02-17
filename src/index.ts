@@ -18,6 +18,10 @@ import { z } from "zod";
 import { FusebaseClient } from "./client.js";
 import type { FusebaseMember, FusebaseOrgMember, FusebaseFile, FusebaseLabel } from "./types.js";
 import { loadEncryptedCookie, saveEncryptedCookie } from "./crypto.js";
+import { markdownToSchema } from "./markdown-parser.js";
+import { schemaToTokens } from "./token-builder.js";
+import type { ContentBlock } from "./content-schema.js";
+import { writeContentViaWebSocket } from "./yjs-ws-writer.js";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
@@ -1033,26 +1037,74 @@ function registerExtendedTools() {
 
   server.tool(
     "update_page_content",
-    "Update or write content to a page using Fusebase's text token format. Tokens represent structured content blocks (paragraphs, headings, lists, etc.). Use this to programmatically edit page content.",
+    "Write or replace content on a page using the native Y.js WebSocket protocol. Accepts markdown (recommended), structured content blocks, or raw tokens. Markdown is auto-converted to Fusebase's native format. Supports: headings (H1/H2/H3), paragraphs, **bold**, *italic*, bullet lists, numbered lists, checklists, dividers, blockquotes, and code blocks.",
     {
       workspaceId: z.string().describe("Workspace ID"),
       pageId: z.string().describe("Page (note) ID"),
-      tokens: z
+      markdown: z
+        .string()
+        .optional()
+        .describe("Markdown string to write. Auto-converted to Fusebase format. Supports # headings, **bold**, *italic*, - lists, 1. numbered lists, ---, > blockquotes, ```code```"),
+      blocks: z
         .array(z.unknown())
-        .describe("Array of text tokens to write to the page"),
+        .optional()
+        .describe("Structured content blocks array (ContentBlock[] schema). For programmatic control over each block type and formatting."),
+      replace: z
+        .boolean()
+        .optional()
+        .describe("Replace existing content (default: true). Set to false to append."),
     },
-    async ({ workspaceId, pageId, tokens }) => {
+    async ({ workspaceId, pageId, markdown, blocks, replace }) => {
       try {
-        const result = await client.updatePageContent(
+        let contentBlocks: ContentBlock[];
+
+        if (markdown) {
+          // Markdown → ContentBlock schema
+          contentBlocks = markdownToSchema(markdown);
+        } else if (blocks) {
+          contentBlocks = blocks as ContentBlock[];
+        } else {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: "Error: Provide either 'markdown' or 'blocks'",
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        // Write via native Y.js WebSocket protocol
+        const result = await writeContentViaWebSocket(
+          config.host,
           workspaceId,
           pageId,
-          tokens,
+          config.cookie,
+          contentBlocks,
+          { replace: replace !== false, timeout: 20000 },
         );
-        return {
-          content: [
-            { type: "text" as const, text: JSON.stringify(result, null, 2) },
-          ],
-        };
+
+        if (result.success) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Content written successfully via Y.js WebSocket (${contentBlocks.length} blocks).`,
+              },
+            ],
+          };
+        } else {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Write failed: ${result.error}`,
+              },
+            ],
+            isError: true,
+          };
+        }
       } catch (error) {
         return errorResult(error);
       }
