@@ -165,8 +165,12 @@ export function buildYDoc(blocks: ContentBlock[]): { doc: Y.Doc; update: Uint8Ar
       }
 
       case "code": {
-        blockMap.set("type", "code");
-        if (block.language) blockMap.set("language", block.language);
+        blockMap.set("type", "syntax");
+        blockMap.set("setCursor", false);
+        blockMap.set("wrap", false);
+        blockMap.set("lineNumbers", true);
+        if (block.language) blockMap.set("data-language", block.language);
+        else blockMap.set("data-language", "plaintext");
         const chars = new Y.Array();
         chars.push(block.code.split(""));
         blockMap.set("characters", chars);
