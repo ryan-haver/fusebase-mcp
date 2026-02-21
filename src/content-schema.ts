@@ -135,6 +135,133 @@ export interface CollapsibleHeadingBlock {
   collapsed?: boolean;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Tables                                                             */
+/* ------------------------------------------------------------------ */
+
+export type TableCellType = "text" | "singleselect" | "progress" | "checkbox" | "date";
+
+export interface TableColumn {
+  text: string;
+  type: TableCellType;
+  /** Configuration for single-select columns. Key is arbitrary option ID. */
+  dbSelect?: Record<string, { name: string; style: string; color: string }>;
+}
+
+export interface TableCellText {
+  cellType: "text";
+  children: InlineSegment[];
+}
+
+export interface TableCellSelect {
+  cellType: "singleselect";
+  selected: string[];
+}
+
+export interface TableCellProgress {
+  cellType: "progress";
+  progress: number; // 0-100
+}
+
+export interface TableCellCheckbox {
+  cellType: "checkbox";
+  checked: boolean;
+}
+
+export interface TableCellDate {
+  cellType: "date";
+  timestamp: number; // MS timestamp
+}
+
+export type TableCell =
+  | TableCellText
+  | TableCellSelect
+  | TableCellProgress
+  | TableCellCheckbox
+  | TableCellDate;
+
+export interface TableRow {
+  cells: TableCell[];
+}
+
+/** 
+ * Y.js type: "table" -> "row" -> "tableCellX" -> child texts
+ */
+export interface TableBlock {
+  type: "table";
+  columns: TableColumn[];
+  rows: TableRow[];
+}
+
+/* ------------------------------------------------------------------ */
+/*  Grids (Layouts)                                                    */
+/* ------------------------------------------------------------------ */
+
+export interface GridColumnBlock {
+  type: "gridCol";
+  width: "auto" | string;
+  children: ContentBlock[];
+}
+
+export interface GridBlock {
+  type: "grid";
+  columns: GridColumnBlock[];
+}
+
+/* ------------------------------------------------------------------ */
+/*  Files & Media & Embeds                                             */
+/* ------------------------------------------------------------------ */
+
+export interface FileBlock {
+  type: "file";
+  caption?: InlineSegment[];
+  /** Flag for native audio/video recording. Often indicates an uploaded file asset. */
+  fileId?: string;
+}
+
+export interface RemoteFrameBlock {
+  type: "remote-frame";
+  src: string;
+  caption?: InlineSegment[];
+}
+
+export interface UploaderBlock {
+  type: "uploader";
+}
+
+/* ------------------------------------------------------------------ */
+/*  Embedded Apps & Dashboards                                         */
+/* ------------------------------------------------------------------ */
+
+export interface DatabaseBlock {
+  type: "foreign-dashboard";
+  /** The UUID of the database within the workspace */
+  databaseId: string;
+  dashboardId: string;
+  dashboardViewId: string;
+}
+
+export interface BoardBlock {
+  type: "board";
+  boardId: string;
+}
+
+export interface TasksListBlock {
+  type: "tasks-list";
+  tasksListId: string;
+}
+
+export interface ButtonBlock {
+  type: "button-single";
+  title: string;
+  url: string;
+}
+
+export interface StepBlock {
+  type: "step";
+  children: ContentBlock[];
+}
+
 /** Union of all supported block types */
 export type ContentBlock =
   | ParagraphBlock
@@ -146,4 +273,14 @@ export type ContentBlock =
   | CodeBlock
   | ToggleBlock
   | HintBlock
-  | CollapsibleHeadingBlock;
+  | CollapsibleHeadingBlock
+  | TableBlock
+  | GridBlock
+  | FileBlock
+  | RemoteFrameBlock
+  | UploaderBlock
+  | DatabaseBlock
+  | BoardBlock
+  | TasksListBlock
+  | ButtonBlock
+  | StepBlock;

@@ -305,6 +305,306 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
         });
         break;
       }
+      case "table": {
+        // Create table, columns, and rows
+        const colIds: string[] = [];
+        for (const col of block.columns) {
+          const colId = genBlockId();
+          const cm = new Y.Map();
+          cm.set("id", colId);
+          cm.set("type", "column");
+          cm.set("text", col.text);
+          cm.set("columnType", col.type);
+          if (col.type === "singleselect" && col.dbSelect) {
+            cm.set("dbSelect", col.dbSelect);
+          }
+          blocksMap!.set(colId, cm);
+          colIds.push(colId);
+        }
+
+        const rowIds: string[] = [];
+        for (const row of block.rows) {
+          const cellIds: string[] = [];
+          for (const cell of row.cells) {
+            const cellId = genBlockId();
+            const cellMap = new Y.Map();
+            cellMap.set("id", cellId);
+
+            if (cell.cellType === "text") {
+              cellMap.set("type", "tableCellText");
+              cellMap.set("cellType", "text");
+              const textId = genBlockId();
+              const tm = new Y.Map();
+              tm.set("id", textId);
+              tm.set("type", "tableText");
+              const chars = new Y.Text();
+              insertInlineText(chars, 0, cell.children);
+              tm.set("characters", chars);
+              blocksMap!.set(textId, tm);
+              const kids = new Y.Array<string>();
+              kids.push([textId]);
+              cellMap.set("children", kids);
+            } else if (cell.cellType === "singleselect") {
+              cellMap.set("type", "tableCellSelect");
+              cellMap.set("cellType", "singleselect");
+              const sel = new Y.Array<string>();
+              sel.push(cell.selected);
+              cellMap.set("selected", sel);
+            } else if (cell.cellType === "progress") {
+              cellMap.set("type", "tableCellProgress");
+              cellMap.set("cellType", "progress");
+              cellMap.set("progress", cell.progress);
+            } else if (cell.cellType === "checkbox") {
+              cellMap.set("type", "tableCellCheckbox");
+              cellMap.set("cellType", "checkbox");
+              cellMap.set("checked", cell.checked);
+            } else if (cell.cellType === "date") {
+              cellMap.set("type", "tableCellDate");
+              cellMap.set("cellType", "date");
+              cellMap.set("timestamp", cell.timestamp);
+            }
+
+            blocksMap!.set(cellId, cellMap);
+            cellIds.push(cellId);
+          }
+          const rowId = genBlockId();
+          const rm = new Y.Map();
+          rm.set("id", rowId);
+          rm.set("type", "row");
+          const rowKids = new Y.Array<string>();
+          rowKids.push(cellIds);
+          rm.set("children", rowKids);
+          blocksMap!.set(rowId, rm);
+          rowIds.push(rowId);
+        }
+
+        const tableId = genBlockId();
+        const tm = new Y.Map();
+        tm.set("id", tableId);
+        tm.set("type", "table");
+        tm.set("version", 2);
+        tm.set("size", { cols: block.columns.length, rows: block.rows.length, visibleRows: block.rows.length });
+
+        const colArr = new Y.Array<string>();
+        colArr.push(colIds);
+        tm.set("columns", colArr);
+
+        const rowArr = new Y.Array<string>();
+        rowArr.push(rowIds);
+        tm.set("rows", rowArr);
+        tm.set("indent", 0);
+
+        // Add empty caption
+        const capId = genBlockId();
+        const cap = new Y.Map();
+        cap.set("id", capId);
+        cap.set("type", "caption");
+        cap.set("align", "left");
+        cap.set("indent", 0);
+        const chars = new Y.Text();
+        chars.insert(0, "\n");
+        cap.set("characters", chars);
+        blocksMap!.set(capId, cap);
+        tm.set("caption", capId);
+
+        blocksMap!.set(tableId, tm);
+        rootChildren!.push([tableId]);
+        break;
+      }
+      case "grid": {
+        const colIds: string[] = [];
+        for (const col of block.columns) {
+          const colId = genBlockId();
+          const cm = new Y.Map();
+          cm.set("id", colId);
+          cm.set("type", "gridCol");
+          cm.set("width", col.width);
+
+          const kids = new Y.Array<string>();
+          const kidIds: string[] = [];
+          for (const child of col.children) {
+            const childChars = new Y.Text();
+            if (child.type === "paragraph") {
+              insertInlineText(childChars, 0, child.children);
+              kidIds.push(addChildBlock("paragraph", { characters: childChars }));
+            } else {
+              insertInlineText(childChars, 0, [{ text: "(nested item)" }]);
+              kidIds.push(addChildBlock("paragraph", { characters: childChars }));
+            }
+          }
+          if (kidIds.length > 0) kids.push(kidIds);
+          cm.set("children", kids);
+          blocksMap!.set(colId, cm);
+          colIds.push(colId);
+        }
+
+        const gridId = genBlockId();
+        const gm = new Y.Map();
+        gm.set("id", gridId);
+        gm.set("type", "grid");
+        gm.set("widths", new Y.Map());
+        const colsArr = new Y.Array<string>();
+        colsArr.push(colIds);
+        gm.set("children", colsArr);
+
+        blocksMap!.set(gridId, gm);
+        rootChildren!.push([gridId]);
+        break;
+      }
+      case "file": {
+        const id = genBlockId();
+        const m = new Y.Map();
+        m.set("id", id);
+        m.set("type", "file");
+        m.set("syncedViewerState", new Y.Map());
+        m.set("syncedInterfaceState", new Y.Map());
+        if (block.fileId) m.set("fileId", block.fileId);
+        const capId = genBlockId();
+        const cap = new Y.Map();
+        cap.set("id", capId);
+        cap.set("type", "caption");
+        cap.set("align", "left");
+        cap.set("indent", 0);
+        const chars = new Y.Text();
+        if (block.caption) {
+          insertInlineText(chars, 0, block.caption);
+        } else {
+          chars.insert(0, "\n");
+        }
+        cap.set("characters", chars);
+        blocksMap!.set(capId, cap);
+        m.set("caption", capId);
+
+        blocksMap!.set(id, m);
+        rootChildren!.push([id]);
+        break;
+      }
+      case "remote-frame": {
+        const id = genBlockId();
+        const m = new Y.Map();
+        m.set("id", id);
+        m.set("type", "remote-frame");
+        m.set("src", block.src);
+        m.set("embed-type", null);
+        m.set("html", null);
+        m.set("signature", "");
+        m.set("allowOverWidth", false);
+
+        const capId = genBlockId();
+        const cap = new Y.Map();
+        cap.set("id", capId);
+        cap.set("type", "caption");
+        cap.set("align", "left");
+        cap.set("indent", 0);
+        const chars = new Y.Text();
+        if (block.caption) {
+          insertInlineText(chars, 0, block.caption);
+        } else {
+          chars.insert(0, "\n");
+        }
+        cap.set("characters", chars);
+        blocksMap!.set(capId, cap);
+        m.set("caption", capId);
+
+        blocksMap!.set(id, m);
+        rootChildren!.push([id]);
+        break;
+      }
+      case "uploader": {
+        const id = genBlockId();
+        const m = new Y.Map();
+        m.set("id", id);
+        m.set("type", "uploader");
+        m.set("children", new Y.Array<string>());
+        m.set("enabledInPublicPage", true);
+        blocksMap!.set(id, m);
+        rootChildren!.push([id]);
+        break;
+      }
+      case "foreign-dashboard": {
+        const id = genBlockId();
+        const m = new Y.Map();
+        m.set("id", id);
+        m.set("type", "foreign-dashboard");
+        m.set("componentType", "dashboard");
+        m.set("componentData", {
+          entityType: "database",
+          databaseId: block.databaseId,
+          dashboardId: block.dashboardId,
+          dashboardViewId: block.dashboardViewId,
+          tableSelector: false,
+          viewSelector: true
+        });
+        m.set("blotParams", { forbidInColumn: true });
+        m.set("fullwidthMode", true);
+        blocksMap!.set(id, m);
+        rootChildren!.push([id]);
+        break;
+      }
+      case "board": {
+        const id = genBlockId();
+        const m = new Y.Map();
+        m.set("id", id);
+        m.set("type", "board");
+        m.set("layout", { "add-new-column": true });
+        m.set("boardId", block.boardId);
+        blocksMap!.set(id, m);
+        rootChildren!.push([id]);
+        break;
+      }
+      case "tasks-list": {
+        const id = genBlockId();
+        const m = new Y.Map();
+        m.set("id", id);
+        m.set("type", "tasks-list");
+        m.set("tasksListId", block.tasksListId);
+        blocksMap!.set(id, m);
+        rootChildren!.push([id]);
+        break;
+      }
+      case "button-single": {
+        const id = genBlockId();
+        const m = new Y.Map();
+        m.set("id", id);
+        m.set("type", "button-single");
+        m.set("showForm", false);
+        m.set("title", block.title);
+        m.set("url", block.url);
+        blocksMap!.set(id, m);
+        rootChildren!.push([id]);
+        break;
+      }
+      case "step": {
+        const childIds: string[] = [];
+        for (const child of block.children) {
+          const childChars = new Y.Text();
+          if (child.type === "paragraph") {
+            insertInlineText(childChars, 0, child.children);
+            childIds.push(addChildBlock("paragraph", { characters: childChars }));
+          } else {
+            insertInlineText(childChars, 0, [{ text: "(nested block)" }]);
+            childIds.push(addChildBlock("paragraph", { characters: childChars }));
+          }
+        }
+
+        const id = genBlockId();
+        const m = new Y.Map();
+        m.set("id", id);
+        m.set("type", "step");
+        m.set("collapsed", false);
+        m.set("show-arrow", true);
+        const chars = new Y.Text();
+        chars.insert(0, "\n");
+        m.set("characters", chars);
+
+        const kids = new Y.Array<string>();
+        if (childIds.length > 0) kids.push(childIds);
+        m.set("children", kids);
+
+        blocksMap!.set(id, m);
+        rootChildren!.push([id]);
+        break;
+      }
     }
   }
 }
