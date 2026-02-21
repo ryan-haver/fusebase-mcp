@@ -253,7 +253,13 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
       case "code": {
         const chars = new Y.Text();
         chars.insert(0, block.code + "\n");
-        addBlock("code", { language: block.language, characters: chars });
+        addBlock("syntax", {
+          "data-language": block.language || "plaintext",
+          setCursor: false,
+          wrap: false,
+          lineNumbers: true,
+          characters: chars
+        });
         break;
       }
       case "toggle": {
