@@ -126,18 +126,24 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
    * Insert formatted segments into a Y.Text at the given offset.
    * Returns the new offset after insertion.
    */
-  function insertInlineText(ytext: Y.Text, offset: number, segments: { text: string; bold?: boolean; italic?: boolean; strikethrough?: boolean; underline?: boolean; code?: boolean; link?: string }[]): number {
+  function insertInlineText(ytext: Y.Text, offset: number, segments: { text?: string; embed?: any; bold?: boolean; italic?: boolean; strikethrough?: boolean; underline?: boolean; code?: boolean; link?: string }[]): number {
     for (const seg of segments) {
       const attrs: Record<string, any> = {};
-      if (seg.bold) attrs.bold = true;              // MUST be boolean true, not string "true"
+      if (seg.bold) attrs.bold = true;
       if (seg.italic) attrs.italic = true;
       if (seg.strikethrough) attrs.strikethrough = true;
       if (seg.underline) attrs.underline = true;
       if (seg.code) attrs.code = true;
-      if (seg.link) attrs.link = seg.link;           // link attr is a string URL
+      if (seg.link) attrs.link = seg.link;
       const hasAttrs = Object.keys(attrs).length > 0;
-      ytext.insert(offset, seg.text, hasAttrs ? attrs : undefined);
-      offset += seg.text.length;
+
+      if (seg.embed) {
+        ytext.insert(offset, seg.embed, hasAttrs ? attrs : undefined);
+        offset += 1; // object embed takes 1 unit of length
+      } else if (seg.text) {
+        ytext.insert(offset, seg.text, hasAttrs ? attrs : undefined);
+        offset += seg.text.length;
+      }
     }
     // CRITICAL: Every block's characters MUST end with "\n" — Fusebase block terminator
     ytext.insert(offset, "\n");
@@ -600,6 +606,80 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
         const kids = new Y.Array<string>();
         if (childIds.length > 0) kids.push(childIds);
         m.set("children", kids);
+
+        blocksMap!.set(id, m);
+        rootChildren!.push([id]);
+        break;
+      }
+      case "image": {
+        const id = genBlockId();
+        const m = new Y.Map();
+        m.set("id", id);
+        m.set("type", "image");
+        m.set("src", block.src);
+        m.set("imageShadow", false);
+        m.set("allowOverWidth", false);
+        m.set("indent", 0);
+        m.set("color", "transparent");
+        m.set("align", "center");
+        if (block.width) {
+          m.set("width", block.width);
+          m.set("noGridWidth", block.width);
+        }
+        if (block.ratio) m.set("ratio", block.ratio);
+        if (block.originalSize) m.set("originalSize", block.originalSize);
+
+        const capId = genBlockId();
+        const cap = new Y.Map();
+        cap.set("id", capId);
+        cap.set("type", "caption");
+        cap.set("align", "left");
+        cap.set("indent", 0);
+        const chars = new Y.Text();
+        if (block.caption) {
+          insertInlineText(chars, 0, block.caption);
+        } else {
+          chars.insert(0, "\n");
+        }
+        cap.set("characters", chars);
+        blocksMap!.set(capId, cap);
+        m.set("caption", capId);
+
+        blocksMap!.set(id, m);
+        rootChildren!.push([id]);
+        break;
+      }
+      case "bookmark": {
+        const id = genBlockId();
+        const m = new Y.Map();
+        m.set("id", id);
+        m.set("type", "bookmark");
+        m.set("viewMode", "card");
+        m.set("src", block.url || null);
+        m.set("color", "yellow-green");
+
+        blocksMap!.set(id, m);
+        rootChildren!.push([id]);
+        break;
+      }
+      case "outline": {
+        const id = genBlockId();
+        const m = new Y.Map();
+        m.set("id", id);
+        m.set("type", "outline");
+        m.set("bordered", block.bordered ?? true);
+        m.set("numbered", block.numbered ?? true);
+        m.set("expanded", block.expanded ?? true);
+
+        blocksMap!.set(id, m);
+        rootChildren!.push([id]);
+        break;
+      }
+      case "step-aggregator": {
+        const id = genBlockId();
+        const m = new Y.Map();
+        m.set("id", id);
+        m.set("type", "step-aggregator");
 
         blocksMap!.set(id, m);
         rootChildren!.push([id]);

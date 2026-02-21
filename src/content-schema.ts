@@ -30,9 +30,21 @@
 /*  Inline text segments                                               */
 /* ------------------------------------------------------------------ */
 
-/** A segment of text with optional inline formatting */
+export interface InlineMention { type: "workspace" | "folder" | "note"; object_id: string; name: string; }
+export interface InlineDropdown { selected: number; labels: { id: number; name: string; color: string }[]; }
+export interface InlineDate { value: number; name: string; }
+export interface InlineProgress { value: number | string; }
+
+export type InlineEmbed =
+  | { mention: InlineMention }
+  | { "dropdown-list": InlineDropdown }
+  | { date: InlineDate }
+  | { progress: string | number };
+
+/** A segment of text with optional inline formatting or an embedded interactive widget */
 export interface InlineSegment {
-  text: string;
+  text?: string;
+  embed?: InlineEmbed;
   bold?: boolean;
   italic?: boolean;
   strikethrough?: boolean;
@@ -262,6 +274,31 @@ export interface StepBlock {
   children: ContentBlock[];
 }
 
+export interface ImageBlock {
+  type: "image";
+  src: string;
+  width?: number;
+  ratio?: number;
+  originalSize?: { width: number; height: number };
+  caption?: InlineSegment[];
+}
+
+export interface BookmarkBlock {
+  type: "bookmark";
+  url?: string;
+}
+
+export interface OutlineBlock {
+  type: "outline";
+  bordered?: boolean;
+  numbered?: boolean;
+  expanded?: boolean;
+}
+
+export interface StepAggregatorBlock {
+  type: "step-aggregator";
+}
+
 /** Union of all supported block types */
 export type ContentBlock =
   | ParagraphBlock
@@ -283,4 +320,8 @@ export type ContentBlock =
   | BoardBlock
   | TasksListBlock
   | ButtonBlock
-  | StepBlock;
+  | StepBlock
+  | ImageBlock
+  | BookmarkBlock
+  | OutlineBlock
+  | StepAggregatorBlock;
