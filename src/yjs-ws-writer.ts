@@ -100,101 +100,209 @@ function genBlockId(): string {
 }
 
 /**
- * Build Y.Doc content blocks matching Fusebase's schema.
+ * Build Y.Doc content blocks matching Fusebase's exact browser schema.
  *
- * Y.Doc structure (TOP-LEVEL shared types, not nested under root):
- *   doc.getMap("blocks")          — Y.Map<string, Y.Map> — block data keyed by ID
- *   doc.getArray("children")      — Y.Array<string> — ordered block IDs
- *   doc.getArray("rootChildren")  — Y.Array<string> — same as children (top-level blocks)
+ * Y.Doc structure (decoded from live browser CDP capture):
+ *   doc.getMap("blocks")          — Y.Map<string, Y.Map> — block data keyed by ID (TOP-LEVEL)
+ *   doc.getArray("rootChildren")  — Y.Array<string> — ordered block IDs (TOP-LEVEL)
+ *   doc.getMap("root").get("children") — Y.Array<string> — EMPTY (vestige, must exist)
  *
- * Each block (Y.Map):
- *   id, type, number, indent, selectorId, capsule, contentId, mode, parent
- *   characters (Y.Array) — individual chars + format toggles
+ * Each block (Y.Map) — ONLY these fields (matching browser exactly):
+ *   id         (string)
+ *   type       (string)   — "paragraph", "hLarge", etc.
+ *   indent     (number)
+ *   color      (string)   — "transparent"
+ *   align      (string)   — "left"
+ *   characters (Y.Text)   — Quill delta formatted text (NOT Y.Array!)
+ *
+ * CRITICAL: characters is Y.Text, supporting .insert(pos, text, {bold: true}) etc.
+ * Every block's characters MUST end with "\n".
  */
 function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
-  // CRITICAL: Use top-level shared types, NOT nested under doc.getMap("root")
-  // The browser editor reads from doc.getMap("blocks"), doc.getArray("children"), etc.
   const blocksMap = doc.getMap("blocks");
-  const children = doc.getArray<string>("children");
   const rootChildren = doc.getArray<string>("rootChildren");
 
-  function addInlineChars(chars: Y.Array<unknown>, segments: { text: string; bold?: boolean; italic?: boolean }[]) {
+  /**
+   * Insert formatted segments into a Y.Text at the given offset.
+   * Returns the new offset after insertion.
+   */
+  function insertInlineText(ytext: Y.Text, offset: number, segments: { text: string; bold?: boolean; italic?: boolean; strikethrough?: boolean; underline?: boolean; code?: boolean; link?: string }[]): number {
     for (const seg of segments) {
-      if (seg.bold) chars.push([{ bold: "true" }]);
-      if (seg.italic) chars.push([{ italic: "true" }]);
-      for (const ch of seg.text) chars.push([ch]);
-      if (seg.italic) chars.push([{ italic: "null" }]);
-      if (seg.bold) chars.push([{ bold: "null" }]);
+      const attrs: Record<string, any> = {};
+      if (seg.bold) attrs.bold = true;              // MUST be boolean true, not string "true"
+      if (seg.italic) attrs.italic = true;
+      if (seg.strikethrough) attrs.strikethrough = true;
+      if (seg.underline) attrs.underline = true;
+      if (seg.code) attrs.code = true;
+      if (seg.link) attrs.link = seg.link;           // link attr is a string URL
+      const hasAttrs = Object.keys(attrs).length > 0;
+      ytext.insert(offset, seg.text, hasAttrs ? attrs : undefined);
+      offset += seg.text.length;
     }
+    // CRITICAL: Every block's characters MUST end with "\n" — Fusebase block terminator
+    ytext.insert(offset, "\n");
+    offset += 1;
+    return offset;
   }
 
-  function addBlock(type: string, props: Record<string, unknown> = {}) {
+  /**
+   * Add a block to the Y.Doc. Returns the block ID.
+   * For blocks with children (toggle, collapsible), set props.childIds to the array of child block IDs.
+   * For blocks without text (hLine), set props.noCharacters = true.
+   */
+  function addBlock(type: string, props: Record<string, unknown> = {}): string {
     const id = genBlockId();
     const bm = new Y.Map();
-    // Exact 10-field structure matching browser capture — no extra fields
     bm.set("id", id);
     bm.set("type", type);
-    bm.set("number", "0");
+
+    // hLine blocks have only id + type — no other fields
+    if (props.noCharacters) {
+      blocksMap!.set(id, bm);
+      rootChildren!.push([id]);
+      return id;
+    }
+
     bm.set("indent", (props.indent as number) || 0);
-    bm.set("selectorId", "0");
-    bm.set("capsule", false);
-    bm.set("contentId", "");
-    bm.set("mode", "none");
-    bm.set("parent", "");
+    bm.set("color", (props.color as string) || "transparent");
+    bm.set("align", (props.align as string) || "left");
     if (props.language) bm.set("language", props.language);
-    if (props.characters) bm.set("characters", props.characters);
-    else bm.set("characters", new Y.Array());
+
+    // Toggle/collapsible blocks have children (array of child block IDs) and collapsed flag
+    if (props.childIds) {
+      const childArr = new Y.Array<string>();
+      childArr.push(props.childIds as string[]);
+      bm.set("children", childArr);
+      bm.set("collapsed", (props.collapsed as boolean) ?? false);
+    }
+
+    // characters is Y.Text with Quill delta formatting
+    // Callers must include trailing "\n" in the text content
+    const chars = (props.characters as Y.Text) || (() => { const t = new Y.Text(); t.insert(0, "\n"); return t; })();
+    bm.set("characters", chars);
     blocksMap!.set(id, bm);
-    children!.push([id]);
     rootChildren!.push([id]);
-    return bm;
+    return id;
+  }
+
+  /**
+   * Add a child block (not added to rootChildren — only referenced by parent's children array).
+   */
+  function addChildBlock(type: string, props: Record<string, unknown> = {}): string {
+    const id = genBlockId();
+    const bm = new Y.Map();
+    bm.set("id", id);
+    bm.set("type", type);
+    bm.set("indent", (props.indent as number) || 0);
+    bm.set("color", (props.color as string) || "transparent");
+    bm.set("align", (props.align as string) || "left");
+    const chars = (props.characters as Y.Text) || (() => { const t = new Y.Text(); t.insert(0, "\n"); return t; })();
+    bm.set("characters", chars);
+    blocksMap!.set(id, bm);
+    return id; // NOT added to rootChildren
   }
 
   for (const block of blocks) {
     switch (block.type) {
       case "heading": {
         const type = block.level === 1 ? "hLarge" : block.level === 2 ? "hMedium" : "hSmall";
-        const chars = new Y.Array();
-        addInlineChars(chars, block.children);
+        const chars = new Y.Text();
+        insertInlineText(chars, 0, block.children);
         addBlock(type, { characters: chars });
         break;
       }
       case "paragraph": {
-        const chars = new Y.Array();
-        addInlineChars(chars, block.children);
+        const chars = new Y.Text();
+        insertInlineText(chars, 0, block.children);
         addBlock("paragraph", { indent: block.indent, color: block.color, align: block.align, characters: chars });
         break;
       }
       case "list": {
         const listType = block.style === "bullet" ? "listItemBullet" : "listItemNumber";
         for (const item of block.items) {
-          const chars = new Y.Array();
-          addInlineChars(chars, item.children);
+          const chars = new Y.Text();
+          insertInlineText(chars, 0, item.children);
           addBlock(listType, { indent: item.indent, characters: chars });
         }
         break;
       }
       case "checklist": {
         for (const item of block.items) {
-          const chars = new Y.Array();
-          addInlineChars(chars, item.children);
+          const chars = new Y.Text();
+          insertInlineText(chars, 0, item.children);
           addBlock(item.checked ? "listItemChecked" : "listItemUnchecked", { characters: chars });
         }
         break;
       }
       case "divider":
-        addBlock("divider");
+        // Divider is Y.js type "hLine" — only has id + type, no characters
+        addBlock("hLine", { noCharacters: true });
         break;
       case "blockquote": {
-        const chars = new Y.Array();
-        addInlineChars(chars, block.children);
-        addBlock("blockQuote", { characters: chars });
+        const chars = new Y.Text();
+        insertInlineText(chars, 0, block.children);
+        addBlock("blockquote", { characters: chars });  // MUST be lowercase — "blockQuote" triggers version error
         break;
       }
       case "code": {
-        const chars = new Y.Array();
-        for (const ch of block.code) chars.push([ch]);
+        const chars = new Y.Text();
+        chars.insert(0, block.code + "\n");
         addBlock("code", { language: block.language, characters: chars });
+        break;
+      }
+      case "toggle": {
+        // Toggle block: parent block has characters (summary text) + children (array of child block IDs)
+        // Create child blocks first, then reference them in the parent
+        const childIds: string[] = [];
+        for (const child of block.children) {
+          // Recursively process child blocks but add them as child blocks (not root)
+          const childChars = new Y.Text();
+          if (child.type === "paragraph") {
+            insertInlineText(childChars, 0, child.children);
+            childIds.push(addChildBlock("paragraph", { characters: childChars }));
+          } else {
+            // For simplicity, treat other child types as paragraphs
+            insertInlineText(childChars, 0, [{ text: "(nested block)" }]);
+            childIds.push(addChildBlock("paragraph", { characters: childChars }));
+          }
+        }
+        const summaryChars = new Y.Text();
+        insertInlineText(summaryChars, 0, block.summary);
+        addBlock("toggle", {
+          characters: summaryChars,
+          childIds,
+          collapsed: block.collapsed ?? false,
+        });
+        break;
+      }
+      case "hint": {
+        // Hint/callout block — same structure as paragraph
+        const chars = new Y.Text();
+        insertInlineText(chars, 0, block.children);
+        addBlock("hint", { color: block.color || "transparent", characters: chars });
+        break;
+      }
+      case "collapsible-heading": {
+        // Collapsible heading: like toggle but with heading type name
+        const typeMap = { 1: "collapsibleHLarge", 2: "collapsibleHMedium", 3: "collapsibleHSmall" } as const;
+        const childIds: string[] = [];
+        for (const child of block.children) {
+          const childChars = new Y.Text();
+          if (child.type === "paragraph") {
+            insertInlineText(childChars, 0, child.children);
+            childIds.push(addChildBlock("paragraph", { characters: childChars }));
+          } else {
+            insertInlineText(childChars, 0, [{ text: "(nested block)" }]);
+            childIds.push(addChildBlock("paragraph", { characters: childChars }));
+          }
+        }
+        const summaryChars = new Y.Text();
+        insertInlineText(summaryChars, 0, block.summary);
+        addBlock(typeMap[block.level], {
+          characters: summaryChars,
+          childIds,
+          collapsed: block.collapsed ?? false,
+        });
         break;
       }
     }
@@ -287,7 +395,7 @@ export async function writeContentViaWebSocket(
     let resolved = false;
     const done = (result: { success: boolean; error?: string }) => {
       if (!resolved) { resolved = true; clearTimeout(timeoutId); resolve(result); }
-      try { ws.close(); } catch {}
+      try { ws.close(); } catch { }
     };
 
     const timeoutId = setTimeout(() => done({ success: false, error: "Timeout" }), timeout);
@@ -341,10 +449,10 @@ export async function writeContentViaWebSocket(
 
         // Apply server state using V2 encoding (encv2=true mode)
         let applied = false;
-        try { Y.applyUpdateV2(ydoc, updateData); applied = true; } catch {}
+        try { Y.applyUpdateV2(ydoc, updateData); applied = true; } catch { }
         if (!applied) {
           // Fallback to V1 just in case
-          try { Y.applyUpdate(ydoc, updateData); applied = true; } catch {}
+          try { Y.applyUpdate(ydoc, updateData); applied = true; } catch { }
         }
 
         if (!applied) {
@@ -358,13 +466,20 @@ export async function writeContentViaWebSocket(
 
           ydoc.transact(() => {
             if (replace) {
-              // Clear existing top-level shared types
-              const ch = ydoc.getArray<string>("children");
+              // Clear existing content from both structures
               const rch = ydoc.getArray<string>("rootChildren");
               const blk = ydoc.getMap("blocks");
-              if (ch.length > 0) ch.delete(0, ch.length);
               if (rch.length > 0) rch.delete(0, rch.length);
               for (const k of Array.from(blk.keys())) blk.delete(k);
+              // Also clear root.children if it exists (browser keeps it empty)
+              const root = ydoc.getMap("root");
+              const rootCh = root.get("children");
+              if (rootCh instanceof Y.Array && rootCh.length > 0) rootCh.delete(0, rootCh.length);
+            }
+            // Ensure root.children exists (browser creates it, even if empty)
+            const root = ydoc.getMap("root");
+            if (!root.has("children")) {
+              root.set("children", new Y.Array<string>());
             }
             addBlocksToDoc(ydoc, blocks);
           });
@@ -385,7 +500,7 @@ export async function writeContentViaWebSocket(
         const [uLen, uStart] = readVarUint(data, subOff);
         const updateData = data.slice(uStart, uStart + uLen);
         try { Y.applyUpdateV2(ydoc, updateData); } catch {
-          try { Y.applyUpdate(ydoc, updateData); } catch {}
+          try { Y.applyUpdate(ydoc, updateData); } catch { }
         }
       }
     });
