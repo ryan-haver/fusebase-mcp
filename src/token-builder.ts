@@ -40,9 +40,9 @@ function inlineToDeltas(segments: InlineSegment[]): DeltaOp[] {
     if (seg.italic) attrs.italic = true;
 
     if (Object.keys(attrs).length > 0) {
-      ops.push({ insert: seg.text, attributes: attrs });
+      ops.push({ insert: seg.text || "", attributes: attrs });
     } else {
-      ops.push({ insert: seg.text });
+      ops.push({ insert: seg.text || "" });
     }
   }
 

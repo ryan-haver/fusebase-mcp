@@ -45,8 +45,10 @@ function segmentsToCharacters(segments: InlineSegment[]): (string | Record<strin
     if (seg.italic) chars.push({ italic: "true" });
 
     // Insert text character by character (Fusebase stores individual characters)
-    for (const ch of seg.text) {
-      chars.push(ch);
+    if (seg.text) {
+      for (const ch of seg.text) {
+        chars.push(ch);
+      }
     }
 
     // Close formatting
