@@ -251,15 +251,33 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
         break;
       }
       case "code": {
+        const id = genBlockId();
+        const bm = new Y.Map();
+        bm.set("id", id);
+        bm.set("type", "syntax");
+        bm.set("setCursor", false);
+        bm.set("wrap", false);
+        bm.set("lineNumbers", true);
+        bm.set("align", "left");
+        bm.set("indent", 0);
+        bm.set("data-language", block.language || "plaintext");
         const chars = new Y.Text();
         chars.insert(0, block.code + "\n");
-        addBlock("syntax", {
-          "data-language": block.language || "plaintext",
-          setCursor: false,
-          wrap: false,
-          lineNumbers: true,
-          characters: chars
-        });
+        bm.set("characters", chars);
+        // Caption sub-block (required by FuseBase client)
+        const capId = genBlockId();
+        const cap = new Y.Map();
+        cap.set("id", capId);
+        cap.set("type", "caption");
+        cap.set("align", "left");
+        cap.set("indent", 0);
+        const capChars = new Y.Text();
+        capChars.insert(0, "\n");
+        cap.set("characters", capChars);
+        blocksMap!.set(capId, cap);
+        bm.set("caption", capId);
+        blocksMap!.set(id, bm);
+        rootChildren!.push([id]);
         break;
       }
       case "toggle": {
@@ -661,8 +679,13 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
         m.set("id", id);
         m.set("type", "bookmark");
         m.set("viewMode", "card");
+        m.set("name", null);
+        m.set("description", null);
+        m.set("attachmentGlobalId", null);
+        m.set("icon", null);
         m.set("src", block.url || null);
         m.set("color", "yellow-green");
+        m.set("previewId", null);
 
         blocksMap!.set(id, m);
         rootChildren!.push([id]);
@@ -673,6 +696,7 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
         const m = new Y.Map();
         m.set("id", id);
         m.set("type", "outline");
+        m.set("name", null);
         m.set("bordered", block.bordered ?? true);
         m.set("numbered", block.numbered ?? true);
         m.set("expanded", block.expanded ?? true);
