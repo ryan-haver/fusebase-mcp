@@ -207,6 +207,8 @@ export interface TableCellText {
   color?: string;
   /** Text alignment */
   align?: "left" | "center" | "right";
+  /** Vertical alignment */
+  valign?: "top" | "middle" | "bottom";
 }
 
 export interface TableCellSelect {
@@ -340,6 +342,8 @@ export type TableCell =
 export interface TableRow {
   /** Cells in the row. null/undefined entries become empty cells. */
   cells: (TableCell | null | undefined)[];
+  /** Row background color (e.g. "yellow", "indigo") */
+  color?: string;
 }
 
 /** 

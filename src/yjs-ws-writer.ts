@@ -444,6 +444,10 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
               if (cell.color) {
                 cellMap.set("color", cell.color);
               }
+              // Vertical alignment on the cell block
+              if (cell.valign) {
+                cellMap.set("valign", cell.valign);
+              }
               const textId = genBlockId();
               const tm = new Y.Map();
               tm.set("id", textId);
@@ -630,6 +634,10 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
           const rowKids = new Y.Array<string | false>();
           rowKids.push(cellIds);
           rm.set("children", rowKids);
+          // Row background color
+          if (row.color) {
+            rm.set("color", row.color);
+          }
           blocksMap!.set(rowId, rm);
           rowIds.push(rowId);
         }
