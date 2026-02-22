@@ -175,6 +175,8 @@ export interface ColumnFormat {
   symbolPosition?: "before" | "after";
   /** Number/Currency: decimal separator */
   decimalSeparator?: "point" | "comma";
+  /** Number/Currency: thousand separator */
+  thousandSeparator?: "comma" | "space" | "dot";
   /** Number/Currency: enable color numbers (negative=red) */
   colorNumbers?: boolean;
   /** Date columns: date display format */
@@ -314,7 +316,10 @@ export interface TableCellMention {
 
 export interface TableCellCollaborator {
   cellType: "collaborator";
-  // Collaborator cells reference workspace members; schema TBD for full implementation
+  /** User ID (numeric, from getWorkspaceMembers) */
+  userId: number;
+  /** Display name */
+  userName: string;
 }
 
 export interface TableCellAttachment {
