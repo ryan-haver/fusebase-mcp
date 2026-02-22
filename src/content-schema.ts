@@ -151,22 +151,66 @@ export interface CollapsibleHeadingBlock {
 /*  Tables                                                             */
 /* ------------------------------------------------------------------ */
 
-export type TableCellType = "text" | "singleselect" | "progress" | "checkbox" | "date";
+export type TableCellType =
+  | "text" | "number" | "currency"
+  | "checkbox" | "date"
+  | "singleselect" | "multiselect"
+  | "progress" | "rating"
+  | "link" | "mention" | "collaborator" | "attachment";
+
+export type NumberFormatType = "number" | "commas" | "percent";
+export type CurrencyType = "dollar" | "euro" | "yen" | "yuan" | "rouble" | "pound" | "rupee" | "hryvnia" | "won" | "frank" | "real" | "other";
+export type DateFormatType = "browser" | "dd/mm/yyyy" | "mm/dd/yyyy" | "yyyy/mm/dd" | "month_dd_yyyy";
+export type RatingIcon = "star" | "flag" | "heart";
+export type ProgressStyle = "colored" | "simple";
+
+export interface ColumnFormat {
+  /** Number cells: format type */
+  type?: NumberFormatType;
+  /** Currency columns: currency type */
+  currency?: CurrencyType;
+  /** Currency: custom symbol for "other" type */
+  customSymbol?: string;
+  /** Currency: symbol position */
+  symbolPosition?: "before" | "after";
+  /** Number/Currency: decimal separator */
+  decimalSeparator?: "point" | "comma";
+  /** Number/Currency: enable color numbers (negative=red) */
+  colorNumbers?: boolean;
+  /** Date columns: date display format */
+  dateFormat?: DateFormatType;
+  /** Date columns: show time */
+  showTime?: boolean;
+  /** Date columns: first day of week */
+  firstDayOfWeek?: "sunday" | "monday";
+  /** Rating columns: icon type */
+  ratingIcon?: RatingIcon;
+  /** Rating columns: max amount (1-10, default 5) */
+  ratingAmount?: number;
+  /** Progress columns: style */
+  progressStyle?: ProgressStyle;
+}
 
 export interface TableColumn {
   text: string;
   type: TableCellType;
-  /** Configuration for single-select columns. Key is arbitrary option ID. */
+  /** Configuration for single-select or multi-select columns. Key is option ID. */
   dbSelect?: Record<string, { name: string; style: string; color: string }>;
+  /** Column-level format options (number, currency, date, rating, progress) */
+  format?: ColumnFormat;
 }
 
 export interface TableCellText {
   cellType: "text";
   children: InlineSegment[];
+  /** Background color (e.g. "indigo", "yellow", "red") */
+  color?: string;
+  /** Text alignment */
+  align?: "left" | "center" | "right";
 }
 
 export interface TableCellSelect {
-  cellType: "singleselect";
+  cellType: "singleselect" | "multiselect";
   selected: string[];
 }
 
@@ -182,7 +226,101 @@ export interface TableCellCheckbox {
 
 export interface TableCellDate {
   cellType: "date";
-  timestamp: number; // MS timestamp
+  timestamp: number; // MS epoch
+}
+
+export interface TableCellNumber {
+  cellType: "number";
+  value: number;
+  /** Override column-level number format */
+  format?: { type: NumberFormatType };
+}
+
+export interface TableCellCurrency {
+  cellType: "currency";
+  value: number;
+  /** Override column-level currency format */
+  format?: { currency?: CurrencyType };
+}
+
+export interface TableCellLink {
+  cellType: "link";
+  url: string;
+  /** Display text label (different from URL) */
+  text?: string;
+}
+
+export interface TableCellRating {
+  cellType: "rating";
+  rating: number; // 0-5
+}
+
+export interface MentionDate {
+  mentionType: "date";
+  /** Display name: "Now", "Today", "Tomorrow", or custom label */
+  name: string;
+  /** Epoch ms timestamp */
+  value: number;
+  /** Optional date format string */
+  format?: string | null;
+}
+
+export interface MentionUser {
+  mentionType: "user";
+  /** Display name, e.g. "Ryan Haver" */
+  name: string;
+  /** Numeric user ID from workspace */
+  objectId: number;
+}
+
+export interface MentionFolder {
+  mentionType: "folder";
+  /** Display name, e.g. "Unsorted" */
+  name: string;
+  /** Folder ID (e.g. "default" for Unsorted) */
+  objectId: string;
+  /** Workspace ID */
+  workspaceId?: string;
+}
+
+export interface MentionWorkspace {
+  mentionType: "workspace";
+  /** Display name, e.g. "Inkabeam" */
+  name: string;
+  /** Workspace ID */
+  objectId: string;
+  /** Same as objectId for workspaces */
+  workspaceId?: string;
+}
+
+export interface MentionPage {
+  mentionType: "page";
+  /** Page title */
+  name: string;
+  /** Page ID (globalId) */
+  objectId: string;
+  /** Workspace ID */
+  workspaceId?: string;
+}
+
+export type MentionEmbed = MentionDate | MentionUser | MentionFolder | MentionWorkspace | MentionPage;
+
+export interface TableCellMention {
+  cellType: "mention";
+  mention: MentionEmbed;
+}
+
+export interface TableCellCollaborator {
+  cellType: "collaborator";
+  // Collaborator cells reference workspace members; schema TBD for full implementation
+}
+
+export interface TableCellAttachment {
+  cellType: "attachment";
+  /** Attachment global ID (from uploaded file) */
+  attachmentGlobalId: string;
+  /** File source path (e.g. "/box/attachment/{wsId}/{attachId}/filename.png") */
+  src: string;
 }
 
 export type TableCell =
@@ -190,10 +328,18 @@ export type TableCell =
   | TableCellSelect
   | TableCellProgress
   | TableCellCheckbox
-  | TableCellDate;
+  | TableCellDate
+  | TableCellNumber
+  | TableCellCurrency
+  | TableCellLink
+  | TableCellRating
+  | TableCellMention
+  | TableCellCollaborator
+  | TableCellAttachment;
 
 export interface TableRow {
-  cells: TableCell[];
+  /** Cells in the row. null/undefined entries become empty cells. */
+  cells: (TableCell | null | undefined)[];
 }
 
 /** 
