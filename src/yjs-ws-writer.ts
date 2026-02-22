@@ -477,6 +477,20 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
               cellMap.set("type", "tableCellDate");
               cellMap.set("cellType", "date");
               cellMap.set("timestamp", cell.timestamp);
+              // Per-cell date format (FuseBase reads format from cell, not column)
+              const dateCol = block.columns[ci];
+              const dateFmt = dateCol?.format?.dateFormat;
+              if (dateFmt) {
+                const dateFmtMap: Record<string, string> = {
+                  "yyyy/mm/dd": "yyyyddmm",
+                  "dd/mm/yyyy": "ddmmyyyy",
+                  "mm/dd/yyyy": "mmddyyyy",
+                  "month_dd_yyyy": "month_dd_yyyy",
+                  "browser": "browser",
+                };
+                const cellFmtType = dateFmtMap[dateFmt] || dateFmt;
+                cellMap.set("format", { type: cellFmtType });
+              }
             } else if (cell.cellType === "number") {
               cellMap.set("type", "tableCellNumber");
               cellMap.set("cellType", "number");
@@ -527,6 +541,11 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
               cellMap.set("type", "tableCellRating");
               cellMap.set("cellType", "rating");
               cellMap.set("rating", cell.rating ?? 0);
+              // Per-cell rating format (FuseBase reads icon from cell, not column)
+              const ratingCol = block.columns[ci];
+              if (ratingCol?.format?.ratingIcon) {
+                cellMap.set("format", { type: ratingCol.format.ratingIcon });
+              }
             } else if (cell.cellType === "multiselect") {
               cellMap.set("type", "tableCellSelect");
               cellMap.set("cellType", "multiselect");
