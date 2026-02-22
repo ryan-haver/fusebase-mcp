@@ -473,6 +473,11 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
               cellMap.set("type", "tableCellProgress");
               cellMap.set("cellType", "progress");
               cellMap.set("progress", cell.progress);
+              // Per-cell progress style (FuseBase reads style from cell, not column)
+              const progressCol = block.columns[ci];
+              if (progressCol?.format?.progressStyle) {
+                cellMap.set("format", { type: progressCol.format.progressStyle });
+              }
             } else if (cell.cellType === "checkbox") {
               cellMap.set("type", "tableCellCheckbox");
               cellMap.set("cellType", "checkbox");
