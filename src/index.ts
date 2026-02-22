@@ -909,6 +909,51 @@ function registerExtendedTools() {
     },
   );
 
+  // === File Upload ===
+
+  server.tool(
+    "upload_file",
+    "Upload a file to a FuseBase page. The file becomes an attachment on the page. Returns the attachment ID and src path that can be used in content blocks (e.g. image blocks, file blocks, table attachment cells). File content must be base64-encoded.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      pageId: z.string().describe("Page (note) ID to attach the file to"),
+      base64Content: z
+        .string()
+        .describe("Base64-encoded file content"),
+      filename: z.string().describe("File name with extension (e.g. 'photo.png')"),
+      mime: z
+        .string()
+        .describe("MIME type (e.g. 'image/png', 'application/pdf', 'text/plain')"),
+      role: z
+        .enum(["attachment", "inline"])
+        .optional()
+        .describe("Role of the file: 'attachment' (default) or 'inline' for embedded images"),
+    },
+    async ({ workspaceId, pageId, base64Content, filename, mime, role }) => {
+      try {
+        const fileBuffer = Buffer.from(base64Content, "base64");
+        const result = await client.uploadFile(
+          workspaceId,
+          pageId,
+          fileBuffer,
+          filename,
+          mime,
+          role || "attachment",
+        );
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
   // === Labels ===
 
   server.tool(

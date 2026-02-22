@@ -422,6 +422,79 @@ export class FusebaseClient {
     );
   }
 
+  /**
+   * Upload a file to FuseBase and associate it with a page.
+   * Two-step process:
+   * 1. POST multipart to /v3/api/web-editor/file/v2-upload → returns temp path
+   * 2. POST JSON to /v2/api/web-editor/file/attachment → creates attachment record
+   *
+   * @returns Attachment metadata including globalId and src path
+   */
+  async uploadFile(
+    workspaceId: string,
+    noteId: string,
+    fileContent: Buffer | Uint8Array,
+    filename: string,
+    mime: string,
+    role: "attachment" | "inline" = "attachment",
+  ): Promise<{
+    attachmentId: string;
+    src: string;
+    displayName: string;
+    mime: string;
+  }> {
+    // Step 1: Upload file to temp storage
+    const formData = new FormData();
+    const blob = new Blob([new Uint8Array(fileContent) as BlobPart], { type: mime });
+    formData.append("file", blob, filename);
+
+    const uploadRes = await fetch(
+      `${this.baseUrl}/v3/api/web-editor/file/v2-upload`,
+      {
+        method: "POST",
+        headers: { cookie: this.cookie },
+        body: formData,
+        signal: AbortSignal.timeout(TIMEOUT_WRITE),
+      },
+    );
+
+    if (!uploadRes.ok) {
+      const text = await uploadRes.text().catch(() => "");
+      throw new Error(
+        `File upload failed: ${uploadRes.status} ${uploadRes.statusText}\n${text}`,
+      );
+    }
+
+    const uploadResult = (await uploadRes.json()) as {
+      name: string;
+      type: string;
+      filename: string;
+      size: number;
+    };
+
+    // Step 2: Associate the uploaded file with the page as an attachment
+    const attachmentId = this.generateId();
+    await this.request<unknown>("/v2/api/web-editor/file/attachment", {
+      method: "POST",
+      body: JSON.stringify({
+        workspaceId,
+        attachmentId,
+        noteGlobalId: noteId,
+        source: { tempStoredFileName: uploadResult.name },
+        displayName: filename,
+        mime,
+        role,
+      }),
+    });
+
+    return {
+      attachmentId,
+      src: `/box/attachment/${workspaceId}/${attachmentId}/${filename}`,
+      displayName: filename,
+      mime,
+    };
+  }
+
   // ─── Tags & Labels ────────────────────────────────────────────
 
   /** Get tags for a workspace */
