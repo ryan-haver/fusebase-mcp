@@ -407,9 +407,11 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
           if (col.format) {
             const fmt: Record<string, any> = {};
             if (col.format.currency) fmt.currency = col.format.currency;
+            if (col.format.customSymbol) fmt.customSymbol = col.format.customSymbol;
             if (col.format.type) fmt.type = col.format.type;
             if (col.format.symbolPosition) fmt.symbolPosition = col.format.symbolPosition;
             if (col.format.decimalSeparator) fmt.decimalSeparator = col.format.decimalSeparator;
+            if (col.format.thousandSeparator) fmt.thousandSeparator = col.format.thousandSeparator;
             if (col.format.colorNumbers) fmt.colorNumbers = col.format.colorNumbers;
             if (col.format.dateFormat) fmt.dateFormat = col.format.dateFormat;
             if (col.format.showTime) fmt.showTime = col.format.showTime;
@@ -627,6 +629,29 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
               const menKids = new Y.Array<string>();
               menKids.push([textId]);
               cellMap.set("children", menKids);
+            } else if (cell.cellType === "collaborator") {
+              cellMap.set("type", "tableCellCollaborator");
+              cellMap.set("cellType", "collaborator");
+              const textId = genBlockId();
+              const tm2 = new Y.Map();
+              tm2.set("id", textId);
+              tm2.set("type", "tableText");
+              const collabChars = new Y.Text();
+              const embedId = Math.random().toString(16).slice(2, 8);
+              collabChars.insertEmbed(0, {
+                mention: {
+                  type: "user",
+                  object_id: cell.userId,
+                  id: embedId,
+                  name: cell.userName,
+                },
+              });
+              collabChars.insert(1, "\n");
+              tm2.set("characters", collabChars);
+              blocksMap!.set(textId, tm2);
+              const collabKids = new Y.Array<string>();
+              collabKids.push([textId]);
+              cellMap.set("children", collabKids);
             }
 
             blocksMap!.set(cellId, cellMap);
