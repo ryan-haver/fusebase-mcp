@@ -20,7 +20,7 @@ const HOST = process.env.FUSEBASE_HOST || "inkabeam.nimbusweb.me";
 const WS_ID = process.env.FUSEBASE_WORKSPACE_ID || "45h7lom5ryjak34u";
 const COOKIE = process.env.FUSEBASE_COOKIE || loadEncryptedCookie()?.cookie!;
 
-async function dumpPage(pageId: string) {
+async function dumpColumns(pageId: string) {
     const res = await fetch(`https://${HOST}/dump/${WS_ID}/${pageId}`, {
         headers: { cookie: COOKIE },
     });
@@ -33,41 +33,24 @@ async function dumpPage(pageId: string) {
     Y.applyUpdate(doc, data);
 
     const blocks = doc.getMap("blocks");
-    const rootChildren = doc.getArray("rootChildren");
-
-    console.log(`Total blocks: ${blocks.size}`);
-    console.log(`Root children: ${rootChildren.length}\n`);
-
     for (const [key, val] of blocks.entries()) {
         if (val instanceof Y.Map) {
             const m = val as Y.Map<any>;
-            console.log(`Block "${key}":`);
-            for (const [k, v] of m.entries()) {
-                if (v instanceof Y.Text) {
-                    const delta = v.toDelta();
-                    console.log(`  ${k}: Y.Text delta: ${JSON.stringify(delta).substring(0, 500)}`);
-                } else if (v instanceof Y.Array) {
-                    const items = v.toArray();
-                    console.log(`  ${k}: Y.Array(${JSON.stringify(items)})`);
-                } else if (v instanceof Y.Map) {
-                    const obj: Record<string, any> = {};
-                    for (const [mk, mv] of v.entries()) obj[mk] = mv;
-                    console.log(`  ${k}: Y.Map(${JSON.stringify(obj)})`);
-                } else if (typeof v === "object" && v !== null) {
-                    console.log(`  ${k}: ${JSON.stringify(v)}`);
-                } else {
-                    console.log(`  ${k}: ${JSON.stringify(v)}`);
+            const type = m.get("type");
+            if (type === "column") {
+                console.log(`\nColumn "${key}":`);
+                for (const [k, v] of m.entries()) {
+                    if (v instanceof Y.Map) {
+                        const obj: Record<string, any> = {};
+                        for (const [mk, mv] of v.entries()) obj[mk] = mv;
+                        console.log(`  ${k}: Y.Map(${JSON.stringify(obj)})`);
+                    } else {
+                        console.log(`  ${k}: ${JSON.stringify(v)}`);
+                    }
                 }
             }
-            console.log();
         }
-    }
-
-    console.log("Root children order:");
-    for (let i = 0; i < rootChildren.length; i++) {
-        const item = rootChildren.get(i);
-        console.log(`  [${i}]: ${JSON.stringify(item)}`);
     }
 }
 
-dumpPage("I1XIyTUrhQMTDaJE").catch(console.error);
+await dumpColumns("oYAn36ndBfNZlsf1");

@@ -33,41 +33,33 @@ async function dumpPage(pageId: string) {
     Y.applyUpdate(doc, data);
 
     const blocks = doc.getMap("blocks");
-    const rootChildren = doc.getArray("rootChildren");
-
-    console.log(`Total blocks: ${blocks.size}`);
-    console.log(`Root children: ${rootChildren.length}\n`);
-
+    // Only show column and rating-related blocks
     for (const [key, val] of blocks.entries()) {
         if (val instanceof Y.Map) {
             const m = val as Y.Map<any>;
-            console.log(`Block "${key}":`);
-            for (const [k, v] of m.entries()) {
-                if (v instanceof Y.Text) {
-                    const delta = v.toDelta();
-                    console.log(`  ${k}: Y.Text delta: ${JSON.stringify(delta).substring(0, 500)}`);
-                } else if (v instanceof Y.Array) {
-                    const items = v.toArray();
-                    console.log(`  ${k}: Y.Array(${JSON.stringify(items)})`);
-                } else if (v instanceof Y.Map) {
-                    const obj: Record<string, any> = {};
-                    for (const [mk, mv] of v.entries()) obj[mk] = mv;
-                    console.log(`  ${k}: Y.Map(${JSON.stringify(obj)})`);
-                } else if (typeof v === "object" && v !== null) {
-                    console.log(`  ${k}: ${JSON.stringify(v)}`);
-                } else {
-                    console.log(`  ${k}: ${JSON.stringify(v)}`);
+            const type = m.get("type");
+            const columnType = m.get("columnType");
+            const cellType = m.get("cellType");
+            // Show columns and rating cells
+            if (type === "column" || cellType === "rating" || cellType === "date") {
+                console.log(`Block "${key}":`);
+                for (const [k, v] of m.entries()) {
+                    if (v instanceof Y.Map) {
+                        const obj: Record<string, any> = {};
+                        for (const [mk, mv] of v.entries()) obj[mk] = mv;
+                        console.log(`  ${k}: ${JSON.stringify(obj)}`);
+                    } else {
+                        console.log(`  ${k}: ${JSON.stringify(v)}`);
+                    }
                 }
+                console.log();
             }
-            console.log();
         }
-    }
-
-    console.log("Root children order:");
-    for (let i = 0; i < rootChildren.length; i++) {
-        const item = rootChildren.get(i);
-        console.log(`  [${i}]: ${JSON.stringify(item)}`);
     }
 }
 
-dumpPage("I1XIyTUrhQMTDaJE").catch(console.error);
+// Dump both pages
+console.log("=== Format Properties Test (oYAn36ndBfNZlsf1) ===\n");
+await dumpPage("oYAn36ndBfNZlsf1");
+console.log("\n=== Manual Table (I1XIyTUrhQMTDaJE) ===\n");
+await dumpPage("I1XIyTUrhQMTDaJE");

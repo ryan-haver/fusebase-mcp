@@ -122,10 +122,6 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
   const blocksMap = doc.getMap("blocks");
   const rootChildren = doc.getArray<string>("rootChildren");
 
-  /**
-   * Insert formatted segments into a Y.Text at the given offset.
-   * Returns the new offset after insertion.
-   */
   function insertInlineText(ytext: Y.Text, offset: number, segments: { text?: string; embed?: any; bold?: boolean; italic?: boolean; strikethrough?: boolean; underline?: boolean; code?: boolean; link?: string }[]): number {
     for (const seg of segments) {
       const attrs: Record<string, any> = {};
@@ -180,6 +176,14 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
       childArr.push(props.childIds as string[]);
       bm.set("children", childArr);
       bm.set("collapsed", (props.collapsed as boolean) ?? false);
+    } else if (props.collapsed !== undefined) {
+      // List items need collapsed: false even without children
+      bm.set("collapsed", props.collapsed as boolean);
+    }
+
+    // Checkbox list items have a checked property
+    if (props.checked !== undefined) {
+      bm.set("checked", props.checked as boolean);
     }
 
     // characters is Y.Text with Quill delta formatting
@@ -224,20 +228,68 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
         break;
       }
       case "list": {
+        // FuseBase wraps list items in a parent "list" container block
         const listType = block.style === "bullet" ? "listItemBullet" : "listItemNumber";
+        const itemIds: string[] = [];
         for (const item of block.items) {
+          const itemId = genBlockId();
+          const itemBm = new Y.Map();
+          itemBm.set("id", itemId);
+          itemBm.set("type", listType);
+          itemBm.set("align", "left");
+          itemBm.set("indent", (item.indent as number) || 0);
+          itemBm.set("color", "transparent");
+          itemBm.set("collapsed", false);
           const chars = new Y.Text();
           insertInlineText(chars, 0, item.children);
-          addBlock(listType, { indent: item.indent, characters: chars });
+          itemBm.set("characters", chars);
+          blocksMap!.set(itemId, itemBm);
+          itemIds.push(itemId);
         }
+        // Parent list container
+        const listId = genBlockId();
+        const listBm = new Y.Map();
+        listBm.set("id", listId);
+        listBm.set("type", "list");
+        listBm.set("number-list-template", "decimal-all");
+        listBm.set("bullet-list-template", ["circle"]);
+        const childArr = new Y.Array<string>();
+        childArr.push(itemIds);
+        listBm.set("children", childArr);
+        blocksMap!.set(listId, listBm);
+        rootChildren!.push([listId]);
         break;
       }
       case "checklist": {
+        // Checkboxes also wrapped in a parent "list" container
+        const itemIds: string[] = [];
         for (const item of block.items) {
+          const itemId = genBlockId();
+          const itemBm = new Y.Map();
+          itemBm.set("id", itemId);
+          itemBm.set("type", "listItemCheckbox");
+          itemBm.set("checked", item.checked ?? false);
+          itemBm.set("align", "left");
+          itemBm.set("indent", 0);
+          itemBm.set("color", "transparent");
+          itemBm.set("collapsed", false);
           const chars = new Y.Text();
           insertInlineText(chars, 0, item.children);
-          addBlock(item.checked ? "listItemChecked" : "listItemUnchecked", { characters: chars });
+          itemBm.set("characters", chars);
+          blocksMap!.set(itemId, itemBm);
+          itemIds.push(itemId);
         }
+        const listId = genBlockId();
+        const listBm = new Y.Map();
+        listBm.set("id", listId);
+        listBm.set("type", "list");
+        listBm.set("number-list-template", "decimal-all");
+        listBm.set("bullet-list-template", ["circle"]);
+        const childArr = new Y.Array<string>();
+        childArr.push(itemIds);
+        listBm.set("children", childArr);
+        blocksMap!.set(listId, listBm);
+        rootChildren!.push([listId]);
         break;
       }
       case "divider":
@@ -313,8 +365,8 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
         break;
       }
       case "collapsible-heading": {
-        // Collapsible heading: like toggle but with heading type name
-        const typeMap = { 1: "collapsibleHLarge", 2: "collapsibleHMedium", 3: "collapsibleHSmall" } as const;
+        // Collapsible heading: regular heading type with children + collapsed (same structure as toggle)
+        const typeMap = { 1: "hLarge", 2: "hMedium", 3: "hSmall" } as const;
         const childIds: string[] = [];
         for (const child of block.children) {
           const childChars = new Y.Text();
@@ -336,17 +388,36 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
         break;
       }
       case "table": {
-        // Create table, columns, and rows
+        // Create columns — native schema: text columns have only id+type,
+        // non-text columns add columnType (and dbSelect for singleselect)
         const colIds: string[] = [];
         for (const col of block.columns) {
           const colId = genBlockId();
           const cm = new Y.Map();
           cm.set("id", colId);
           cm.set("type", "column");
-          cm.set("text", col.text);
-          cm.set("columnType", col.type);
-          if (col.type === "singleselect" && col.dbSelect) {
+          // Only set columnType for non-text columns (text is the default)
+          if (col.type && col.type !== "text") {
+            cm.set("columnType", col.type);
+          }
+          if ((col.type === "singleselect" || col.type === "multiselect") && col.dbSelect) {
             cm.set("dbSelect", col.dbSelect);
+          }
+          // Column-level format options
+          if (col.format) {
+            const fmt: Record<string, any> = {};
+            if (col.format.currency) fmt.currency = col.format.currency;
+            if (col.format.type) fmt.type = col.format.type;
+            if (col.format.symbolPosition) fmt.symbolPosition = col.format.symbolPosition;
+            if (col.format.decimalSeparator) fmt.decimalSeparator = col.format.decimalSeparator;
+            if (col.format.colorNumbers) fmt.colorNumbers = col.format.colorNumbers;
+            if (col.format.dateFormat) fmt.dateFormat = col.format.dateFormat;
+            if (col.format.showTime) fmt.showTime = col.format.showTime;
+            if (col.format.firstDayOfWeek) fmt.firstDayOfWeek = col.format.firstDayOfWeek;
+            if (col.format.ratingIcon) fmt.ratingIcon = col.format.ratingIcon;
+            if (col.format.ratingAmount) fmt.ratingAmount = col.format.ratingAmount;
+            if (col.format.progressStyle) fmt.progressStyle = col.format.progressStyle;
+            if (Object.keys(fmt).length > 0) cm.set("format", fmt);
           }
           blocksMap!.set(colId, cm);
           colIds.push(colId);
@@ -354,8 +425,14 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
 
         const rowIds: string[] = [];
         for (const row of block.rows) {
-          const cellIds: string[] = [];
-          for (const cell of row.cells) {
+          const cellIds: (string | false)[] = [];
+          for (let ci = 0; ci < row.cells.length; ci++) {
+            const cell = row.cells[ci];
+            // null/undefined cell = empty (false in Y.Array)
+            if (!cell) {
+              cellIds.push(false);
+              continue;
+            }
             const cellId = genBlockId();
             const cellMap = new Y.Map();
             cellMap.set("id", cellId);
@@ -363,6 +440,10 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
             if (cell.cellType === "text") {
               cellMap.set("type", "tableCellText");
               cellMap.set("cellType", "text");
+              // Background color on the cell block
+              if (cell.color) {
+                cellMap.set("color", cell.color);
+              }
               const textId = genBlockId();
               const tm = new Y.Map();
               tm.set("id", textId);
@@ -370,6 +451,10 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
               const chars = new Y.Text();
               insertInlineText(chars, 0, cell.children);
               tm.set("characters", chars);
+              // Text alignment on the tableText block
+              if (cell.align) {
+                tm.set("align", cell.align);
+              }
               blocksMap!.set(textId, tm);
               const kids = new Y.Array<string>();
               kids.push([textId]);
@@ -392,6 +477,128 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
               cellMap.set("type", "tableCellDate");
               cellMap.set("cellType", "date");
               cellMap.set("timestamp", cell.timestamp);
+            } else if (cell.cellType === "number") {
+              cellMap.set("type", "tableCellNumber");
+              cellMap.set("cellType", "number");
+              // Cell-level number format override
+              if (cell.format) cellMap.set("format", cell.format);
+              // Number cells use children + tableText (same as text cells)
+              const textId = genBlockId();
+              const tm2 = new Y.Map();
+              tm2.set("id", textId);
+              tm2.set("type", "tableText");
+              const numChars = new Y.Text();
+              numChars.insert(0, `${cell.value ?? 0}\n`);
+              tm2.set("characters", numChars);
+              blocksMap!.set(textId, tm2);
+              const numKids = new Y.Array<string>();
+              numKids.push([textId]);
+              cellMap.set("children", numKids);
+            } else if (cell.cellType === "currency") {
+              cellMap.set("type", "tableCellCurrency");
+              cellMap.set("cellType", "currency");
+              const textId = genBlockId();
+              const tm2 = new Y.Map();
+              tm2.set("id", textId);
+              tm2.set("type", "tableText");
+              const curChars = new Y.Text();
+              curChars.insert(0, `${cell.value ?? 0}\n`);
+              tm2.set("characters", curChars);
+              blocksMap!.set(textId, tm2);
+              const curKids = new Y.Array<string>();
+              curKids.push([textId]);
+              cellMap.set("children", curKids);
+            } else if (cell.cellType === "link") {
+              cellMap.set("type", "tableCellLink");
+              cellMap.set("cellType", "link");
+              const textId = genBlockId();
+              const tm2 = new Y.Map();
+              tm2.set("id", textId);
+              tm2.set("type", "tableText");
+              const linkChars = new Y.Text();
+              const linkText = cell.text || cell.url || "";
+              linkChars.insert(0, linkText, { link: cell.url });
+              tm2.set("characters", linkChars);
+              blocksMap!.set(textId, tm2);
+              const linkKids = new Y.Array<string>();
+              linkKids.push([textId]);
+              cellMap.set("children", linkKids);
+            } else if (cell.cellType === "rating") {
+              cellMap.set("type", "tableCellRating");
+              cellMap.set("cellType", "rating");
+              cellMap.set("rating", cell.rating ?? 0);
+            } else if (cell.cellType === "multiselect") {
+              cellMap.set("type", "tableCellSelect");
+              cellMap.set("cellType", "multiselect");
+              const sel = new Y.Array<string>();
+              sel.push(cell.selected);
+              cellMap.set("selected", sel);
+            } else if (cell.cellType === "mention") {
+              cellMap.set("type", "tableCellMention");
+              cellMap.set("cellType", "mention");
+              const textId = genBlockId();
+              const tm2 = new Y.Map();
+              tm2.set("id", textId);
+              tm2.set("type", "tableText");
+              const menChars = new Y.Text();
+              const m = cell.mention;
+              // Generate a short hex ID for the embed
+              const embedId = Math.random().toString(16).slice(2, 8);
+              if (m.mentionType === "date") {
+                menChars.insertEmbed(0, {
+                  date: {
+                    dateId: embedId,
+                    value: m.value,
+                    format: m.format ?? null,
+                    name: m.name,
+                  },
+                });
+              } else if (m.mentionType === "user") {
+                menChars.insertEmbed(0, {
+                  mention: {
+                    type: "user",
+                    object_id: m.objectId,
+                    id: embedId,
+                    name: m.name,
+                  },
+                });
+              } else if (m.mentionType === "folder") {
+                menChars.insertEmbed(0, {
+                  mention: {
+                    type: "folder",
+                    object_id: m.objectId,
+                    id: embedId,
+                    name: m.name,
+                    workspace_id: m.workspaceId ?? "",
+                  },
+                });
+              } else if (m.mentionType === "workspace") {
+                menChars.insertEmbed(0, {
+                  mention: {
+                    type: "workspace",
+                    object_id: m.objectId,
+                    id: embedId,
+                    name: m.name,
+                    workspace_id: m.workspaceId ?? m.objectId,
+                  },
+                });
+              } else if (m.mentionType === "page") {
+                menChars.insertEmbed(0, {
+                  mention: {
+                    type: "note",
+                    object_id: m.objectId,
+                    id: embedId,
+                    name: m.name,
+                    workspace_id: m.workspaceId ?? "",
+                  },
+                });
+              }
+              menChars.insert(1, "\n");
+              tm2.set("characters", menChars);
+              blocksMap!.set(textId, tm2);
+              const menKids = new Y.Array<string>();
+              menKids.push([textId]);
+              cellMap.set("children", menKids);
             }
 
             blocksMap!.set(cellId, cellMap);
@@ -401,7 +608,7 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
           const rm = new Y.Map();
           rm.set("id", rowId);
           rm.set("type", "row");
-          const rowKids = new Y.Array<string>();
+          const rowKids = new Y.Array<string | false>();
           rowKids.push(cellIds);
           rm.set("children", rowKids);
           blocksMap!.set(rowId, rm);
