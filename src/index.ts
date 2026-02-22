@@ -1054,6 +1054,145 @@ function registerExtendedTools() {
     },
   );
 
+  // === Folder Creation ===
+
+  server.tool(
+    "create_folder",
+    "Create a new folder in a FuseBase workspace. Optionally specify a parentId to create a subfolder. Returns the created folder's metadata including its globalId.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      title: z.string().describe("Folder name"),
+      parentId: z
+        .string()
+        .optional()
+        .describe("Parent folder ID for nesting (default: workspace root)"),
+    },
+    async ({ workspaceId, title, parentId }) => {
+      try {
+        const result = await client.createFolder(
+          workspaceId,
+          title,
+          parentId || "default",
+        );
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  // === Page/Folder Updates ===
+
+  server.tool(
+    "update_page",
+    "Update a page or folder's properties — rename it, move it to a different folder, or both. Uses the upsert endpoint so partial updates are safe.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      pageId: z.string().describe("Page or folder ID to update"),
+      title: z
+        .string()
+        .optional()
+        .describe("New title/name for the page or folder"),
+      parentId: z
+        .string()
+        .optional()
+        .describe("New parent folder ID to move the page into"),
+    },
+    async ({ workspaceId, pageId, title, parentId }) => {
+      try {
+        const updates: { title?: string; parentId?: string } = {};
+        if (title) updates.title = title;
+        if (parentId) updates.parentId = parentId;
+        await client.upsertPage(workspaceId, pageId, updates);
+        const actions = [];
+        if (title) actions.push(`renamed to "${title}"`);
+        if (parentId) actions.push(`moved to folder ${parentId}`);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Page ${pageId} updated: ${actions.join(", ")}.`,
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  // === Task Mutations ===
+
+  server.tool(
+    "update_task",
+    "Update a task's properties — change status, priority, title, description, assignees, or due date. Uses PATCH semantics so only specified fields are changed.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      taskId: z.string().describe("Task ID to update"),
+      title: z.string().optional().describe("New task title"),
+      description: z.string().optional().describe("New task description"),
+      priority: z
+        .string()
+        .optional()
+        .describe("New priority (e.g. 'high', 'medium', 'low')"),
+      completed: z
+        .boolean()
+        .optional()
+        .describe("Set to true to mark task as complete"),
+    },
+    async ({ workspaceId, taskId, title, description, priority, completed }) => {
+      try {
+        const updates: Record<string, unknown> = {};
+        if (title !== undefined) updates.title = title;
+        if (description !== undefined) updates.description = description;
+        if (priority !== undefined) updates.priority = priority;
+        if (completed !== undefined) updates.completed = completed;
+        const result = await client.updateTask(workspaceId, taskId, updates);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "delete_task",
+    "Delete a task permanently from a workspace. This action is irreversible.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      taskId: z.string().describe("Task ID to delete"),
+    },
+    async ({ workspaceId, taskId }) => {
+      try {
+        await client.deleteTask(workspaceId, taskId);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Task ${taskId} deleted successfully.`,
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
   // === Page Mutations ===
 
   server.tool(

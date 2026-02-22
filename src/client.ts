@@ -388,6 +388,44 @@ export class FusebaseClient {
     });
   }
 
+  /** Create a new folder */
+  async createFolder(
+    workspaceId: string,
+    title: string,
+    parentId = "default",
+  ): Promise<FusebaseNote> {
+    const noteId = this.generateId();
+    return this.request<FusebaseNote>("/v2/api/web-editor/notes/create", {
+      method: "POST",
+      body: JSON.stringify({
+        workspaceId,
+        noteId,
+        note: {
+          textVersion: 2,
+          title,
+          parentId,
+          type: "folder",
+          is_portal_share: false,
+        },
+      }),
+    });
+  }
+
+  /** Update page/folder properties (rename, move, etc.) */
+  async upsertPage(
+    workspaceId: string,
+    noteId: string,
+    updates: { title?: string; parentId?: string },
+  ): Promise<unknown> {
+    return this.request<unknown>(
+      `/v2/api/workspaces/${workspaceId}/notes/${noteId}/upsert`,
+      {
+        method: "POST",
+        body: JSON.stringify({ note: updates }),
+      },
+    );
+  }
+
   // ─── Folders ──────────────────────────────────────────────────
 
   /** List folders in a workspace */
@@ -622,6 +660,29 @@ export class FusebaseClient {
         method: "POST",
         body: JSON.stringify(task),
       },
+    );
+  }
+
+  /** Update a task's properties */
+  async updateTask(
+    workspaceId: string,
+    taskId: string,
+    updates: Record<string, unknown>,
+  ): Promise<unknown> {
+    return this.request<unknown>(
+      `/gwapi2/ft%3Atasks/workspaces/${workspaceId}/tasks/${taskId}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(updates),
+      },
+    );
+  }
+
+  /** Delete a task */
+  async deleteTask(workspaceId: string, taskId: string): Promise<void> {
+    await this.request<void>(
+      `/gwapi2/ft%3Atasks/workspaces/${workspaceId}/tasks/${taskId}`,
+      { method: "DELETE" },
     );
   }
 
