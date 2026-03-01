@@ -80,8 +80,8 @@ export async function refreshCookies(config: AuthConfig): Promise<string> {
     ...(config.proxy ? {
       proxy: {
         server: config.proxy.server,
-        username: config.proxy.username,
-        password: config.proxy.password,
+        ...(config.proxy.username ? { username: config.proxy.username } : {}),
+        ...(config.proxy.password ? { password: config.proxy.password } : {}),
       },
     } : {}),
   });
@@ -120,6 +120,15 @@ export async function refreshCookies(config: AuthConfig): Promise<string> {
         await submitBtn.click();
 
         console.error("[auth] Credentials submitted — waiting for redirect...");
+
+        // Debug: wait a moment then check what happened
+        await page.waitForTimeout(5000);
+        console.error(`[auth] URL after submit: ${page.url()}`);
+
+        // Take diagnostic screenshot
+        const screenshotPath = path.resolve(import.meta.dirname ?? ".", "..", "data", "auth-debug.png");
+        await page.screenshot({ path: screenshotPath, fullPage: true });
+        console.error(`[auth] Screenshot saved: ${screenshotPath}`);
       } else {
         // Manual login
         console.error("[auth] Login required — waiting for user to authenticate...");
@@ -225,6 +234,11 @@ async function main() {
   if (autoMode || !noProxy) {
     const { loadCredentialStore } = await import(cryptoUrl);
     const store = loadCredentialStore();
+
+    // Use stored host if not set via CLI/env
+    if (!host && store?.host) {
+      host = store.host;
+    }
 
     if (autoMode) {
       if (!profile) {

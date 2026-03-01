@@ -1,26 +1,32 @@
-## Guide Integration — Complete ✅
+## Phase 6 — Execution Summary ✅
 
-### New Files
-| File | Purpose |
-|------|---------|
-| `src/guide-loader.ts` | In-memory index + scored search + content retrieval for 231 guides |
-| `.agent/skills/fusebase-guides/SKILL.md` | Agent skill with 3 access paths (MCP tools, file reads, NLM notebook) |
-| `scripts/test-guide-tools.ts` | Integration test (13 checks) |
+### Step 1 — Grid E2E Verification
+- Regression test: `test-regression.ts` — 20/20 pass (grid write→read round-trip verified)
 
-### Modified Files
-| File | Change |
-|------|--------|
-| `src/index.ts` | Added 3 core MCP tools: `search_guides`, `get_guide`, `list_guide_sections`. Core tool count 18 → 21. |
+### Step 2 — Grid Checks Added
+- `test-regression.ts`: Added 2 grid-specific checks ("Left column", "Right column") → 22 total
 
-### MCP Tool Descriptions
-| Tool | What it does |
-|------|-------------|
-| `search_guides` | Keyword search across 231 guide titles — returns section/slug/title |
-| `get_guide` | Returns full markdown content of a specific guide by section + slug |
-| `list_guide_sections` | Lists all 17 sections with guide counts |
+### Step 3 — Showcase Script Rewrite
+- `create-demo-page.ts`: Complete rewrite — 36 blocks covering all supported types:
+  - Headings (H1/H2/H3), inline formats (bold, italic, strike, underline, code, link)
+  - Bullet, numbered, and checklists
+  - Blockquote, code block (TypeScript)
+  - Toggle, hint/callout, collapsible heading
+  - Image, bookmark, outline, button, 3-step walkthrough
+  - 2-column grid layout with nested content
+  - 6-row table with phase status data
 
-### Verification
-- TypeScript compile: ✅ clean
-- Production build: ✅ clean
-- Integration test: ✅ 13/13 pass
-- MCP server: ✅ 21 core tools loaded
+### Step 4 — E2E Execution
+- Showcase page created: [USWRZtMpbT7q4D0v](https://inkabeam.nimbusweb.me/space/45h7lom5ryjak34u/page/USWRZtMpbT7q4D0v)
+- 36 blocks written successfully via Y.js WebSocket
+
+### All Phases Complete
+| Phase | Status |
+|-------|--------|
+| Phase 1 — Inline Formats + H3 | ✅ |
+| Phase 2 — Y.js HTML Decoder | ✅ |
+| Phase 3 — Core Text Blocks | ✅ |
+| Phase 4 — Media, Files & Embeds | ✅ |
+| Phase 5 — Tool Schemas & Docs | ✅ |
+| Phase 6 — Grid Layout & Showcase | ✅ |
+| Guide MCP Tools + Skill | ✅ |
