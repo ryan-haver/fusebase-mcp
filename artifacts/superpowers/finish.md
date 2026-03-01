@@ -1,32 +1,35 @@
-## Phase 6 — Execution Summary ✅
+# Phases 7-9 — Finish Summary
 
-### Step 1 — Grid E2E Verification
-- Regression test: `test-regression.ts` — 20/20 pass (grid write→read round-trip verified)
+## Changes Made
 
-### Step 2 — Grid Checks Added
-- `test-regression.ts`: Added 2 grid-specific checks ("Left column", "Right column") → 22 total
+### Phase 7 — Auth & Session Reliability
+- **`scripts/auth.ts`**: Added retry loop (max 3 attempts, 5s backoff) around browser launch + navigation + cookie capture
+- **`src/client.ts`**: 
+  - `refreshAuth(forceFresh?)`: Added cookie freshness pre-check (skips Playwright if cookies are still valid)
+  - 401 retry: Added cookie age logging and >20h warning with actionable suggestion
+- **`src/index.ts`**: Hardened `refresh_auth` MCP tool — returns cookie age/count on success, actionable proxy hint on timeout
 
-### Step 3 — Showcase Script Rewrite
-- `create-demo-page.ts`: Complete rewrite — 36 blocks covering all supported types:
-  - Headings (H1/H2/H3), inline formats (bold, italic, strike, underline, code, link)
-  - Bullet, numbered, and checklists
-  - Blockquote, code block (TypeScript)
-  - Toggle, hint/callout, collapsible heading
-  - Image, bookmark, outline, button, 3-step walkthrough
-  - 2-column grid layout with nested content
-  - 6-row table with phase status data
+### Phase 8 — File Upload & Attachments
+- **`src/client.ts`**: Added `downloadAttachment()` method (GET `/box/attachment/...`, returns base64)
+- **`src/index.ts`**: Added `upload_file` + `download_attachment` MCP tools (extended tier)
+- **`src/index.ts`**: Added `guessMime()` helper (16 common MIME types)
+- Pre-existing `uploadFile()` method already handled 2-step multipart upload
 
-### Step 4 — E2E Execution
-- Showcase page created: [USWRZtMpbT7q4D0v](https://inkabeam.nimbusweb.me/space/45h7lom5ryjak34u/page/USWRZtMpbT7q4D0v)
-- 36 blocks written successfully via Y.js WebSocket
+### Phase 9 — Database CRUD
+- **`src/client.ts`**: Added `listDatabases()`, `getDatabaseEntity()`, `createDatabaseEntity()` using dashboard-service proxy API
+- **`src/index.ts`**: Added `list_databases`, `get_database_entity`, `create_database_entity` MCP tools (extended tier)
+- Tool counts: 21 core + 33 extended = **54 total**
 
-### All Phases Complete
-| Phase | Status |
+## Verification
+
+| Check | Result |
 |-------|--------|
-| Phase 1 — Inline Formats + H3 | ✅ |
-| Phase 2 — Y.js HTML Decoder | ✅ |
-| Phase 3 — Core Text Blocks | ✅ |
-| Phase 4 — Media, Files & Embeds | ✅ |
-| Phase 5 — Tool Schemas & Docs | ✅ |
-| Phase 6 — Grid Layout & Showcase | ✅ |
-| Guide MCP Tools + Skill | ✅ |
+| `npm run build` (tsc) | ✅ Clean |
+| Tool count consistency | ✅ 54 across set_tool_tier, startup message |
+| z.record lint fix | ✅ Using `z.record(z.string(), z.unknown())` |
+
+## Follow-ups
+- **Token/session investigation**: FuseBase doesn't have OAuth refresh tokens, but worth checking if "remember me" cookies have longer expiry
+- **E2E testing**: Database CRUD endpoints (`/v4/api/proxy/dashboard-service/v1/`) are educated guesses and need live testing — the exact endpoint paths may need adjustment
+- **File upload E2E**: Test `upload_file` with a real file to verify the 2-step multipart flow still works
+- **README update**: Tool counts in README need updating (49→54)

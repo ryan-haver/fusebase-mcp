@@ -1,16 +1,18 @@
 /**
- * Local SOCKS5 proxy relay.
+ * Local HTTP CONNECT proxy relay.
  *
- * Starts a local unauthenticated SOCKS5 proxy that forwards connections
- * through an upstream authenticated SOCKS5 proxy (e.g., PIA).
+ * Exposes a local HTTP CONNECT proxy on 127.0.0.1 that forwards connections
+ * through an upstream authenticated SOCKS5 proxy (PIA).
  *
- * Chromium can't authenticate to SOCKS5 proxies, so this relay bridges the
- * gap: Chromium connects to localhost (no auth) → relay authenticates to PIA.
+ * Flow: Chromium → HTTP CONNECT (localhost, no auth) → SOCKS5 (PIA, with auth) → Internet
+ *
+ * We implement the upstream SOCKS5 handshake manually (no `socks` package)
+ * to ensure IPv4-only connections, which PIA requires.
  */
 
 import * as net from "net";
 import * as dns from "dns";
-import { SocksClient, type SocksClientOptions } from "socks";
+import * as http from "http";
 import type { ProxyConfig } from "./crypto.js";
 
 export interface RelayHandle {
@@ -19,35 +21,93 @@ export interface RelayHandle {
 }
 
 /**
- * Start a local SOCKS5 relay that forwards to an authenticated upstream proxy.
- *
- * @param upstream - ProxyConfig with server URL, username, and password
- * @returns A handle with the local port and a stop() function
+ * Start a local HTTP CONNECT proxy that forwards through PIA SOCKS5.
  */
 export async function startProxyRelay(
     upstream: ProxyConfig,
 ): Promise<RelayHandle> {
-    // Parse upstream URL: "socks5://host:port"
     const url = new URL(upstream.server);
     const upstreamHost = url.hostname;
     const upstreamPort = parseInt(url.port, 10) || 1080;
 
-    const activeSockets = new Set<net.Socket>();
-    const CONNECTION_TIMEOUT_MS = 120_000;
+    // Pre-resolve proxy to IPv4 (PIA doesn't support IPv6)
+    const { address: upstreamIp } = await dns.promises.lookup(upstreamHost, { family: 4 });
+    console.error(`[proxy-relay] Upstream: ${upstreamHost} → ${upstreamIp}:${upstreamPort}`);
 
-    const server = net.createServer((clientSocket) => {
+    const activeSockets = new Set<net.Socket>();
+
+    const server = http.createServer((_req, res) => {
+        // Regular HTTP requests are not proxied
+        res.writeHead(405, { "Content-Type": "text/plain" });
+        res.end("This proxy only supports CONNECT tunneling.");
+    });
+
+    server.on("connect", async (req, rawSocket, head) => {
+        const clientSocket = rawSocket as net.Socket;
         activeSockets.add(clientSocket);
         clientSocket.on("close", () => activeSockets.delete(clientSocket));
-        clientSocket.setTimeout(CONNECTION_TIMEOUT_MS, () => clientSocket.destroy());
 
-        handleSocks5Client(clientSocket, {
-            host: upstreamHost,
-            port: upstreamPort,
-            username: upstream.username,
-            password: upstream.password,
-        }).catch(() => {
+        const [destHost, destPortStr] = req.url!.split(":");
+        const destPort = parseInt(destPortStr, 10) || 443;
+
+        try {
+            // Resolve destination to IPv4 (preferred) or any family
+            let destIp: string;
+            if (net.isIPv4(destHost)) {
+                destIp = destHost;
+            } else {
+                try {
+                    const resolved = await dns.promises.lookup(destHost, { family: 4 });
+                    destIp = resolved.address;
+                } catch {
+                    // IPv4 failed — try any family
+                    try {
+                        const resolved = await dns.promises.lookup(destHost);
+                        destIp = resolved.address;
+                    } catch {
+                        // DNS completely failed — non-critical for telemetry domains
+                        console.error(`[proxy-relay]   ⚠ DNS failed: ${destHost} (skipped)`);
+                        clientSocket.write("HTTP/1.1 502 Bad Gateway\r\n\r\n");
+                        clientSocket.destroy();
+                        return;
+                    }
+                }
+            }
+
+            console.error(`[proxy-relay] CONNECT ${destHost}:${destPort} → ${destIp}`);
+
+            // Connect to PIA SOCKS5 and tunnel
+            const remoteSocket = await connectViaSocks5(
+                upstreamIp, upstreamPort,
+                upstream.username, upstream.password,
+                destIp, destPort,
+            );
+
+            console.error(`[proxy-relay]   ✅ Tunnel established`);
+
+            // Tell client the tunnel is ready
+            clientSocket.write("HTTP/1.1 200 Connection Established\r\n\r\n");
+
+            // Forward any buffered data from the CONNECT request
+            if (head.length > 0) {
+                remoteSocket.write(head);
+            }
+
+            // Pipe bidirectionally
+            clientSocket.pipe(remoteSocket);
+            remoteSocket.pipe(clientSocket);
+
+            clientSocket.on("error", () => remoteSocket.destroy());
+            remoteSocket.on("error", () => clientSocket.destroy());
+            clientSocket.on("close", () => remoteSocket.destroy());
+            remoteSocket.on("close", () => clientSocket.destroy());
+
+        } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            console.error(`[proxy-relay]   ❌ Failed: ${destHost}:${destPort} — ${msg}`);
+            clientSocket.write("HTTP/1.1 502 Bad Gateway\r\n\r\n");
             clientSocket.destroy();
-        });
+        }
     });
 
     return new Promise((resolve, reject) => {
@@ -58,7 +118,7 @@ export async function startProxyRelay(
                 return;
             }
             const port = addr.port;
-            console.error(`[proxy-relay] Listening on 127.0.0.1:${port} → ${upstreamHost}:${upstreamPort}`);
+            console.error(`[proxy-relay] Listening on http://127.0.0.1:${port}`);
 
             resolve({
                 port,
@@ -75,165 +135,114 @@ export async function startProxyRelay(
     });
 }
 
-// ─── SOCKS5 Protocol Implementation ─────────────────────────────
+// ─── Manual SOCKS5 handshake (IPv4-only, no `socks` package) ────
 
 /**
- * Handle one incoming SOCKS5 client connection:
- * 1. Perform local SOCKS5 greeting (no auth required)
- * 2. Read CONNECT request
- * 3. Forward via SocksClient to authenticated upstream
- * 4. Pipe data bidirectionally
+ * Connect to a SOCKS5 proxy with username/password auth and establish
+ * a tunnel to the destination. Returns the connected socket.
  */
-async function handleSocks5Client(
-    client: net.Socket,
-    upstream: { host: string; port: number; username: string; password: string },
-): Promise<void> {
-    // Step 1: Client greeting — read version + methods
-    const greeting = await readBytes(client, 2);
-    if (greeting[0] !== 0x05) throw new Error("Not SOCKS5");
-
-    const nMethods = greeting[1];
-    await readBytes(client, nMethods); // consume method list
-
-    // Reply: no auth required (method 0x00)
-    client.write(Buffer.from([0x05, 0x00]));
-
-    // Step 2: Read CONNECT request
-    const header = await readBytes(client, 4);
-    if (header[0] !== 0x05 || header[1] !== 0x01) {
-        // Only CONNECT (0x01) is supported
-        client.write(Buffer.from([0x05, 0x07, 0x00, 0x01, 0, 0, 0, 0, 0, 0]));
-        throw new Error("Unsupported SOCKS5 command");
-    }
-
-    const addrType = header[3];
-    let destHost: string;
-    let destPort: number;
-
-    if (addrType === 0x01) {
-        // IPv4
-        const addr = await readBytes(client, 4);
-        destHost = addr.join(".");
-    } else if (addrType === 0x03) {
-        // Domain name
-        const lenBuf = await readBytes(client, 1);
-        const domainBuf = await readBytes(client, lenBuf[0]);
-        destHost = domainBuf.toString("utf8");
-    } else if (addrType === 0x04) {
-        // IPv6
-        const addr = await readBytes(client, 16);
-        destHost = formatIPv6(addr);
-    } else {
-        client.write(Buffer.from([0x05, 0x08, 0x00, 0x01, 0, 0, 0, 0, 0, 0]));
-        throw new Error("Unsupported address type");
-    }
-
-    const portBuf = await readBytes(client, 2);
-    destPort = (portBuf[0] << 8) | portBuf[1];
-
-    console.error(`[proxy-relay] CONNECT → ${destHost}:${destPort}`);
-
-    // PIA SOCKS5 proxy doesn't resolve DNS — resolve locally first
-    let resolvedHost = destHost;
-    if (addrType === 0x03) {
-        try {
-            const { address } = await dns.promises.lookup(destHost, { family: 4 });
-            resolvedHost = address;
-            console.error(`[proxy-relay]   DNS: ${destHost} → ${resolvedHost}`);
-        } catch (err) {
-            console.error(`[proxy-relay]   DNS FAILED: ${destHost} — ${err instanceof Error ? err.message : err}`);
-            // DNS failed — send error reply to client
-            client.write(Buffer.from([0x05, 0x04, 0x00, 0x01, 0, 0, 0, 0, 0, 0]));
-            throw new Error(`DNS resolution failed for ${destHost}`);
-        }
-    }
-
-    // Step 3: Connect through upstream authenticated SOCKS5
-    console.error(`[proxy-relay]   Connecting via upstream → ${resolvedHost}:${destPort}`);
-    const socksOptions: SocksClientOptions = {
-        proxy: {
-            host: upstream.host,
-            port: upstream.port,
-            type: 5,
-            userId: upstream.username,
-            password: upstream.password,
-        },
-        command: "connect",
-        destination: {
-            host: resolvedHost,
-            port: destPort,
-        },
-        timeout: 30_000,
-    };
-
-    try {
-        const { socket: remoteSocket } = await SocksClient.createConnection(socksOptions);
-        console.error(`[proxy-relay]   ✅ Connected to ${destHost}:${destPort}`);
-
-        // Step 4: Reply success to client
-        // BND.ADDR = 0.0.0.0, BND.PORT = 0
-        client.write(Buffer.from([0x05, 0x00, 0x00, 0x01, 0, 0, 0, 0, 0, 0]));
-
-        // Step 5: Pipe bidirectionally
-        client.pipe(remoteSocket);
-        remoteSocket.pipe(client);
-
-        client.on("error", () => remoteSocket.destroy());
-        remoteSocket.on("error", () => client.destroy());
-        client.on("close", () => remoteSocket.destroy());
-        remoteSocket.on("close", () => client.destroy());
-    } catch (err) {
-        console.error(`[proxy-relay]   ❌ Upstream failed for ${destHost}:${destPort} — ${err instanceof Error ? err.message : err}`);
-        client.write(Buffer.from([0x05, 0x05, 0x00, 0x01, 0, 0, 0, 0, 0, 0]));
-        throw err;
-    }
-}
-
-// ─── Helpers ─────────────────────────────────────────────────────
-
-function readBytes(socket: net.Socket, count: number): Promise<Buffer> {
+async function connectViaSocks5(
+    proxyHost: string, proxyPort: number,
+    username: string, password: string,
+    destIp: string, destPort: number,
+): Promise<net.Socket> {
     return new Promise((resolve, reject) => {
-        const chunks: Buffer[] = [];
-        let received = 0;
+        const timeout = setTimeout(() => {
+            socket.destroy();
+            reject(new Error("SOCKS5 handshake timed out (15s)"));
+        }, 15_000);
 
-        const onData = (data: Buffer) => {
-            chunks.push(data);
-            received += data.length;
-            if (received >= count) {
-                socket.removeListener("data", onData);
-                socket.removeListener("error", onError);
-                socket.removeListener("close", onClose);
-                const full = Buffer.concat(chunks);
-                // Push back any excess bytes
-                if (full.length > count) {
-                    socket.unshift(full.subarray(count));
-                }
-                resolve(full.subarray(0, count));
-            }
-        };
+        // Connect to proxy over IPv4
+        const socket = net.connect({
+            host: proxyHost,
+            port: proxyPort,
+            family: 4,
+        });
 
-        const onError = (err: Error) => {
-            socket.removeListener("data", onData);
-            socket.removeListener("close", onClose);
+        socket.once("error", (err) => {
+            clearTimeout(timeout);
             reject(err);
-        };
+        });
 
-        const onClose = () => {
-            socket.removeListener("data", onData);
-            socket.removeListener("error", onError);
-            reject(new Error("Socket closed before receiving enough data"));
-        };
+        socket.once("connect", () => {
+            // Step 1: Send greeting — offer username/password auth (method 0x02)
+            socket.write(Buffer.from([0x05, 0x01, 0x02]));
 
-        socket.on("data", onData);
-        socket.on("error", onError);
-        socket.on("close", onClose);
+            let state: "greeting" | "auth" | "connect" = "greeting";
+            let buf = Buffer.alloc(0);
+
+            socket.on("data", (chunk) => {
+                buf = Buffer.concat([buf, chunk]);
+
+                if (state === "greeting") {
+                    if (buf.length < 2) return;
+                    if (buf[0] !== 0x05 || buf[1] !== 0x02) {
+                        clearTimeout(timeout);
+                        socket.destroy();
+                        reject(new Error(`SOCKS5 auth method rejected: ${buf[1]}`));
+                        return;
+                    }
+                    buf = buf.subarray(2);
+                    state = "auth";
+
+                    // Step 2: Send username/password (RFC 1929)
+                    const userBuf = Buffer.from(username, "utf8");
+                    const passBuf = Buffer.from(password, "utf8");
+                    const authMsg = Buffer.alloc(3 + userBuf.length + passBuf.length);
+                    authMsg[0] = 0x01; // version
+                    authMsg[1] = userBuf.length;
+                    userBuf.copy(authMsg, 2);
+                    authMsg[2 + userBuf.length] = passBuf.length;
+                    passBuf.copy(authMsg, 3 + userBuf.length);
+                    socket.write(authMsg);
+                }
+
+                if (state === "auth") {
+                    if (buf.length < 2) return;
+                    if (buf[1] !== 0x00) {
+                        clearTimeout(timeout);
+                        socket.destroy();
+                        reject(new Error("SOCKS5 authentication failed — bad credentials"));
+                        return;
+                    }
+                    buf = buf.subarray(2);
+                    state = "connect";
+
+                    // Step 3: Send CONNECT request with IPv4 address
+                    const ipParts = destIp.split(".").map(Number);
+                    const connectMsg = Buffer.from([
+                        0x05, 0x01, 0x00, 0x01,       // VER, CMD=CONNECT, RSV, ATYP=IPv4
+                        ipParts[0], ipParts[1], ipParts[2], ipParts[3],  // DST.ADDR
+                        (destPort >> 8) & 0xff, destPort & 0xff,         // DST.PORT
+                    ]);
+                    socket.write(connectMsg);
+                }
+
+                if (state === "connect") {
+                    if (buf.length < 10) return; // VER + REP + RSV + ATYP + 4-byte addr + 2-byte port
+                    if (buf[1] !== 0x00) {
+                        clearTimeout(timeout);
+                        socket.destroy();
+                        reject(new Error(`SOCKS5 CONNECT failed: reply code ${buf[1]}`));
+                        return;
+                    }
+
+                    // Success! Remove SOCKS5 header data, push back any trailing bytes
+                    const headerLen = 10; // IPv4 response always 10 bytes
+                    const trailing = buf.subarray(headerLen);
+                    clearTimeout(timeout);
+
+                    // Remove all listeners before resolving (caller manages the socket)
+                    socket.removeAllListeners("data");
+                    socket.removeAllListeners("error");
+
+                    if (trailing.length > 0) {
+                        socket.unshift(trailing);
+                    }
+
+                    resolve(socket);
+                }
+            });
+        });
     });
-}
-
-function formatIPv6(bytes: Buffer): string {
-    const groups: string[] = [];
-    for (let i = 0; i < 16; i += 2) {
-        groups.push(((bytes[i] << 8) | bytes[i + 1]).toString(16));
-    }
-    return groups.join(":");
 }

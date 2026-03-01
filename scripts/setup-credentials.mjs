@@ -165,22 +165,23 @@ async function main() {
     }
 
     // ─── Proxy setup ────────────────────────────────────────────
-    console.log("\n─── SOCKS5 Proxy Setup (PIA) ───\n");
-    console.log("Proxy: socks5://proxy-nl.privateinternetaccess.com:1080");
-    console.log("Generate SOCKS5 credentials at: https://www.privateinternetaccess.com/pages/client-control-panel\n");
+    console.log("\n─── SOCKS5 Proxy Setup ───\n");
+    console.log("If using PIA, generate SOCKS5 credentials at: https://www.privateinternetaccess.com/pages/client-control-panel\n");
 
-    const proxyUser = await askPassword("🔑 PIA SOCKS5 username: ");
+    const proxyUser = await askPassword("🔑 SOCKS5 proxy username (leave blank to skip): ");
     let proxy = null;
 
     if (proxyUser && proxyUser.length > 0) {
-        const proxyPass = await askPassword("🔑 PIA SOCKS5 password: ");
+        const proxyPass = await askPassword("🔑 SOCKS5 proxy password: ");
         if (!proxyPass) {
             console.error("❌ Proxy password required if username is provided.");
             rl.close();
             process.exit(1);
         }
+        const proxyDefault = "socks5://proxy-nl.privateinternetaccess.com:1080";
+        const proxyServer = await ask(`🌐 Proxy server URL [${proxyDefault}]: `);
         proxy = {
-            server: "socks5://proxy-nl.privateinternetaccess.com:1080",
+            server: proxyServer || proxyDefault,
             username: proxyUser,
             password: proxyPass,
         };
