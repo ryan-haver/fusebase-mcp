@@ -5,7 +5,7 @@ dist/
 # Secrets & Auth
 .env
 .cookie
-.browser-data/
+.browser-data*
 *.enc
 
 # Runtime Data
@@ -29,3 +29,7 @@ table_har_analysis.txt
 # Global Agent Toolkit (not project-specific)
 .agent/
 .gemini/
+
+# Dev/debug scripts (local-only)
+dev-scripts/
+_archive/

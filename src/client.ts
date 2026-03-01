@@ -6,13 +6,20 @@
  */
 
 import * as fs from "fs";
-import { decodeYjsToHtml } from "./yjs-html-decoder.js";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import * as http from "http";
 import * as https from "https";
+
+export interface FusebaseConfig {
+  host: string;
+  orgId: string;
+  cookie: string;
+  autoRefresh?: boolean;
+  profile?: string;
+}
+
 import type {
-  FusebaseConfig,
   FusebaseWorkspace,
   FusebaseNote,
   FusebaseFolder,
@@ -68,6 +75,10 @@ export class FusebaseClient {
   private cookie: string;
   private host: string;
   private autoRefresh: boolean;
+  private profile?: string;
+  private sessionId: string;
+  private lastRequestTime: number = 0;
+  private static readonly MIN_REQUEST_INTERVAL_MS = 200;
 
   constructor(config: FusebaseConfig) {
     this.host = config.host;
@@ -75,6 +86,8 @@ export class FusebaseClient {
     this.orgId = config.orgId;
     this.cookie = config.cookie;
     this.autoRefresh = config.autoRefresh ?? true;
+    this.profile = config.profile;
+    this.sessionId = crypto.randomUUID().replace(/-/g, "");
     fs.mkdirSync(DATA_DIR, { recursive: true });
   }
 
@@ -92,6 +105,13 @@ export class FusebaseClient {
     path: string,
     options: RequestInit = {},
   ): Promise<T> {
+    // Rate limiting: enforce minimum interval between requests
+    const sinceLastReq = Date.now() - this.lastRequestTime;
+    if (sinceLastReq < FusebaseClient.MIN_REQUEST_INTERVAL_MS) {
+      await new Promise(r => setTimeout(r, FusebaseClient.MIN_REQUEST_INTERVAL_MS - sinceLastReq));
+    }
+    this.lastRequestTime = Date.now();
+
     const url = `${this.baseUrl}${path}`;
     const method = (options.method || "GET").toUpperCase();
     const startTime = Date.now();
@@ -255,13 +275,14 @@ export class FusebaseClient {
       const newCookie = await authModule.refreshCookies({
         host: this.host,
         headless: true, // try headless first (reuse stored session)
+        profile: this.profile,
       });
       if (newCookie && newCookie.length > 0) {
         this.updateCookie(newCookie);
         // Persist encrypted
         try {
           const { saveEncryptedCookie } = await import("./crypto.js");
-          saveEncryptedCookie(newCookie);
+          saveEncryptedCookie(newCookie, undefined, this.profile);
         } catch {
           // crypto module unavailable — skip persistence
         }
@@ -287,6 +308,7 @@ export class FusebaseClient {
       const newCookie = await authModule.refreshCookies({
         host: this.host,
         headless: false,
+        profile: this.profile,
       });
       if (newCookie && newCookie.length > 0) {
         this.updateCookie(newCookie);
@@ -632,6 +654,74 @@ export class FusebaseClient {
     );
   }
 
+  /**
+   * Create a new comment thread on a page block.
+   * @param workspaceId - workspace containing the page
+   * @param noteId - page (note) to comment on
+   * @param text - plain text of the comment (auto-converted to Delta format)
+   * @param targetId - optional block ID to anchor the comment to (e.g. "b164359351_1")
+   */
+  async postComment(
+    workspaceId: string,
+    noteId: string,
+    text: string,
+    targetId?: string,
+  ): Promise<unknown> {
+    const delta = JSON.stringify([{ insert: text + "\n" }]);
+    const body: Record<string, unknown> = {
+      target: "blot",
+      targetId: targetId || "page",
+      comment: { text: delta },
+      attributes: { workspaceId, noteId },
+    };
+    return this.request<unknown>(
+      `/gwapi2/ft:comments/threads?workspace=${workspaceId}`,
+      {
+        method: "POST",
+        body: JSON.stringify(body),
+      },
+    );
+  }
+
+  /**
+   * Reply to an existing comment thread.
+   * @param workspaceId - workspace ID
+   * @param threadId - the thread ID to reply to (from getCommentThreads)
+   * @param text - plain text of the reply (auto-converted to Delta format)
+   */
+  async replyToThread(
+    workspaceId: string,
+    threadId: string,
+    text: string,
+  ): Promise<unknown> {
+    const delta = JSON.stringify([{ insert: text + "\n" }]);
+    return this.request<unknown>(
+      `/gwapi2/ft:comments/comments?workspace=${workspaceId}&thread=${threadId}`,
+      {
+        method: "POST",
+        body: JSON.stringify({ text: delta }),
+      },
+    );
+  }
+
+  /**
+   * Resolve (close) a comment thread.
+   * @param workspaceId - workspace ID
+   * @param threadId - the thread ID to resolve
+   */
+  async resolveThread(
+    workspaceId: string,
+    threadId: string,
+  ): Promise<unknown> {
+    return this.request<unknown>(
+      `/gwapi2/ft:comments/threads/${threadId}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ workspaceId, resolved: true }),
+      },
+    );
+  }
+
   // ─── Task Lists & Creation ────────────────────────────────────
 
   /** List task lists in a workspace, optionally filtered */
@@ -829,17 +919,14 @@ export class FusebaseClient {
 
   // ─── High-Value Gap Endpoints ──────────────────────────────────
 
-  /** Get raw page content (HTML dump) */
+  /** Get page content as HTML via Y.js WebSocket sync + decoder */
   async getPageContent(workspaceId: string, noteId: string): Promise<string> {
-    const res = await fetch(`${this.baseUrl}/dump/${workspaceId}/${noteId}`, {
-      headers: { cookie: this.cookie },
-      // @ts-expect-error — Node.js fetch supports agent option
-      agent: keepAliveAgent,
-      signal: AbortSignal.timeout(TIMEOUT_GET),
-    });
-    if (!res.ok) throw new Error(`Page content fetch failed: ${res.status}`);
-    const binary = new Uint8Array(await res.arrayBuffer());
-    return decodeYjsToHtml(binary);
+    const { readContentViaWebSocket } = await import("./yjs-ws-writer.js");
+    const result = await readContentViaWebSocket(this.host, workspaceId, noteId, this.cookie);
+    if (!result.success) {
+      throw new Error(`Page content read failed: ${result.error}`);
+    }
+    return result.html || "";
   }
 
   /** Get database/table view data */

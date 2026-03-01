@@ -99,6 +99,10 @@
 |---|---|---|---|---|
 | ✅ | GET | `/gwapi2/svc:comment/workspaces/{wid}/notes/{nid}/threadsInfo` | `get_comment_threads` — Comment threads on a page | ⭐⭐⭐ |
 | ✅ | GET | `/gwapi2/svc:notification/workspaces/{wid}/activityStream` | `get_activity_stream` — Activity feed (edits, shares, comments) | ⭐⭐⭐ |
+| ✅ | POST | `/gwapi2/ft:comments/threads?workspace={wid}` | `fusebase_post_comment` — Create a new comment thread on a page block | ⭐⭐⭐⭐ |
+| ✅ | POST | `/gwapi2/ft:comments/comments?workspace={wid}&thread={tid}` | `fusebase_reply_comment` — Reply to an existing comment thread | ⭐⭐⭐⭐ |
+| ✅ | PATCH | `/gwapi2/ft:comments/threads/{tid}` | `fusebase_resolve_thread` — Resolve/close a comment thread | ⭐⭐⭐ |
+| ✅ | POST | `/gwapi2/ft:comments/comments/read?workspace={wid}&thread={tid}` | (internal) — Mark thread as read | ⭐⭐ |
 | ✅ | GET | `/gwapi2/ft:buckets/buckets` | (via comment/task buckets) — Upload buckets for comments/tasks | ⭐⭐ |
 
 ## 7. Files & Attachments

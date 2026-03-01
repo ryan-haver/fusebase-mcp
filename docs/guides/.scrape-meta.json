@@ -1,0 +1,1855 @@
+{
+  "lastRun": "2026-02-28T21:28:27.042Z",
+  "guides": {
+    "https://thefusebase.com/guides/fusebase-ai/whats-the-difference-between-agents-assistants-and-genai-in-the-editor/": {
+      "hash": "c421189ab627dfacc936bf714a949af21e0f69dc994354975297980bccb7b4e0",
+      "lastUpdated": "2026-02-28T21:26:11.612Z",
+      "filePath": "fusebase-ai\\whats-the-difference-between-agents-assistants-and-genai-in-the-editor.md",
+      "title": "What’s the difference between Agents, Assistants, and GenAI in the editor?",
+      "section": "fusebase-ai"
+    },
+    "https://thefusebase.com/guides/dashboard-crm/dashboard-overview-managing-workspaces-portals-and-clients/": {
+      "hash": "d2a6e1ff39f22777b1c9de38cebb4070b0b8c6bb09f217721c9b6c40c426f14c",
+      "lastUpdated": "2026-02-28T21:26:11.959Z",
+      "filePath": "dashboard-crm\\dashboard-overview-managing-workspaces-portals-and-clients.md",
+      "title": "Dashboard Overview: Managing Workspaces, Portals, and Clients",
+      "section": "dashboard-crm"
+    },
+    "https://thefusebase.com/guides/settings/custom-fields-in-the-dashboard-building-your-own-crm-in-fusebase/": {
+      "hash": "a1213cc32a1be3b800145f7ae710248393994055dbed1fe9b9ce45b00fcf809a",
+      "lastUpdated": "2026-02-28T21:26:11.901Z",
+      "filePath": "settings\\custom-fields-in-the-dashboard-building-your-own-crm-in-fusebase.md",
+      "title": "Custom columns in the dashboard/table – building your own CRM in Fusebase",
+      "section": "settings"
+    },
+    "https://thefusebase.com/guides/automations-and-integrations/fusebase-automation-quick-guide/": {
+      "hash": "2c294c877e5c668f3915f64f22d807da18f4620744f8e5a270c995ee0b6c0b38",
+      "lastUpdated": "2026-02-28T21:26:11.987Z",
+      "filePath": "automations-and-integrations\\fusebase-automation-quick-guide.md",
+      "title": "FuseBase Automation – Quick Guide",
+      "section": "automations-and-integrations"
+    },
+    "https://thefusebase.com/guides/getting-started/create-super-docs/": {
+      "hash": "97fec61e31842236980d1eb017ee1687f17ddb0f5fa1c5ccde9623294b53c64a",
+      "lastUpdated": "2026-02-28T21:26:12.019Z",
+      "filePath": "getting-started\\create-super-docs.md",
+      "title": "Create Super Docs",
+      "section": "getting-started"
+    },
+    "https://thefusebase.com/guides/getting-started/how-to-navigate/": {
+      "hash": "176559573093af88efd642046a9eb1e681efd194bb87e6152153c4072866f94f",
+      "lastUpdated": "2026-02-28T21:26:15.031Z",
+      "filePath": "getting-started\\how-to-navigate.md",
+      "title": "How to navigate",
+      "section": "getting-started"
+    },
+    "https://thefusebase.com/guides/getting-started/search-and-filter-pages/": {
+      "hash": "77014d7e50e758641baca85c354b086bc1a826d7e6b3d748f491ed1cee4d9e25",
+      "lastUpdated": "2026-02-28T21:26:15.125Z",
+      "filePath": "getting-started\\search-and-filter-pages.md",
+      "title": "Search pages",
+      "section": "getting-started"
+    },
+    "https://thefusebase.com/guides/getting-started/key-role-differences/": {
+      "hash": "08211d07a7d3bbeeb4cccb1734be2ad1d28533d23d8b85f705c7de8a7d00051c",
+      "lastUpdated": "2026-02-28T21:26:15.064Z",
+      "filePath": "getting-started\\key-role-differences.md",
+      "title": "Key Role Differences – Guest, Member, Manager and Client",
+      "section": "getting-started"
+    },
+    "https://thefusebase.com/guides/getting-started/create-a-new-page/": {
+      "hash": "c1893d8b11a7b8345a60432a0ddc121a20ec3b68daf0e98c8ea29af93ed005c9",
+      "lastUpdated": "2026-02-28T21:26:14.808Z",
+      "filePath": "getting-started\\create-a-new-page.md",
+      "title": "Create a new page",
+      "section": "getting-started"
+    },
+    "https://thefusebase.com/guides/getting-started/get-started-with-ai-in-fusebase/": {
+      "hash": "3c5d3af2742c0ac7c712d55766c03897421550b5939bbc2e3798bf6c14ccb9bb",
+      "lastUpdated": "2026-02-28T21:26:15.125Z",
+      "filePath": "getting-started\\get-started-with-ai-in-fusebase.md",
+      "title": "Get Started with AI in FuseBase",
+      "section": "getting-started"
+    },
+    "https://thefusebase.com/guides/getting-started/how-to-copy-and-duplicate-pages-blocks-tables/": {
+      "hash": "34224ae1bb1adc3ab4bc23dd9253c955f319c0afd3ce194a0dcd35dbe048c867",
+      "lastUpdated": "2026-02-28T21:26:17.675Z",
+      "filePath": "getting-started\\how-to-copy-and-duplicate-pages-blocks-tables.md",
+      "title": "How to copy and duplicate blocks and tables",
+      "section": "getting-started"
+    },
+    "https://thefusebase.com/guides/basics/basic-fbs-document-navigation-move-blocks-create-columns-resize/": {
+      "hash": "0d67f01e4651b2cee952a17623615783547c52918f577823343ba483f4ffae5f",
+      "lastUpdated": "2026-02-28T21:26:17.752Z",
+      "filePath": "basics\\basic-fbs-document-navigation-move-blocks-create-columns-resize.md",
+      "title": "Basic FuseBase document navigation. Move blocks, create columns, resize",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/how-to-copy-or-move-pages-from-personal-workspace-to-business-workspace/": {
+      "hash": "dcd86e3e4c259c835635d68ac307b6b8ae2fd9aadddce7511724bdd9a44b405e",
+      "lastUpdated": "2026-02-28T21:26:17.897Z",
+      "filePath": "basics\\how-to-copy-or-move-pages-from-personal-workspace-to-business-workspace.md",
+      "title": "How to copy or move pages from personal workspace to business workspace?",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/getting-started/structure-in-fusebase/": {
+      "hash": "0c6df65626cf2a8576cd4e6bf8877cbd696e46eae2ae9a7cfdedd12390d7dc7f",
+      "lastUpdated": "2026-02-28T21:26:17.986Z",
+      "filePath": "getting-started\\structure-in-fusebase.md",
+      "title": "Structure in FuseBase",
+      "section": "getting-started"
+    },
+    "https://thefusebase.com/guides/basics/folders-and-tags/": {
+      "hash": "57cec4e3b3dde61cdf1d15ecfb9b0bb25df6f26952a9b4f142ec255df2168ac3",
+      "lastUpdated": "2026-02-28T21:26:18.131Z",
+      "filePath": "basics\\folders-and-tags.md",
+      "title": "Navigation: Dashboards, workspaces, Folders, Sub-folders, Pages, Tags",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/bookmarks/": {
+      "hash": "253fab89bd0b453cdb2025255315af08f07174b85bb1292eaab10a165fd9b8ec",
+      "lastUpdated": "2026-02-28T21:26:20.907Z",
+      "filePath": "basics\\bookmarks.md",
+      "title": "Bookmarks",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/comments-inside-the-pages/": {
+      "hash": "515f90c0d4652131e2f1dcb4d7b9c2a202eb264800ab892a4b376ac7274f0123",
+      "lastUpdated": "2026-02-28T21:26:20.727Z",
+      "filePath": "basics\\comments-inside-the-pages.md",
+      "title": "Comments inside the pages",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/task-list/": {
+      "hash": "82eca87f0d25680207970781b18f553ab0f059e6c2479f8c4eac2cf2315df217",
+      "lastUpdated": "2026-02-28T21:26:20.832Z",
+      "filePath": "basics\\task-list.md",
+      "title": "Task list",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/outline-table-of-contents/": {
+      "hash": "252d28b17016d5d333578b2516096bffaea9816228a492d2e939134f5992accc",
+      "lastUpdated": "2026-02-28T21:26:20.616Z",
+      "filePath": "basics\\outline-table-of-contents.md",
+      "title": "Outline / Table of Contents",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/navigation-dashboards-workspaces-folders-sub-folders-pages-tags/": {
+      "hash": "76be957f23a629031c1195fdf9c5df4f3c2a8dd2d6eb3fb88b8e4d2e48473c13",
+      "lastUpdated": "2026-02-28T21:26:20.939Z",
+      "filePath": "basics\\navigation-dashboards-workspaces-folders-sub-folders-pages-tags.md",
+      "title": "Navigation: Dashboards, workspaces, Folders, Sub-folders, Pages, Tags",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/video/": {
+      "hash": "499b0f43965001cab96563e488487324693c7b75836bee66f4bcaf247005556f",
+      "lastUpdated": "2026-02-28T21:26:23.336Z",
+      "filePath": "basics\\video.md",
+      "title": "Video",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/hotkeys-and-markdown/": {
+      "hash": "bc1852d8252cf6a4f5ee90d100eda7b58039ad0867bd7b699c51e94f6a2981e1",
+      "lastUpdated": "2026-02-28T21:26:23.397Z",
+      "filePath": "basics\\hotkeys-and-markdown.md",
+      "title": "Hotkeys and Markdown",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/images/": {
+      "hash": "472a9d457869ad1a29132d722ac0a5947bd30981c2f061a5260d1da18565360e",
+      "lastUpdated": "2026-02-28T21:26:23.397Z",
+      "filePath": "basics\\images.md",
+      "title": "Images",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/placeholder/": {
+      "hash": "76207a288aaa59ccafd81a23312df7f4dbce74fc02da854e48670f7b4b05e657",
+      "lastUpdated": "2026-02-28T21:26:23.650Z",
+      "filePath": "basics\\placeholder.md",
+      "title": "Placeholder",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/recording-video-and-audio-directly-from-a-page/": {
+      "hash": "d3fddf8af0861eed334c587b04cebc780723008c76aa0ba3d516692a0a7e5112",
+      "lastUpdated": "2026-02-28T21:26:23.646Z",
+      "filePath": "basics\\recording-video-and-audio-directly-from-a-page.md",
+      "title": "Recording video and audio directly from a page",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/how-to-add-date-into-document-body/": {
+      "hash": "4cbe82337273c8ca14bf2498438d7b465cad1eecb9ac2ef9142cdcef969f53df",
+      "lastUpdated": "2026-02-28T21:26:25.968Z",
+      "filePath": "basics\\how-to-add-date-into-document-body.md",
+      "title": "How to add date into FuseBase document body?",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/tags-quick-guide/": {
+      "hash": "e177695265a422c4ef15c77053be5c38b8129edc92ce050bbd8e5c2824bee258",
+      "lastUpdated": "2026-02-28T21:26:26.262Z",
+      "filePath": "basics\\tags-quick-guide.md",
+      "title": "Tags – Quick Guide",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/files-and-attachments/": {
+      "hash": "17ddbe22e8622a12e3ac056a35a9368315a947d15f05c3f4cb93eba8a23c3e1a",
+      "lastUpdated": "2026-02-28T21:26:26.120Z",
+      "filePath": "basics\\files-and-attachments.md",
+      "title": "Files and attachments",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/task-dashboard-manage-all-tasks-from-one-place/": {
+      "hash": "c3f3b67c87ee4c79c8984bfc3f5a45167f9c9f30792b78b75cd9323684d499e5",
+      "lastUpdated": "2026-02-28T21:26:26.002Z",
+      "filePath": "basics\\task-dashboard-manage-all-tasks-from-one-place.md",
+      "title": "Task dashboard – manage all tasks from one place",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/writing-and-editing/": {
+      "hash": "d707d2e952cfe748a2e507c7a5cfc496c526e2e29e7aa00f5cfc257ce1249bd5",
+      "lastUpdated": "2026-02-28T21:26:26.564Z",
+      "filePath": "basics\\writing-and-editing.md",
+      "title": "Basic FuseBase document navigation. Move blocks, create columns, resize",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/button-object/": {
+      "hash": "2221fe444b1f58b4725dbf63390903f9bef67ea151eb5450c67173fb0e0f82b4",
+      "lastUpdated": "2026-02-28T21:26:29.093Z",
+      "filePath": "basics\\button-object.md",
+      "title": "Button object",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/workspace-management-transfer-content-between-workspaces/": {
+      "hash": "c05b624be7fabf31dad70cff6ecf638928bffe9a912fe0c3f0a6efaa8cdfb94c",
+      "lastUpdated": "2026-02-28T21:26:29.349Z",
+      "filePath": "basics\\workspace-management-transfer-content-between-workspaces.md",
+      "title": "Workspace management | Transfer content between workspaces",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/mentions-link-people-dates-folders-pages-and-workspaces/": {
+      "hash": "0c020a1cf0c0e567d411753547f3da79fe1f5edae20966722279a8917bd9b3db",
+      "lastUpdated": "2026-02-28T21:26:29.435Z",
+      "filePath": "basics\\mentions-link-people-dates-folders-pages-and-workspaces.md",
+      "title": "@-mentions: link people, dates, folders, pages and workspaces",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/move-blocks-pages-and-folders-using-drag-n-drop/": {
+      "hash": "bd1b15bb559c45b1848ddaaed6eb6541fbd17337bada99cdcc7923e32332659f",
+      "lastUpdated": "2026-02-28T21:26:29.317Z",
+      "filePath": "basics\\move-blocks-pages-and-folders-using-drag-n-drop.md",
+      "title": "Move blocks, pages and folders using drag-n-drop",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/how-to-duplicate-templates-and-tables/": {
+      "hash": "cfd70799407ff8c4453690d16cfd484876f3b6dcb78ef7004b964ee217e12333",
+      "lastUpdated": "2026-02-28T21:26:29.378Z",
+      "filePath": "basics\\how-to-duplicate-templates-and-tables.md",
+      "title": "How to duplicate templates and tables",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/chat-in-fusebase/": {
+      "hash": "56098f3d4cc9dabcd517199a4cf2aa643bd867f2cadfaa6c2c63728c45cb3694",
+      "lastUpdated": "2026-02-28T21:26:32.324Z",
+      "filePath": "basics\\chat-in-fusebase.md",
+      "title": "Chat in FuseBase",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/hint-object/": {
+      "hash": "0f872c7cadd29915c3f4daff11a7289c73fb830b1539d76283998dd277e68e3f",
+      "lastUpdated": "2026-02-28T21:26:32.382Z",
+      "filePath": "basics\\hint-object.md",
+      "title": "Hint object",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/how-to-use-templates-in-fusebase/": {
+      "hash": "b21bd30068f4ed8eb6f527687c91eab47cbf1a84e772f498d836559844449b44",
+      "lastUpdated": "2026-02-28T21:26:32.353Z",
+      "filePath": "basics\\how-to-use-templates-in-fusebase.md",
+      "title": "How to use templates in FuseBase",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/audio-music/": {
+      "hash": "2ea666be8b81df814c9259de4715b25e8e7376811bdafc6364b9155f01515e73",
+      "lastUpdated": "2026-02-28T21:26:32.271Z",
+      "filePath": "basics\\audio-music.md",
+      "title": "Audio & Music",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/tags-favorites-fast-access-to-your-pages/": {
+      "hash": "3a164d84aa5302f981c0a51d8d4320e37a804b2abc9f91d8c2f97bd27d2f27c6",
+      "lastUpdated": "2026-02-28T21:26:32.900Z",
+      "filePath": "basics\\tags-favorites-fast-access-to-your-pages.md",
+      "title": "Navigation: Dashboards, workspaces, Folders, Sub-folders, Pages, Tags",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/progress-bar-object/": {
+      "hash": "fcbd8cf90128f143028bc85774db706faefa5ed637f1118b27578da05e89215a",
+      "lastUpdated": "2026-02-28T21:26:35.609Z",
+      "filePath": "basics\\progress-bar-object.md",
+      "title": "Progress Bar Object",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/search-and-extract-text-from-images-ocr/": {
+      "hash": "f40b458c2b683a82e2e4e28716f8a03d8b3167beda43d77c5a664b8d3ab51ab4",
+      "lastUpdated": "2026-02-28T21:26:35.452Z",
+      "filePath": "basics\\search-and-extract-text-from-images-ocr.md",
+      "title": "Search and extract text from images (OCR)",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/task-board-guide/": {
+      "hash": "db6c0b27e0d5a3f6a75a3067e9cb5246988528cf8ef4fb68b2d2956d9676e10e",
+      "lastUpdated": "2026-02-28T21:26:35.481Z",
+      "filePath": "basics\\task-board-guide.md",
+      "title": "Task Board Guide",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/dropdown-list/": {
+      "hash": "16f72e1b7f59bed434f200e52a3030973f1ce5b05b116093f2c7fbd09b482e3d",
+      "lastUpdated": "2026-02-28T21:26:35.638Z",
+      "filePath": "basics\\dropdown-list.md",
+      "title": "Dropdown List",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/links-in-fusebase/": {
+      "hash": "617cbd26450d51c8790aeeccbd955bff19fadc69cb5efceca560bba66ef79995",
+      "lastUpdated": "2026-02-28T21:26:35.542Z",
+      "filePath": "basics\\links-in-fusebase.md",
+      "title": "Links in FuseBase",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/client-portal/managing-email-notifications-for-clients/": {
+      "hash": "6d0d0ff3132192bce5f88fef4ea5f926b473726b99b8e87773888ebc67c3b5e4",
+      "lastUpdated": "2026-02-28T21:26:38.469Z",
+      "filePath": "client-portal\\managing-email-notifications-for-clients.md",
+      "title": "Managing Email Notifications for Clients",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/basics/folders-and-subfolders/": {
+      "hash": "d9d23d5fe56c3e2bb7349a38df08fa56c4e507d7f5a9e2706b282173caf167ae",
+      "lastUpdated": "2026-02-28T21:26:38.509Z",
+      "filePath": "basics\\folders-and-subfolders.md",
+      "title": "Folders and subfolders",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/dashboard-crm/embed-fusebase-databases-and-dashboards-into-portals/": {
+      "hash": "f6efcaaf147a41cc8af09d1f7666bfba0dd6390ec06f25737d2b343da7107409",
+      "lastUpdated": "2026-02-28T21:26:38.569Z",
+      "filePath": "dashboard-crm\\embed-fusebase-databases-and-dashboards-into-portals.md",
+      "title": "Embed Fusebase databases and dashboards into portals",
+      "section": "dashboard-crm"
+    },
+    "https://thefusebase.com/guides/basics/file-uploader/": {
+      "hash": "42ad2f9bede21227ce134c24a6aaf4b274b764f244cc68ab53c3b36363ec3ba9",
+      "lastUpdated": "2026-02-28T21:26:38.595Z",
+      "filePath": "basics\\file-uploader.md",
+      "title": "File Uploader",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/basics/workspaces/": {
+      "hash": "2aaf432e360a62b874c57fc6001e20fc7812c5344a355ecfc77f62c176480601",
+      "lastUpdated": "2026-02-28T21:26:38.205Z",
+      "filePath": "basics\\workspaces.md",
+      "title": "Workspaces",
+      "section": "basics"
+    },
+    "https://thefusebase.com/guides/client-portal/how-to-set-what-clients-can-and-cannot-do/": {
+      "hash": "84da8725078dc05fc95207325ebff5b8e64906b878777b1adb96fc845d2d3844",
+      "lastUpdated": "2026-02-28T21:26:41.486Z",
+      "filePath": "client-portal\\how-to-set-what-clients-can-and-cannot-do.md",
+      "title": "How to Set What Clients Can and Cannot Do",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/adding-ai-agents-to-fusebase-portals/": {
+      "hash": "f26e3e257a46ad835426bd03045d92f6911515a28423d7c3ff6db3bc265707ef",
+      "lastUpdated": "2026-02-28T21:26:41.157Z",
+      "filePath": "client-portal\\adding-ai-agents-to-fusebase-portals.md",
+      "title": "Adding AI Agents to FuseBase Portals",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/tip-how-to-change-the-image-on-the-auth-page/": {
+      "hash": "8e0814b3033a86c9932f07a3bfd2e0a6f9876ff475c03cbd78464305340fa7ab",
+      "lastUpdated": "2026-02-28T21:26:41.186Z",
+      "filePath": "client-portal\\tip-how-to-change-the-image-on-the-auth-page.md",
+      "title": "Tip: How to change the image on the Login page",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/access-management-in-the-portal-quick-guide/": {
+      "hash": "4ef11798a019c280538ffcb947b7ab3156c0849a04ef4ebb2bc52ef922647657",
+      "lastUpdated": "2026-02-28T21:26:41.253Z",
+      "filePath": "client-portal\\access-management-in-the-portal-quick-guide.md",
+      "title": "Access Management in the Portal – Quick Guide",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/linked-folders-and-pages-adding-folders-and-pages-to-multiple-portals-at-once/": {
+      "hash": "cb9f3b60659a8f9c09f3d7eeefce6f3ab81e1a9c3d22e47fc69486337502bc50",
+      "lastUpdated": "2026-02-28T21:26:41.489Z",
+      "filePath": "client-portal\\linked-folders-and-pages-adding-folders-and-pages-to-multiple-portals-at-once.md",
+      "title": "Linked Folders and Pages – Adding folders and pages to multiple portals at once",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/displaying-data-from-other-services-hubspot-asana-etc-in-the-portal/": {
+      "hash": "28077e987100be73427aad20746b07aec52d2ebe27c66adc24b517113ca492c5",
+      "lastUpdated": "2026-02-28T21:26:44.212Z",
+      "filePath": "client-portal\\displaying-data-from-other-services-hubspot-asana-etc-in-the-portal.md",
+      "title": "Displaying data from other services (HubSpot, Asana, etc.) in the portal",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/client-portals-guide/": {
+      "hash": "3d22f194a2f8966775a2435b00cfc07f6f82dd78ded13f21b886841aa4f96abe",
+      "lastUpdated": "2026-02-28T21:26:44.424Z",
+      "filePath": "client-portal\\client-portals-guide.md",
+      "title": "Client Portals – Quick Guide",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/display-of-data-from-monday-com-in-the-fusebase-portal/": {
+      "hash": "eff88f2149b8847eab9233a3d8abaa32eb1c10daaf5c76e0dd0028930fe4a1b9",
+      "lastUpdated": "2026-02-28T21:26:44.240Z",
+      "filePath": "client-portal\\display-of-data-from-monday-com-in-the-fusebase-portal.md",
+      "title": "Display data from Monday.com in the Fusebase portal",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/forms-creation-and-completion-of-forms-on-the-portal/": {
+      "hash": "63a71eba4da9da6b95e67095cbc585c55a2f639255f62d792cafb8c6b2bdc00e",
+      "lastUpdated": "2026-02-28T21:26:44.108Z",
+      "filePath": "client-portal\\forms-creation-and-completion-of-forms-on-the-portal.md",
+      "title": "Forms – creation and completion of forms on the portal",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/e-signature-client-contract-management-quick-guide/": {
+      "hash": "fc6880b97ffed8dcd92ca6b3d11941d154180f83299bee16bce15d7acc4ce382",
+      "lastUpdated": "2026-02-28T21:26:44.510Z",
+      "filePath": "client-portal\\e-signature-client-contract-management-quick-guide.md",
+      "title": "E-Signature – Client Contract Management – Quick Guide",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/synchronized-blocks-or-projections-quick-guide/": {
+      "hash": "b5f7614ac2bda0c540e1244504d6d44249d11cedcffac947bfae3a52da718d2c",
+      "lastUpdated": "2026-02-28T21:26:47.448Z",
+      "filePath": "client-portal\\synchronized-blocks-or-projections-quick-guide.md",
+      "title": "Linked Blocks or Projections – Quick Guide",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/hero-screen-and-topbar-quick-guide/": {
+      "hash": "ae74968798e55896836e810e3ecf8a3b1e1930c9f3a1944948fd501a3195ff43",
+      "lastUpdated": "2026-02-28T21:26:47.337Z",
+      "filePath": "client-portal\\hero-screen-and-topbar-quick-guide.md",
+      "title": "Hero screen and Topbar – Quick guide",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/portal-analytics-guide/": {
+      "hash": "1899338f7851441403da2a450ea4c992a7ad9614e3784f692274e783396c640d",
+      "lastUpdated": "2026-02-28T21:26:47.366Z",
+      "filePath": "client-portal\\portal-analytics-guide.md",
+      "title": "Portal Analytics – Guide",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/processes-in-the-portal-quick-guide/": {
+      "hash": "cc11eb8cf2d6223aceabe4d40aae59738d40b714cfb64113ed99946b83da29a3",
+      "lastUpdated": "2026-02-28T21:26:47.305Z",
+      "filePath": "client-portal\\processes-in-the-portal-quick-guide.md",
+      "title": "Processes in the Portal – Quick Guide",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/variables-in-the-portal-adding-the-clients-name-to-the-hero-and-other-portal-blocks/": {
+      "hash": "5e4d986fb6ca3fc85a523800cb73c8842f166353fff7176ad12f9136b2e1eb6d",
+      "lastUpdated": "2026-02-28T21:26:47.396Z",
+      "filePath": "client-portal\\variables-in-the-portal-adding-the-clients-name-to-the-hero-and-other-portal-blocks.md",
+      "title": "Variables in the portal – adding the client’s name to the Hero and other portal blocks.",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/adding-support-for-fonts-from-google-fonts-to-porta/": {
+      "hash": "cec9c6920c061d079194913f4b20a8cf920cb0727f48d289f1a177cf33c6bbd7",
+      "lastUpdated": "2026-02-28T21:26:50.261Z",
+      "filePath": "client-portal\\adding-support-for-fonts-from-google-fonts-to-porta.md",
+      "title": "Adding support for fonts from Google Fonts to portal",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/granular-permissions/": {
+      "hash": "b9d7d3b8a4124ae54b08a1363951d2bbd6aaaf86caf97361d8a5d20a5c1a85e9",
+      "lastUpdated": "2026-02-28T21:26:50.087Z",
+      "filePath": "client-portal\\granular-permissions.md",
+      "title": "Folder Permissions: Tips & Tricks for Portal Management",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/custom-widget-quick-guide/": {
+      "hash": "85c9a9744ba85403d3bfd00bdff8d93592a0bdf4e33b54404b2adff0e75d5d41",
+      "lastUpdated": "2026-02-28T21:26:50.115Z",
+      "filePath": "client-portal\\custom-widget-quick-guide.md",
+      "title": "Custom Widget – Quick Guide",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/hero-section/": {
+      "hash": "61bdd4dc19c45b2c0b5d1b6f6a06d16fdee76085338c9f2e541ee1e07ed05bf0",
+      "lastUpdated": "2026-02-28T21:26:50.057Z",
+      "filePath": "client-portal\\hero-section.md",
+      "title": "Welcome Message & Search Management via Hero Section",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/notification-updates-panel-quick-guide/": {
+      "hash": "2892e44880b51c83c2592d46a5033f72c95208d966b1d918891d9a671df20be5",
+      "lastUpdated": "2026-02-28T21:26:49.967Z",
+      "filePath": "client-portal\\notification-updates-panel-quick-guide.md",
+      "title": "Notification/Updates Panel – Quick Guide",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/portal-page-button-to-web-client-for-page-editing/": {
+      "hash": "9792d9d24bb55913dec20ee27ece13afd8c1d61f207a0a10cdabe1e7d40b3682",
+      "lastUpdated": "2026-02-28T21:26:53.095Z",
+      "filePath": "client-portal\\portal-page-button-to-web-client-for-page-editing.md",
+      "title": "How To Use a Portal Button To Set up a Page for Customer Interaction",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/file-upload-in-portals/": {
+      "hash": "d857e6626d23ded98325d24954773c5a8961c06b71bd2148942f2fc0abb8a44f",
+      "lastUpdated": "2026-02-28T21:26:53.205Z",
+      "filePath": "client-portal\\file-upload-in-portals.md",
+      "title": "File Uploader for Portal",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/file-manager-for-client-portal/": {
+      "hash": "6fe2121761e06545dd4de660e427436b36756787b76d5bea8b2d978ce6cc99eb",
+      "lastUpdated": "2026-02-28T21:26:52.994Z",
+      "filePath": "client-portal\\file-manager-for-client-portal.md",
+      "title": "File Manager – Use Cases & Features",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/access/": {
+      "hash": "82d5c10b45d1f29bae60daa1e66dd11675012cc9403bd2886e3307157f0fa84c",
+      "lastUpdated": "2026-02-28T21:26:53.122Z",
+      "filePath": "client-portal\\access.md",
+      "title": "How Do I Manage Access to Portal Customizer?",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/portal-guide-custom-domain-name-with-fusebase-portal/": {
+      "hash": "7ced2a8b8561bb42174728fc97f38c54be887c613c2ab3406411cad189c00dad",
+      "lastUpdated": "2026-02-28T21:26:53.098Z",
+      "filePath": "client-portal\\portal-guide-custom-domain-name-with-fusebase-portal.md",
+      "title": "Custom Domain Name with FuseBase Portal",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/to-fusebase/": {
+      "hash": "b6f6e7976ff60468a9085c4d8e845197d635fe744f0e714783a93ddd48617ba4",
+      "lastUpdated": "2026-02-28T21:26:55.812Z",
+      "filePath": "client-portal\\to-fusebase.md",
+      "title": "Switching from the Customiser",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/management-of-visib%d1%96lity-status-for-portal-pages/": {
+      "hash": "cf3b2241cd25ba701ee9c8f7d0391f71e48710fe3063ae2a8d9dab40b12349a6",
+      "lastUpdated": "2026-02-28T21:26:56.314Z",
+      "filePath": "client-portal\\management-of-visib%d1%96lity-status-for-portal-pages.md",
+      "title": "Management of Visibіlity status for portal pages",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/how-to-manage-your-portal-from-the-web-version/": {
+      "hash": "2b2ff951dbfa5df9b50dc78b43cfb7fad6888b681986a28b18717c352e09da64",
+      "lastUpdated": "2026-02-28T21:26:55.955Z",
+      "filePath": "client-portal\\how-to-manage-your-portal-from-the-web-version.md",
+      "title": "How to manage your portal from the Web Version",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/js-integrations-in-the-client-portal/": {
+      "hash": "9196ecf32bc59bd99f4d6342c3a07afc5bbce36f2a2d6648e278ceed5df6ae0b",
+      "lastUpdated": "2026-02-28T21:26:56.036Z",
+      "filePath": "client-portal\\js-integrations-in-the-client-portal.md",
+      "title": "JS integrations in the client portal",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/how-to-use-embed-feature-in-the-portals/": {
+      "hash": "9549c70bafb4ab4ca1e0bf9e542e8e7e91a902772fe06cfd9d68e3a1041da9af",
+      "lastUpdated": "2026-02-28T21:26:56.259Z",
+      "filePath": "client-portal\\how-to-use-embed-feature-in-the-portals.md",
+      "title": "How to use embed feature in the portals?",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/creation/": {
+      "hash": "65e21b5205705d0db50cb87a656fb7102f9766d92d30d8cc56cfdee63eb5475d",
+      "lastUpdated": "2026-02-28T21:26:59.314Z",
+      "filePath": "client-portal\\creation.md",
+      "title": "Create the Client Portal",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/add-chat-to-the-portal-and-start-communicating-with-clients/": {
+      "hash": "a9d234142d466bd1d9821626d3655ade1ce6262b3229cc67e771c40604eaee15",
+      "lastUpdated": "2026-02-28T21:26:59.387Z",
+      "filePath": "client-portal\\add-chat-to-the-portal-and-start-communicating-with-clients.md",
+      "title": "Add Chat to the Portal and Start Communicating with Clients",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/collaborate-with-clients-using-fusebase-portals/": {
+      "hash": "51094352856ab78273611213292b2f4be562a82f56aed7a2d34379593f0f807e",
+      "lastUpdated": "2026-02-28T21:26:59.422Z",
+      "filePath": "client-portal\\collaborate-with-clients-using-fusebase-portals.md",
+      "title": "Collaborate With Clients Using FuseBase Portals",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/internal-space-and-portals-the-difference/": {
+      "hash": "f0f631a3fff9e67cdc3f1c2aa724443fad423e71eae6bba3b809a8a6ebab0d05",
+      "lastUpdated": "2026-02-28T21:26:59.344Z",
+      "filePath": "client-portal\\internal-space-and-portals-the-difference.md",
+      "title": "Internal Space and Portals – how do they differ?",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/inviting-via-client-role/": {
+      "hash": "a10aa786510168dab02d817e2008c723882bb8bbc32256551500099d9811b6d4",
+      "lastUpdated": "2026-02-28T21:26:59.203Z",
+      "filePath": "client-portal\\inviting-via-client-role.md",
+      "title": "How to Invite a Customer to The Portal via Client Role",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/organization/chat-in-nimbus-note/": {
+      "hash": "2bbbfcb42ce0e8f72069cfb3d9de31a8e1bee48ce842baa33f1cc4becfdc324d",
+      "lastUpdated": "2026-02-28T21:27:02.336Z",
+      "filePath": "organization\\chat-in-nimbus-note.md",
+      "title": "Chat in FuseBase",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/organization/create-manage-members-groups/": {
+      "hash": "04ded521b0024defaa14a70d30e0f6210cf4ca954d37148cfcfe0d4d3980673c",
+      "lastUpdated": "2026-02-28T21:27:02.467Z",
+      "filePath": "organization\\create-manage-members-groups.md",
+      "title": "Create & manage members groups",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/client-portal/magic-links/": {
+      "hash": "dbe3cc44e7848317630cde65a5906429313100b3ac6f6085114ce3e3b715aa76",
+      "lastUpdated": "2026-02-28T21:27:02.408Z",
+      "filePath": "client-portal\\magic-links.md",
+      "title": "Magic Links",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/client-portal/adding-pages-to-the-portal-from-the-web-client/": {
+      "hash": "26ed2af62bdd652ec1a97fffb88df792b4423e36e6bcfe2eee4350eb267a831f",
+      "lastUpdated": "2026-02-28T21:27:02.705Z",
+      "filePath": "client-portal\\adding-pages-to-the-portal-from-the-web-client.md",
+      "title": "Adding a Page to the Portal from the Internal Space",
+      "section": "client-portal"
+    },
+    "https://thefusebase.com/guides/organization/mfa-multi-factor-authentication-additional-protection-for-your-members-and-clients/": {
+      "hash": "bbcc0239c2538a2c04a959d24a19ce7e6ceb6f88111a708cda7e0226235d57f1",
+      "lastUpdated": "2026-02-28T21:27:02.656Z",
+      "filePath": "organization\\mfa-multi-factor-authentication-additional-protection-for-your-members-and-clients.md",
+      "title": "MFA (multi-factor authentication) – additional protection for your members and clients",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/organization/organization-console-manage-members-in-business-teams-account/": {
+      "hash": "c0b1f1ae15ee58a6c9d5e3bacdb4f738d4fd86f1b6eaa2430a732e4dc1dc9b92",
+      "lastUpdated": "2026-02-28T21:27:05.525Z",
+      "filePath": "organization\\organization-console-manage-members-in-business-teams-account.md",
+      "title": "Organization Console | Manage members in Business/Teams account",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/organization/business-teams-account-getting-started/": {
+      "hash": "55fbddcd9803c5f058de2bd7d1f8943079bcdacfe337e73c161c1d90096c14cd",
+      "lastUpdated": "2026-02-28T21:27:05.494Z",
+      "filePath": "organization\\business-teams-account-getting-started.md",
+      "title": "Business/Teams account | Getting started",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/organization/organization-console-manage-your-organization/": {
+      "hash": "2df0bc162e7559980feca2db04e270e844ddd552598aeb46504c0292922bfe11",
+      "lastUpdated": "2026-02-28T21:27:05.622Z",
+      "filePath": "organization\\organization-console-manage-your-organization.md",
+      "title": "Organization Console | Manage your Organization",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/organization/work-with-your-team/": {
+      "hash": "2042c4edae667cae1486baf592383704c7662a8ffb72113e585a1a39b77ee4fd",
+      "lastUpdated": "2026-02-28T21:27:05.678Z",
+      "filePath": "organization\\work-with-your-team.md",
+      "title": "Work with Your Team",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/organization/business-teams-account-set-access-permissions/": {
+      "hash": "f86c06580373d64ca98c68f2c977921b7633353bbe624e97e1d7bedb8605ea29",
+      "lastUpdated": "2026-02-28T21:27:05.460Z",
+      "filePath": "organization\\business-teams-account-set-access-permissions.md",
+      "title": "Business/Teams account | Set access permissions",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/organization/roles-and-permissions-in-business-team-accounts/": {
+      "hash": "5a4e189d7168c03fb60cd46487d96fc76b62ff6a8a8e6a10b6c6ac0a83c6a257",
+      "lastUpdated": "2026-02-28T21:27:08.241Z",
+      "filePath": "organization\\roles-and-permissions-in-business-team-accounts.md",
+      "title": "Roles and Permissions in Team Accounts",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/organization/managing-access-to-folders-and-subfolders/": {
+      "hash": "5e063d3aceda10ce2db8e94f5d605292d1f91c17f00f13e480771f0ba32f2e33",
+      "lastUpdated": "2026-02-28T21:27:08.080Z",
+      "filePath": "organization\\managing-access-to-folders-and-subfolders.md",
+      "title": "Managing access to folders and subfolders",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/organization/multiple-organizations-under-one-account/": {
+      "hash": "02fbfb374a619b6f784244b97aeab9a3d86e795383772c616cd62d42564c9437",
+      "lastUpdated": "2026-02-28T21:27:08.051Z",
+      "filePath": "organization\\multiple-organizations-under-one-account.md",
+      "title": "Multiple organizations under one account",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/organization/forbidding-of-editing-of-individual-blocks/": {
+      "hash": "1845d09404f4aa86af1640afcf918cd5b83a863cbba7761ea854887418570b59",
+      "lastUpdated": "2026-02-28T21:27:07.966Z",
+      "filePath": "organization\\forbidding-of-editing-of-individual-blocks.md",
+      "title": "Forbidding of editing of individual blocks",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/organization/business-teams-account-branding/": {
+      "hash": "bb252d7096db213a9cdf77e415005a076e8309b62f32a95c5bdfae6c5d849822",
+      "lastUpdated": "2026-02-28T21:27:08.326Z",
+      "filePath": "organization\\business-teams-account-branding.md",
+      "title": "Business/Teams account | Branding",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/organization/manage-workspaces-in-organization/": {
+      "hash": "0ca112bb17e48855d4cf717719896873eef8b361ab01066e369998186f3a6400",
+      "lastUpdated": "2026-02-28T21:27:11.141Z",
+      "filePath": "organization\\manage-workspaces-in-organization.md",
+      "title": "Manage workspaces in organization",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/organization/invite-members/": {
+      "hash": "283fb3fdf15d078da8dc9ae8749bb13ab8eba2b149eee863c1c390f272b1e5e5",
+      "lastUpdated": "2026-02-28T21:27:11.023Z",
+      "filePath": "organization\\invite-members.md",
+      "title": "Invite members and clients",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/organization/guest-accounts/": {
+      "hash": "345da01024979575e387865158e61e5dfe385b4ccd3f7c17a322dd38014a04c7",
+      "lastUpdated": "2026-02-28T21:27:10.991Z",
+      "filePath": "organization\\guest-accounts.md",
+      "title": "Guest accounts",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/organization/manage-your-projects/": {
+      "hash": "926237cc247c5b1eadd9ec76fb90b7b5f0ee2f46ef233320b77a0e4393441034",
+      "lastUpdated": "2026-02-28T21:27:11.058Z",
+      "filePath": "organization\\manage-your-projects.md",
+      "title": "Manage Your Projects",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/organization/managing-access-to-pages/": {
+      "hash": "29645446e1f42bfa3ec798da129ffe6c9fcafcdc2d7e9e7ae1b4c487a421898e",
+      "lastUpdated": "2026-02-28T21:27:11.141Z",
+      "filePath": "organization\\managing-access-to-pages.md",
+      "title": "Managing Access to Pages",
+      "section": "organization"
+    },
+    "https://thefusebase.com/guides/fusebase-ai/ai-agents-in-editor-quick-guide/": {
+      "hash": "021b8b9a6808ecfd00bbd24de6926ebb47852fdfe961740c83e83a2f728a79d4",
+      "lastUpdated": "2026-02-28T21:27:13.739Z",
+      "filePath": "fusebase-ai\\ai-agents-in-editor-quick-guide.md",
+      "title": "AI Agents in Editor – Quick Guide",
+      "section": "fusebase-ai"
+    },
+    "https://thefusebase.com/guides/dashboard-crm/ai-trackers-for-meetings-quick-guide/": {
+      "hash": "61331bd2701150a2a572de938abda80be02fae0dec9c46323a502330a581a93f",
+      "lastUpdated": "2026-02-28T21:27:13.857Z",
+      "filePath": "dashboard-crm\\ai-trackers-for-meetings-quick-guide.md",
+      "title": "AI Trackers for Meetings – Quick Guide",
+      "section": "dashboard-crm"
+    },
+    "https://thefusebase.com/guides/fusebase-ai/expanding-ai-agent-functionality-via-mcp/": {
+      "hash": "06d3c34c86b0df2536fb7ba72e9176b0f2f76d70af2f57d09244f93fb58b4392",
+      "lastUpdated": "2026-02-28T21:27:14.120Z",
+      "filePath": "fusebase-ai\\expanding-ai-agent-functionality-via-mcp.md",
+      "title": "Expanding AI Agent functionality via MCP",
+      "section": "fusebase-ai"
+    },
+    "https://thefusebase.com/guides/fusebase-ai/fusebase-apps-quick-guide/": {
+      "hash": "c3fdb6bc7b635be07fa9c94f8452d1c061d4a1854c7b5635dfcdd4d31a11f99d",
+      "lastUpdated": "2026-02-28T21:27:13.957Z",
+      "filePath": "fusebase-ai\\fusebase-apps-quick-guide.md",
+      "title": "FuseBase Apps – Quick Guide",
+      "section": "fusebase-ai"
+    },
+    "https://thefusebase.com/guides/fusebase-ai/public-ai-agents-integrate-agents-into-your-website/": {
+      "hash": "9080375bf58317b3c59f4fda40020ab92de49e405a1d8ce4486cece3a64f6e96",
+      "lastUpdated": "2026-02-28T21:27:14.062Z",
+      "filePath": "fusebase-ai\\public-ai-agents-integrate-agents-into-your-website.md",
+      "title": "Public AI agents – integrate agents into your website",
+      "section": "fusebase-ai"
+    },
+    "https://thefusebase.com/guides/fusebase-ai/categories-and-favorites-for-ai-agents/": {
+      "hash": "1ab5fb20a380a4c4b828cf23b6ca0b8e2f8d2846f8521e3868dc4c5259f912c3",
+      "lastUpdated": "2026-02-28T21:27:16.972Z",
+      "filePath": "fusebase-ai\\categories-and-favorites-for-ai-agents.md",
+      "title": "Categories and Favorites for AI Agents",
+      "section": "fusebase-ai"
+    },
+    "https://thefusebase.com/guides/fusebase-ai/fusebase-ai-assistant-browser-extension/": {
+      "hash": "16b9efc864dac8b8d45687b2c593a50747131e6b7ba5951fa78491986ef2b015",
+      "lastUpdated": "2026-02-28T21:27:17.163Z",
+      "filePath": "fusebase-ai\\fusebase-ai-assistant-browser-extension.md",
+      "title": "Fusebase AI Assistant – Browser Extension",
+      "section": "fusebase-ai"
+    },
+    "https://thefusebase.com/guides/fusebase-ai/webpage-context-create-ai-agent-using-page-content/": {
+      "hash": "57ec588e777089b02a6decd7a7aca65cc32c79af35dac304a957fed2bb026905",
+      "lastUpdated": "2026-02-28T21:27:17.103Z",
+      "filePath": "fusebase-ai\\webpage-context-create-ai-agent-using-page-content.md",
+      "title": "WebPage Context – create AI agent using page content",
+      "section": "fusebase-ai"
+    },
+    "https://thefusebase.com/guides/fusebase-ai/integration-of-ai-agents-with-other-services-google-calendar-slack-stripe-etc/": {
+      "hash": "2dda0f78e560a1c09a59238d1f54ff63d2108b421fce200af704ab4a58ff1e25",
+      "lastUpdated": "2026-02-28T21:27:17.164Z",
+      "filePath": "fusebase-ai\\integration-of-ai-agents-with-other-services-google-calendar-slack-stripe-etc.md",
+      "title": "Integration of AI agents with other services (Google Calendar, Slack, Stripe, etc.)",
+      "section": "fusebase-ai"
+    },
+    "https://thefusebase.com/guides/fusebase-ai/ai-agents-quick-guide/": {
+      "hash": "2e1d326ea9959370c39e60f49ccfa00e5d64ba73d7b4cbd714c57d956b3424ed",
+      "lastUpdated": "2026-02-28T21:27:17.104Z",
+      "filePath": "fusebase-ai\\ai-agents-quick-guide.md",
+      "title": "AI Agents – Quick Guide",
+      "section": "fusebase-ai"
+    },
+    "https://thefusebase.com/guides/branding/adding-google-analytics-to-public-pages-using-custom-scripts/": {
+      "hash": "977182401702336eb8bd49c1e9163e5f984e06f3e9984c8d9ba80c2e3708e6c8",
+      "lastUpdated": "2026-02-28T21:27:19.986Z",
+      "filePath": "branding\\adding-google-analytics-to-public-pages-using-custom-scripts.md",
+      "title": "Adding Google Analytics to public pages using custom scripts",
+      "section": "branding"
+    },
+    "https://thefusebase.com/guides/fusebase-ai/transcribe-and-ai-assistant-for-video-guide/": {
+      "hash": "02c72796986c9199ac2dd50a3a8e9bb904169ededd0b2dfdfaf9355e737b3986",
+      "lastUpdated": "2026-02-28T21:27:19.894Z",
+      "filePath": "fusebase-ai\\transcribe-and-ai-assistant-for-video-guide.md",
+      "title": "Transcribe and AI Assistant for Video – Guide",
+      "section": "fusebase-ai"
+    },
+    "https://thefusebase.com/guides/fusebase-ai/fusebase-ai-effective-practices-and-uses/": {
+      "hash": "87987fc381dc4becdd14c000dcc209b50fa8040c25e3ae4f7c9d8db14b34bc17",
+      "lastUpdated": "2026-02-28T21:27:19.956Z",
+      "filePath": "fusebase-ai\\fusebase-ai-effective-practices-and-uses.md",
+      "title": "FuseBase AI – Effective Practices and Uses",
+      "section": "fusebase-ai"
+    },
+    "https://thefusebase.com/guides/fusebase-ai/generating-new-content/": {
+      "hash": "fc2f67b91c6716b0e3d92a2a5c83e90da2913c78c786f8a77f0716c36e89f83c",
+      "lastUpdated": "2026-02-28T21:27:19.956Z",
+      "filePath": "fusebase-ai\\generating-new-content.md",
+      "title": "AI-Powered Writing in FuseBase Editor",
+      "section": "fusebase-ai"
+    },
+    "https://thefusebase.com/guides/fusebase-ai/ai-assistant-quick-guide/": {
+      "hash": "08bcb2ea939394eb1ec291315fa179c01c6671c68001060437ef37acc4681ecc",
+      "lastUpdated": "2026-02-28T21:27:20.027Z",
+      "filePath": "fusebase-ai\\ai-assistant-quick-guide.md",
+      "title": "AI Assistant – Quick Guide",
+      "section": "fusebase-ai"
+    },
+    "https://thefusebase.com/guides/branding/adding-cta-on-public-pages-using-convertflow/": {
+      "hash": "9b184db74f35bf68d2799ab7161e5da37e3a6f4949a7bcebf7eac5e65d2d8389",
+      "lastUpdated": "2026-02-28T21:27:22.762Z",
+      "filePath": "branding\\adding-cta-on-public-pages-using-convertflow.md",
+      "title": "Adding CTA on public pages using Convertflow",
+      "section": "branding"
+    },
+    "https://thefusebase.com/guides/branding/adding-videoask-widget-to-public-pages/": {
+      "hash": "1cab177bf029cdc04e34c6ce25ab223ec4f8d115361386f71bd262c881bedf5c",
+      "lastUpdated": "2026-02-28T21:27:22.789Z",
+      "filePath": "branding\\adding-videoask-widget-to-public-pages.md",
+      "title": "Adding VideoAsk widget to public pages",
+      "section": "branding"
+    },
+    "https://thefusebase.com/guides/branding/organization-logo/": {
+      "hash": "91df3ba9987d96b7095000665f07c3c0b82ab9da7c0c686e7cfa0b01d4483681",
+      "lastUpdated": "2026-02-28T21:27:22.929Z",
+      "filePath": "branding\\organization-logo.md",
+      "title": "Organization logo",
+      "section": "branding"
+    },
+    "https://thefusebase.com/guides/branding/white-label-for-organization/": {
+      "hash": "065df2f215947b8570c7fec32f3184aa36ebe298102169cb0d3441dae4558138",
+      "lastUpdated": "2026-02-28T21:27:22.761Z",
+      "filePath": "branding\\white-label-for-organization.md",
+      "title": "White label for organization",
+      "section": "branding"
+    },
+    "https://thefusebase.com/guides/branding/can-i-change-set-my-logo-for-the-workspace/": {
+      "hash": "cb1ca9d03b6c59a8b35dca55c46c114e74e5e4fc52d64ca4dc1124142f268a6e",
+      "lastUpdated": "2026-02-28T21:27:22.681Z",
+      "filePath": "branding\\can-i-change-set-my-logo-for-the-workspace.md",
+      "title": "Can I change/set my logo for the workspace?",
+      "section": "branding"
+    },
+    "https://thefusebase.com/guides/branding/getting-started-with-branding/": {
+      "hash": "48bf5d3ad46eee6ae5ff3e9438c4c8aadc735195db6b4b52079acdfbb66f9d12",
+      "lastUpdated": "2026-02-28T21:27:25.598Z",
+      "filePath": "branding\\getting-started-with-branding.md",
+      "title": "Getting started with Branding",
+      "section": "branding"
+    },
+    "https://thefusebase.com/guides/branding/custom-subdomains-cname/": {
+      "hash": "a0f23f3d717b7c7c23ced045721b9a608175bc40ef82f557e3689060f0d0dff2",
+      "lastUpdated": "2026-02-28T21:27:25.813Z",
+      "filePath": "branding\\custom-subdomains-cname.md",
+      "title": "Custom Subdomains (CNAME)",
+      "section": "branding"
+    },
+    "https://thefusebase.com/guides/branding/business-teams-account-html-js-injections-for-integrations/": {
+      "hash": "089b06d0022d97b284630034bcd458d21ba2f197344b58510bc4c1bd98794d06",
+      "lastUpdated": "2026-02-28T21:27:25.629Z",
+      "filePath": "branding\\business-teams-account-html-js-injections-for-integrations.md",
+      "title": "Business/Teams account | HTML / JS injections for integrations",
+      "section": "branding"
+    },
+    "https://thefusebase.com/guides/branding/branding-for-public-pages/": {
+      "hash": "6b2b75aac459213eb403245878e285e089fe3b8904baa3ee8d4c66fd8a01b6a9",
+      "lastUpdated": "2026-02-28T21:27:25.560Z",
+      "filePath": "branding\\branding-for-public-pages.md",
+      "title": "Branding for public pages",
+      "section": "branding"
+    },
+    "https://thefusebase.com/guides/branding/custom-smtp/": {
+      "hash": "fb0c2775494a29a86181c6b435ed4574186440c667db9f7053abc6bd75b61352",
+      "lastUpdated": "2026-02-28T21:27:25.658Z",
+      "filePath": "branding\\custom-smtp.md",
+      "title": "Custom SMTP",
+      "section": "branding"
+    },
+    "https://thefusebase.com/guides/settings/accountgoogle-fb-sign-in-to-personal-password/": {
+      "hash": "1da17970160afb207e7f73f295b9a6c9e4274ccba21e69540863b052ddf6bda2",
+      "lastUpdated": "2026-02-28T21:27:28.579Z",
+      "filePath": "settings\\accountgoogle-fb-sign-in-to-personal-password.md",
+      "title": "Account|Google/FB sign-in to personal password",
+      "section": "settings"
+    },
+    "https://thefusebase.com/guides/settings/subscription-actions-upgrade-and-downgrade/": {
+      "hash": "896509c2c68d65c410c8d141ff08595243b4d6332bfcdc50328f2ea490ce9d60",
+      "lastUpdated": "2026-02-28T21:27:28.780Z",
+      "filePath": "settings\\subscription-actions-upgrade-and-downgrade.md",
+      "title": "Subscription actions – Upgrade and Downgrade",
+      "section": "settings"
+    },
+    "https://thefusebase.com/guides/settings/how-to-export-notes-to-html-or-pdf/": {
+      "hash": "050fb79bc5daef63c6115439d234641b212db95393da7921ed864ba3dff109c4",
+      "lastUpdated": "2026-02-28T21:27:28.839Z",
+      "filePath": "settings\\how-to-export-notes-to-html-or-pdf.md",
+      "title": "How to Export Notes to HTML or PDF?",
+      "section": "settings"
+    },
+    "https://thefusebase.com/guides/settings/how-do-i-change-the-account-email/": {
+      "hash": "3d3a8c04b3d355093c75921f76481e161b124899e01e479586a3776e0147cd3a",
+      "lastUpdated": "2026-02-28T21:27:28.549Z",
+      "filePath": "settings\\how-do-i-change-the-account-email.md",
+      "title": "How do I change the account email?",
+      "section": "settings"
+    },
+    "https://thefusebase.com/guides/settings/switching-between-the-old-and-new-client/": {
+      "hash": "b9ef2e307b08400db5f9fd7a8e1d4983f9c3f3c826afd5487b7a95de878aa156",
+      "lastUpdated": "2026-02-28T21:27:28.880Z",
+      "filePath": "settings\\switching-between-the-old-and-new-client.md",
+      "title": "Switching between the old and new client",
+      "section": "settings"
+    },
+    "https://thefusebase.com/guides/automations-and-integrations/tag-automation-quick-guide/": {
+      "hash": "114be12983650792d93c57c924c4441f26a6f61f97bc95bcb5bd3e3454aca69f",
+      "lastUpdated": "2026-02-28T21:27:31.688Z",
+      "filePath": "automations-and-integrations\\tag-automation-quick-guide.md",
+      "title": "Tag automation: Quick Guide",
+      "section": "automations-and-integrations"
+    },
+    "https://thefusebase.com/guides/automations-and-integrations/webhook-trigger-guide/": {
+      "hash": "bc1651dbee1305529a6a03ca87086ab0a1c2becb6410e0189fef6f5a0b98af18",
+      "lastUpdated": "2026-02-28T21:27:31.490Z",
+      "filePath": "automations-and-integrations\\webhook-trigger-guide.md",
+      "title": "Webhook Trigger – Guide",
+      "section": "automations-and-integrations"
+    },
+    "https://thefusebase.com/guides/automations-and-integrations/transferring-files-from-google-drive-to-the-fusebase-database-quick-guide/": {
+      "hash": "12fa913d09d324624cda566eb499d4a5d363974eb39c5ff932bfc7417aff040f",
+      "lastUpdated": "2026-02-28T21:27:31.433Z",
+      "filePath": "automations-and-integrations\\transferring-files-from-google-drive-to-the-fusebase-database-quick-guide.md",
+      "title": "Transferring Files from Google Drive to the Fusebase Database – Quick Guide",
+      "section": "automations-and-integrations"
+    },
+    "https://thefusebase.com/guides/automations-and-integrations/database-automation-a-guide-to-creating-workflows/": {
+      "hash": "1118c97e17e6b9e8d1c88bd91f3da7e3ee884fdcabb3b4190574bc861770a5be",
+      "lastUpdated": "2026-02-28T21:27:31.789Z",
+      "filePath": "automations-and-integrations\\database-automation-a-guide-to-creating-workflows.md",
+      "title": "Database automation – A guide to creating workflows",
+      "section": "automations-and-integrations"
+    },
+    "https://thefusebase.com/guides/automations-and-integrations/trigger-form-submission-automate-forms-in-the-portal/": {
+      "hash": "00cb96fd24a566070e160784b4577f6a391cd4f2c3e6458be81ed45713763a6b",
+      "lastUpdated": "2026-02-28T21:27:32.092Z",
+      "filePath": "automations-and-integrations\\trigger-form-submission-automate-forms-in-the-portal.md",
+      "title": "Trigger Form Submission – automate forms in the portal",
+      "section": "automations-and-integrations"
+    },
+    "https://thefusebase.com/guides/automations-and-integrations/integration-with-firefiles-retrieving-a-transcript/": {
+      "hash": "c13741561ed961506ae71f909a7a4ba4c5d1e69f88107caaa98ad7f9c50371bf",
+      "lastUpdated": "2026-02-28T21:27:35.328Z",
+      "filePath": "automations-and-integrations\\integration-with-firefiles-retrieving-a-transcript.md",
+      "title": "Integration with Firefiles – Retrieving a Transcript",
+      "section": "automations-and-integrations"
+    },
+    "https://thefusebase.com/guides/automations-and-integrations/whats-the-difference-between-agents-and-automation/": {
+      "hash": "585d1e7534e095d44529e4f32d45f7a8dc0ed2625ba3674615abb83a2050de20",
+      "lastUpdated": "2026-02-28T21:27:35.298Z",
+      "filePath": "automations-and-integrations\\whats-the-difference-between-agents-and-automation.md",
+      "title": "What’s the Difference Between Agents and Automation?",
+      "section": "automations-and-integrations"
+    },
+    "https://thefusebase.com/guides/automations-and-integrations/auto-creation-of-a-portal-for-new-hubspot-contacts-with-personalized-ticket-display/": {
+      "hash": "eb834ac4e298958b298c0551c990766da9ee2e636b902bc9e28000e00b1f1a4d",
+      "lastUpdated": "2026-02-28T21:27:35.220Z",
+      "filePath": "automations-and-integrations\\auto-creation-of-a-portal-for-new-hubspot-contacts-with-personalized-ticket-display.md",
+      "title": "Auto-Creation of a Portal for New HubSpot Contacts with Personalized Ticket Display",
+      "section": "automations-and-integrations"
+    },
+    "https://thefusebase.com/guides/automations-and-integrations/using-ai-agents-in-automation/": {
+      "hash": "a45219c42cb5882ba40abb2d3421ca7148674b3c5061bac23f5ea345d8fd505e",
+      "lastUpdated": "2026-02-28T21:27:35.148Z",
+      "filePath": "automations-and-integrations\\using-ai-agents-in-automation.md",
+      "title": "Using AI Agents in Automation",
+      "section": "automations-and-integrations"
+    },
+    "https://thefusebase.com/guides/automations-and-integrations/page-update-in-a-workspace-or-portal-via-automation/": {
+      "hash": "7d04bf5695ed07742982df7fb8e1aee81d59790cc4379c10324bc0029decdd68",
+      "lastUpdated": "2026-02-28T21:27:35.191Z",
+      "filePath": "automations-and-integrations\\page-update-in-a-workspace-or-portal-via-automation.md",
+      "title": "Page update in a workspace or portal via automation",
+      "section": "automations-and-integrations"
+    },
+    "https://thefusebase.com/guides/automations-and-integrations/automation-of-page-creation-in-the-portal/": {
+      "hash": "074da193da63c45a9bd6b1b1b365eeff5ee9bba789137efd53ba38a6e348673f",
+      "lastUpdated": "2026-02-28T21:27:38.911Z",
+      "filePath": "automations-and-integrations\\automation-of-page-creation-in-the-portal.md",
+      "title": "Automation of Page Creation in the Portal",
+      "section": "automations-and-integrations"
+    },
+    "https://thefusebase.com/guides/automations-and-integrations/action-ask-ai-assistant-generation-of-documents-summaries-etc/": {
+      "hash": "26a9a414b8cc367048772edc5911104dee633c3dd3b66e6f604397d016325a5d",
+      "lastUpdated": "2026-02-28T21:27:38.576Z",
+      "filePath": "automations-and-integrations\\action-ask-ai-assistant-generation-of-documents-summaries-etc.md",
+      "title": "Action Ask AI Assistant – generation of documents, summaries, etc.",
+      "section": "automations-and-integrations"
+    },
+    "https://thefusebase.com/guides/automations-and-integrations/action-email-notification-send-custom-notifications/": {
+      "hash": "2ff014737d4d14f14722c1526a62e339f0bb8cf97104cc118fb07658dbf5f287",
+      "lastUpdated": "2026-02-28T21:27:38.634Z",
+      "filePath": "automations-and-integrations\\action-email-notification-send-custom-notifications.md",
+      "title": "Action: Email Notification – send custom notifications",
+      "section": "automations-and-integrations"
+    },
+    "https://thefusebase.com/guides/automations-and-integrations/creating-a-recurring-task-using-automation/": {
+      "hash": "03a3e66d9a0ad8b166c5ac4defaf19b0f97f051b5907e1bddb25c2f614abc3b5",
+      "lastUpdated": "2026-02-28T21:27:38.458Z",
+      "filePath": "automations-and-integrations\\creating-a-recurring-task-using-automation.md",
+      "title": "Creating a recurring task using automation",
+      "section": "automations-and-integrations"
+    },
+    "https://thefusebase.com/guides/automations-and-integrations/automating-video-transcription-summary-generation-email-delivery/": {
+      "hash": "fe5825e761f23a048e46515f2a07e8946b0ef6d8906a0ec341b22f91890c4be7",
+      "lastUpdated": "2026-02-28T21:27:38.662Z",
+      "filePath": "automations-and-integrations\\automating-video-transcription-summary-generation-email-delivery.md",
+      "title": "Automating Video Transcription (Summary Generation + Email Delivery)",
+      "section": "automations-and-integrations"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/personal-protect-embeds-via-password/": {
+      "hash": "cebd124527016d6498f7652fd50f0b021c24a5ee6dc19d8c3d996ca55bf75be5",
+      "lastUpdated": "2026-02-28T21:27:41.612Z",
+      "filePath": "embedding-sharing\\personal-protect-embeds-via-password.md",
+      "title": "Personal | Protect Embeds via password",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/business-teams-embedding-public-pages/": {
+      "hash": "828a61552fb3422df87ca7cd1c1b625471a11aca7f5a05db78a9884bd1319bce",
+      "lastUpdated": "2026-02-28T21:27:41.579Z",
+      "filePath": "embedding-sharing\\business-teams-embedding-public-pages.md",
+      "title": "Business/Teams | Embedding public pages",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/how-to-embed-document-from-google-docs-google-sheet/": {
+      "hash": "1e98ea5a132192109f290de7f84fe28580bd1b0d4d48f29c262c81600ebd06ba",
+      "lastUpdated": "2026-02-28T21:27:41.647Z",
+      "filePath": "embedding-sharing\\how-to-embed-document-from-google-docs-google-sheet.md",
+      "title": "How to embed document from Google Docs/Google Sheet?",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/custom-js-html-for-public-links-and-web-client/": {
+      "hash": "1cd0c90584d2cc21f7066dc4e44304bd04861f284a5a727aa9509dc0957df36e",
+      "lastUpdated": "2026-02-28T21:27:41.675Z",
+      "filePath": "embedding-sharing\\custom-js-html-for-public-links-and-web-client.md",
+      "title": "Custom JS/HTML for public links and web-client",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/creating-presentations-with-nimbus-embeds-in-slides-com/": {
+      "hash": "18c471982e5eb5555f7393b143fff5d7e7dff3de6ce87b18df6e6c6b5b84cc45",
+      "lastUpdated": "2026-02-28T21:27:42.050Z",
+      "filePath": "embedding-sharing\\creating-presentations-with-nimbus-embeds-in-slides-com.md",
+      "title": "Creating presentations with FuseBase embeds in Slides.com",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/adding-intercom-chat-to-public-pages-using-custom-scripts/": {
+      "hash": "279c16903ec8f22ba9f7fe4607fd2db9c4b028e7781978656f9cbabeb1c11a3b",
+      "lastUpdated": "2026-02-28T21:27:44.590Z",
+      "filePath": "embedding-sharing\\adding-intercom-chat-to-public-pages-using-custom-scripts.md",
+      "title": "Adding Intercom chat to public pages using custom scripts",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/adding-support-for-fonts-from-google-fonts-to-public-links/": {
+      "hash": "277b8539a39d77947d9efe167c0a6b5fd366e29c4c230da07f734c7888beb989",
+      "lastUpdated": "2026-02-28T21:27:44.871Z",
+      "filePath": "embedding-sharing\\adding-support-for-fonts-from-google-fonts-to-public-links.md",
+      "title": "Adding support for fonts from Google Fonts to public links",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/embed-calendly/": {
+      "hash": "73d4cea6267ba64d328b1a862bcebf98ce4591579b717796985863be7a8ca274",
+      "lastUpdated": "2026-02-28T21:27:44.696Z",
+      "filePath": "embedding-sharing\\embed-calendly.md",
+      "title": "Embed Calendly",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/embed-airtable/": {
+      "hash": "245152b77494217bdc9b6ef384747e13b6b27703a96ba6a9178d736be9e87a5a",
+      "lastUpdated": "2026-02-28T21:27:44.548Z",
+      "filePath": "embedding-sharing\\embed-airtable.md",
+      "title": "Embed Airtable",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/embed-typeform/": {
+      "hash": "03c035bc3b870755bddf799b37d3576e397e1767719acad24e16bbc3232c83e5",
+      "lastUpdated": "2026-02-28T21:27:44.901Z",
+      "filePath": "embedding-sharing\\embed-typeform.md",
+      "title": "Embed Typeform",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/embed-outlook-calendar/": {
+      "hash": "7e2267d8340f29001f111550eb59010310603ec58dcddaab75af156f498fb1c6",
+      "lastUpdated": "2026-02-28T21:27:48.042Z",
+      "filePath": "embedding-sharing\\embed-outlook-calendar.md",
+      "title": "Embed Outlook Calendar",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/adding-mind-maps-from-mindmeister/": {
+      "hash": "7e6f87e090e68473742faa42f5a988b5b9abf7702c7da002f77b7057a8800e41",
+      "lastUpdated": "2026-02-28T21:27:47.953Z",
+      "filePath": "embedding-sharing\\adding-mind-maps-from-mindmeister.md",
+      "title": "Adding Mind Maps from MindMeister",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/embed-google-data-studio/": {
+      "hash": "bb0e6408ef6941721b3305193620b7fe7b17b03ff70c5055976dea75c6a7de8e",
+      "lastUpdated": "2026-02-28T21:27:47.954Z",
+      "filePath": "embedding-sharing\\embed-google-data-studio.md",
+      "title": "Embed Google Data Studio",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/embed-miro/": {
+      "hash": "0a9e3fcc5d8414538440996bc2692d8e969bffd1e5bcd69412559a09b15342ce",
+      "lastUpdated": "2026-02-28T21:27:47.835Z",
+      "filePath": "embedding-sharing\\embed-miro.md",
+      "title": "Embed Miro",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/embed-monday/": {
+      "hash": "d219fad47fb528f3d5897112968ca9b40936031649f81ba3cc63f165df381be5",
+      "lastUpdated": "2026-02-28T21:27:48.041Z",
+      "filePath": "embedding-sharing\\embed-monday.md",
+      "title": "Embed Monday",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/embed-google-calendar/": {
+      "hash": "adebb8b20573047ea84dc1d21352c9ff9cf10877aeca4ef5d1316d8d57830ce8",
+      "lastUpdated": "2026-02-28T21:27:50.553Z",
+      "filePath": "embedding-sharing\\embed-google-calendar.md",
+      "title": "Embed Google Calendar",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/embed-google-maps/": {
+      "hash": "847519bbf7daf8a1e64a372def0f2a8688b5d58c15f2932460c1e3a324f8e8da",
+      "lastUpdated": "2026-02-28T21:27:50.586Z",
+      "filePath": "embedding-sharing\\embed-google-maps.md",
+      "title": "Embed Google Maps",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/teachers-embedding-public-pages/": {
+      "hash": "df31d9296855c9094a9536651c592d6e24efab65a1b2a44c08f9f1484dd4270c",
+      "lastUpdated": "2026-02-28T21:27:50.487Z",
+      "filePath": "embedding-sharing\\teachers-embedding-public-pages.md",
+      "title": "Teachers | Embedding public pages",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/embed-insert-google-drive-files/": {
+      "hash": "a2d873d8c9d78b007354eb5800fee7097910ebc115a6044771bfd8ab45233031",
+      "lastUpdated": "2026-02-28T21:27:50.522Z",
+      "filePath": "embedding-sharing\\embed-insert-google-drive-files.md",
+      "title": "Embed & Insert Google Drive files",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/personal-embedding-sharing-pages/": {
+      "hash": "6844b4e3bdcc74195c1eebf8cbe0c8145906a6e223118306875cb667c112551c",
+      "lastUpdated": "2026-02-28T21:27:50.840Z",
+      "filePath": "embedding-sharing\\personal-embedding-sharing-pages.md",
+      "title": "Personal | Embedding sharing pages",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/how-to-add-chart-from-org-chart-into-a-page/": {
+      "hash": "2c7d0156d4e745b403eebe3634ed20ef1ac165c49091c9c3d21ccbabf204a6cf",
+      "lastUpdated": "2026-02-28T21:27:53.312Z",
+      "filePath": "embedding-sharing\\how-to-add-chart-from-org-chart-into-a-page.md",
+      "title": "How to add chart from Org chart into a page in FuseBase",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/embed-google-forms-into-nimbus-note/": {
+      "hash": "be5fd395ec1d3d3f6e841e01646256dedc782278d2781279128347032488b25f",
+      "lastUpdated": "2026-02-28T21:27:53.284Z",
+      "filePath": "embedding-sharing\\embed-google-forms-into-nimbus-note.md",
+      "title": "Embed Google forms into FuseBase",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/zillow-embed/": {
+      "hash": "71a0e7e2af6cc76a3a1b7a348d7240dcae3d2d87ecc20d0ba44a940e0b6bc39f",
+      "lastUpdated": "2026-02-28T21:27:53.255Z",
+      "filePath": "embedding-sharing\\zillow-embed.md",
+      "title": "Zillow embed",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/creating-presentations-with-fusebase-embeds-in-slides-com/": {
+      "hash": "ca6757cf6720c91ce004b6404a922185b62d76785ac20240b46bef0a11306d43",
+      "lastUpdated": "2026-02-28T21:27:53.556Z",
+      "filePath": "embedding-sharing\\creating-presentations-with-fusebase-embeds-in-slides-com.md",
+      "title": "Creating presentations with FuseBase embeds in Slides.com",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/embedding-sharing/adding-microsoft-onedrive-document-embeds/": {
+      "hash": "0314836ac8b689fb7094d791de01011561aef96495c2dd199667e2c18e7b0f3a",
+      "lastUpdated": "2026-02-28T21:27:53.613Z",
+      "filePath": "embedding-sharing\\adding-microsoft-onedrive-document-embeds.md",
+      "title": "Adding Microsoft OneDrive Document embeds to FuseBase",
+      "section": "embedding-sharing"
+    },
+    "https://thefusebase.com/guides/screenshot/how-to-record-a-video-from-another-program-or-of-an-entire-chrome-window-desktop-record/": {
+      "hash": "30b8d4df5f276f963e3fee230993840cfe592a4880907d18043d75d2db217c80",
+      "lastUpdated": "2026-02-28T21:27:56.120Z",
+      "filePath": "screenshot\\how-to-record-a-video-from-another-program-or-of-an-entire-chrome-window-desktop-record.md",
+      "title": "How to record a video from another program or of an entire Chrome window (desktop record)?",
+      "section": "screenshot"
+    },
+    "https://thefusebase.com/guides/screenshot/how-to-add-my-own-watermark-to-a-video/": {
+      "hash": "dbc2ab80d643af75f397680783051b3f1461667ade39b800c6d8c80c0dd050f8",
+      "lastUpdated": "2026-02-28T21:27:56.197Z",
+      "filePath": "screenshot\\how-to-add-my-own-watermark-to-a-video.md",
+      "title": "How to add my own watermark to a video?",
+      "section": "screenshot"
+    },
+    "https://thefusebase.com/guides/screenshot/fusebase-ai-taker/": {
+      "hash": "2f7c6a06a856be4ef00dda4dfeb98c5f938faecbb0613fc24b6c4131a5ecd641",
+      "lastUpdated": "2026-02-28T21:27:56.398Z",
+      "filePath": "screenshot\\fusebase-ai-taker.md",
+      "title": "FuseBase AI Note Taker & Meeting recorder",
+      "section": "screenshot"
+    },
+    "https://thefusebase.com/guides/screenshot/record-guide-mode/": {
+      "hash": "983cc45c63c31ced251012b25e70d89945d359e51c743288df2f4be79542873a",
+      "lastUpdated": "2026-02-28T21:27:56.348Z",
+      "filePath": "screenshot\\record-guide-mode.md",
+      "title": "Record Guide: Why and How to Use It?",
+      "section": "screenshot"
+    },
+    "https://thefusebase.com/guides/screenshot/drawing-tools-for-video/": {
+      "hash": "6f54d90b16388515f4e9f6d80a0ed0245bee3c16b9cd6150e0e7be8ebc707512",
+      "lastUpdated": "2026-02-28T21:27:56.169Z",
+      "filePath": "screenshot\\drawing-tools-for-video.md",
+      "title": "Drawing tools for video",
+      "section": "screenshot"
+    },
+    "https://thefusebase.com/guides/table-database/duplicating-database-and-table/": {
+      "hash": "b24959d4f6c8fdd949f06d3d3cd6001a3ff44abf5edcc2712ae4bdaae6526249",
+      "lastUpdated": "2026-02-28T21:27:59.277Z",
+      "filePath": "table-database\\duplicating-database-and-table.md",
+      "title": "Duplicating database and table",
+      "section": "table-database"
+    },
+    "https://thefusebase.com/guides/screenshot/why-dont-i-hear-sound-after-converting-into-mp4/": {
+      "hash": "db9c2b3c9b02e9946a54fc485602e432cfc4a4e2db59bc9d0b253a59c602fc5c",
+      "lastUpdated": "2026-02-28T21:27:59.277Z",
+      "filePath": "screenshot\\why-dont-i-hear-sound-after-converting-into-mp4.md",
+      "title": "Why don’t I hear sound after converting into MP4?",
+      "section": "screenshot"
+    },
+    "https://thefusebase.com/guides/table-database/exporting-a-table-to-csv-quick-guide/": {
+      "hash": "f2e488b2520b4ddc9c80edb920c1df828b49544adb7748e4e4685f16fa9ecde9",
+      "lastUpdated": "2026-02-28T21:27:59.472Z",
+      "filePath": "table-database\\exporting-a-table-to-csv-quick-guide.md",
+      "title": "Exporting a Table to CSV – Quick Guide",
+      "section": "table-database"
+    },
+    "https://thefusebase.com/guides/table-database/importing-into-a-table-from-csv-quick-guide/": {
+      "hash": "32a3f6c87b10f481668527b05388d066f146d5df22714724bf9892b3782022e0",
+      "lastUpdated": "2026-02-28T21:27:59.188Z",
+      "filePath": "table-database\\importing-into-a-table-from-csv-quick-guide.md",
+      "title": "Importing into a table from CSV – Quick Guide",
+      "section": "table-database"
+    },
+    "https://thefusebase.com/guides/table-database/sub-tables-quick-guide/": {
+      "hash": "8d8e6c2e90691a4bc26ee2e57ec01c0b65711562290e281d1d11af3a227b1601",
+      "lastUpdated": "2026-02-28T21:27:59.410Z",
+      "filePath": "table-database\\sub-tables-quick-guide.md",
+      "title": "Sub-tables – Quick Guide",
+      "section": "table-database"
+    },
+    "https://thefusebase.com/guides/dashboard-crm/kanban-view-in-fusebase-quick-guide/": {
+      "hash": "123b901bfb7130af9011cf57b76454fd03d37946e8d7ee071c61a9955ebd4d8a",
+      "lastUpdated": "2026-02-28T21:28:02.111Z",
+      "filePath": "dashboard-crm\\kanban-view-in-fusebase-quick-guide.md",
+      "title": "Kanban view in Fusebase  – Quick Guide",
+      "section": "dashboard-crm"
+    },
+    "https://thefusebase.com/guides/table-database/filtering-and-sorting-quick-guide/": {
+      "hash": "3bfefa3b93d8d6751b0f26d45ef05f560fd341241da4994aca0474cc28f75d24",
+      "lastUpdated": "2026-02-28T21:28:02.296Z",
+      "filePath": "table-database\\filtering-and-sorting-quick-guide.md",
+      "title": "Filtering and Sorting – Quick Guide",
+      "section": "table-database"
+    },
+    "https://thefusebase.com/guides/dashboard-crm/column-groups-simplifying-data-display-in-detailed-view/": {
+      "hash": "fb40b43e3737c8e6c72c7450471adfff2565356e465975bd8d3473bc0d712b47",
+      "lastUpdated": "2026-02-28T21:28:02.362Z",
+      "filePath": "dashboard-crm\\column-groups-simplifying-data-display-in-detailed-view.md",
+      "title": "Column groups – simplifying data display in detailed view",
+      "section": "dashboard-crm"
+    },
+    "https://thefusebase.com/guides/dashboard-crm/custom-views-building-a-dashboard-for-ourselves/": {
+      "hash": "45b2f73179ff7341dba231f0ac1090667186ec5c3603efd4edaf01197aaed905",
+      "lastUpdated": "2026-02-28T21:28:02.142Z",
+      "filePath": "dashboard-crm\\custom-views-building-a-dashboard-for-ourselves.md",
+      "title": "Custom views – building a dashboard for ourselves",
+      "section": "dashboard-crm"
+    },
+    "https://thefusebase.com/guides/dashboard-crm/users-column-quick-guide/": {
+      "hash": "8f61dcd2e005b305666875d746e7cf65b541d035057b611f0cc15ee0205f8d6b",
+      "lastUpdated": "2026-02-28T21:28:02.422Z",
+      "filePath": "dashboard-crm\\users-column-quick-guide.md",
+      "title": "Users column – Quick guide",
+      "section": "dashboard-crm"
+    },
+    "https://thefusebase.com/guides/web-clipper/nimbus-clipper-for-firefox/": {
+      "hash": "02f65e3efe075c6374ec89743e4baae048531661c0f03fbf28e7aec3528fc6bd",
+      "lastUpdated": "2026-02-28T21:28:05.135Z",
+      "filePath": "web-clipper\\nimbus-clipper-for-firefox.md",
+      "title": "Nimbus Clipper for Firefox",
+      "section": "web-clipper"
+    },
+    "https://thefusebase.com/guides/table-database/custom-databases-quick-guide/": {
+      "hash": "a441c028a8367b6c998dcb6edb11cd70bf15f462d5aaaaf0218a71cc597b4f2f",
+      "lastUpdated": "2026-02-28T21:28:04.969Z",
+      "filePath": "table-database\\custom-databases-quick-guide.md",
+      "title": "Custom Databases – Quick Guide",
+      "section": "table-database"
+    },
+    "https://thefusebase.com/guides/web-clipper/nimbus-clipper-for-safari/": {
+      "hash": "b36b6bfdff83f43157ebb8a45ff256c525ffa3c13c8d2f5fd85f38fb730ebfe5",
+      "lastUpdated": "2026-02-28T21:28:04.887Z",
+      "filePath": "web-clipper\\nimbus-clipper-for-safari.md",
+      "title": "Nimbus Clipper for Safari",
+      "section": "web-clipper"
+    },
+    "https://thefusebase.com/guides/web-clipper/reminders-in-nimbus-web-clipper/": {
+      "hash": "cb38cf7ee5e4062394b12cc503eee90da403ca489affc30773085393c6e2ad94",
+      "lastUpdated": "2026-02-28T21:28:04.857Z",
+      "filePath": "web-clipper\\reminders-in-nimbus-web-clipper.md",
+      "title": "Reminders in Nimbus Web Clipper",
+      "section": "web-clipper"
+    },
+    "https://thefusebase.com/guides/dashboard-crm/relation-records-lookup-quick-guide/": {
+      "hash": "82feac29e620781e349b4954164004eb03457cd117bd3e7d7fbd8045ed445a64",
+      "lastUpdated": "2026-02-28T21:28:05.212Z",
+      "filePath": "dashboard-crm\\relation-records-lookup-quick-guide.md",
+      "title": "Relation Records & Lookup – Quick Guide",
+      "section": "dashboard-crm"
+    },
+    "https://thefusebase.com/guides/android-ios/widgets-for-android/": {
+      "hash": "f48969a9198bbf32304ca639ffc79502a0f3208678ca2ef0a12517f4b33d16b4",
+      "lastUpdated": "2026-02-28T21:28:07.713Z",
+      "filePath": "android-ios\\widgets-for-android.md",
+      "title": "Widgets for Android",
+      "section": "android-ios"
+    },
+    "https://thefusebase.com/guides/web-clipper/nimbus-clipper-for-google-chrome/": {
+      "hash": "a11d2c2ac88897fc72658d11de02d8dd4e4bf63d0c103920f1c4efceba4c5cfa",
+      "lastUpdated": "2026-02-28T21:28:07.879Z",
+      "filePath": "web-clipper\\nimbus-clipper-for-google-chrome.md",
+      "title": "Nimbus Clipper for Google Chrome",
+      "section": "web-clipper"
+    },
+    "https://thefusebase.com/guides/android-ios/split-mode-for-ipads/": {
+      "hash": "6c7a0ef716b6a54f40807bba7e0a0f713fc25a2d1d300f5b31b7fb377c3bf6f7",
+      "lastUpdated": "2026-02-28T21:28:07.657Z",
+      "filePath": "android-ios\\split-mode-for-ipads.md",
+      "title": "Split mode for iPads",
+      "section": "android-ios"
+    },
+    "https://thefusebase.com/guides/android-ios/task-list-on-mobile-apps/": {
+      "hash": "28b581467f273c38a405826d6ae771ca544482648b45f6bb18d5d37d0aa0ccbd",
+      "lastUpdated": "2026-02-28T21:28:07.924Z",
+      "filePath": "android-ios\\task-list-on-mobile-apps.md",
+      "title": "Task list on mobile apps",
+      "section": "android-ios"
+    },
+    "https://thefusebase.com/guides/android-ios/widgets-for-ios/": {
+      "hash": "22abb5d895835cbd8cc1fc9b20adb2c5852ad0e8c2daed5d81b8b53df3028de6",
+      "lastUpdated": "2026-02-28T21:28:07.827Z",
+      "filePath": "android-ios\\widgets-for-ios.md",
+      "title": "Widgets for iOS",
+      "section": "android-ios"
+    },
+    "https://thefusebase.com/guides/android-ios/clipper-for-the-mobile-clients/": {
+      "hash": "ced76bc571659af4d782eaeb4421cfcdb65856d3bd3dd7e96f87670be0f17ec9",
+      "lastUpdated": "2026-02-28T21:28:10.325Z",
+      "filePath": "android-ios\\clipper-for-the-mobile-clients.md",
+      "title": "Clipper for the mobile clients",
+      "section": "android-ios"
+    },
+    "https://thefusebase.com/guides/android-ios/shortcuts-on-ios/": {
+      "hash": "67933b706dc8f8c00b025aca27fbb10557682db5a3f1a3f5196e05f3df8e9cd8",
+      "lastUpdated": "2026-02-28T21:28:10.592Z",
+      "filePath": "android-ios\\shortcuts-on-ios.md",
+      "title": "Shortcuts on iOS",
+      "section": "android-ios"
+    },
+    "https://thefusebase.com/guides/android-ios/passcode-for-nimbus-mobile-clients/": {
+      "hash": "3c9bf4810b0c8176d100a33aadd1707165719850ded69f0c2997822dfca365db",
+      "lastUpdated": "2026-02-28T21:28:10.650Z",
+      "filePath": "android-ios\\passcode-for-nimbus-mobile-clients.md",
+      "title": "Passcode for FuseBase mobile clients",
+      "section": "android-ios"
+    },
+    "https://thefusebase.com/guides/android-ios/mobile-apps/": {
+      "hash": "f4dc1dc97bcf605069d9d2848a1e740bcff3b4299804b2bb6a6f1f0731c073ae",
+      "lastUpdated": "2026-02-28T21:28:10.650Z",
+      "filePath": "android-ios\\mobile-apps.md",
+      "title": "Mobile apps",
+      "section": "android-ios"
+    },
+    "https://thefusebase.com/guides/android-ios/filtering-pages-on-ios/": {
+      "hash": "d2138575f25a173730ac6d4edc38b6bc8d5815f256692a56fbfb68c17e6fc343",
+      "lastUpdated": "2026-02-28T21:28:10.388Z",
+      "filePath": "android-ios\\filtering-pages-on-ios.md",
+      "title": "Filtering pages on iOS",
+      "section": "android-ios"
+    },
+    "https://thefusebase.com/guides/import-fusebase/import-from-docx/": {
+      "hash": "f7098fac1f663bd4d608f18a34ffa757e60ae474cdbe9923440788dbadb5024c",
+      "lastUpdated": "2026-02-28T21:28:13.213Z",
+      "filePath": "import-fusebase\\import-from-docx.md",
+      "title": "Import from DOCX",
+      "section": "import-fusebase"
+    },
+    "https://thefusebase.com/guides/import-fusebase/import-documents-from-quip/": {
+      "hash": "acef4a912df40bbf04d48abee160ec75c6427ec388d8456348065e38bf2dd991",
+      "lastUpdated": "2026-02-28T21:28:13.630Z",
+      "filePath": "import-fusebase\\import-documents-from-quip.md",
+      "title": "Import documents from Quip",
+      "section": "import-fusebase"
+    },
+    "https://thefusebase.com/guides/import-fusebase/import-documents-from-confluence/": {
+      "hash": "200a591499ed561fc77fcff6d757c3c6ccc9530bda1b06056102d40bbd838951",
+      "lastUpdated": "2026-02-28T21:28:13.711Z",
+      "filePath": "import-fusebase\\import-documents-from-confluence.md",
+      "title": "Import documents from Confluence",
+      "section": "import-fusebase"
+    },
+    "https://thefusebase.com/guides/android-ios/mobile-document-scanner/": {
+      "hash": "6b3d50b1f2d4316024accafabd597c8e33a7e581b700fc4ed084fdd865620b46",
+      "lastUpdated": "2026-02-28T21:28:13.557Z",
+      "filePath": "android-ios\\mobile-document-scanner.md",
+      "title": "Mobile document scanner",
+      "section": "android-ios"
+    },
+    "https://thefusebase.com/guides/import-fusebase/import-documents-from-notion/": {
+      "hash": "99b5e28738798adf41fae7407bf322644ba5eec7a6a13fedf046a494ffdb580b",
+      "lastUpdated": "2026-02-28T21:28:13.253Z",
+      "filePath": "import-fusebase\\import-documents-from-notion.md",
+      "title": "Import documents from Notion",
+      "section": "import-fusebase"
+    },
+    "https://thefusebase.com/guides/personal-use/invite-members-in-personal-accounts/": {
+      "hash": "e8b4175ac2ee6b65a0200e422571a6dcdef3d6fe08b7e0d3760fc59c2f68827f",
+      "lastUpdated": "2026-02-28T21:28:16.591Z",
+      "filePath": "personal-use\\invite-members-in-personal-accounts.md",
+      "title": "Invite members in Personal accounts",
+      "section": "personal-use"
+    },
+    "https://thefusebase.com/guides/import-fusebase/how-do-i-import-pages-from-evernote/": {
+      "hash": "9499387a2d280a207742b6ad9a543bb4617289c01fbac80224d087e090b31798",
+      "lastUpdated": "2026-02-28T21:28:16.531Z",
+      "filePath": "import-fusebase\\how-do-i-import-pages-from-evernote.md",
+      "title": "How do I import pages from Evernote?",
+      "section": "import-fusebase"
+    },
+    "https://thefusebase.com/guides/personal-use/personal-account-getting-started/": {
+      "hash": "080101251f69efe5799def3c9e2bc9da125a9dedf33b4f70c228a79b3778db5e",
+      "lastUpdated": "2026-02-28T21:28:16.592Z",
+      "filePath": "personal-use\\personal-account-getting-started.md",
+      "title": "Personal account | Getting Started",
+      "section": "personal-use"
+    },
+    "https://thefusebase.com/guides/import-fusebase/import-from-html/": {
+      "hash": "11e7a38b5b7f447276dabbf9d9e2707847ebb125e515df46fc6c9bbc985df38c",
+      "lastUpdated": "2026-02-28T21:28:16.266Z",
+      "filePath": "import-fusebase\\import-from-html.md",
+      "title": "Import from HTML",
+      "section": "import-fusebase"
+    },
+    "https://thefusebase.com/guides/import-fusebase/import-documents-from-bear/": {
+      "hash": "17a03d97f394f5e0ccaa3051041f829ed7a3d2cbcb0f76f533c50bff6bacb4bf",
+      "lastUpdated": "2026-02-28T21:28:16.236Z",
+      "filePath": "import-fusebase\\import-documents-from-bear.md",
+      "title": "Import documents from Bear",
+      "section": "import-fusebase"
+    },
+    "https://thefusebase.com/guides/page-editor/getting-startedcreate-a-table-and-database/": {
+      "hash": "6142007e898c8cda829a590378fb5d6ee08e2b6c3d31457e70e35d939164cda2",
+      "lastUpdated": "2026-02-28T21:28:19.536Z",
+      "filePath": "page-editor\\getting-startedcreate-a-table-and-database.md",
+      "title": "Getting started | Create a table",
+      "section": "page-editor"
+    },
+    "https://thefusebase.com/guides/page-editor/toggles/": {
+      "hash": "ccc11c263c7bb6c990587bd485738c2b210d596f05880fe3dd14cc754874d3bc",
+      "lastUpdated": "2026-02-28T21:28:19.233Z",
+      "filePath": "page-editor\\toggles.md",
+      "title": "Toggles",
+      "section": "page-editor"
+    },
+    "https://thefusebase.com/guides/dashboard-crm/form-dashboard-all-responses-in-one-place/": {
+      "hash": "b8c5b44da1fc6baf5afbe1e5ce3252ad2cff896f8af67d7787a88883790c56da",
+      "lastUpdated": "2026-02-28T21:28:19.509Z",
+      "filePath": "dashboard-crm\\form-dashboard-all-responses-in-one-place.md",
+      "title": "Form dashboard – all responses in one place",
+      "section": "dashboard-crm"
+    },
+    "https://thefusebase.com/guides/dashboard-crm/how-to-add-a-database-to-a-fusebase-page/": {
+      "hash": "13a0927ff55dd5aca306fb57e776dd96f037de0aee329bdf9607a022e862f8d2",
+      "lastUpdated": "2026-02-28T21:28:19.203Z",
+      "filePath": "dashboard-crm\\how-to-add-a-database-to-a-fusebase-page.md",
+      "title": "How to add a database to a Fusebase page",
+      "section": "dashboard-crm"
+    },
+    "https://thefusebase.com/guides/dashboard-crm/meeting-dashboard-quick-guide/": {
+      "hash": "1a299c920b72f330cb0fca84190236bf6b38e94d0465098e08a5b1835844ca74",
+      "lastUpdated": "2026-02-28T21:28:19.304Z",
+      "filePath": "dashboard-crm\\meeting-dashboard-quick-guide.md",
+      "title": "Meeting Dashboard – Quick Guide",
+      "section": "dashboard-crm"
+    },
+    "https://thefusebase.com/guides/page-editor/collapsible-headings/": {
+      "hash": "955dad4f16c4ab381672b4a769875fc9d686d7619a5092d26440068102efd553",
+      "lastUpdated": "2026-02-28T21:28:21.854Z",
+      "filePath": "page-editor\\collapsible-headings.md",
+      "title": "Collapsible headings",
+      "section": "page-editor"
+    },
+    "https://thefusebase.com/guides/page-editor/code-blocks-and-code-highlights/": {
+      "hash": "07273ac9b81ca66c4ebef50959acbe51dd475bd7080cde114f34d1b58bde7dc1",
+      "lastUpdated": "2026-02-28T21:28:22.127Z",
+      "filePath": "page-editor\\code-blocks-and-code-highlights.md",
+      "title": "Code blocks and Code highlights",
+      "section": "page-editor"
+    },
+    "https://thefusebase.com/guides/page-editor/how-to-create-columns-and-rows/": {
+      "hash": "1edffbe56571ddc29e7b7920030a09dedf96438db6537277968825f5ca938a54",
+      "lastUpdated": "2026-02-28T21:28:22.445Z",
+      "filePath": "page-editor\\how-to-create-columns-and-rows.md",
+      "title": "Basic FuseBase document navigation. Move blocks, create columns, resize",
+      "section": "page-editor"
+    },
+    "https://thefusebase.com/guides/page-editor/columns-headings-dividers/": {
+      "hash": "13bc36fee2d17225eba55ea9cabdec5dc565e3b19fa3fcb848580d2d229a5233",
+      "lastUpdated": "2026-02-28T21:28:22.398Z",
+      "filePath": "page-editor\\columns-headings-dividers.md",
+      "title": "Basic FuseBase document navigation. Move blocks, create columns, resize",
+      "section": "page-editor"
+    },
+    "https://thefusebase.com/guides/page-editor/create-resize-delete-columns/": {
+      "hash": "d44bb62658fb5a77009ce354f0e98ddfc5ac040d5a44ed198688c591df9c7bca",
+      "lastUpdated": "2026-02-28T21:28:22.526Z",
+      "filePath": "page-editor\\create-resize-delete-columns.md",
+      "title": "Basic FuseBase document navigation. Move blocks, create columns, resize",
+      "section": "page-editor"
+    },
+    "https://thefusebase.com/guides/page-editor/calculation-panel-in-tables/": {
+      "hash": "a6f58f285f2d84c252c52e73f968b207d1c76e601e5b6625e5bb71d9c37e7990",
+      "lastUpdated": "2026-02-28T21:28:24.917Z",
+      "filePath": "page-editor\\calculation-panel-in-tables.md",
+      "title": "Calculation panel in tables (FuseBase Document Editor)",
+      "section": "page-editor"
+    },
+    "https://thefusebase.com/guides/page-editor/tables/": {
+      "hash": "193b80bdcabaa65a783e3004cef0fb7761e616b7e98387432cf35fa71f50f717",
+      "lastUpdated": "2026-02-28T21:28:24.997Z",
+      "filePath": "page-editor\\tables.md",
+      "title": "Tables in FuseBase Document Editor",
+      "section": "page-editor"
+    },
+    "https://thefusebase.com/guides/page-editor/commenting-on-table-cells/": {
+      "hash": "5739f1665fd7b8decae815212b5c1faca7f995454383291444945c35b89984d0",
+      "lastUpdated": "2026-02-28T21:28:25.238Z",
+      "filePath": "page-editor\\commenting-on-table-cells.md",
+      "title": "Commenting on table cells",
+      "section": "page-editor"
+    },
+    "https://thefusebase.com/guides/page-editor/how-to-sort-columns-in-tables/": {
+      "hash": "ee9245fd77e64078355c70e3d9cd382abe4b67de702c8056752c16dbd290b444",
+      "lastUpdated": "2026-02-28T21:28:25.238Z",
+      "filePath": "page-editor\\how-to-sort-columns-in-tables.md",
+      "title": "How to sort columns in tables (FuseBase Document Editor)",
+      "section": "page-editor"
+    },
+    "https://thefusebase.com/guides/page-editor/data-filtering-in-the-tables/": {
+      "hash": "01d88b2e8e78da88a06ccc0bb507c411c5300c7f943b512027cf5fd2e86bfdce",
+      "lastUpdated": "2026-02-28T21:28:25.108Z",
+      "filePath": "page-editor\\data-filtering-in-the-tables.md",
+      "title": "Data filtering in the Tables (FuseBase Documents)",
+      "section": "page-editor"
+    },
+    "https://thefusebase.com/guides/page-editor/database/": {
+      "hash": "c77dd3cf237a92e7e578a762370392bee83e0a3f0dd7a3069a44155080461215",
+      "lastUpdated": "2026-02-28T21:28:27.041Z",
+      "filePath": "page-editor\\database.md",
+      "title": "Tables in FuseBase Document Editor – Quick Guide",
+      "section": "page-editor"
+    }
+  },
+  "nlmSyncedUrls": [
+    "https://thefusebase.com/guides/fusebase-ai/whats-the-difference-between-agents-assistants-and-genai-in-the-editor/",
+    "https://thefusebase.com/guides/dashboard-crm/dashboard-overview-managing-workspaces-portals-and-clients/",
+    "https://thefusebase.com/guides/settings/custom-fields-in-the-dashboard-building-your-own-crm-in-fusebase/",
+    "https://thefusebase.com/guides/automations-and-integrations/fusebase-automation-quick-guide/",
+    "https://thefusebase.com/guides/getting-started/create-super-docs/",
+    "https://thefusebase.com/guides/getting-started/how-to-navigate/",
+    "https://thefusebase.com/guides/getting-started/search-and-filter-pages/",
+    "https://thefusebase.com/guides/getting-started/key-role-differences/",
+    "https://thefusebase.com/guides/getting-started/create-a-new-page/",
+    "https://thefusebase.com/guides/getting-started/get-started-with-ai-in-fusebase/",
+    "https://thefusebase.com/guides/getting-started/how-to-copy-and-duplicate-pages-blocks-tables/",
+    "https://thefusebase.com/guides/basics/basic-fbs-document-navigation-move-blocks-create-columns-resize/",
+    "https://thefusebase.com/guides/basics/how-to-copy-or-move-pages-from-personal-workspace-to-business-workspace/",
+    "https://thefusebase.com/guides/getting-started/structure-in-fusebase/",
+    "https://thefusebase.com/guides/basics/folders-and-tags/",
+    "https://thefusebase.com/guides/basics/bookmarks/",
+    "https://thefusebase.com/guides/basics/comments-inside-the-pages/",
+    "https://thefusebase.com/guides/basics/task-list/",
+    "https://thefusebase.com/guides/basics/outline-table-of-contents/",
+    "https://thefusebase.com/guides/basics/navigation-dashboards-workspaces-folders-sub-folders-pages-tags/",
+    "https://thefusebase.com/guides/basics/video/",
+    "https://thefusebase.com/guides/basics/hotkeys-and-markdown/",
+    "https://thefusebase.com/guides/basics/images/",
+    "https://thefusebase.com/guides/basics/placeholder/",
+    "https://thefusebase.com/guides/basics/recording-video-and-audio-directly-from-a-page/",
+    "https://thefusebase.com/guides/basics/how-to-add-date-into-document-body/",
+    "https://thefusebase.com/guides/basics/tags-quick-guide/",
+    "https://thefusebase.com/guides/basics/files-and-attachments/",
+    "https://thefusebase.com/guides/basics/task-dashboard-manage-all-tasks-from-one-place/",
+    "https://thefusebase.com/guides/basics/writing-and-editing/",
+    "https://thefusebase.com/guides/basics/button-object/",
+    "https://thefusebase.com/guides/basics/workspace-management-transfer-content-between-workspaces/",
+    "https://thefusebase.com/guides/basics/mentions-link-people-dates-folders-pages-and-workspaces/",
+    "https://thefusebase.com/guides/basics/move-blocks-pages-and-folders-using-drag-n-drop/",
+    "https://thefusebase.com/guides/basics/how-to-duplicate-templates-and-tables/",
+    "https://thefusebase.com/guides/basics/chat-in-fusebase/",
+    "https://thefusebase.com/guides/basics/hint-object/",
+    "https://thefusebase.com/guides/basics/how-to-use-templates-in-fusebase/",
+    "https://thefusebase.com/guides/basics/audio-music/",
+    "https://thefusebase.com/guides/basics/tags-favorites-fast-access-to-your-pages/",
+    "https://thefusebase.com/guides/basics/progress-bar-object/",
+    "https://thefusebase.com/guides/basics/search-and-extract-text-from-images-ocr/",
+    "https://thefusebase.com/guides/basics/task-board-guide/",
+    "https://thefusebase.com/guides/basics/dropdown-list/",
+    "https://thefusebase.com/guides/basics/links-in-fusebase/",
+    "https://thefusebase.com/guides/client-portal/managing-email-notifications-for-clients/",
+    "https://thefusebase.com/guides/basics/folders-and-subfolders/",
+    "https://thefusebase.com/guides/dashboard-crm/embed-fusebase-databases-and-dashboards-into-portals/",
+    "https://thefusebase.com/guides/basics/file-uploader/",
+    "https://thefusebase.com/guides/basics/workspaces/",
+    "https://thefusebase.com/guides/client-portal/how-to-set-what-clients-can-and-cannot-do/",
+    "https://thefusebase.com/guides/client-portal/adding-ai-agents-to-fusebase-portals/",
+    "https://thefusebase.com/guides/client-portal/tip-how-to-change-the-image-on-the-auth-page/",
+    "https://thefusebase.com/guides/client-portal/access-management-in-the-portal-quick-guide/",
+    "https://thefusebase.com/guides/client-portal/linked-folders-and-pages-adding-folders-and-pages-to-multiple-portals-at-once/",
+    "https://thefusebase.com/guides/client-portal/displaying-data-from-other-services-hubspot-asana-etc-in-the-portal/",
+    "https://thefusebase.com/guides/client-portal/client-portals-guide/",
+    "https://thefusebase.com/guides/client-portal/display-of-data-from-monday-com-in-the-fusebase-portal/",
+    "https://thefusebase.com/guides/client-portal/forms-creation-and-completion-of-forms-on-the-portal/",
+    "https://thefusebase.com/guides/client-portal/e-signature-client-contract-management-quick-guide/",
+    "https://thefusebase.com/guides/client-portal/synchronized-blocks-or-projections-quick-guide/",
+    "https://thefusebase.com/guides/client-portal/hero-screen-and-topbar-quick-guide/",
+    "https://thefusebase.com/guides/client-portal/portal-analytics-guide/",
+    "https://thefusebase.com/guides/client-portal/processes-in-the-portal-quick-guide/",
+    "https://thefusebase.com/guides/client-portal/variables-in-the-portal-adding-the-clients-name-to-the-hero-and-other-portal-blocks/",
+    "https://thefusebase.com/guides/client-portal/adding-support-for-fonts-from-google-fonts-to-porta/",
+    "https://thefusebase.com/guides/client-portal/granular-permissions/",
+    "https://thefusebase.com/guides/client-portal/custom-widget-quick-guide/",
+    "https://thefusebase.com/guides/client-portal/hero-section/",
+    "https://thefusebase.com/guides/client-portal/notification-updates-panel-quick-guide/",
+    "https://thefusebase.com/guides/client-portal/portal-page-button-to-web-client-for-page-editing/",
+    "https://thefusebase.com/guides/client-portal/file-upload-in-portals/",
+    "https://thefusebase.com/guides/client-portal/file-manager-for-client-portal/",
+    "https://thefusebase.com/guides/client-portal/access/",
+    "https://thefusebase.com/guides/client-portal/portal-guide-custom-domain-name-with-fusebase-portal/",
+    "https://thefusebase.com/guides/client-portal/to-fusebase/",
+    "https://thefusebase.com/guides/client-portal/management-of-visib%d1%96lity-status-for-portal-pages/",
+    "https://thefusebase.com/guides/client-portal/how-to-manage-your-portal-from-the-web-version/",
+    "https://thefusebase.com/guides/client-portal/js-integrations-in-the-client-portal/",
+    "https://thefusebase.com/guides/client-portal/how-to-use-embed-feature-in-the-portals/",
+    "https://thefusebase.com/guides/client-portal/creation/",
+    "https://thefusebase.com/guides/client-portal/add-chat-to-the-portal-and-start-communicating-with-clients/",
+    "https://thefusebase.com/guides/client-portal/collaborate-with-clients-using-fusebase-portals/",
+    "https://thefusebase.com/guides/client-portal/internal-space-and-portals-the-difference/",
+    "https://thefusebase.com/guides/client-portal/inviting-via-client-role/",
+    "https://thefusebase.com/guides/organization/chat-in-nimbus-note/",
+    "https://thefusebase.com/guides/organization/create-manage-members-groups/",
+    "https://thefusebase.com/guides/client-portal/magic-links/",
+    "https://thefusebase.com/guides/client-portal/adding-pages-to-the-portal-from-the-web-client/",
+    "https://thefusebase.com/guides/organization/mfa-multi-factor-authentication-additional-protection-for-your-members-and-clients/",
+    "https://thefusebase.com/guides/organization/organization-console-manage-members-in-business-teams-account/",
+    "https://thefusebase.com/guides/organization/business-teams-account-getting-started/",
+    "https://thefusebase.com/guides/organization/organization-console-manage-your-organization/",
+    "https://thefusebase.com/guides/organization/work-with-your-team/",
+    "https://thefusebase.com/guides/organization/business-teams-account-set-access-permissions/",
+    "https://thefusebase.com/guides/organization/roles-and-permissions-in-business-team-accounts/",
+    "https://thefusebase.com/guides/organization/managing-access-to-folders-and-subfolders/",
+    "https://thefusebase.com/guides/organization/multiple-organizations-under-one-account/",
+    "https://thefusebase.com/guides/organization/forbidding-of-editing-of-individual-blocks/",
+    "https://thefusebase.com/guides/organization/business-teams-account-branding/",
+    "https://thefusebase.com/guides/organization/manage-workspaces-in-organization/",
+    "https://thefusebase.com/guides/organization/invite-members/",
+    "https://thefusebase.com/guides/organization/guest-accounts/",
+    "https://thefusebase.com/guides/organization/manage-your-projects/",
+    "https://thefusebase.com/guides/organization/managing-access-to-pages/",
+    "https://thefusebase.com/guides/fusebase-ai/ai-agents-in-editor-quick-guide/",
+    "https://thefusebase.com/guides/dashboard-crm/ai-trackers-for-meetings-quick-guide/",
+    "https://thefusebase.com/guides/fusebase-ai/expanding-ai-agent-functionality-via-mcp/",
+    "https://thefusebase.com/guides/fusebase-ai/fusebase-apps-quick-guide/",
+    "https://thefusebase.com/guides/fusebase-ai/public-ai-agents-integrate-agents-into-your-website/",
+    "https://thefusebase.com/guides/fusebase-ai/categories-and-favorites-for-ai-agents/",
+    "https://thefusebase.com/guides/fusebase-ai/fusebase-ai-assistant-browser-extension/",
+    "https://thefusebase.com/guides/fusebase-ai/webpage-context-create-ai-agent-using-page-content/",
+    "https://thefusebase.com/guides/fusebase-ai/integration-of-ai-agents-with-other-services-google-calendar-slack-stripe-etc/",
+    "https://thefusebase.com/guides/fusebase-ai/ai-agents-quick-guide/",
+    "https://thefusebase.com/guides/branding/adding-google-analytics-to-public-pages-using-custom-scripts/",
+    "https://thefusebase.com/guides/fusebase-ai/transcribe-and-ai-assistant-for-video-guide/",
+    "https://thefusebase.com/guides/fusebase-ai/fusebase-ai-effective-practices-and-uses/",
+    "https://thefusebase.com/guides/fusebase-ai/generating-new-content/",
+    "https://thefusebase.com/guides/fusebase-ai/ai-assistant-quick-guide/",
+    "https://thefusebase.com/guides/branding/adding-cta-on-public-pages-using-convertflow/",
+    "https://thefusebase.com/guides/branding/adding-videoask-widget-to-public-pages/",
+    "https://thefusebase.com/guides/branding/organization-logo/",
+    "https://thefusebase.com/guides/branding/white-label-for-organization/",
+    "https://thefusebase.com/guides/branding/can-i-change-set-my-logo-for-the-workspace/",
+    "https://thefusebase.com/guides/branding/getting-started-with-branding/",
+    "https://thefusebase.com/guides/branding/custom-subdomains-cname/",
+    "https://thefusebase.com/guides/branding/business-teams-account-html-js-injections-for-integrations/",
+    "https://thefusebase.com/guides/branding/branding-for-public-pages/",
+    "https://thefusebase.com/guides/branding/custom-smtp/",
+    "https://thefusebase.com/guides/settings/accountgoogle-fb-sign-in-to-personal-password/",
+    "https://thefusebase.com/guides/settings/subscription-actions-upgrade-and-downgrade/",
+    "https://thefusebase.com/guides/settings/how-to-export-notes-to-html-or-pdf/",
+    "https://thefusebase.com/guides/settings/how-do-i-change-the-account-email/",
+    "https://thefusebase.com/guides/settings/switching-between-the-old-and-new-client/",
+    "https://thefusebase.com/guides/automations-and-integrations/tag-automation-quick-guide/",
+    "https://thefusebase.com/guides/automations-and-integrations/webhook-trigger-guide/",
+    "https://thefusebase.com/guides/automations-and-integrations/transferring-files-from-google-drive-to-the-fusebase-database-quick-guide/",
+    "https://thefusebase.com/guides/automations-and-integrations/database-automation-a-guide-to-creating-workflows/",
+    "https://thefusebase.com/guides/automations-and-integrations/trigger-form-submission-automate-forms-in-the-portal/",
+    "https://thefusebase.com/guides/automations-and-integrations/integration-with-firefiles-retrieving-a-transcript/",
+    "https://thefusebase.com/guides/automations-and-integrations/whats-the-difference-between-agents-and-automation/",
+    "https://thefusebase.com/guides/automations-and-integrations/auto-creation-of-a-portal-for-new-hubspot-contacts-with-personalized-ticket-display/",
+    "https://thefusebase.com/guides/automations-and-integrations/using-ai-agents-in-automation/",
+    "https://thefusebase.com/guides/automations-and-integrations/page-update-in-a-workspace-or-portal-via-automation/",
+    "https://thefusebase.com/guides/automations-and-integrations/automation-of-page-creation-in-the-portal/",
+    "https://thefusebase.com/guides/automations-and-integrations/action-ask-ai-assistant-generation-of-documents-summaries-etc/",
+    "https://thefusebase.com/guides/automations-and-integrations/action-email-notification-send-custom-notifications/",
+    "https://thefusebase.com/guides/automations-and-integrations/creating-a-recurring-task-using-automation/",
+    "https://thefusebase.com/guides/automations-and-integrations/automating-video-transcription-summary-generation-email-delivery/",
+    "https://thefusebase.com/guides/embedding-sharing/personal-protect-embeds-via-password/",
+    "https://thefusebase.com/guides/embedding-sharing/business-teams-embedding-public-pages/",
+    "https://thefusebase.com/guides/embedding-sharing/how-to-embed-document-from-google-docs-google-sheet/",
+    "https://thefusebase.com/guides/embedding-sharing/custom-js-html-for-public-links-and-web-client/",
+    "https://thefusebase.com/guides/embedding-sharing/creating-presentations-with-nimbus-embeds-in-slides-com/",
+    "https://thefusebase.com/guides/embedding-sharing/adding-intercom-chat-to-public-pages-using-custom-scripts/",
+    "https://thefusebase.com/guides/embedding-sharing/adding-support-for-fonts-from-google-fonts-to-public-links/",
+    "https://thefusebase.com/guides/embedding-sharing/embed-calendly/",
+    "https://thefusebase.com/guides/embedding-sharing/embed-airtable/",
+    "https://thefusebase.com/guides/embedding-sharing/embed-typeform/",
+    "https://thefusebase.com/guides/embedding-sharing/embed-outlook-calendar/",
+    "https://thefusebase.com/guides/embedding-sharing/adding-mind-maps-from-mindmeister/",
+    "https://thefusebase.com/guides/embedding-sharing/embed-google-data-studio/",
+    "https://thefusebase.com/guides/embedding-sharing/embed-miro/",
+    "https://thefusebase.com/guides/embedding-sharing/embed-monday/",
+    "https://thefusebase.com/guides/embedding-sharing/embed-google-calendar/",
+    "https://thefusebase.com/guides/embedding-sharing/embed-google-maps/",
+    "https://thefusebase.com/guides/embedding-sharing/teachers-embedding-public-pages/",
+    "https://thefusebase.com/guides/embedding-sharing/embed-insert-google-drive-files/",
+    "https://thefusebase.com/guides/embedding-sharing/personal-embedding-sharing-pages/",
+    "https://thefusebase.com/guides/embedding-sharing/how-to-add-chart-from-org-chart-into-a-page/",
+    "https://thefusebase.com/guides/embedding-sharing/embed-google-forms-into-nimbus-note/",
+    "https://thefusebase.com/guides/embedding-sharing/zillow-embed/",
+    "https://thefusebase.com/guides/embedding-sharing/creating-presentations-with-fusebase-embeds-in-slides-com/",
+    "https://thefusebase.com/guides/embedding-sharing/adding-microsoft-onedrive-document-embeds/",
+    "https://thefusebase.com/guides/screenshot/how-to-record-a-video-from-another-program-or-of-an-entire-chrome-window-desktop-record/",
+    "https://thefusebase.com/guides/screenshot/how-to-add-my-own-watermark-to-a-video/",
+    "https://thefusebase.com/guides/screenshot/fusebase-ai-taker/",
+    "https://thefusebase.com/guides/screenshot/record-guide-mode/",
+    "https://thefusebase.com/guides/screenshot/drawing-tools-for-video/",
+    "https://thefusebase.com/guides/table-database/duplicating-database-and-table/",
+    "https://thefusebase.com/guides/screenshot/why-dont-i-hear-sound-after-converting-into-mp4/",
+    "https://thefusebase.com/guides/table-database/exporting-a-table-to-csv-quick-guide/",
+    "https://thefusebase.com/guides/table-database/importing-into-a-table-from-csv-quick-guide/",
+    "https://thefusebase.com/guides/table-database/sub-tables-quick-guide/",
+    "https://thefusebase.com/guides/dashboard-crm/kanban-view-in-fusebase-quick-guide/",
+    "https://thefusebase.com/guides/table-database/filtering-and-sorting-quick-guide/",
+    "https://thefusebase.com/guides/dashboard-crm/column-groups-simplifying-data-display-in-detailed-view/",
+    "https://thefusebase.com/guides/dashboard-crm/custom-views-building-a-dashboard-for-ourselves/",
+    "https://thefusebase.com/guides/dashboard-crm/users-column-quick-guide/",
+    "https://thefusebase.com/guides/web-clipper/nimbus-clipper-for-firefox/",
+    "https://thefusebase.com/guides/table-database/custom-databases-quick-guide/",
+    "https://thefusebase.com/guides/web-clipper/nimbus-clipper-for-safari/",
+    "https://thefusebase.com/guides/web-clipper/reminders-in-nimbus-web-clipper/",
+    "https://thefusebase.com/guides/dashboard-crm/relation-records-lookup-quick-guide/",
+    "https://thefusebase.com/guides/android-ios/widgets-for-android/",
+    "https://thefusebase.com/guides/web-clipper/nimbus-clipper-for-google-chrome/",
+    "https://thefusebase.com/guides/android-ios/split-mode-for-ipads/",
+    "https://thefusebase.com/guides/android-ios/task-list-on-mobile-apps/",
+    "https://thefusebase.com/guides/android-ios/widgets-for-ios/",
+    "https://thefusebase.com/guides/android-ios/clipper-for-the-mobile-clients/",
+    "https://thefusebase.com/guides/android-ios/shortcuts-on-ios/",
+    "https://thefusebase.com/guides/android-ios/passcode-for-nimbus-mobile-clients/",
+    "https://thefusebase.com/guides/android-ios/mobile-apps/",
+    "https://thefusebase.com/guides/android-ios/filtering-pages-on-ios/",
+    "https://thefusebase.com/guides/import-fusebase/import-from-docx/",
+    "https://thefusebase.com/guides/import-fusebase/import-documents-from-quip/",
+    "https://thefusebase.com/guides/import-fusebase/import-documents-from-confluence/",
+    "https://thefusebase.com/guides/android-ios/mobile-document-scanner/",
+    "https://thefusebase.com/guides/import-fusebase/import-documents-from-notion/",
+    "https://thefusebase.com/guides/personal-use/invite-members-in-personal-accounts/",
+    "https://thefusebase.com/guides/import-fusebase/how-do-i-import-pages-from-evernote/",
+    "https://thefusebase.com/guides/personal-use/personal-account-getting-started/",
+    "https://thefusebase.com/guides/import-fusebase/import-from-html/",
+    "https://thefusebase.com/guides/import-fusebase/import-documents-from-bear/",
+    "https://thefusebase.com/guides/page-editor/getting-startedcreate-a-table-and-database/",
+    "https://thefusebase.com/guides/page-editor/toggles/",
+    "https://thefusebase.com/guides/dashboard-crm/form-dashboard-all-responses-in-one-place/",
+    "https://thefusebase.com/guides/dashboard-crm/how-to-add-a-database-to-a-fusebase-page/",
+    "https://thefusebase.com/guides/dashboard-crm/meeting-dashboard-quick-guide/",
+    "https://thefusebase.com/guides/page-editor/collapsible-headings/",
+    "https://thefusebase.com/guides/page-editor/code-blocks-and-code-highlights/",
+    "https://thefusebase.com/guides/page-editor/how-to-create-columns-and-rows/",
+    "https://thefusebase.com/guides/page-editor/columns-headings-dividers/",
+    "https://thefusebase.com/guides/page-editor/create-resize-delete-columns/",
+    "https://thefusebase.com/guides/page-editor/calculation-panel-in-tables/",
+    "https://thefusebase.com/guides/page-editor/tables/",
+    "https://thefusebase.com/guides/page-editor/commenting-on-table-cells/",
+    "https://thefusebase.com/guides/page-editor/how-to-sort-columns-in-tables/",
+    "https://thefusebase.com/guides/page-editor/data-filtering-in-the-tables/",
+    "https://thefusebase.com/guides/page-editor/database/"
+  ]
+}
