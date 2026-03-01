@@ -1,29 +1,18 @@
 /**
- * Y.js Binary → HTML Decoder
+ * Y.js Document → HTML Decoder
  *
- * Decodes raw Y.js binary state (from Fusebase `/dump/` endpoint)
- * into clean, semantic HTML.
+ * Converts a synced Y.Doc into clean, semantic HTML.
+ * Used by readContentViaWebSocket() after syncing the document state.
  *
- * IMPORTANT: We cannot use Y.applyUpdate() because Fusebase uses custom Y.js
- * content types that the standard yjs library doesn't recognize. Instead, we
- * parse the binary update format manually using lib0/decoding.
- *
- * Y.js Update Binary Format (relevant parts):
- *   - varuint: struct count
- *   - for each struct group: clientId, clock, structs...
- *   - structs contain: info byte, then type-specific data
- *   - Content types we care about:
- *     - ContentString (info & 0x1F = 4): wraps a string value
- *     - ContentAny (info & 0x1F = 8): wraps arbitrary JSON data
- *     - ContentType (info & 0x1F = 7): wraps a Y type (Map, Array, etc.)
- *
- * Our strategy: Extract all readable text content from the binary by looking
- * for the known structural patterns (root, blocks, children, characters).
+ * Y.Doc structure (Fusebase schema):
+ *   doc.getArray("rootChildren") — ordered block IDs
+ *   doc.getMap("blocks")         — block data keyed by ID
+ *   Each block: Y.Map with id, type, indent, color, align, characters (Y.Text)
  *
  * @module yjs-html-decoder
  */
 
-import * as decoding from "lib0/decoding";
+import * as Y from "yjs";
 
 // ─── HTML escaping ───
 
@@ -35,393 +24,304 @@ function escapeHtml(str: string): string {
     .replace(/"/g, "&quot;");
 }
 
-// ─── Regex-based extraction from raw binary text ───
+// ─── Y.Text delta → HTML conversion ───
 
-interface ExtractedBlock {
-  id: string;
-  type: string;
-  indent: number;
-  color: string;
-  align: string;
-  language?: string;
-  text: string;
-  formatting: FormattingSpan[];
-  componentType?: string;
-  componentData?: string;
-  boardId?: string;
-  tasksListId?: string;
+interface DeltaOp {
+  insert: string | object;
+  attributes?: Record<string, unknown>;
 }
 
-interface FormattingSpan {
-  format: string; // 'bold', 'italic', 'strike', 'code'
-  value: string;  // 'true' or 'null'
-  position: number; // char position in extracted text
-}
-
-/**
- * Extract blocks from the raw binary by decoding readable text segments.
- *
- * The binary contains clearly readable strings like:
- *   root·children·blocks·b1770671822054_0·id·type·paragraph·characters·H·e·l·l·o
- */
-function extractBlocksFromBinary(binary: Uint8Array): ExtractedBlock[] {
-  // Convert to text, replacing non-printable bytes with null char for splitting
-  const text = new TextDecoder("utf-8", { fatal: false }).decode(binary);
-
-  // Find block definitions: look for patterns like type·w·{blockType} preceded by id·w·{blockId}
-  const blocks: ExtractedBlock[] = [];
-  const blockOrder: string[] = [];
-
-  // Extract children array (block ordering) first
-  // Pattern: children followed by block IDs separated by markers
-  const childrenMatch = text.match(/children[\x00-\x1f]*(.+?)(?=rootChildren|blocks)/s);
-  if (childrenMatch) {
-    const childText = childrenMatch[1];
-    const idMatches = childText.match(/b\d+_\d+/g);
-    if (idMatches) blockOrder.push(...idMatches);
-  }
-
-  // Extract each block — find all block IDs that appear in the blocks map
-  // Pattern: blocks map contains entries like {blockId}·(data)
-  const blockIdRegex = /b\d+_\d+/g;
-  const allBlockIds = new Set<string>();
-  let m: RegExpExecArray | null;
-  while ((m = blockIdRegex.exec(text)) !== null) {
-    allBlockIds.add(m[0]);
-  }
-
-  // For each unique block ID, extract its properties
-  for (const blockId of allBlockIds) {
-    // Find the section of data for this block
-    // Look for patterns: blockId...type...{typeValue}...characters...{charData}
-    const blockStart = text.indexOf(blockId);
-    if (blockStart === -1) continue;
-
-    // Find type value after this block
-    const typeSearchRegion = text.substring(blockStart, blockStart + 500);
-    const typeMatch = typeSearchRegion.match(/type[\x00-\x1f\x80-\xff]*w[\x00-\x1f\x80-\xff]*([a-zA-Z][a-zA-Z0-9-]*)/);
-
-    const block: ExtractedBlock = {
-      id: blockId,
-      type: typeMatch ? typeMatch[1] : "paragraph",
-      indent: 0,
-      color: "transparent",
-      align: "left",
-      text: "",
-      formatting: [],
-    };
-
-    // Extract indent
-    const indentMatch = typeSearchRegion.match(/indent[\x00-\x1f\x80-\xff]*}([\x00-\xff])/);
-    if (indentMatch) block.indent = indentMatch[1].charCodeAt(0);
-
-    // Extract color
-    const colorMatch = typeSearchRegion.match(/color[\x00-\x1f\x80-\xff]*w[\x00-\x1f\x80-\xff]*([a-zA-Z]+)/);
-    if (colorMatch) block.color = colorMatch[1];
-
-    // Extract align
-    const alignMatch = typeSearchRegion.match(/align[\x00-\x1f\x80-\xff]*w[\x00-\x1f\x80-\xff]*([a-zA-Z]+)/);
-    if (alignMatch) block.align = alignMatch[1];
-
-    // Extract language (for code blocks)
-    const langMatch = typeSearchRegion.match(/language[\x00-\x1f\x80-\xff]*w[\x00-\x1f\x80-\xff]*([a-zA-Z]+)/);
-    if (langMatch) block.language = langMatch[1];
-
-    // Extract component type (for foreign-component blocks)
-    const compMatch = typeSearchRegion.match(/componentType[\x00-\x1f\x80-\xff]*w[\x00-\x1f\x80-\xff]*([a-zA-Z-]+)/);
-    if (compMatch) block.componentType = compMatch[1];
-
-    // Extract boardId
-    const boardMatch = typeSearchRegion.match(/boardId[\x00-\x1f\x80-\xff]*w[\x00-\x1f\x80-\xff]*([a-zA-Z0-9]+)/);
-    if (boardMatch) block.boardId = boardMatch[1];
-
-    // Extract tasksListId
-    const tasksMatch = typeSearchRegion.match(/tasksListId[\x00-\x1f\x80-\xff]*w[\x00-\x1f\x80-\xff]*([a-zA-Z0-9]+)/);
-    if (tasksMatch) block.tasksListId = tasksMatch[1];
-
-    blocks.push(block);
-  }
-
-  // Now extract character content for each block by looking at the character
-  // sequences. Characters are stored as: w·{char}w·{char}w·{char}
-  // with format toggles as: v·{format}w·{value}
-  extractCharacterContent(text, blocks);
-
-  // Order blocks according to children array
-  if (blockOrder.length > 0) {
-    const blockMap = new Map(blocks.map(b => [b.id, b]));
-    const ordered: ExtractedBlock[] = [];
-    for (const id of blockOrder) {
-      const block = blockMap.get(id);
-      if (block) {
-        ordered.push(block);
-        blockMap.delete(id);
-      }
-    }
-    // Add any blocks not in children (shouldn't happen but safety)
-    for (const [, block] of blockMap) ordered.push(block);
-    return ordered;
-  }
-
-  return blocks;
-}
-
-/**
- * Extract character sequences from the binary text.
- *
- * Character encoding in Y.js binary:
- *   w + (length byte) + char = regular character
- *   v + field count + format_name + w + value = format toggle
- */
-function extractCharacterContent(text: string, blocks: ExtractedBlock[]): void {
-  for (const block of blocks) {
-    // Find the characters section for this block
-    // Pattern: after block's type/indent/color/align, find "characters" then char data
-    const blockIdx = text.indexOf(block.id);
-    if (blockIdx === -1) continue;
-
-    // Find "characters" keyword after this block
-    const charKeyword = text.indexOf("characters", blockIdx);
-    if (charKeyword === -1) continue;
-
-    // Find the next block ID or end of data to bound our search
-    const nextBlockRegex = /b\d+_\d+/g;
-    nextBlockRegex.lastIndex = charKeyword + 15;
-    const nextMatch = nextBlockRegex.exec(text);
-    const endIdx = nextMatch ? nextMatch.index : charKeyword + 2000;
-
-    // Extract the character region
-    const charRegion = text.substring(charKeyword + 10, endIdx);
-
-    // Parse character-by-character
-    // The pattern is: 'w' byte followed by '\x01' (length=1) followed by actual char
-    // OR 'v' for format toggle objects
-    const chars: string[] = [];
-    const formatting: FormattingSpan[] = [];
-
-    let i = 0;
-    while (i < charRegion.length) {
-      const c = charRegion[i];
-
-      if (c === 'w' && i + 1 < charRegion.length) {
-        const next = charRegion[i + 1];
-        if (next === '\x01') {
-          // Single char follows
-          if (i + 2 < charRegion.length) {
-            const ch = charRegion[i + 2];
-            if (ch.charCodeAt(0) >= 0x20 && ch.charCodeAt(0) < 0x7f) {
-              chars.push(ch);
-            }
-            i += 3;
-            continue;
-          }
-        } else if (next.charCodeAt(0) >= 0x20 && next.charCodeAt(0) < 0x7f && next !== 'w' && next !== 'v') {
-          // Sometimes the length byte is omitted or different
-          chars.push(next);
-          i += 2;
-          continue;
+function deltaToHtml(delta: DeltaOp[]): string {
+  let html = "";
+  for (const op of delta) {
+    if (typeof op.insert !== "string") {
+      // Embedded object (mention, dropdown, etc.) — render as placeholder
+      const obj = op.insert as Record<string, unknown>;
+      const keys = Object.keys(obj);
+      if (keys.length > 0) {
+        const key = keys[0];
+        const val = obj[key];
+        if (key === "mention" && typeof val === "object" && val !== null) {
+          const m = val as Record<string, string>;
+          html += `<span class="mention" data-type="${escapeHtml(m.type || "")}">${escapeHtml(m.name || "")}</span>`;
+        } else {
+          html += `[${escapeHtml(key)}]`;
         }
       }
-
-      // Check for format toggle: v + field_count + field_name + w + value
-      if (c === 'v' && i + 1 < charRegion.length) {
-        const fieldCount = charRegion.charCodeAt(i + 1);
-        if (fieldCount >= 1 && fieldCount <= 5) {
-          // Try to extract format name
-          const rest = charRegion.substring(i + 2, i + 30);
-          const formatMatch = rest.match(/^[\x00-\x1f\x80-\xff]*(bold|italic|strike|code|link)[\x00-\x1f\x80-\xff]*w[\x00-\x1f\x80-\xff]*(true|null|false)/);
-          if (formatMatch) {
-            formatting.push({
-              format: formatMatch[1],
-              value: formatMatch[2],
-              position: chars.length,
-            });
-            i += 2 + formatMatch.index! + formatMatch[0].length;
-            continue;
-          }
-        }
-      }
-
-      i++;
+      continue;
     }
 
-    block.text = chars.join("");
-    block.formatting = formatting;
+    let text = op.insert;
+    // Strip trailing newline (block terminator, not content)
+    if (text === "\n") continue;
+    if (text.endsWith("\n")) text = text.slice(0, -1);
+    if (text.length === 0) continue;
+
+    const escaped = escapeHtml(text);
+    const attrs = op.attributes || {};
+    let segment = escaped;
+
+    // Apply inline formatting in nesting order
+    if (attrs.code) segment = `<code>${segment}</code>`;
+    if (attrs.bold) segment = `<strong>${segment}</strong>`;
+    if (attrs.italic) segment = `<em>${segment}</em>`;
+    if (attrs.strikethrough) segment = `<del>${segment}</del>`;
+    if (attrs.underline) segment = `<u>${segment}</u>`;
+    if (attrs.link) segment = `<a href="${escapeHtml(String(attrs.link))}">${segment}</a>`;
+
+    html += segment;
   }
+  return html;
 }
 
-// ─── Block → HTML rendering ───
+// ─── Block rendering ───
 
-function renderBlock(block: ExtractedBlock): string {
-  const styleAttrs = buildStyleAttrs(block.align, block.color, block.indent);
-  const content = applyFormatting(block.text, block.formatting);
+function renderBlock(
+  type: string,
+  content: string,
+  align: string,
+  color: string,
+  indent: number,
+  block: Y.Map<unknown>,
+): string {
+  const style = buildStyleAttrs(align, color, indent);
 
-  switch (block.type) {
+  switch (type) {
     case "hLarge":
-      return `<h1${styleAttrs}>${content}</h1>`;
+      return `<h1${style}>${content}</h1>`;
     case "hMedium":
-      return `<h2${styleAttrs}>${content}</h2>`;
+      return `<h2${style}>${content}</h2>`;
     case "hSmall":
-      return `<h3${styleAttrs}>${content}</h3>`;
+      return `<h3${style}>${content}</h3>`;
     case "paragraph":
-      return `<p${styleAttrs}>${content}</p>`;
-    case "divider":
+      return `<p${style}>${content}</p>`;
+    case "blockquote":
+      return `<blockquote${style}>${content}</blockquote>`;
+    case "code": {
+      const lang = block.get("language") as string | undefined;
+      const langAttr = lang ? ` class="language-${escapeHtml(lang)}"` : "";
+      return `<pre><code${langAttr}>${content}</code></pre>`;
+    }
+    case "hLine":
       return "<hr>";
-    case "code":
-      return `<pre><code${block.language ? ` class="language-${escapeHtml(block.language)}"` : ""}>${escapeHtml(block.text)}</code></pre>`;
-    case "blockQuote":
-      return `<blockquote${styleAttrs}>${content}</blockquote>`;
     case "listItemBullet":
-      return `<li${styleAttrs}>${content}</li>`;
+      return `<li${style}>${content}</li>`;
     case "listItemNumber":
-      return `<li${styleAttrs}>${content}</li>`;
+      return `<li${style}>${content}</li>`;
     case "listItemChecked":
-      return `<li${styleAttrs}>☑ ${content}</li>`;
+      return `<li${style}><input type="checkbox" checked disabled> ${content}</li>`;
     case "listItemUnchecked":
-      return `<li${styleAttrs}>☐ ${content}</li>`;
-    case "toggle":
-      return `<details><summary>${content}</summary></details>`;
-    case "foreign-component":
-    case "foreigncomponent": {
-      const comp = block.componentType || "unknown";
-      return `<div class="embed-placeholder">[Embedded ${escapeHtml(comp)}]</div>`;
+      return `<li${style}><input type="checkbox" disabled> ${content}</li>`;
+    case "toggle": {
+      const collapsed = block.get("collapsed") as boolean | undefined;
+      return `<details${collapsed ? "" : " open"}><summary>${content}</summary></details>`;
     }
-    case "board": {
-      return `<div class="embed-placeholder">[Kanban Board${block.boardId ? ` id:${block.boardId}` : ""}]</div>`;
+    case "hint":
+      return `<div class="hint"${style}>${content}</div>`;
+    case "collapsibleHLarge":
+    case "collapsibleHMedium":
+    case "collapsibleHSmall": {
+      const tag = type === "collapsibleHLarge" ? "h1" : type === "collapsibleHMedium" ? "h2" : "h3";
+      return `<details><summary><${tag}>${content}</${tag}></summary></details>`;
     }
+    case "table":
+      return `<div class="table-block">[Table: ${content || "inline table"}]</div>`;
+    case "foreign-component": {
+      const compType = block.get("componentType") as string | undefined;
+      return `<div class="embedded">[Embedded: ${escapeHtml(compType || "component")}]</div>`;
+    }
+    case "board":
+      return `<div class="board">[Kanban Board]</div>`;
     case "tasks-list":
-    case "tasksList": {
-      return `<div class="embed-placeholder">[Task List${block.tasksListId ? ` id:${block.tasksListId}` : ""}]</div>`;
+      return `<div class="task-list">[Task List]</div>`;
+    // ─── Phase 4 block types ───
+    case "image": {
+      const src = block.get("src") as string | undefined;
+      const width = block.get("width") as number | undefined;
+      const widthAttr = width ? ` width="${width}"` : "";
+      return src ? `<img src="${escapeHtml(src)}"${widthAttr} alt="">` : `<!-- image: no src -->`;
     }
+    case "file": {
+      const fileId = block.get("fileId") as string | undefined;
+      return `<div class="file-block">[File: ${escapeHtml(fileId || "attachment")}]</div>`;
+    }
+    case "bookmark": {
+      const src = block.get("src") as string | undefined;
+      const name = block.get("name") as string | undefined;
+      const desc = block.get("description") as string | undefined;
+      return `<a class="bookmark" href="${escapeHtml(src || "")}">${escapeHtml(name || src || "Bookmark")}${desc ? ` — ${escapeHtml(desc)}` : ""}</a>`;
+    }
+    case "remote-frame": {
+      const src = block.get("src") as string | undefined;
+      return src ? `<iframe src="${escapeHtml(src)}" frameborder="0"></iframe>` : `<!-- remote-frame: no src -->`;
+    }
+    case "outline":
+      return `<nav class="outline">[Table of Contents]</nav>`;
+    case "button-single": {
+      const url = block.get("url") as string | undefined;
+      return `<a class="button" href="${escapeHtml(url || "")}">${content || "Button"}</a>`;
+    }
+    case "step":
+      return `<div class="step">${content}</div>`;
+    case "step-aggregator":
+      return `<div class="steps">[Steps]</div>`;
+    case "syntax": {
+      // "syntax" is the actual Y.js type for code blocks (writer uses "syntax")
+      const lang = block.get("data-language") as string | undefined;
+      const langAttr = lang ? ` class="language-${escapeHtml(lang)}"` : "";
+      return `<pre><code${langAttr}>${content}</code></pre>`;
+    }
+    case "list":
+      // Parent list container — children are rendered separately
+      return "";
+    case "listItemCheckbox": {
+      const checked = block.get("checked") as boolean | undefined;
+      return checked
+        ? `<li${style}><input type="checkbox" checked disabled> ${content}</li>`
+        : `<li${style}><input type="checkbox" disabled> ${content}</li>`;
+    }
+    case "caption":
+      return content ? `<figcaption${style}>${content}</figcaption>` : "";
+    case "uploader":
+      return `<div class="uploader">[File Upload]</div>`;
+    case "foreign-dashboard": {
+      const dbId = block.get("dashboardId") as string | undefined;
+      return `<div class="database">[Database: ${escapeHtml(dbId || "dashboard")}]</div>`;
+    }
+    case "grid":
+      return `<div class="grid-layout">[Grid Layout]</div>`;
+    case "gridCol":
+      return content ? `<div class="grid-column">${content}</div>` : "";
     default:
-      if (content) {
-        return `<div data-block-type="${escapeHtml(block.type)}">${content}</div>`;
-      }
-      return `<!-- unknown block: ${escapeHtml(block.type)} -->`;
-  }
-}
-
-function applyFormatting(text: string, formatting: FormattingSpan[]): string {
-  if (!text) return "";
-  if (formatting.length === 0) return escapeHtml(text);
-
-  // Sort formatting by position
-  const sorted = [...formatting].sort((a, b) => a.position - b.position);
-
-  // Build formatted HTML
-  const parts: string[] = [];
-  let lastPos = 0;
-  const openTags: Set<string> = new Set();
-
-  for (const span of sorted) {
-    // Add text before this format change
-    if (span.position > lastPos) {
-      parts.push(escapeHtml(text.substring(lastPos, span.position)));
-      lastPos = span.position;
-    }
-
-    if (span.value === "true") {
-      const tag = formatTag(span.format);
-      if (tag && !openTags.has(span.format)) {
-        parts.push(`<${tag}>`);
-        openTags.add(span.format);
-      }
-    } else {
-      const tag = formatTag(span.format);
-      if (tag && openTags.has(span.format)) {
-        parts.push(`</${tag}>`);
-        openTags.delete(span.format);
-      }
-    }
-  }
-
-  // Add remaining text
-  if (lastPos < text.length) {
-    parts.push(escapeHtml(text.substring(lastPos)));
-  }
-
-  // Close any remaining open tags
-  for (const fmt of openTags) {
-    const tag = formatTag(fmt);
-    if (tag) parts.push(`</${tag}>`);
-  }
-
-  return parts.join("");
-}
-
-function formatTag(format: string): string | null {
-  switch (format) {
-    case "bold": return "strong";
-    case "italic": return "em";
-    case "strike": return "s";
-    case "code": return "code";
-    default: return null;
+      return content ? `<div class="unknown-block" data-type="${escapeHtml(type)}">${content}</div>` : `<!-- unknown block: ${escapeHtml(type)} -->`;
   }
 }
 
 function buildStyleAttrs(align: string, color: string, indent: number): string {
-  const styles: string[] = [];
-  if (align && align !== "left") styles.push(`text-align:${align}`);
-  if (color && color !== "transparent") styles.push(`color:${color}`);
-  if (indent > 0) styles.push(`margin-left:${indent * 2}em`);
-  return styles.length > 0 ? ` style="${styles.join(";")}"` : "";
+  const parts: string[] = [];
+  if (align && align !== "left") parts.push(`text-align:${align}`);
+  if (color && color !== "transparent") parts.push(`color:${color}`);
+  if (indent > 0) parts.push(`margin-left:${indent * 2}em`);
+  return parts.length > 0 ? ` style="${parts.join(";")}"` : "";
 }
 
 // ─── List grouping ───
 
-function groupAndJoinBlocks(blocks: ExtractedBlock[]): string {
+interface RenderedBlock {
+  type: string;
+  html: string;
+}
+
+function groupAndJoinBlocks(rendered: RenderedBlock[]): string {
   const output: string[] = [];
-  let currentListTag: string | null = null;
+  let currentListType: string | null = null;
 
   function closeList() {
-    if (currentListTag) {
-      output.push(`</${currentListTag}>`);
-      currentListTag = null;
-    }
+    if (currentListType === "listItemBullet") output.push("</ul>");
+    else if (currentListType === "listItemNumber") output.push("</ol>");
+    else if (currentListType === "listItemChecked" || currentListType === "listItemUnchecked") output.push("</ul>");
+    currentListType = null;
   }
 
-  for (const block of blocks) {
-    const html = renderBlock(block);
-    const isListItem = ["listItemBullet", "listItemChecked", "listItemUnchecked"].includes(block.type)
-      || block.type === "listItemNumber";
+  for (const block of rendered) {
+    const isList = ["listItemBullet", "listItemNumber", "listItemChecked", "listItemUnchecked"].includes(block.type);
 
-    if (isListItem) {
-      const tag = block.type === "listItemNumber" ? "ol" : "ul";
-      if (currentListTag !== tag) {
+    if (isList) {
+      const listGroup = block.type === "listItemNumber" ? "listItemNumber"
+        : (block.type === "listItemChecked" || block.type === "listItemUnchecked") ? "listItemChecked"
+          : "listItemBullet";
+
+      if (currentListType !== listGroup) {
         closeList();
-        output.push(`<${tag}>`);
-        currentListTag = tag;
+        if (listGroup === "listItemNumber") output.push("<ol>");
+        else output.push(`<ul${listGroup === "listItemChecked" ? ' class="checklist"' : ""}>`);
+        currentListType = listGroup;
       }
-      output.push(html);
+      output.push(block.html);
     } else {
       closeList();
-      output.push(html);
+      output.push(block.html);
     }
   }
-
   closeList();
   return output.join("\n");
 }
 
-// ─── Main decoder ───
+// ─── Y.Doc → HTML ───
 
 /**
- * Decode raw Y.js binary state into semantic HTML.
+ * Convert a synced Y.Doc into semantic HTML.
  *
- * Uses a custom binary parser since standard Y.applyUpdate() fails
- * on Fusebase's custom content types.
+ * This is the core decoder: given a properly-synced Y.Doc (from WebSocket sync),
+ * it walks the doc structure and renders each block to HTML.
  *
- * @param binary - Raw Y.js binary (`Uint8Array`) from `/dump/` endpoint
+ * @param doc - Synced Y.Doc containing Fusebase page content
  * @returns Clean HTML string
+ */
+export function decodeYDocToHtml(doc: Y.Doc): string {
+  const blocksMap = doc.getMap("blocks");
+  const rootChildren = doc.getArray<string>("rootChildren");
+
+  // Determine block ordering
+  let blockIds: string[] = rootChildren.toArray();
+  if (blockIds.length === 0) {
+    const root = doc.getMap("root");
+    const children = root.get("children");
+    if (children instanceof Y.Array) {
+      blockIds = children.toArray() as string[];
+    }
+  }
+  if (blockIds.length === 0 && blocksMap.size === 0) return "";
+  if (blockIds.length === 0) blockIds = Array.from(blocksMap.keys());
+
+  const rendered: RenderedBlock[] = [];
+
+  for (const blockId of blockIds) {
+    const block = blocksMap.get(blockId);
+    if (!(block instanceof Y.Map)) continue;
+
+    const type = (block.get("type") as string) || "paragraph";
+    const align = (block.get("align") as string) || "left";
+    const color = (block.get("color") as string) || "transparent";
+    const indent = (block.get("indent") as number) || 0;
+
+    // Extract text content from Y.Text characters
+    let content = "";
+    const chars = block.get("characters");
+    if (chars instanceof Y.Text) {
+      const delta = chars.toDelta() as DeltaOp[];
+      content = deltaToHtml(delta);
+    }
+
+    // hLine (divider) has no characters
+    if (type === "hLine" && !content) {
+      rendered.push({ type, html: "<hr>" });
+      continue;
+    }
+
+    const html = renderBlock(type, content, align, color, indent, block);
+    rendered.push({ type, html });
+  }
+
+  if (rendered.length === 0) return "";
+  return groupAndJoinBlocks(rendered);
+}
+
+/**
+ * Legacy compatibility: attempt to decode raw binary.
+ * NOTE: Fusebase dump binary is NOT a standard Y.js update format.
+ * This will work only if the binary happens to be a valid Y.js update.
+ * For reliable decoding, use readContentViaWebSocket() from yjs-ws-writer.ts.
  */
 export function decodeYjsToHtml(binary: Uint8Array): string {
   if (!binary || binary.length === 0) return "";
-
   try {
-    const blocks = extractBlocksFromBinary(binary);
-    if (blocks.length === 0) return "";
-    return groupAndJoinBlocks(blocks);
-  } catch (e) {
-    return `<!-- Failed to decode Y.js binary: ${(e as Error).message} -->`;
+    const doc = new Y.Doc();
+    try { Y.applyUpdateV2(doc, binary); } catch {
+      try { Y.applyUpdate(doc, binary); } catch { return ""; }
+    }
+    return decodeYDocToHtml(doc);
+  } catch {
+    return "";
   }
 }

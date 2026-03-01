@@ -200,6 +200,8 @@ export interface TableColumn {
   dbSelect?: Record<string, { name: string; style: string; color: string }>;
   /** Column-level format options (number, currency, date, rating, progress) */
   format?: ColumnFormat;
+  /** Sort order for this column (asc or desc) */
+  sortby?: "asc" | "desc";
 }
 
 export interface TableCellText {
@@ -211,26 +213,38 @@ export interface TableCellText {
   align?: "left" | "center" | "right";
   /** Vertical alignment */
   valign?: "top" | "middle" | "bottom";
+  /** Horizontal span (merge columns). Cells covered by the span should be null. */
+  colspan?: number;
+  /** Vertical span (merge rows). Cells covered by the span should be null. */
+  rowspan?: number;
 }
 
 export interface TableCellSelect {
   cellType: "singleselect" | "multiselect";
   selected: string[];
+  colspan?: number;
+  rowspan?: number;
 }
 
 export interface TableCellProgress {
   cellType: "progress";
   progress: number; // 0-100
+  colspan?: number;
+  rowspan?: number;
 }
 
 export interface TableCellCheckbox {
   cellType: "checkbox";
   checked: boolean;
+  colspan?: number;
+  rowspan?: number;
 }
 
 export interface TableCellDate {
   cellType: "date";
   timestamp: number; // MS epoch
+  colspan?: number;
+  rowspan?: number;
 }
 
 export interface TableCellNumber {
@@ -238,6 +252,8 @@ export interface TableCellNumber {
   value: number;
   /** Override column-level number format */
   format?: { type: NumberFormatType };
+  colspan?: number;
+  rowspan?: number;
 }
 
 export interface TableCellCurrency {
@@ -245,6 +261,8 @@ export interface TableCellCurrency {
   value: number;
   /** Override column-level currency format */
   format?: { currency?: CurrencyType };
+  colspan?: number;
+  rowspan?: number;
 }
 
 export interface TableCellLink {
@@ -252,11 +270,15 @@ export interface TableCellLink {
   url: string;
   /** Display text label (different from URL) */
   text?: string;
+  colspan?: number;
+  rowspan?: number;
 }
 
 export interface TableCellRating {
   cellType: "rating";
   rating: number; // 0-5
+  colspan?: number;
+  rowspan?: number;
 }
 
 export interface MentionDate {
@@ -312,6 +334,8 @@ export type MentionEmbed = MentionDate | MentionUser | MentionFolder | MentionWo
 export interface TableCellMention {
   cellType: "mention";
   mention: MentionEmbed;
+  colspan?: number;
+  rowspan?: number;
 }
 
 export interface TableCellCollaborator {
@@ -320,6 +344,8 @@ export interface TableCellCollaborator {
   userId: number;
   /** Display name */
   userName: string;
+  colspan?: number;
+  rowspan?: number;
 }
 
 export interface TableCellAttachment {
@@ -328,6 +354,8 @@ export interface TableCellAttachment {
   attachmentGlobalId: string;
   /** File source path (e.g. "/box/attachment/{wsId}/{attachId}/filename.png") */
   src: string;
+  colspan?: number;
+  rowspan?: number;
 }
 
 export type TableCell =
@@ -358,6 +386,8 @@ export interface TableBlock {
   type: "table";
   columns: TableColumn[];
   rows: TableRow[];
+  /** Configures an active sort on one of the columns (by index) */
+  sortableColumn?: { columnIndex: number; order: "asc" | "desc" };
 }
 
 /* ------------------------------------------------------------------ */

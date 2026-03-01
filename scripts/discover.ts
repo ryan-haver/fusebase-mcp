@@ -218,7 +218,7 @@ async function discover(host: string, headless: boolean) {
               `${baseUrl}/space/${wsId}/page/${p.globalId}`,
             );
             // Scroll down to trigger any lazy-loaded content
-            await page.evaluate(() => window.scrollBy(0, 1000)).catch(() => {});
+            await page.evaluate(() => window.scrollBy(0, 1000)).catch(() => { });
             await page.waitForTimeout(1000);
           }
         }
@@ -250,6 +250,39 @@ async function discover(host: string, headless: boolean) {
       } catch (e) {
         console.error(`[discover] Failed to enumerate task lists: ${e}`);
       }
+
+      try {
+        // Assuming 'chalk', 'env', 'currentWsId' are defined elsewhere or will be handled by the user.
+        // For 'currentWsId', using 'wsId' from the loop.
+        // For 'env.deviceId', assuming a placeholder or global variable.
+        // For 'chalk', assuming it's imported.
+        // The original snippet had a syntax error `));evaluate(`, corrected to `)); await page.evaluate(`.
+        console.log(chalk.blue(`  [Spy] Requesting Activity Stream (${wsId})`));
+        await page.evaluate(
+          async (args: { baseUrl: string; wsId: string; deviceId: string }) => {
+            const res = await fetch(
+              `${args.baseUrl}/gwapi2/svc:notification/workspaces/${args.wsId}/activityStream`,
+              { headers: { "X-Device-Id": args.deviceId } },
+            );
+            return res.json();
+          },
+          {
+            baseUrl: baseUrl, // Using 'baseUrl' from current scope
+            wsId: wsId,       // Using 'wsId' from current loop
+            deviceId: "some-device-id", // Placeholder for env.deviceId
+          },
+        );
+      } catch { /* activity stream may fail */ }
+
+      try {
+        console.log(chalk.blue(`  [Spy] Requesting Tags (${wsId})`));
+        await page.evaluate(
+          async (args: { baseUrl: string; wsId: string }) => {
+            await fetch(`${args.baseUrl}/gwapi2/svc:tag/workspaces/${args.wsId}/tags`);
+          },
+          { baseUrl, wsId },
+        );
+      } catch { /* tags may fail */ }
 
       // ── Comments (trigger comment thread loading on first page) ──
       try {

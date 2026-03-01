@@ -49,42 +49,34 @@ function loadDotEnv(): void {
   }
 }
 
-function getConfig() {
-  loadDotEnv();
+// ─── Server Setup ───────────────────────────────────────────────
 
+function getClient(profile?: string): FusebaseClient {
   const host = process.env.FUSEBASE_HOST;
   const orgId = process.env.FUSEBASE_ORG_ID;
 
   if (!host || !orgId) {
-    console.error(
-      "Missing required environment variables: FUSEBASE_HOST, FUSEBASE_ORG_ID",
-    );
+    console.error("Missing FUSEBASE_HOST or FUSEBASE_ORG_ID");
     process.exit(1);
   }
 
-  // Priority: env var > encrypted store
   let cookie = process.env.FUSEBASE_COOKIE || "";
-  if (!cookie) {
-    const stored = loadEncryptedCookie();
+  // If a profile is requested, or if no default cookie was provided in env, load from disk
+  if (!cookie || profile) {
+    const stored = loadEncryptedCookie(profile);
     if (stored?.cookie) {
       cookie = stored.cookie;
-      console.error("[fusebase] Loaded cookie from encrypted store (data/cookie.enc)");
+    } else if (profile) {
+      console.error(`[fusebase] Warning: No cookie found for profile "${profile}". Will attempt to fall back or fail.`);
     }
   }
 
   if (!cookie) {
-    console.error(
-      "[fusebase] Warning: No cookie found. Run 'npx tsx scripts/auth.ts' to authenticate.",
-    );
+    console.error(`[fusebase] Warning: No cookie found. Run 'npx tsx scripts/auth.ts${profile ? ` --profile ${profile}` : ""}' to authenticate.`);
   }
 
-  return { host, orgId, cookie, autoRefresh: true };
+  return new FusebaseClient({ host, orgId, cookie, autoRefresh: true, profile });
 }
-
-// ─── Server Setup ───────────────────────────────────────────────
-
-const config = getConfig();
-const client = new FusebaseClient(config);
 
 const server = new McpServer({
   name: "fusebase",
@@ -105,8 +97,9 @@ server.tool(
       .describe(
         "If true, opens a visible browser for manual login. If false (default), tries headless session reuse.",
       ),
-  },
-  async ({ interactive }) => {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ interactive, profile }) => {
+    const client = getClient(profile);
     try {
       const success = interactive
         ? await client.refreshAuthInteractive()
@@ -132,8 +125,10 @@ server.tool(
 server.tool(
   "list_workspaces",
   "List all workspaces in your Fusebase organization with their IDs, titles, and colors. Use this first to discover workspace IDs needed by most other tools.",
-  {},
-  async () => {
+  {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ profile }) => {
+    const client = getClient(profile);
     try {
       const workspaces = await client.listWorkspaces();
       return {
@@ -166,8 +161,9 @@ server.tool(
       .optional()
       .describe("Max pages to return (default: 100)"),
     offset: z.number().optional().describe("Pagination offset (default: 0)"),
-  },
-  async ({ workspaceId, folderId, limit, offset }) => {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ workspaceId, folderId, limit, offset, profile }) => {
+    const client = getClient(profile);
     try {
       const result = await client.listPages(workspaceId, {
         rootId: folderId,
@@ -211,8 +207,9 @@ server.tool(
   {
     workspaceId: z.string().describe("Workspace ID"),
     pageId: z.string().describe("Page (note) ID"),
-  },
-  async ({ workspaceId, pageId }) => {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ workspaceId, pageId, profile }) => {
+    const client = getClient(profile);
     try {
       const page = await client.getPage(workspaceId, pageId);
       return {
@@ -232,8 +229,9 @@ server.tool(
   {
     workspaceId: z.string().describe("Workspace ID"),
     limit: z.number().optional().describe("Max pages to return (default: 10)"),
-  },
-  async ({ workspaceId, limit }) => {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ workspaceId, limit, profile }) => {
+    const client = getClient(profile);
     try {
       const result = await client.getRecentPages(workspaceId, limit);
       return {
@@ -272,8 +270,9 @@ server.tool(
       .string()
       .optional()
       .describe("Parent folder ID (default: root/default)"),
-  },
-  async ({ workspaceId, title, folderId }) => {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ workspaceId, title, folderId, profile }) => {
+    const client = getClient(profile);
     try {
       const page = await client.createPage(workspaceId, title, folderId);
       return {
@@ -307,8 +306,9 @@ server.tool(
   "List all folders in a Fusebase workspace as a nested tree structure. Each folder includes its children, icons, and sharing status. Use folder IDs to filter list_pages or as parentId when creating pages.",
   {
     workspaceId: z.string().describe("Workspace ID"),
-  },
-  async ({ workspaceId }) => {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ workspaceId, profile }) => {
+    const client = getClient(profile);
     try {
       const folders = await client.listFolders(workspaceId);
       return {
@@ -343,8 +343,9 @@ server.tool(
   {
     workspaceId: z.string().describe("Workspace ID"),
     pageId: z.string().describe("Page (note) ID"),
-  },
-  async ({ workspaceId, pageId }) => {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ workspaceId, pageId, profile }) => {
+    const client = getClient(profile);
     try {
       const attachments = await client.getAttachments(workspaceId, pageId);
       return {
@@ -379,8 +380,9 @@ server.tool(
     workspaceId: z.string().describe("Workspace ID"),
     limit: z.number().optional().describe("Max files to return (default: 25)"),
     offset: z.number().optional().describe("Pagination offset (default: 0)"),
-  },
-  async ({ workspaceId, limit, offset }) => {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ workspaceId, limit, offset, profile }) => {
+    const client = getClient(profile);
     try {
       const files = await client.listFiles(workspaceId, limit, offset);
       return {
@@ -420,8 +422,9 @@ server.tool(
       .string()
       .optional()
       .describe("Page ID (if omitted, returns workspace tags)"),
-  },
-  async ({ workspaceId, pageId }) => {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ workspaceId, pageId, profile }) => {
+    const client = getClient(profile);
     try {
       if (pageId) {
         const tags = await client.getPageTags(workspaceId, pageId);
@@ -450,8 +453,9 @@ server.tool(
     workspaceId: z.string().describe("Workspace ID"),
     pageId: z.string().describe("Page (note) ID"),
     tags: z.array(z.string()).describe("Array of tag strings to set"),
-  },
-  async ({ workspaceId, pageId, tags }) => {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ workspaceId, pageId, tags, profile }) => {
+    const client = getClient(profile);
     try {
       await client.updatePageTags(workspaceId, pageId, tags);
       return {
@@ -478,8 +482,9 @@ server.tool(
       .string()
       .optional()
       .describe("Workspace ID (if omitted, returns org members)"),
-  },
-  async ({ workspaceId }) => {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ workspaceId, profile }) => {
+    const client = getClient(profile);
     try {
       if (workspaceId) {
         const members = await client.getWorkspaceMembers(workspaceId);
@@ -534,8 +539,9 @@ server.tool(
   {
     workspaceId: z.string().describe("Workspace ID"),
     pageId: z.string().describe("Page (note) ID"),
-  },
-  async ({ workspaceId, pageId }) => {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ workspaceId, pageId, profile }) => {
+    const client = getClient(profile);
     try {
       const html = await client.getPageContent(workspaceId, pageId);
       return {
@@ -562,8 +568,9 @@ server.tool(
       .describe("Page ID to filter tasks by"),
     limit: z.number().optional().describe("Max results (default: 50)"),
     offset: z.number().optional().describe("Pagination offset (default: 0)"),
-  },
-  async ({ workspaceId, pageId, limit, offset }) => {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ workspaceId, pageId, limit, offset, profile }) => {
+    const client = getClient(profile);
     try {
       const result = await client.searchTasks(workspaceId, {
         noteId: pageId,
@@ -599,8 +606,9 @@ server.tool(
       .string()
       .optional()
       .describe("Filter to a specific task list ID"),
-  },
-  async ({ workspaceId, taskListId }) => {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ workspaceId, taskListId, profile }) => {
+    const client = getClient(profile);
     try {
       const lists = await client.listTaskLists(workspaceId, { taskListId });
       return {
@@ -626,8 +634,9 @@ server.tool(
       .string()
       .optional()
       .describe("Task priority (e.g. 'high', 'medium', 'low')"),
-  },
-  async ({ workspaceId, title, taskListId, description, priority }) => {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ workspaceId, title, taskListId, description, priority, profile }) => {
+    const client = getClient(profile);
     try {
       const result = await client.createTask(workspaceId, {
         title,
@@ -692,8 +701,10 @@ function compareSemver(a: string, b: string): number {
 server.tool(
   "check_version",
   "Get server version and check for updates from GitHub. Returns the current installed version, latest available version, whether an update is available, and the command to update. If update_available is true, inform the user that a new version is available and suggest updating.",
-  {},
-  async () => {
+  {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ profile }) => {
+    const client = getClient(profile);
     try {
       const version = getLocalVersion();
       const ownerRepo = getGitRemoteUrl();
@@ -784,6 +795,100 @@ server.tool(
   },
 );
 
+// === FuseBase Guides (core) ===
+
+server.tool(
+  "search_guides",
+  "Search the local FuseBase guide documentation (231 guides across 17 sections). Returns matching guide titles, sections, and slugs. Use get_guide to read the full content of a specific result. Great for looking up how any FuseBase feature works.",
+  {
+    query: z.string().describe("Search query (e.g. 'toggle', 'table filtering', 'portal branding')"),
+    limit: z.number().optional().describe("Max results to return (default: 10)"),
+  }, async ({ query, limit }) => {
+    try {
+      const { searchGuides } = await import("./guide-loader.js");
+      const results = searchGuides(query, limit);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify(
+              {
+                query,
+                count: results.length,
+                results: results.map(r => ({
+                  title: r.title,
+                  section: r.section,
+                  slug: r.slug,
+                  path: r.relativePath,
+                })),
+              },
+              null,
+              2,
+            ),
+          },
+        ],
+      };
+    } catch (error) {
+      return errorResult(error);
+    }
+  },
+);
+
+server.tool(
+  "get_guide",
+  "Get the full markdown content of a specific FuseBase guide by section and slug. Use search_guides first to find the right section/slug values. Returns the complete guide including instructions, screenshots, and hotkeys.",
+  {
+    section: z.string().describe("Guide section (e.g. 'basics', 'page-editor', 'client-portal')"),
+    slug: z.string().describe("Guide slug without .md extension (e.g. 'hint-object', 'toggles')"),
+  }, async ({ section, slug }) => {
+    try {
+      const { getGuideContent } = await import("./guide-loader.js");
+      const content = getGuideContent(section, slug);
+      if (!content) {
+        return {
+          content: [
+            { type: "text" as const, text: `Guide not found: ${section}/${slug}.md. Use search_guides to find valid section/slug values.` },
+          ],
+        };
+      }
+      return {
+        content: [{ type: "text" as const, text: content }],
+      };
+    } catch (error) {
+      return errorResult(error);
+    }
+  },
+);
+
+server.tool(
+  "list_guide_sections",
+  "List all 17 FuseBase guide sections with the number of guides in each. Use this to browse available documentation categories before searching for specific topics.",
+  {}, async () => {
+    try {
+      const { listGuideSections, loadGuideIndex } = await import("./guide-loader.js");
+      const sections = listGuideSections();
+      const total = loadGuideIndex().length;
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify(
+              {
+                total_guides: total,
+                sections,
+              },
+              null,
+              2,
+            ),
+          },
+        ],
+      };
+    } catch (error) {
+      return errorResult(error);
+    }
+  },
+);
+
 // ─── Tool Tier Management ───────────────────────────────────────
 
 let extendedToolsRegistered = false;
@@ -795,8 +900,9 @@ server.tool(
     tier: z
       .enum(["all", "core"])
       .describe("'all' to enable extended tools, 'core' to check current status"),
-  },
-  async ({ tier }) => {
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ tier, profile }) => {
+    const client = getClient(profile);
     if (tier === "all") {
       if (extendedToolsRegistered) {
         return {
@@ -824,7 +930,7 @@ server.tool(
           type: "text" as const,
           text: extendedToolsRegistered
             ? "Current tier: all (46 tools active). To revert to core-only, restart the MCP server."
-            : "Current tier: core (18 tools active). Call set_tool_tier with tier='all' to enable 28 extended tools.",
+            : "Current tier: core (21 tools active). Call set_tool_tier with tier='all' to enable 28 extended tools.",
         },
       ],
     };
@@ -845,8 +951,9 @@ function registerExtendedTools() {
     {
       workspaceId: z.string().describe("Workspace ID"),
       pageId: z.string().describe("Page (note) ID"),
-    },
-    async ({ workspaceId, pageId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, pageId, profile }) => {
+      const client = getClient(profile);
       try {
         const attachments = await client.getAttachments(workspaceId, pageId);
         return {
@@ -881,8 +988,9 @@ function registerExtendedTools() {
       workspaceId: z.string().describe("Workspace ID"),
       limit: z.number().optional().describe("Max files to return (default: 25)"),
       offset: z.number().optional().describe("Pagination offset (default: 0)"),
-    },
-    async ({ workspaceId, limit, offset }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, limit, offset, profile }) => {
+      const client = getClient(profile);
       try {
         const files = await client.listFiles(workspaceId, limit, offset);
         return {
@@ -928,8 +1036,9 @@ function registerExtendedTools() {
         .enum(["attachment", "inline"])
         .optional()
         .describe("Role of the file: 'attachment' (default) or 'inline' for embedded images"),
-    },
-    async ({ workspaceId, pageId, base64Content, filename, mime, role }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, pageId, base64Content, filename, mime, role, profile }) => {
+      const client = getClient(profile);
       try {
         const fileBuffer = Buffer.from(base64Content, "base64");
         const result = await client.uploadFile(
@@ -961,8 +1070,9 @@ function registerExtendedTools() {
     "Get all labels (colored categories) defined in a workspace. Labels have titles, colors, and styles, and can be applied to tasks for visual organization. Returns label IDs usable in task creation.",
     {
       workspaceId: z.string().describe("Workspace ID"),
-    },
-    async ({ workspaceId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, profile }) => {
+      const client = getClient(profile);
       try {
         const labels = await client.getLabels(workspaceId);
         return {
@@ -993,8 +1103,10 @@ function registerExtendedTools() {
   server.tool(
     "get_org_usage",
     "Get organization-wide usage statistics including storage, traffic, member counts, AI credits, and workspace quotas. Each metric shows current vs max values. Useful for monitoring plan limits and resource consumption.",
-    {},
-    async () => {
+    {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ profile }) => {
+      const client = getClient(profile);
       try {
         const usage = await client.getOrgUsage();
         return {
@@ -1016,8 +1128,9 @@ function registerExtendedTools() {
     {
       workspaceId: z.string().describe("Workspace ID"),
       pageId: z.string().describe("Page (note) ID"),
-    },
-    async ({ workspaceId, pageId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, pageId, profile }) => {
+      const client = getClient(profile);
       try {
         const threads = await client.getCommentThreads(workspaceId, pageId);
         return {
@@ -1039,8 +1152,9 @@ function registerExtendedTools() {
     {
       workspaceId: z.string().describe("Workspace ID"),
       taskId: z.string().describe("Task ID"),
-    },
-    async ({ workspaceId, taskId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, taskId, profile }) => {
+      const client = getClient(profile);
       try {
         const desc = await client.getTaskDescription(workspaceId, taskId);
         return {
@@ -1066,8 +1180,9 @@ function registerExtendedTools() {
         .string()
         .optional()
         .describe("Parent folder ID for nesting (default: workspace root)"),
-    },
-    async ({ workspaceId, title, parentId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, title, parentId, profile }) => {
+      const client = getClient(profile);
       try {
         const result = await client.createFolder(
           workspaceId,
@@ -1104,8 +1219,9 @@ function registerExtendedTools() {
         .string()
         .optional()
         .describe("New parent folder ID to move the page into"),
-    },
-    async ({ workspaceId, pageId, title, parentId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, pageId, title, parentId, profile }) => {
+      const client = getClient(profile);
       try {
         const updates: { title?: string; parentId?: string } = {};
         if (title) updates.title = title;
@@ -1146,8 +1262,9 @@ function registerExtendedTools() {
         .boolean()
         .optional()
         .describe("Set to true to mark task as complete"),
-    },
-    async ({ workspaceId, taskId, title, description, priority, completed }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, taskId, title, description, priority, completed, profile }) => {
+      const client = getClient(profile);
       try {
         const updates: Record<string, unknown> = {};
         if (title !== undefined) updates.title = title;
@@ -1175,8 +1292,9 @@ function registerExtendedTools() {
     {
       workspaceId: z.string().describe("Workspace ID"),
       taskId: z.string().describe("Task ID to delete"),
-    },
-    async ({ workspaceId, taskId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, taskId, profile }) => {
+      const client = getClient(profile);
       try {
         await client.deleteTask(workspaceId, taskId);
         return {
@@ -1201,8 +1319,9 @@ function registerExtendedTools() {
     {
       workspaceId: z.string().describe("Workspace ID"),
       pageId: z.string().describe("Page (note) ID to delete"),
-    },
-    async ({ workspaceId, pageId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, pageId, profile }) => {
+      const client = getClient(profile);
       try {
         await client.deletePage(workspaceId, pageId);
         return {
@@ -1237,8 +1356,9 @@ function registerExtendedTools() {
         .boolean()
         .optional()
         .describe("Replace existing content (default: true). Set to false to append."),
-    },
-    async ({ workspaceId, pageId, markdown, blocks, replace }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, pageId, markdown, blocks, replace, profile }) => {
+      const client = getClient(profile);
       try {
         let contentBlocks: ContentBlock[];
 
@@ -1261,10 +1381,10 @@ function registerExtendedTools() {
 
         // Write via native Y.js WebSocket protocol
         const result = await writeContentViaWebSocket(
-          config.host,
+          client["host"],
           workspaceId,
           pageId,
-          config.cookie,
+          client["cookie"],
           contentBlocks,
           { replace: replace !== false, timeout: 20000 },
         );
@@ -1300,8 +1420,10 @@ function registerExtendedTools() {
   server.tool(
     "list_agents",
     "List all AI agents configured in the organization with their titles, descriptions, and types. AI agents are custom assistants created in Fusebase's AI features. Returns agent IDs and metadata.",
-    {},
-    async () => {
+    {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ profile }) => {
+      const client = getClient(profile);
       try {
         const agents = await client.listAgents();
         return {
@@ -1322,8 +1444,9 @@ function registerExtendedTools() {
     "Get all mentionable entities (users, pages, folders) in a workspace for @-mention autocomplete. Includes member counts, workspace structure overview, and owner info. Useful for understanding workspace scope at a glance.",
     {
       workspaceId: z.string().describe("Workspace ID"),
-    },
-    async ({ workspaceId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, profile }) => {
+      const client = getClient(profile);
       try {
         const entities = await client.getMentionEntities(workspaceId);
         return {
@@ -1342,8 +1465,10 @@ function registerExtendedTools() {
   server.tool(
     "get_navigation_menu",
     "Get the full sidebar navigation tree showing all pages, folders, and their hierarchy across workspaces. Includes parent-child relationships, icons, and timestamps. Best way to get a complete structural overview of all content.",
-    {},
-    async () => {
+    {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ profile }) => {
+      const client = getClient(profile);
       try {
         const menu = await client.getNavigationMenu();
         return {
@@ -1362,8 +1487,9 @@ function registerExtendedTools() {
     "Get the activity feed for a workspace showing recent comments, @mentions, and content changes. Includes user avatars and note references for each activity item. Useful for monitoring workspace activity and collaboration.",
     {
       workspaceId: z.string().describe("Workspace ID"),
-    },
-    async ({ workspaceId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, profile }) => {
+      const client = getClient(profile);
       try {
         const activity = await client.getActivityStream(workspaceId);
         return {
@@ -1377,13 +1503,128 @@ function registerExtendedTools() {
     },
   );
 
+  // === Collaboration & Communication ===
+  server.tool(
+    "fusebase_poll_mentions",
+    "Poll the Fusebase activity stream for new @mentions or comments directed at this profile. Use filterText to narrow results to only items mentioning a specific display name.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      since: z.number().optional().describe("Unix timestamp (ms). Only return activities occurring strictly after this timestamp."),
+      filterText: z.string().optional().describe("Case-insensitive text filter. Only return items whose content contains this string (e.g. agent display name like 'Agent PM')."),
+      profile: z.string().optional().describe("Agent profile to use for polling (e.g. agent-pm). Determines which account's feed is read."),
+    }, async ({ workspaceId, since, filterText, profile }) => {
+      const client = getClient(profile);
+      try {
+        const stream = await client.getActivityStream(workspaceId);
+
+        // Filter mentions/comments if a since timestamp is provided
+        let result: any = { ...stream };
+
+        if (since) {
+          const filterRecent = (items: any[]) => items?.filter(item => (item.time || item.created || item.updated || 0) > since) || [];
+          result.mentions = filterRecent(stream.mentions as any[]);
+          result.comments = filterRecent(stream.comments as any[]);
+          result.notes = filterRecent(stream.notes as any[]);
+        }
+
+        // Filter by display name / text if provided
+        if (filterText) {
+          const lowerFilter = filterText.toLowerCase();
+          const containsText = (item: any) => JSON.stringify(item).toLowerCase().includes(lowerFilter);
+          if (result.mentions) result.mentions = result.mentions.filter(containsText);
+          if (result.comments) result.comments = result.comments.filter(containsText);
+          if (result.notes) result.notes = result.notes.filter(containsText);
+        }
+
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    }
+  );
+
+  server.tool(
+    "fusebase_post_comment",
+    "Create a new comment thread on a Fusebase page. The comment is anchored to a specific block (targetId) or to the page itself. Use this to leave feedback, ask questions, or communicate with human collaborators.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      noteId: z.string().describe("Page (note) ID to comment on"),
+      text: z.string().describe("Plain text of the comment"),
+      targetId: z.string().optional().describe("Block ID to anchor the comment to (e.g. 'b164359351_1'). Omit to comment on the page itself."),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, noteId, text, targetId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.postComment(workspaceId, noteId, text, targetId);
+        return {
+          content: [
+            { type: "text" as const, text: `Comment posted successfully.\n${JSON.stringify(result, null, 2)}` },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_reply_comment",
+    "Reply to an existing comment thread on a Fusebase page. Use get_comment_threads first to find the thread ID, then reply to continue the conversation.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      threadId: z.string().describe("Thread ID to reply to (from get_comment_threads)"),
+      text: z.string().describe("Plain text of the reply"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, threadId, text, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.replyToThread(workspaceId, threadId, text);
+        return {
+          content: [
+            { type: "text" as const, text: `Reply posted successfully.\n${JSON.stringify(result, null, 2)}` },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_resolve_thread",
+    "Resolve (close) a comment thread after it has been addressed. Use get_comment_threads to find thread IDs.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      threadId: z.string().describe("Thread ID to resolve"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, threadId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.resolveThread(workspaceId, threadId);
+        return {
+          content: [
+            { type: "text" as const, text: `Thread resolved successfully.\n${JSON.stringify(result, null, 2)}` },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+
   server.tool(
     "get_task_usage",
     "Get task usage statistics for a workspace, including upcoming deadline dates and active reminders. Useful for understanding task workload and scheduling pressure in a workspace.",
     {
       workspaceId: z.string().describe("Workspace ID"),
-    },
-    async ({ workspaceId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, profile }) => {
+      const client = getClient(profile);
       try {
         const usage = await client.getTaskUsage(workspaceId);
         return {
@@ -1400,8 +1641,10 @@ function registerExtendedTools() {
   server.tool(
     "get_recently_updated_notes",
     "Get recently updated notes across the entire organization, not limited to a single workspace. Returns notes sorted by last modification time with pagination support. Useful for finding the latest activity org-wide.",
-    {},
-    async () => {
+    {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ profile }) => {
+      const client = getClient(profile);
       try {
         const notes = await client.getRecentlyUpdatedNotes();
         return {
@@ -1420,8 +1663,9 @@ function registerExtendedTools() {
     "Get the total number of tasks in a workspace as a single count. Lightweight alternative to search_tasks when you only need the quantity, not the task details.",
     {
       workspaceId: z.string().describe("Workspace ID"),
-    },
-    async ({ workspaceId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, profile }) => {
+      const client = getClient(profile);
       try {
         const result = await client.getTaskCount(workspaceId);
         return {
@@ -1443,8 +1687,9 @@ function registerExtendedTools() {
     "Get full workspace metadata including internal IDs, organization binding, creator userId, and creation/update timestamps. Provides deeper detail than list_workspaces. Useful for debugging or workspace administration.",
     {
       workspaceId: z.string().describe("Workspace ID"),
-    },
-    async ({ workspaceId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, profile }) => {
+      const client = getClient(profile);
       try {
         const detail = await client.getWorkspaceDetail(workspaceId);
         return {
@@ -1463,8 +1708,9 @@ function registerExtendedTools() {
     "Get the email-to-note addresses for a workspace. Sending emails to these addresses automatically creates pages in the workspace. Returns the dedicated email address and associated user.",
     {
       workspaceId: z.string().describe("Workspace ID"),
-    },
-    async ({ workspaceId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, profile }) => {
+      const client = getClient(profile);
       try {
         const emails = await client.getWorkspaceEmails(workspaceId);
         return {
@@ -1481,8 +1727,10 @@ function registerExtendedTools() {
   server.tool(
     "get_file_count",
     "Get the total count of files stored across all workspaces in the organization. Lightweight check for storage auditing — use list_files for detailed file listings.",
-    {},
-    async () => {
+    {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ profile }) => {
+      const client = getClient(profile);
       try {
         const result = await client.getFileCount();
         return {
@@ -1502,8 +1750,10 @@ function registerExtendedTools() {
   server.tool(
     "get_ai_usage",
     "Get AI feature usage for the organization showing current consumption vs maximum allowed. Tracks AI credits used across all workspaces. Useful for monitoring AI quota before heavy AI operations.",
-    {},
-    async () => {
+    {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ profile }) => {
+      const client = getClient(profile);
       try {
         const usage = await client.getAiUsage();
         return {
@@ -1523,8 +1773,10 @@ function registerExtendedTools() {
   server.tool(
     "get_org_permissions",
     "Get comprehensive organization permissions including all workspace memberships, role assignments, user avatars, and per-member usage data. More detailed than get_members — includes cross-workspace permission mapping.",
-    {},
-    async () => {
+    {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ profile }) => {
+      const client = getClient(profile);
       try {
         const perms = await client.getOrgPermissions();
         return {
@@ -1543,8 +1795,9 @@ function registerExtendedTools() {
     "Get workspace billing info including quota reset dates and plan details. Shows when usage counters reset and the organization's current billing cycle. Useful for understanding rate limits and renewal timing.",
     {
       workspaceId: z.string().describe("Workspace ID"),
-    },
-    async ({ workspaceId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, profile }) => {
+      const client = getClient(profile);
       try {
         const info = await client.getWorkspaceInfo(workspaceId);
         return {
@@ -1564,8 +1817,9 @@ function registerExtendedTools() {
     {
       workspaceId: z.string().describe("Workspace ID"),
       pageId: z.string().describe("Page (note) ID"),
-    },
-    async ({ workspaceId, pageId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, pageId, profile }) => {
+      const client = getClient(profile);
       try {
         const tags = await client.getNoteTags(workspaceId, pageId);
         return {
@@ -1589,8 +1843,9 @@ function registerExtendedTools() {
       viewId: z.string().describe("View UUID (from the database URL)"),
       page: z.number().optional().describe("Page number (default: 1)"),
       limit: z.number().optional().describe("Results per page (default: server default)"),
-    },
-    async ({ dashboardId, viewId, page, limit }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ dashboardId, viewId, page, limit, profile }) => {
+      const client = getClient(profile);
       try {
         const data = await client.getDatabaseData(dashboardId, viewId, { page, limit });
         return {
@@ -1609,8 +1864,10 @@ function registerExtendedTools() {
   server.tool(
     "get_org_limits",
     "Get the organization's plan limits including maximum members, storage, traffic, AI credits, workspaces, and other quotas. Use alongside get_org_usage or get_usage_summary to compare current consumption against plan caps.",
-    {},
-    async () => {
+    {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ profile }) => {
+      const client = getClient(profile);
       try {
         const limits = await client.getOrgLimits();
         return {
@@ -1627,8 +1884,10 @@ function registerExtendedTools() {
   server.tool(
     "get_usage_summary",
     "Get a condensed snapshot of organization usage vs limits — lighter than get_org_usage. Returns current/max for overall usage, storage, and blots in a single response.",
-    {},
-    async () => {
+    {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ profile }) => {
+      const client = getClient(profile);
       try {
         const summary = await client.getUsageSummary();
         return {
@@ -1649,8 +1908,9 @@ function registerExtendedTools() {
     "List client portals for the organization. Optionally filter by workspace. Client portals are shared, branded pages published externally for clients or stakeholders.",
     {
       workspaceId: z.string().optional().describe("Workspace ID to filter portals (optional)"),
-    },
-    async ({ workspaceId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, profile }) => {
+      const client = getClient(profile);
       try {
         const portals = await client.listPortals(workspaceId);
         return {
@@ -1670,8 +1930,9 @@ function registerExtendedTools() {
     {
       workspaceId: z.string().describe("Workspace ID"),
       noteId: z.string().optional().describe("Page/note ID to filter (optional)"),
-    },
-    async ({ workspaceId, noteId }) => {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, noteId, profile }) => {
+      const client = getClient(profile);
       try {
         const pages = await client.getPortalPages(workspaceId, noteId);
         return {
@@ -1690,8 +1951,10 @@ function registerExtendedTools() {
   server.tool(
     "get_org_features",
     "Get feature flags enabled for the organization. Each feature has an ID, name, and enabled status. Useful for checking what capabilities are available on the current plan.",
-    {},
-    async () => {
+    {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ profile }) => {
+      const client = getClient(profile);
       try {
         const features = await client.getOrgFeatures();
         return {
@@ -1712,7 +1975,7 @@ function registerExtendedTools() {
 if (process.env.FUSEBASE_TOOLS === "all") {
   registerExtendedTools();
 } else {
-  console.error("[fusebase] Running in core mode (18 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 46.");
+  console.error("[fusebase] Running in core mode (21 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 46.");
 }
 
 // ─── Helpers ────────────────────────────────────────────────────

@@ -34,6 +34,13 @@ import * as syncProtocol from "y-protocols/sync";
 import * as awarenessProtocol from "y-protocols/awareness";
 import { WebSocket } from "ws";
 import type { ContentBlock } from "./content-schema.js";
+import { decodeYDocToHtml } from "./yjs-html-decoder.js";
+
+
+// ─── Configuration ───
+
+/** WebSocket text host for Y.js connections. Override via FUSEBASE_WS_HOST env var. */
+const WS_TEXT_HOST = process.env.FUSEBASE_WS_HOST || "text.nimbusweb.me";
 
 // ─── Encoding helpers ───
 
@@ -76,19 +83,28 @@ function encodeSyncMessage(subType: number, data: Uint8Array): Uint8Array {
 }
 
 /**
- * Encode an awareness message in the exact format the browser sends.
- * Format: [0x01, varUint(1), varUint(clientId), varUint(clock), varUint(stateLen), ...stateBytes]
+ * Encode an awareness message.
+ * Format: [0x01, varUint(innerLen), varUint(count=1), varUint(clientId), varUint(clock), varUint(stateLen), ...stateBytes]
+ * The innerLen prefix wraps everything after the message type byte.
  */
 function encodeAwarenessMessage(clientId: number, clock: number, state: string): Uint8Array {
-  const buf: number[] = [0x01]; // awareness type
-  writeVarUint(buf, 1); // count = 1
-  writeVarUint(buf, clientId);
-  writeVarUint(buf, clock);
+  // Build the inner payload: count, clientId, clock, state
+  const inner: number[] = [];
+  writeVarUint(inner, 1); // count = 1
+  writeVarUint(inner, clientId);
+  writeVarUint(inner, clock);
   const stateBytes = new TextEncoder().encode(state);
-  writeVarUint(buf, stateBytes.length);
-  const result = new Uint8Array(buf.length + stateBytes.length);
-  result.set(buf);
-  result.set(stateBytes, buf.length);
+  writeVarUint(inner, stateBytes.length);
+  // Combine inner + stateBytes into a single buffer so we know its total length
+  const innerBuf = new Uint8Array(inner.length + stateBytes.length);
+  innerBuf.set(inner);
+  innerBuf.set(stateBytes, inner.length);
+  // Build the outer message: type byte + varuint(innerLen) + innerBuf
+  const header: number[] = [0x01]; // awareness type
+  writeVarUint(header, innerBuf.length); // length of everything that follows
+  const result = new Uint8Array(header.length + innerBuf.length);
+  result.set(header);
+  result.set(innerBuf, header.length);
   return result;
 }
 
@@ -421,6 +437,9 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
             if (col.format.progressStyle) fmt.progressStyle = col.format.progressStyle;
             if (Object.keys(fmt).length > 0) cm.set("format", fmt);
           }
+          if (col.sortby) {
+            cm.set("sortby", col.sortby);
+          }
           blocksMap!.set(colId, cm);
           colIds.push(colId);
         }
@@ -430,9 +449,30 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
           const cellIds: (string | false)[] = [];
           for (let ci = 0; ci < row.cells.length; ci++) {
             const cell = row.cells[ci];
-            // null/undefined cell = empty (false in Y.Array)
+            // null/undefined cell: check if it's consumed by a merge span
             if (!cell) {
-              cellIds.push(false);
+              // Check if a previous cell in this row has colspan covering this position
+              let isMergeConsumed = false;
+              for (let pi = 0; pi < ci; pi++) {
+                const prev = row.cells[pi];
+                if (prev && 'colspan' in prev && prev.colspan && prev.colspan > 1) {
+                  if (pi + prev.colspan > ci) { isMergeConsumed = true; break; }
+                }
+              }
+              if (isMergeConsumed) {
+                // Emit a hidden placeholder cell block
+                const hiddenId = genBlockId();
+                const hm = new Y.Map();
+                hm.set("id", hiddenId);
+                hm.set("cellType", "text");
+                hm.set("type", "tableCellText");
+                hm.set("hidden", true);
+                hm.set("children", new Y.Array<string>());
+                blocksMap!.set(hiddenId, hm);
+                cellIds.push(hiddenId);
+              } else {
+                cellIds.push(false);
+              }
               continue;
             }
             const cellId = genBlockId();
@@ -654,6 +694,14 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
               cellMap.set("children", collabKids);
             }
 
+            // Merge support: colspan/rowspan on the spanning cell
+            if (cell && 'colspan' in cell && cell.colspan && cell.colspan > 1) {
+              cellMap.set("colspan", cell.colspan);
+            }
+            if (cell && 'rowspan' in cell && cell.rowspan && cell.rowspan > 1) {
+              cellMap.set("rowspan", cell.rowspan);
+            }
+
             blocksMap!.set(cellId, cellMap);
             cellIds.push(cellId);
           }
@@ -687,6 +735,17 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
         rowArr.push(rowIds);
         tm.set("rows", rowArr);
         tm.set("indent", 0);
+
+        if (block.sortableColumn) {
+          tm.set("sortableColumn", {
+            columnId: colIds[block.sortableColumn.columnIndex],
+            order: block.sortableColumn.order
+          });
+
+          const rowsOrderArr = new Y.Array<string>();
+          rowsOrderArr.push(rowIds); // Caller should pass the sorted rows in order
+          tm.set("rowsOrder", rowsOrderArr);
+        }
 
         // Add empty caption
         const capId = genBlockId();
@@ -1047,7 +1106,7 @@ export async function writeContentViaWebSocket(
 
   // Step 3: Build WebSocket URL — MUST include encv2=true
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const textHost = "text.nimbusweb.me";
+  const textHost = WS_TEXT_HOST;
   const wsUrl = [
     `wss://${textHost}/socket.io.editor/${workspaceId}/${pageId}`,
     `?token=${jwt}`,
@@ -1075,14 +1134,14 @@ export async function writeContentViaWebSocket(
     const timeoutId = setTimeout(() => done({ success: false, error: "Timeout" }), timeout);
 
     ws.on("error", (e: Error) => done({ success: false, error: `WebSocket error: ${e.message}` }));
-    ws.on("close", () => { if (!resolved) done({ success: false, error: "Connection closed before sync" }); });
+    ws.on("close", (code: number, reason: Buffer) => { if (!resolved) done({ success: false, error: `Connection closed before sync (code=${code}, reason=${reason?.toString() || 'none'})` }); });
     (ws as any).on("unexpected-response", (_req: unknown, res: { statusCode: number }) => {
       done({ success: false, error: `WebSocket upgrade failed: HTTP ${res.statusCode} (text sync server may be down)` });
     });
 
     ws.on("open", () => {
-      // CRITICAL: Send awareness IMMEDIATELY upon connection, BEFORE any sync
-      // This is what the browser does — awareness is the FIRST message sent
+      // Browser sends ONLY awareness on open — SyncStep1 is handled via URL param
+      // Token auth (type 300) is sent AFTER sync completes, just before content writes
       const awarenessMsg = encodeAwarenessMessage(ydoc.clientID, 0, "{}");
       ws.send(Buffer.from(awarenessMsg));
     });
@@ -1105,13 +1164,11 @@ export async function writeContentViaWebSocket(
       const [subType, subOff] = readVarUint(data, 1);
 
       if (subType === 0) {
-        // Server SyncStep1: server sends its state vector, wants our state
-        // We respond with SyncStep2 containing our complete document state
-        // CRITICAL: Use V1 encoding — server expects V1 despite encv2=true in URL
-        const [svLen, svStart] = readVarUint(data, subOff);
-        const serverSv = data.slice(svStart, svStart + svLen);
-        const update = Y.encodeStateAsUpdate(ydoc, serverSv);
-        ws.send(Buffer.from(encodeSyncMessage(0x01, update)));
+        // Server SyncStep1: server sends its state vector
+        // Our syncStep1 was already sent via URL param, and for a new empty doc
+        // we have no state to send back — skip the SyncStep2 response.
+        // The browser sends a 48-byte response because it has cached doc state.
+        // For programmatic writes, we skip this and go straight to content writes.
       }
 
       else if (subType === 1) {
@@ -1158,6 +1215,16 @@ export async function writeContentViaWebSocket(
             addBlocksToDoc(ydoc, blocks);
           });
 
+          // Send token auth (type 300) before content update — browser sends this after sync
+          const jwtBytes = new TextEncoder().encode(jwt);
+          const tokenHeader: number[] = [];
+          writeVarUint(tokenHeader, 300);
+          writeVarUint(tokenHeader, jwtBytes.length);
+          const tokenMsg = new Uint8Array(tokenHeader.length + jwtBytes.length);
+          tokenMsg.set(tokenHeader);
+          tokenMsg.set(jwtBytes, tokenHeader.length);
+          ws.send(Buffer.from(tokenMsg));
+
           // Encode diff as V1 — server expects V1 despite encv2=true in URL
           const diff = Y.encodeStateAsUpdate(ydoc, beforeSv);
           ws.send(Buffer.from(encodeSyncMessage(0x02, diff)));
@@ -1171,6 +1238,117 @@ export async function writeContentViaWebSocket(
 
       else if (subType === 2) {
         // Incremental update from server or another client
+        const [uLen, uStart] = readVarUint(data, subOff);
+        const updateData = data.slice(uStart, uStart + uLen);
+        try { Y.applyUpdateV2(ydoc, updateData); } catch {
+          try { Y.applyUpdate(ydoc, updateData); } catch { }
+        }
+      }
+    });
+  });
+}
+
+/**
+ * Read content from a Fusebase page via WebSocket sync.
+ *
+ * Connects to the Y.js sync server, receives the full document state,
+ * and returns the decoded HTML and raw Y.Doc.
+ *
+ * @returns Object with html (decoded HTML string) and doc (synced Y.Doc)
+ */
+export async function readContentViaWebSocket(
+  host: string,
+  workspaceId: string,
+  pageId: string,
+  cookie: string,
+  options: { timeout?: number } = {},
+): Promise<{ success: boolean; html?: string; doc?: Y.Doc; error?: string }> {
+  const { timeout = 15000 } = options;
+
+  // Step 1: Get JWT
+  let jwt: string;
+  try {
+    jwt = await getAuthToken(host, workspaceId, pageId, cookie);
+  } catch (e) {
+    return { success: false, error: `JWT auth failed: ${(e as Error).message}` };
+  }
+
+  // Step 2: Prepare Y.Doc
+  const ydoc = new Y.Doc();
+  const encoder = encoding.createEncoder();
+  encoding.writeVarUint(encoder, 0);
+  encoding.writeVarUint(encoder, 0);
+  const sv = Y.encodeStateVector(ydoc);
+  encoding.writeVarUint8Array(encoder, sv);
+  const syncStep1Bytes = encoding.toUint8Array(encoder);
+  const syncStep1B64 = Buffer.from(syncStep1Bytes).toString("base64");
+
+  // Step 3: Build WS URL
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const textHost = WS_TEXT_HOST;
+  const wsUrl = [
+    `wss://${textHost}/socket.io.editor/${workspaceId}/${pageId}`,
+    `?token=${jwt}`,
+    `&cid=${ydoc.clientID}`,
+    `&app=web&reason=editor&web-editor=1.1.10`,
+    `&frame_id=${randomAlphaNum(7)}`,
+    `&ratempt=0&widx=0`,
+    `&encv2=true`,
+    `&timezone=${encodeURIComponent(tz)}`,
+    `&syncStep1=${encodeURIComponent(syncStep1B64)}`,
+  ].join("");
+
+  // Step 4: Connect, sync, and decode
+  return new Promise((resolve) => {
+    const ws = new WebSocket(wsUrl, {
+      headers: { origin: `https://${host}`, cookie },
+    });
+
+    let resolved = false;
+    const done = (result: { success: boolean; html?: string; doc?: Y.Doc; error?: string }) => {
+      if (!resolved) { resolved = true; clearTimeout(timeoutId); resolve(result); }
+      try { ws.close(); } catch { }
+    };
+
+    const timeoutId = setTimeout(() => done({ success: false, error: "Timeout" }), timeout);
+
+    ws.on("error", (e: Error) => done({ success: false, error: `WebSocket error: ${e.message}` }));
+    ws.on("close", (code: number, reason: Buffer) => {
+      if (!resolved) done({ success: false, error: `Connection closed (code=${code})` });
+    });
+    (ws as any).on("unexpected-response", (_req: unknown, res: { statusCode: number }) => {
+      done({ success: false, error: `WebSocket upgrade failed: HTTP ${res.statusCode}` });
+    });
+
+    ws.on("open", () => {
+      const awarenessMsg = encodeAwarenessMessage(ydoc.clientID, 0, "{}");
+      ws.send(Buffer.from(awarenessMsg));
+    });
+
+    ws.on("message", (raw: Buffer, isBinary: boolean) => {
+      if (!isBinary) return;
+      const data = new Uint8Array(raw);
+      if (data.length === 0) return;
+      const msgType = data[0];
+      if (msgType === 0x11) { ws.send(Buffer.from(new Uint8Array([0x12]))); return; }
+      if (msgType === 0x12 || msgType === 0x01) return;
+      if (msgType !== 0x00) return;
+      const [subType, subOff] = readVarUint(data, 1);
+
+      if (subType === 0) {
+        // Server SyncStep1 — skip response for read-only
+      } else if (subType === 1) {
+        // Server SyncStep2 — apply the full document state
+        const [uLen, uStart] = readVarUint(data, subOff);
+        const updateData = data.slice(uStart, uStart + uLen);
+        try { Y.applyUpdateV2(ydoc, updateData); } catch {
+          try { Y.applyUpdate(ydoc, updateData); } catch { }
+        }
+
+        // Decode and return
+        const html = decodeYDocToHtml(ydoc);
+        done({ success: true, html, doc: ydoc });
+      } else if (subType === 2) {
         const [uLen, uStart] = readVarUint(data, subOff);
         const updateData = data.slice(uStart, uStart + uLen);
         try { Y.applyUpdateV2(ydoc, updateData); } catch {
