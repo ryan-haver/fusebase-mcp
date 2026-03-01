@@ -25,7 +25,7 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-const HOST = process.env.FUSEBASE_HOST || "inkabeam.nimbusweb.me";
+const HOST = process.env.FUSEBASE_HOST || "";
 const WS_ID = process.argv.includes("--workspace")
   ? process.argv[process.argv.indexOf("--workspace") + 1]
   : (process.env.FUSEBASE_WORKSPACE_ID || "45h7lom5ryjak34u");
