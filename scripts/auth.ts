@@ -73,17 +73,15 @@ export async function refreshCookies(config: AuthConfig): Promise<string> {
     console.error(`[auth] Proxy: ${config.proxy.server}`);
   }
 
+  const launchArgs = ["--disable-blink-features=AutomationControlled"];
+  if (config.proxy) {
+    launchArgs.push(`--proxy-server=${config.proxy.server}`);
+  }
+
   const context = await chromium.launchPersistentContext(userDataDir, {
     headless,
-    args: ["--disable-blink-features=AutomationControlled"],
+    args: launchArgs,
     viewport: { width: 1280, height: 800 },
-    ...(config.proxy ? {
-      proxy: {
-        server: config.proxy.server,
-        ...(config.proxy.username ? { username: config.proxy.username } : {}),
-        ...(config.proxy.password ? { password: config.proxy.password } : {}),
-      },
-    } : {}),
   });
 
   try {
