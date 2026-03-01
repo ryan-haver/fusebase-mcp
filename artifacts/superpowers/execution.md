@@ -1,30 +1,27 @@
-## Guide Integration Execution Summary
+# Phases 7-9 Execution Log
 
-### Batch 1 (Parallel) — guide-loader.ts + skill
-| Step | Files | Status |
-|------|-------|--------|
-| Step 1 | `src/guide-loader.ts` (NEW) | ✅ 170 lines — loadGuideIndex, searchGuides, getGuideContent, listGuideSections |
-| Step 4 | `.agent/skills/fusebase-guides/SKILL.md` (NEW) | ✅ 3 access paths, section-topic mapping |
+## Plan Summary
+Phases 7 (auth hardening), 8 (file upload), 9 (database CRUD) — 17 steps total.
 
-### Batch 2 (Sequential) — MCP tools in index.ts
-| Step | Files | Status |
-|------|-------|--------|
-| Step 2 | `src/index.ts` | ✅ `search_guides` + `get_guide` tools added |
-| Step 3 | `src/index.ts` | ✅ `list_guide_sections` tool added, core count → 21 |
+---
 
-### Batch 3 — Verification
-| Check | Result |
-|-------|--------|
-| `npx tsc --noEmit` | ✅ Clean |
-| `npm run build` | ✅ Clean |
-| Guide loader test (13/13) | ✅ ALL PASS |
-| MCP server startup | ✅ 21 core tools |
+## Phase 7 — Auth & Session Reliability ✅
 
-### Integration Test Results (13/13)
-- ✅ Index loads 231 guides across 17 sections
-- ✅ Search "toggle" → 1 result (page-editor/toggles)
-- ✅ Search "table" → 10 results
-- ✅ Search "hint" → includes basics/hint-object
-- ✅ getGuideContent("basics", "hint-object") → 1428 chars
-- ✅ Non-existent guide returns null
-- ✅ Search limit works correctly
+### Step 7.1 — Retry logic in refreshCookies
+- **Files**: `scripts/auth.ts`
+- **Change**: Wrapped browser launch + navigation in retry loop (max 3 attempts, 5s backoff)
+- **Verify**: `npm run build` ✅
+
+### Steps 7.2-7.4 — Client hardening
+- **Files**: `src/client.ts`, `src/index.ts`
+- **Changes**:
+  - `refreshAuth()`: Added cookie freshness pre-check (skips Playwright if fresh), `forceFresh` param
+  - 401 retry: Added cookie age logging and >20h warning
+  - `refresh_auth` MCP tool: Returns cookie age/count, actionable error with proxy hint
+- **Verify**: `npm run build` ✅
+
+### Step 7.5 — Build verification
+- **Result**: Build clean, no errors
+
+---
+

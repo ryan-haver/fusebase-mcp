@@ -179,7 +179,7 @@ export interface AgentCredential {
 }
 
 export interface ProxyConfig {
-  server: string;   // e.g. "socks5://proxy-nl.privateinternetaccess.com:1080"
+  server: string;   // e.g. "socks5://host:port"
   username: string;
   password: string;
 }

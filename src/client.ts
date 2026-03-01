@@ -10,7 +10,7 @@ import * as path from "path";
 import { fileURLToPath } from "url";
 import * as http from "http";
 import * as https from "https";
-import { SocksProxyAgent } from "socks-proxy-agent";
+import { ProxyAgent } from "undici";
 
 export interface FusebaseConfig {
   host: string;
@@ -18,7 +18,7 @@ export interface FusebaseConfig {
   cookie: string;
   autoRefresh?: boolean;
   profile?: string;
-  proxyUrl?: string; // e.g. "socks5://user:pass@host:port"
+  proxyRelayUrl?: string; // e.g. "http://127.0.0.1:<port>" — local HTTP CONNECT relay
 }
 
 import type {
@@ -81,7 +81,7 @@ export class FusebaseClient {
   private sessionId: string;
   private lastRequestTime: number = 0;
   private static readonly MIN_REQUEST_INTERVAL_MS = 200;
-  private proxyAgent?: SocksProxyAgent;
+  private proxyDispatcher?: ProxyAgent;
 
   constructor(config: FusebaseConfig) {
     this.host = config.host;
@@ -92,9 +92,9 @@ export class FusebaseClient {
     this.profile = config.profile;
     this.sessionId = crypto.randomUUID().replace(/-/g, "");
     fs.mkdirSync(DATA_DIR, { recursive: true });
-    if (config.proxyUrl) {
-      this.proxyAgent = new SocksProxyAgent(config.proxyUrl);
-      console.error(`[client] Using proxy: ${config.proxyUrl.replace(/\/\/.*@/, "//***@")}`);
+    if (config.proxyRelayUrl) {
+      this.proxyDispatcher = new ProxyAgent(config.proxyRelayUrl);
+      console.error(`[client] Using proxy relay: ${config.proxyRelayUrl}`);
     }
   }
 
@@ -131,13 +131,27 @@ export class FusebaseClient {
         ...((options.headers as Record<string, string>) || {}),
       },
       signal: AbortSignal.timeout(timeout),
-      ...(this.proxyAgent ? { dispatcher: this.proxyAgent } : {}),
+      ...(this.proxyDispatcher ? { dispatcher: this.proxyDispatcher } : {}),
     };
 
     let res = await fetch(url, fetchOpts);
 
     // Auto-retry on auth failure
     if ((res.status === 401 || res.status === 403) && this.autoRefresh) {
+      // Log cookie age before attempting refresh
+      try {
+        const { loadEncryptedCookie } = await import("./crypto.js");
+        const stored = loadEncryptedCookie(this.profile);
+        if (stored?.savedAt) {
+          const ageMs = Date.now() - new Date(stored.savedAt).getTime();
+          const ageHours = (ageMs / 3_600_000).toFixed(1);
+          console.error(`[client] Cookie age: ${ageHours}h old`);
+          if (ageMs > 20 * 3_600_000) {
+            console.error(`[client] ⚠ Cookie is >20h old — may need manual re-auth: npx tsx scripts/auth.ts`);
+          }
+        }
+      } catch { /* crypto unavailable */ }
+
       console.error(
         `[client] Got ${res.status} — attempting cookie refresh...`,
       );
@@ -271,10 +285,25 @@ export class FusebaseClient {
 
   /**
    * Refresh authentication cookies via Playwright.
-   * Attempts headless first (reusing persistent session),
-   * falls back to headed mode if that fails.
+   * First checks if stored cookies are still fresh (skips Playwright if so).
+   * Then attempts headless refresh, falls back to headed mode if that fails.
    */
-  async refreshAuth(): Promise<boolean> {
+  async refreshAuth(forceFresh = false): Promise<boolean> {
+    // Check if stored cookies are still fresh before launching a browser
+    if (!forceFresh) {
+      try {
+        const { isEncryptedCookieFresh, loadEncryptedCookie } = await import("./crypto.js");
+        if (isEncryptedCookieFresh(this.profile)) {
+          const stored = loadEncryptedCookie(this.profile);
+          if (stored?.cookie) {
+            console.error("[client] Stored cookies are still fresh — reloading from disk");
+            this.updateCookie(stored.cookie);
+            return true;
+          }
+        }
+      } catch { /* crypto unavailable */ }
+    }
+
     try {
       // Dynamic import — scripts/ is outside the TS rootDir (src/)
       // so we resolve the path at runtime
@@ -560,6 +589,41 @@ export class FusebaseClient {
       src: `/box/attachment/${workspaceId}/${attachmentId}/${filename}`,
       displayName: filename,
       mime,
+    };
+  }
+
+  /**
+   * Download an attachment file from FuseBase.
+   * GETs /box/attachment/{workspaceId}/{attachmentId}/{filename}
+   *
+   * @returns Object with base64 content, mime type, and size
+   */
+  async downloadAttachment(
+    workspaceId: string,
+    attachmentId: string,
+    filename: string,
+  ): Promise<{
+    base64: string;
+    mime: string;
+    size: number;
+  }> {
+    const url = `${this.baseUrl}/box/attachment/${workspaceId}/${attachmentId}/${encodeURIComponent(filename)}`;
+    const res = await fetch(url, {
+      headers: { cookie: this.cookie },
+      signal: AbortSignal.timeout(TIMEOUT_GET),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Download failed: ${res.status} ${res.statusText}`);
+    }
+
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const mime = res.headers.get("content-type") || "application/octet-stream";
+
+    return {
+      base64: buffer.toString("base64"),
+      mime,
+      size: buffer.length,
     };
   }
 
@@ -950,6 +1014,61 @@ export class FusebaseClient {
     const qs = params.toString();
     return this.request<FusebaseDatabaseViewData>(
       `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/data${qs ? `?${qs}` : ""}`,
+    );
+  }
+
+  /**
+   * List all databases/dashboards in a workspace.
+   * Uses the dashboard-service proxy to get the list of available databases.
+   */
+  async listDatabases(
+    workspaceId: string,
+  ): Promise<Array<{
+    id: string;
+    title: string;
+    workspaceId: string;
+    [key: string]: unknown;
+  }>> {
+    return this.request<Array<{
+      id: string;
+      title: string;
+      workspaceId: string;
+      [key: string]: unknown;
+    }>>(
+      `/v4/api/proxy/dashboard-service/v1/workspaces/${workspaceId}/dashboards`,
+    );
+  }
+
+  /**
+   * Get a specific database entity (clients, forms, portals, spaces, etc.)
+   * from the dashboard tables.
+   */
+  async getDatabaseEntity(
+    entity: string,
+    options?: { page?: number; limit?: number },
+  ): Promise<unknown> {
+    const params = new URLSearchParams();
+    if (options?.page) params.set("page", String(options.page));
+    if (options?.limit) params.set("limit", String(options.limit));
+    const qs = params.toString();
+    return this.request<unknown>(
+      `/v4/api/proxy/dashboard-service/v1/entities/${entity}${qs ? `?${qs}` : ""}`,
+    );
+  }
+
+  /**
+   * Create or update a database entity record.
+   */
+  async createDatabaseEntity(
+    entity: string,
+    data: Record<string, unknown>,
+  ): Promise<unknown> {
+    return this.request<unknown>(
+      `/v4/api/proxy/dashboard-service/v1/entities/${entity}`,
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      },
     );
   }
 

@@ -18,6 +18,7 @@ import { z } from "zod";
 import { FusebaseClient } from "./client.js";
 import type { FusebaseMember, FusebaseOrgMember, FusebaseFile, FusebaseLabel } from "./types.js";
 import { loadEncryptedCookie, saveEncryptedCookie, loadCredentialStore } from "./crypto.js";
+import { startProxyRelay, type RelayHandle } from "./proxy-relay.js";
 import { markdownToSchema } from "./markdown-parser.js";
 import { schemaToTokens } from "./token-builder.js";
 import type { ContentBlock } from "./content-schema.js";
@@ -51,6 +52,24 @@ function loadDotEnv(): void {
 
 // ─── Server Setup ───────────────────────────────────────────────
 
+/** Guess MIME type from file extension */
+function guessMime(filename: string): string {
+  const ext = filename.split(".").pop()?.toLowerCase() || "";
+  const mimeMap: Record<string, string> = {
+    png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif",
+    webp: "image/webp", svg: "image/svg+xml", pdf: "application/pdf",
+    txt: "text/plain", md: "text/markdown", html: "text/html", css: "text/css",
+    js: "application/javascript", json: "application/json", csv: "text/csv",
+    zip: "application/zip", doc: "application/msword",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    mp4: "video/mp4", mp3: "audio/mpeg", wav: "audio/wav",
+  };
+  return mimeMap[ext] || "application/octet-stream";
+}
+
+let _proxyRelayUrl: string | undefined;
+
 function getClient(profile?: string): FusebaseClient {
   const host = process.env.FUSEBASE_HOST;
   const orgId = process.env.FUSEBASE_ORG_ID;
@@ -75,17 +94,8 @@ function getClient(profile?: string): FusebaseClient {
     console.error(`[fusebase] Warning: No cookie found. Run 'npx tsx scripts/auth.ts${profile ? ` --profile ${profile}` : ""}' to authenticate.`);
   }
 
-  // Load proxy config for API calls
-  let proxyUrl: string | undefined;
-  const credStore = loadCredentialStore();
-  if (credStore?.proxy) {
-    const p = credStore.proxy;
-    // Parse host:port from server URL (e.g., "socks5://host:port")
-    const proxyParsed = new URL(p.server);
-    proxyUrl = `socks5://${encodeURIComponent(p.username)}:${encodeURIComponent(p.password)}@${proxyParsed.hostname}:${proxyParsed.port || "1080"}`;
-  }
-
-  return new FusebaseClient({ host, orgId, cookie, autoRefresh: true, profile, proxyUrl });
+  // Use proxy relay URL if started in main()
+  return new FusebaseClient({ host, orgId, cookie, autoRefresh: true, profile, proxyRelayUrl: _proxyRelayUrl });
 }
 
 const server = new McpServer({
@@ -99,7 +109,7 @@ const server = new McpServer({
 
 server.tool(
   "refresh_auth",
-  "Refresh Fusebase authentication cookies by re-launching a Playwright browser session. Use this when other tools return 401/auth errors. Set interactive=true to open a visible browser window for manual login.",
+  "Refresh Fusebase authentication cookies by re-launching a Playwright browser session. Use this when other tools return 401/auth errors. Set interactive=true to open a visible browser window for manual login. Returns cookie age and expiry info.",
   {
     interactive: z
       .boolean()
@@ -113,19 +123,43 @@ server.tool(
     try {
       const success = interactive
         ? await client.refreshAuthInteractive()
-        : await client.refreshAuth();
+        : await client.refreshAuth(true); // forceFresh=true to always re-auth
+      if (success) {
+        // Report cookie age/expiry info
+        let cookieInfo = "Authentication refreshed successfully. Cookies updated.";
+        try {
+          const { loadEncryptedCookie } = await import("./crypto.js");
+          const stored = loadEncryptedCookie(profile);
+          if (stored?.savedAt) {
+            const ageMs = Date.now() - new Date(stored.savedAt).getTime();
+            const ageMin = Math.round(ageMs / 60_000);
+            cookieInfo += ` Cookie age: ${ageMin}min.`;
+            if (stored.meta?.cookieCount) {
+              cookieInfo += ` ${stored.meta.cookieCount} cookies stored.`;
+            }
+          }
+        } catch { /* crypto unavailable */ }
+        return {
+          content: [{ type: "text" as const, text: cookieInfo }],
+        };
+      }
       return {
-        content: [
-          {
-            type: "text" as const,
-            text: success
-              ? "Authentication refreshed successfully. Cookies updated."
-              : "Authentication refresh failed. User may need to run: npx tsx scripts/auth.ts",
-          },
-        ],
+        content: [{
+          type: "text" as const,
+          text: "Authentication refresh failed. Try: (1) npx tsx scripts/auth.ts --no-proxy, or (2) set interactive=true on this tool.",
+        }],
+        isError: true,
       };
     } catch (error) {
-      return errorResult(error);
+      const msg = error instanceof Error ? error.message : String(error);
+      let hint = "";
+      if (msg.includes("Timeout") || msg.includes("timeout")) {
+        hint = " Hint: The proxy may be unreachable — try: npx tsx scripts/auth.ts --no-proxy";
+      }
+      return {
+        content: [{ type: "text" as const, text: `Auth refresh failed: ${msg}${hint}` }],
+        isError: true,
+      };
     }
   },
 );
@@ -414,6 +448,78 @@ server.tool(
             ),
           },
         ],
+      };
+    } catch (error) {
+      return errorResult(error);
+    }
+  },
+);
+
+server.tool(
+  "upload_file",
+  "Upload a file to a FuseBase page. The file content must be provided as base64-encoded data. Returns the attachment ID and URL path. Use get_page_attachments to list existing attachments.",
+  {
+    workspaceId: z.string().describe("Workspace ID"),
+    pageId: z.string().describe("Page (note) ID to attach the file to"),
+    content: z.string().describe("Base64-encoded file content"),
+    filename: z.string().describe("File name with extension (e.g. 'report.pdf')"),
+    mime: z.string().optional().describe("MIME type (auto-detected from extension if omitted)"),
+    role: z.enum(["attachment", "inline"]).optional().describe("'attachment' (default) or 'inline' for embedded images"),
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ workspaceId, pageId, content, filename, mime, role, profile }) => {
+    const client = getClient(profile);
+    try {
+      const buffer = Buffer.from(content, "base64");
+      const detectedMime = mime || guessMime(filename);
+      const result = await client.uploadFile(
+        workspaceId,
+        pageId,
+        buffer,
+        filename,
+        detectedMime,
+        role || "attachment",
+      );
+      return {
+        content: [{
+          type: "text" as const,
+          text: JSON.stringify({
+            success: true,
+            attachmentId: result.attachmentId,
+            src: result.src,
+            displayName: result.displayName,
+            mime: result.mime,
+            size: buffer.length,
+          }, null, 2),
+        }],
+      };
+    } catch (error) {
+      return errorResult(error);
+    }
+  },
+);
+
+server.tool(
+  "download_attachment",
+  "Download a file attachment from a FuseBase page. Returns the file content as base64-encoded data with MIME type and size. Use get_page_attachments to find attachment IDs first.",
+  {
+    workspaceId: z.string().describe("Workspace ID"),
+    attachmentId: z.string().describe("Attachment ID (from get_page_attachments)"),
+    filename: z.string().describe("Original filename of the attachment"),
+    profile: z.string().optional().describe("Agent profile to use for authentication"),
+  }, async ({ workspaceId, attachmentId, filename, profile }) => {
+    const client = getClient(profile);
+    try {
+      const result = await client.downloadAttachment(workspaceId, attachmentId, filename);
+      return {
+        content: [{
+          type: "text" as const,
+          text: JSON.stringify({
+            base64: result.base64,
+            mime: result.mime,
+            size: result.size,
+            filename,
+          }, null, 2),
+        }],
       };
     } catch (error) {
       return errorResult(error);
@@ -905,7 +1011,7 @@ let extendedToolsRegistered = false;
 
 server.tool(
   "set_tool_tier",
-  "Enable extended Fusebase tools for this session. By default only core tools (21) are loaded for performance. Call this with tier 'all' to dynamically register 28 additional tools for admin, analytics, content mutations, and niche operations.",
+  "Enable extended Fusebase tools for this session. By default only core tools (21) are loaded for performance. Call this with tier 'all' to dynamically register 33 additional tools for admin, analytics, content mutations, file upload, database CRUD, and niche operations.",
   {
     tier: z
       .enum(["all", "core"])
@@ -929,7 +1035,7 @@ server.tool(
         content: [
           {
             type: "text" as const,
-            text: "Extended tools enabled! 28 additional tools are now available (49 total). New tools: get_page_attachments, list_files, get_labels, get_org_usage, get_comment_threads, get_task_description, delete_page, update_page_content, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
+            text: "Extended tools enabled! 33 additional tools are now available (54 total). New tools: get_page_attachments, list_files, upload_file, download_attachment, get_labels, get_org_usage, get_comment_threads, get_task_description, delete_page, update_page_content, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database_entity, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
           },
         ],
       };
@@ -1869,6 +1975,72 @@ function registerExtendedTools() {
     },
   );
 
+  server.tool(
+    "list_databases",
+    "List all databases (dashboards) in a workspace. Returns database IDs and titles needed for get_database_data.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const databases = await client.listDatabases(workspaceId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(databases, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_database_entity",
+    "Get data from a specific database entity type (e.g. clients, forms, portals, spaces). Supports pagination.",
+    {
+      entity: z.string().describe("Entity type (e.g. 'clients', 'forms', 'portals', 'spaces')"),
+      page: z.number().optional().describe("Page number (default: 1)"),
+      limit: z.number().optional().describe("Results per page"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ entity, page, limit, profile }) => {
+      const client = getClient(profile);
+      try {
+        const data = await client.getDatabaseEntity(entity, { page, limit });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "create_database_entity",
+    "Create or update a record in a database entity (e.g. clients, forms). Accepts arbitrary key-value data matching the entity schema.",
+    {
+      entity: z.string().describe("Entity type (e.g. 'clients', 'forms')"),
+      data: z.record(z.string(), z.unknown()).describe("Record data as key-value pairs matching the entity schema"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ entity, data, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.createDatabaseEntity(entity, data);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
   // === Org Limits & Usage Summary ===
 
   server.tool(
@@ -1985,7 +2157,7 @@ function registerExtendedTools() {
 if (process.env.FUSEBASE_TOOLS === "all") {
   registerExtendedTools();
 } else {
-  console.error("[fusebase] Running in core mode (21 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 49.");
+  console.error("[fusebase] Running in core mode (21 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 54.");
 }
 
 // ─── Helpers ────────────────────────────────────────────────────
@@ -2001,6 +2173,18 @@ function errorResult(error: unknown) {
 // ─── Start ──────────────────────────────────────────────────────
 
 async function main() {
+  // Start proxy relay before MCP server so API calls are proxied
+  const credStore = loadCredentialStore();
+  if (credStore?.proxy) {
+    try {
+      const relay = await startProxyRelay(credStore.proxy);
+      _proxyRelayUrl = `http://127.0.0.1:${relay.port}`;
+      process.on("exit", () => relay.stop());
+    } catch (err) {
+      console.error(`[fusebase] Warning: Failed to start proxy relay: ${err instanceof Error ? err.message : err}`);
+    }
+  }
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("Fusebase MCP server running on stdio");

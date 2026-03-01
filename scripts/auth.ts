@@ -66,123 +66,144 @@ export async function refreshCookies(config: AuthConfig): Promise<string> {
     );
 
   const baseUrl = `https://${host}`;
+  const MAX_ATTEMPTS = 3;
+  const RETRY_DELAY_MS = 5_000;
 
-  console.error(`[auth] Launching browser (headless=${headless})...`);
-  console.error(`[auth] Profile: ${userDataDir}`);
-  if (config.proxy) {
-    console.error(`[auth] Proxy: ${config.proxy.server}`);
-  }
-
-  const launchArgs = ["--disable-blink-features=AutomationControlled"];
-  if (config.proxy) {
-    launchArgs.push(`--proxy-server=${config.proxy.server}`);
-  }
-
-  const context = await chromium.launchPersistentContext(userDataDir, {
-    headless,
-    args: launchArgs,
-    viewport: { width: 1280, height: 800 },
-  });
-
-  try {
-    const page = context.pages()[0] || (await context.newPage());
-
-    // Navigate to Fusebase
-    console.error(`[auth] Navigating to ${baseUrl}...`);
-
-    await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
-
-    // Wait a moment for redirects
-    await page.waitForTimeout(2000);
-
-    const currentUrl = page.url();
-    console.error(`[auth] Current URL: ${currentUrl}`);
-
-    if (currentUrl.includes("/auth")) {
-      if (config.autoCredentials) {
-        // Auto-fill login form
-        console.error("[auth] Auto-login: filling credentials...");
-
-        // Look for email input — try common selectors
-        const emailInput = page.locator('input[type="email"], input[name="email"], input[placeholder*="mail" i]').first();
-        await emailInput.waitFor({ state: "visible", timeout: 10_000 });
-        await emailInput.fill(config.autoCredentials.email);
-
-        // Look for password input
-        const passwordInput = page.locator('input[type="password"]').first();
-        await passwordInput.waitFor({ state: "visible", timeout: 10_000 });
-        await passwordInput.fill(config.autoCredentials.password);
-
-        // Submit — try common button patterns
-        const submitBtn = page.locator('button[type="submit"], button:has-text("Sign in"), button:has-text("Log in"), button:has-text("Continue")').first();
-        await submitBtn.click();
-
-        console.error("[auth] Credentials submitted — waiting for redirect...");
-
-        // Debug: wait a moment then check what happened
-        await page.waitForTimeout(5000);
-        console.error(`[auth] URL after submit: ${page.url()}`);
-
-        // Take diagnostic screenshot
-        const screenshotPath = path.resolve(import.meta.dirname ?? ".", "..", "data", "auth-debug.png");
-        await page.screenshot({ path: screenshotPath, fullPage: true });
-        console.error(`[auth] Screenshot saved: ${screenshotPath}`);
-      } else {
-        // Manual login
-        console.error("[auth] Login required — waiting for user to authenticate...");
-        console.error("[auth] Please log in via the browser window.");
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      if (attempt > 1) {
+        console.error(`[auth] Retry attempt ${attempt}/${MAX_ATTEMPTS} (waiting ${RETRY_DELAY_MS / 1000}s)...`);
+        await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
       }
 
-      // Wait for navigation away from /auth/ (login complete)
-      await page.waitForURL((url) => !url.toString().includes("/auth"), {
-        timeout,
+      console.error(`[auth] Launching browser (headless=${headless})...`);
+      console.error(`[auth] Profile: ${userDataDir}`);
+      if (config.proxy) {
+        console.error(`[auth] Proxy: ${config.proxy.server}`);
+      }
+
+      const launchArgs = ["--disable-blink-features=AutomationControlled"];
+      if (config.proxy) {
+        launchArgs.push(`--proxy-server=${config.proxy.server}`);
+      }
+
+      const context = await chromium.launchPersistentContext(userDataDir, {
+        headless,
+        args: launchArgs,
+        viewport: { width: 1280, height: 800 },
       });
 
-      console.error("[auth] Login detected! Capturing cookies...");
-      // Give the app a moment to fully load and set all cookies
-      await page.waitForTimeout(3000);
-    } else {
-      console.error("[auth] Already logged in! Capturing cookies...");
+      try {
+        const page = context.pages()[0] || (await context.newPage());
+
+        // Navigate to Fusebase
+        console.error(`[auth] Navigating to ${baseUrl}...`);
+
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+
+        // Wait a moment for redirects
+        await page.waitForTimeout(2000);
+
+        const currentUrl = page.url();
+        console.error(`[auth] Current URL: ${currentUrl}`);
+
+        if (currentUrl.includes("/auth")) {
+          if (config.autoCredentials) {
+            // Auto-fill login form
+            console.error("[auth] Auto-login: filling credentials...");
+
+            // Look for email input — try common selectors
+            const emailInput = page.locator('input[type="email"], input[name="email"], input[placeholder*="mail" i]').first();
+            await emailInput.waitFor({ state: "visible", timeout: 10_000 });
+            await emailInput.fill(config.autoCredentials.email);
+
+            // Look for password input
+            const passwordInput = page.locator('input[type="password"]').first();
+            await passwordInput.waitFor({ state: "visible", timeout: 10_000 });
+            await passwordInput.fill(config.autoCredentials.password);
+
+            // Submit — try common button patterns
+            const submitBtn = page.locator('button[type="submit"], button:has-text("Sign in"), button:has-text("Log in"), button:has-text("Continue")').first();
+            await submitBtn.click();
+
+            console.error("[auth] Credentials submitted — waiting for redirect...");
+
+            // Debug: wait a moment then check what happened
+            await page.waitForTimeout(5000);
+            console.error(`[auth] URL after submit: ${page.url()}`);
+
+            // Take diagnostic screenshot
+            const screenshotPath = path.resolve(import.meta.dirname ?? ".", "..", "data", "auth-debug.png");
+            await page.screenshot({ path: screenshotPath, fullPage: true });
+            console.error(`[auth] Screenshot saved: ${screenshotPath}`);
+          } else {
+            // Manual login
+            console.error("[auth] Login required — waiting for user to authenticate...");
+            console.error("[auth] Please log in via the browser window.");
+          }
+
+          // Wait for navigation away from /auth/ (login complete)
+          await page.waitForURL((url) => !url.toString().includes("/auth"), {
+            timeout,
+          });
+
+          console.error("[auth] Login detected! Capturing cookies...");
+          // Give the app a moment to fully load and set all cookies
+          await page.waitForTimeout(3000);
+        } else {
+          console.error("[auth] Already logged in! Capturing cookies...");
+        }
+
+        // Capture all cookies for this domain
+        const cookies = await context.cookies(baseUrl);
+        console.error(`[auth] Captured ${cookies.length} cookies`);
+
+        if (cookies.length === 0) {
+          throw new Error("No cookies captured — authentication may have failed");
+        }
+
+        // Build cookie string
+        const cookieString = cookies
+          .map((c: Cookie) => `${c.name}=${c.value}`)
+          .join("; ");
+
+        // Save encrypted cookie to data/cookie.enc
+        const cookieMeta = cookies.map((c: Cookie) => ({
+          name: c.name,
+          domain: c.domain,
+          expires: c.expires,
+        }));
+
+        // Dynamic import to avoid circular deps (scripts/ → src/)
+        const cryptoPath = new URL("../src/crypto.js", import.meta.url).pathname;
+        const { saveEncryptedCookie } = await import(cryptoPath);
+        saveEncryptedCookie(
+          cookieString,
+          {
+            host,
+            cookieCount: cookies.length,
+            cookies: cookieMeta,
+          },
+          profile
+        );
+        console.error(`[auth] Cookie saved encrypted (profile: ${profile || "default"})`);
+
+        return cookieString;
+      } finally {
+        await context.close();
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error(`[auth] Attempt ${attempt}/${MAX_ATTEMPTS} failed: ${msg}`);
+
+      if (attempt === MAX_ATTEMPTS) {
+        throw new Error(`Auth failed after ${MAX_ATTEMPTS} attempts. Last error: ${msg}`);
+      }
     }
-
-    // Capture all cookies for this domain
-    const cookies = await context.cookies(baseUrl);
-    console.error(`[auth] Captured ${cookies.length} cookies`);
-
-    if (cookies.length === 0) {
-      throw new Error("No cookies captured — authentication may have failed");
-    }
-
-    // Build cookie string
-    const cookieString = cookies
-      .map((c: Cookie) => `${c.name}=${c.value}`)
-      .join("; ");
-
-    // Save encrypted cookie to data/cookie.enc
-    const cookieMeta = cookies.map((c: Cookie) => ({
-      name: c.name,
-      domain: c.domain,
-      expires: c.expires,
-    }));
-
-    // Dynamic import to avoid circular deps (scripts/ → src/)
-    const cryptoPath = new URL("../src/crypto.js", import.meta.url).pathname;
-    const { saveEncryptedCookie } = await import(cryptoPath);
-    saveEncryptedCookie(
-      cookieString,
-      {
-        host,
-        cookieCount: cookies.length,
-        cookies: cookieMeta,
-      },
-      profile
-    );
-    console.error(`[auth] Cookie saved encrypted (profile: ${profile || "default"})`);
-
-    return cookieString;
-  } finally {
-    await context.close();
   }
+
+  // Unreachable, but TypeScript needs it
+  throw new Error("Auth failed: exhausted all retry attempts");
 }
 
 // ─── Helpers ────────────────────────────────────────────────────
@@ -260,7 +281,7 @@ async function main() {
       relayStop = relay.stop;
       // Give Chromium the local relay (no auth needed)
       proxyForBrowser = {
-        server: `socks5://127.0.0.1:${relay.port}`,
+        server: `http://127.0.0.1:${relay.port}`,
         username: "",
         password: "",
       };
