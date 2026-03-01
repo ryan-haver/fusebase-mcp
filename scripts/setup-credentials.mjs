@@ -189,13 +189,20 @@ async function main() {
         console.log("⏭️  No proxy username — skipping proxy setup");
     }
 
+    // ─── Fusebase host setup ────────────────────────────────────
+    console.log("\n─── Fusebase Host ───\n");
+    const hostDefault = "inkabeam.nimbusweb.me";
+    const hostInput = await ask(`🌐 Fusebase host [${hostDefault}]: `);
+    const host = hostInput.trim() || hostDefault;
+    console.log(`   Using host: ${host}`);
+
     // Import crypto — use URL href for ESM compatibility on Windows
-    const cryptoUrl = new URL("../src/crypto.js", import.meta.url).href;
+    const cryptoUrl = new URL("../dist/crypto.js", import.meta.url).href;
     const { saveCredentials } = await import(cryptoUrl);
 
-    saveCredentials(credentials, proxy);
+    saveCredentials(credentials, proxy, host);
 
-    console.log(`\n✅ ${Object.keys(credentials).length} credentials${proxy ? " + proxy" : ""} encrypted and saved`);
+    console.log(`\n✅ ${Object.keys(credentials).length} credentials${proxy ? " + proxy" : ""} + host encrypted and saved`);
     console.log("   File: data/credentials.enc");
     console.log("   Encryption: AES-256-GCM (machine-scoped key)");
     console.log("\nNext step: Run 'npx tsx scripts/auth.ts --auto --profile=agent-pm' to test auto-login");

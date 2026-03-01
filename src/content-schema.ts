@@ -20,10 +20,25 @@
  *   collapsible H1  → "collapsibleHLarge"
  *   collapsible H2  → "collapsibleHMedium"
  *   collapsible H3  → "collapsibleHSmall"
+ *   image           → "image"   (src, width, ratio, originalSize, caption)
+ *   file            → "file"    (fileId, caption)
+ *   bookmark        → "bookmark" (url, viewMode, color)
+ *   remote frame    → "remote-frame" (src — embeds external content)
+ *   outline (TOC)   → "outline" (bordered, numbered, expanded)
+ *   button          → "button-single" (title, url)
+ *   step            → "step"   (collapsed, show-arrow, children)
+ *   step aggregator → "step-aggregator" (container for steps)
+ *   grid layout     → "grid"   (2-column layout)
+ *   grid column     → "gridCol" (column within grid)
+ *   table           → "table"  (inline table block)
+ *   code block      → "syntax" (language, content)
+ *   caption         → "caption"
+ *   file uploader   → "uploader"
+ *   database embed  → "foreign-dashboard" (dashboardId)
  *
  * Inline marks (Y.Text attributes):
  *   bold: true, italic: true, strikethrough: true, underline: true
- *   code: true, link: "https://..."
+ *   code: true, link: "https://...", highlight: { color }
  */
 
 /* ------------------------------------------------------------------ */

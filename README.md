@@ -6,8 +6,8 @@ An [MCP](https://modelcontextprotocol.io/) server that lets AI assistants manage
 
 ## ✨ Features
 
-- **46 tools** across content, tasks, members, org admin, portals, databases, and more
-- **Two-tier system** — 18 core tools load by default; 28 extended tools on demand
+- **49 tools** across content, tasks, members, org admin, portals, databases, guides, and more
+- **Two-tier system** — 21 core tools load by default; 28 extended tools on demand
 - **Auto auth retry** — detects 401/403 and refreshes session automatically
 - **Encrypted secrets** — cookies stored encrypted at rest (AES-256-GCM)
 - **Version checking** — built-in update detection from GitHub
@@ -150,7 +150,7 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 
 | Tier | Tools | Description |
 | --- | --- | --- |
-| **Core** (default) | 18 | Day-to-day: pages, folders, tasks, tags, members |
+| **Core** (default) | 21 | Day-to-day: pages, folders, tasks, tags, members, guides |
 | **Extended** | +28 | Admin, analytics, content mutations, portals, databases |
 
 **Enable extended tools:**
@@ -158,7 +158,7 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 - Mid-session: ask your AI to use `set_tool_tier` with `tier: "all"`
 - Always-on: add `FUSEBASE_TOOLS=all` to your `.env`
 
-### Core Tools (18)
+### Core Tools (21)
 
 | Category | Tool | Description |
 | --- | --- | --- |
@@ -168,7 +168,7 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Content | `list_workspaces` | List all workspaces |
 | Content | `list_pages` | List pages (filter by folder, pagination) |
 | Content | `get_page` | Get page metadata |
-| Content | `get_page_content` | Get raw page content (HTML) |
+| Content | `get_page_content` | Get page content as HTML (Y.js decoded) |
 | Content | `get_recent_pages` | Recently accessed pages |
 | Content | `create_page` | Create a new blank page |
 | Content | `list_folders` | Folder tree for a workspace |
@@ -178,6 +178,9 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Tasks | `search_tasks` | Search tasks (by workspace/page) |
 | Tasks | `list_task_lists` | Task boards and tasks |
 | Tasks | `create_task` | Create a task in a task list |
+| Guides | `search_guides` | Search 231 FuseBase guides by keyword |
+| Guides | `get_guide` | Get full guide content by section/slug |
+| Guides | `list_guide_sections` | Browse all 17 guide sections |
 
 ### Extended Tools (28)
 
@@ -204,15 +207,25 @@ Enable with `set_tool_tier(tier: "all")`:
 
 ```text
 src/
-  index.ts    → MCP server (46 tools, stdio transport, tier system)
-  client.ts   → HTTP client (cookie auth, 401 auto-retry, logging)
-  crypto.ts   → AES-256-GCM encryption for secrets at rest
-  types.ts    → TypeScript interfaces for API responses
+  index.ts              → MCP server (49 tools, stdio transport, tier system)
+  client.ts             → HTTP client (cookie auth, 401 auto-retry, logging)
+  crypto.ts             → AES-256-GCM encryption for secrets at rest
+  types.ts              → TypeScript interfaces for API responses
+  content-schema.ts     → Content block IR (25+ block types)
+  markdown-parser.ts    → Markdown → ContentBlock[] converter
+  token-builder.ts      → ContentBlock → Y.js token builder
+  yjs-ws-writer.ts      → Y.js WebSocket writer (write + read via WS sync)
+  yjs-html-decoder.ts   → Y.js document → HTML decoder (20+ block types)
+  guide-loader.ts       → Guide search index (231 guides, 17 sections)
 scripts/
-  auth.ts     → Capture session cookies via Playwright
-  discover.ts → Crawl Fusebase UI to discover API endpoints
-data/           → (gitignored) Cookie store, API logs, workspace cache
-.browser-data/  → (gitignored) Playwright persistent browser profile
+  auth.ts               → Capture session cookies via Playwright
+  scrape-guides.ts      → Scrape FuseBase help guides into markdown + NLM sync
+  test-regression.ts    → Comprehensive write→read regression test (20 checks)
+  test-guide-tools.ts   → Guide loader integration test (13 checks)
+  discover.ts           → Crawl Fusebase UI to discover API endpoints
+docs/
+  guides/               → 231 FuseBase guides across 17 sections (auto-scraped)
+data/                   → (gitignored) Cookie store, API logs, workspace cache
 ```
 
 ## 🗺️ Roadmap

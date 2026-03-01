@@ -187,6 +187,7 @@ export interface ProxyConfig {
 export interface CredentialStore {
   credentials: Record<string, AgentCredential>;
   proxy?: ProxyConfig;
+  host?: string; // e.g. "inkabeam.nimbusweb.me"
 }
 
 const CREDENTIALS_FILE = path.join(DATA_DIR, "credentials.enc");
@@ -198,19 +199,21 @@ const CREDENTIALS_FILE = path.join(DATA_DIR, "credentials.enc");
 export function saveCredentials(
   creds: Record<string, AgentCredential>,
   proxy?: ProxyConfig,
+  host?: string,
 ): void {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 
   const payload = JSON.stringify({
     credentials: creds,
     proxy: proxy ?? null,
+    host: host ?? null,
     savedAt: new Date().toISOString(),
     profileCount: Object.keys(creds).length,
   });
 
   fs.writeFileSync(CREDENTIALS_FILE, encryptData(payload), { mode: 0o600 });
   console.error(
-    `[crypto] ${Object.keys(creds).length} agent credentials${proxy ? " + proxy" : ""} encrypted and saved to credentials.enc`,
+    `[crypto] ${Object.keys(creds).length} agent credentials${proxy ? " + proxy" : ""}${host ? " + host" : ""} encrypted and saved to credentials.enc`,
   );
 }
 
@@ -228,6 +231,7 @@ export function loadCredentialStore(): CredentialStore | null {
     return {
       credentials: data.credentials ?? {},
       proxy: data.proxy ?? undefined,
+      host: data.host ?? undefined,
     };
   } catch (err) {
     console.error(
