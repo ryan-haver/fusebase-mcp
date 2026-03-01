@@ -9,6 +9,7 @@
  */
 
 import * as net from "net";
+import * as dns from "dns";
 import { SocksClient, type SocksClientOptions } from "socks";
 import type { ProxyConfig } from "./crypto.js";
 
@@ -130,7 +131,25 @@ async function handleSocks5Client(
     const portBuf = await readBytes(client, 2);
     destPort = (portBuf[0] << 8) | portBuf[1];
 
+    console.error(`[proxy-relay] CONNECT → ${destHost}:${destPort}`);
+
+    // PIA SOCKS5 proxy doesn't resolve DNS — resolve locally first
+    let resolvedHost = destHost;
+    if (addrType === 0x03) {
+        try {
+            const { address } = await dns.promises.lookup(destHost, { family: 4 });
+            resolvedHost = address;
+            console.error(`[proxy-relay]   DNS: ${destHost} → ${resolvedHost}`);
+        } catch (err) {
+            console.error(`[proxy-relay]   DNS FAILED: ${destHost} — ${err instanceof Error ? err.message : err}`);
+            // DNS failed — send error reply to client
+            client.write(Buffer.from([0x05, 0x04, 0x00, 0x01, 0, 0, 0, 0, 0, 0]));
+            throw new Error(`DNS resolution failed for ${destHost}`);
+        }
+    }
+
     // Step 3: Connect through upstream authenticated SOCKS5
+    console.error(`[proxy-relay]   Connecting via upstream → ${resolvedHost}:${destPort}`);
     const socksOptions: SocksClientOptions = {
         proxy: {
             host: upstream.host,
@@ -141,26 +160,33 @@ async function handleSocks5Client(
         },
         command: "connect",
         destination: {
-            host: destHost,
+            host: resolvedHost,
             port: destPort,
         },
         timeout: 30_000,
     };
 
-    const { socket: remoteSocket } = await SocksClient.createConnection(socksOptions);
+    try {
+        const { socket: remoteSocket } = await SocksClient.createConnection(socksOptions);
+        console.error(`[proxy-relay]   ✅ Connected to ${destHost}:${destPort}`);
 
-    // Step 4: Reply success to client
-    // BND.ADDR = 0.0.0.0, BND.PORT = 0
-    client.write(Buffer.from([0x05, 0x00, 0x00, 0x01, 0, 0, 0, 0, 0, 0]));
+        // Step 4: Reply success to client
+        // BND.ADDR = 0.0.0.0, BND.PORT = 0
+        client.write(Buffer.from([0x05, 0x00, 0x00, 0x01, 0, 0, 0, 0, 0, 0]));
 
-    // Step 5: Pipe bidirectionally
-    client.pipe(remoteSocket);
-    remoteSocket.pipe(client);
+        // Step 5: Pipe bidirectionally
+        client.pipe(remoteSocket);
+        remoteSocket.pipe(client);
 
-    client.on("error", () => remoteSocket.destroy());
-    remoteSocket.on("error", () => client.destroy());
-    client.on("close", () => remoteSocket.destroy());
-    remoteSocket.on("close", () => client.destroy());
+        client.on("error", () => remoteSocket.destroy());
+        remoteSocket.on("error", () => client.destroy());
+        client.on("close", () => remoteSocket.destroy());
+        remoteSocket.on("close", () => client.destroy());
+    } catch (err) {
+        console.error(`[proxy-relay]   ❌ Upstream failed for ${destHost}:${destPort} — ${err instanceof Error ? err.message : err}`);
+        client.write(Buffer.from([0x05, 0x05, 0x00, 0x01, 0, 0, 0, 0, 0, 0]));
+        throw err;
+    }
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────

@@ -199,6 +199,9 @@ async function main() {
         ["button", html.includes("button")],
         // Steps
         ["steps", html.includes("step")],
+        // Grid (Phase 6)
+        ["grid left col", html.includes("Left column")],
+        ["grid right col", html.includes("Right column")],
     ];
 
     console.log("\n=== Verification ===");
