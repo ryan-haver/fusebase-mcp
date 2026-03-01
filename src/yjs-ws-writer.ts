@@ -1059,7 +1059,7 @@ async function getAuthToken(host: string, workspaceId: string, pageId: string, c
 /**
  * Write content to a Fusebase page using the native Y.js WebSocket protocol.
  *
- * @param host - Fusebase host (e.g., "inkabeam.nimbusweb.me")
+ * @param host - Fusebase host (e.g., "yourorg.nimbusweb.me")
  * @param workspaceId - Workspace ID
  * @param pageId - Page/note ID
  * @param cookie - Auth cookie string

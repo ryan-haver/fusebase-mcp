@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Setup encrypted credentials for all agent Fusebase profiles.
- * Reads fusebase_accounts.json, prompts for the shared password,
- * and encrypts all credentials to data/credentials.enc.
+ * Setup encrypted credentials for Fusebase agent profiles.
+ * Prompts interactively for profiles (name + email), shared password,
+ * optional proxy, and host. Saves to data/credentials.enc.
  *
  * Usage:
  *   node scripts/setup-credentials.mjs                     # interactive
- *   node scripts/setup-credentials.mjs --accounts /path    # custom accounts file
+ *   node scripts/setup-credentials.mjs --accounts /path    # import from JSON file
  *   node scripts/setup-credentials.mjs --help
  */
 
@@ -18,7 +18,7 @@ import * as readline from "readline";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// ─── Find accounts config ───────────────────────────────────────
+// ─── CLI args ───────────────────────────────────────────────────
 
 const args = process.argv.slice(2);
 
@@ -27,52 +27,23 @@ if (args.includes("--help")) {
 Usage: node scripts/setup-credentials.mjs [options]
 
 Options:
-  --accounts <path>   Path to fusebase_accounts.json
+  --accounts <path>   Import profiles from a JSON file (optional)
   --help              Show this help
 
-Encrypts agent credentials (email + password) to data/credentials.enc
-using the same AES-256-GCM encryption as cookie storage.
-  `);
+Interactive mode (default):
+  Prompts you to add agent profiles (name + email) one at a time.
+
+JSON import mode:
+  Reads profiles from a JSON file with structure:
+  { "fusebase_profiles": { "role": { "profile": "...", "email": "..." } } }
+
+All credentials are encrypted to data/credentials.enc
+using AES-256-GCM with a machine-scoped key.
+    `);
     process.exit(0);
 }
 
-const accountsIdx = args.indexOf("--accounts");
-const customPath = accountsIdx !== -1 ? args[accountsIdx + 1] : null;
-
-const possiblePaths = [
-    customPath,
-    resolve(__dirname, "..", "..", "agent-coordinator", "src", "fusebase_accounts.json"),
-    resolve(process.env.USERPROFILE || process.env.HOME || "", ".antigravity-configs", "fusebase_accounts.json"),
-].filter(Boolean);
-
-let accountsPath;
-for (const p of possiblePaths) {
-    if (existsSync(p)) {
-        accountsPath = p;
-        break;
-    }
-}
-
-if (!accountsPath) {
-    console.error("❌ Could not find fusebase_accounts.json");
-    console.error("   Searched:", possiblePaths.join(", "));
-    console.error("   Use --accounts <path> to specify location");
-    process.exit(1);
-}
-
-// ─── Load profiles ──────────────────────────────────────────────
-
-console.log(`📋 Loading profiles from: ${accountsPath}\n`);
-const config = JSON.parse(readFileSync(accountsPath, "utf-8"));
-const profiles = config.fusebase_profiles;
-const entries = Object.entries(profiles);
-
-console.log(`Found ${entries.length} profiles:\n`);
-for (const [role, info] of entries) {
-    console.log(`  ${info.display_name}  ${info.email || "(no email configured)"}`);
-}
-
-// ─── Prompt for password ────────────────────────────────────────
+// ─── Helpers ────────────────────────────────────────────────────
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
@@ -81,8 +52,6 @@ function ask(question) {
 }
 
 async function askPassword(promptText) {
-    // On Windows, use PowerShell's Read-Host for reliable masked input.
-    // This is the only approach that properly suppresses echo in Windows Terminal.
     if (process.platform === "win32") {
         process.stdout.write(promptText);
         try {
@@ -122,19 +91,84 @@ async function askPassword(promptText) {
     });
 }
 
-async function main() {
-    // Check all profiles have emails
-    const missingEmail = entries.filter(([, info]) => !info.email);
-    if (missingEmail.length > 0) {
-        console.error(`\n⚠️  ${missingEmail.length} profiles missing email:`);
-        for (const [role] of missingEmail) {
-            console.error(`   - ${role}`);
+// ─── Load or prompt for profiles ────────────────────────────────
+
+async function getProfiles() {
+    const accountsIdx = args.indexOf("--accounts");
+    const customPath = accountsIdx !== -1 ? args[accountsIdx + 1] : null;
+
+    // Try to find an accounts JSON file
+    const possiblePaths = [
+        customPath,
+        resolve(__dirname, "..", "..", "agent-coordinator", "src", "fusebase_accounts.json"),
+        resolve(process.env.USERPROFILE || process.env.HOME || "", ".antigravity-configs", "fusebase_accounts.json"),
+    ].filter(Boolean);
+
+    let accountsPath;
+    for (const p of possiblePaths) {
+        if (existsSync(p)) {
+            accountsPath = p;
+            break;
         }
-        console.error("   Add emails to fusebase_accounts.json first.");
+    }
+
+    if (accountsPath) {
+        // Import mode — read from JSON
+        console.log(`📋 Found profiles file: ${accountsPath}`);
+        const useFile = await ask("   Use this file? [Y/n]: ");
+        if (!useFile || useFile.trim().toLowerCase() !== "n") {
+            const config = JSON.parse(readFileSync(accountsPath, "utf-8"));
+            const profiles = config.fusebase_profiles;
+            const entries = Object.entries(profiles);
+            console.log(`\nFound ${entries.length} profiles:\n`);
+            for (const [, info] of entries) {
+                console.log(`  ${info.display_name || info.profile}  ${info.email || "(no email)"}`);
+            }
+            return entries.map(([, info]) => ({
+                profile: info.profile,
+                email: info.email,
+            }));
+        }
+    }
+
+    // Interactive mode — prompt for profiles
+    console.log("\n─── Add Agent Profiles ───\n");
+    console.log("Add profiles one at a time. Leave profile name blank to finish.\n");
+
+    const profiles = [];
+    let index = 1;
+
+    while (true) {
+        const profile = (await ask(`Profile ${index} name (e.g. agent-pm): `)).trim();
+        if (!profile) break;
+
+        const email = (await ask(`  Email for ${profile}: `)).trim();
+        if (!email) {
+            console.log("  ⚠️  Email required — skipping this profile");
+            continue;
+        }
+
+        profiles.push({ profile, email });
+        console.log(`  ✅ Added: ${profile} (${email})`);
+        index++;
+    }
+
+    if (profiles.length === 0) {
+        console.error("\n❌ No profiles added. Exiting.");
         rl.close();
         process.exit(1);
     }
 
+    console.log(`\n${profiles.length} profile(s) configured.`);
+    return profiles;
+}
+
+// ─── Main ───────────────────────────────────────────────────────
+
+async function main() {
+    const profiles = await getProfiles();
+
+    // ─── Password ───────────────────────────────────────────────
     console.log("\n─── Credential Setup ───\n");
     console.log("All agent accounts use the same password.");
     console.log("This password will be encrypted and stored locally.\n");
@@ -157,11 +191,8 @@ async function main() {
 
     // Build credential map
     const credentials = {};
-    for (const [role, info] of entries) {
-        credentials[info.profile] = {
-            email: info.email,
-            password: password,
-        };
+    for (const { profile, email } of profiles) {
+        credentials[profile] = { email, password };
     }
 
     // ─── Proxy setup ────────────────────────────────────────────
@@ -192,7 +223,7 @@ async function main() {
 
     // ─── Fusebase host setup ────────────────────────────────────
     console.log("\n─── Fusebase Host ───\n");
-    const hostDefault = "inkabeam.nimbusweb.me";
+    const hostDefault = "yourorg.nimbusweb.me";
     const hostInput = await ask(`🌐 Fusebase host [${hostDefault}]: `);
     const host = hostInput.trim() || hostDefault;
     console.log(`   Using host: ${host}`);
@@ -206,7 +237,7 @@ async function main() {
     console.log(`\n✅ ${Object.keys(credentials).length} credentials${proxy ? " + proxy" : ""} + host encrypted and saved`);
     console.log("   File: data/credentials.enc");
     console.log("   Encryption: AES-256-GCM (machine-scoped key)");
-    console.log("\nNext step: Run 'npx tsx scripts/auth.ts --auto --profile=agent-pm' to test auto-login");
+    console.log("\nNext step: Run 'npx tsx scripts/auth.ts --auto --profile=<name>' to test auto-login");
     console.log("Or run 'node scripts/auth-all.mjs' to authenticate all profiles at once.\n");
 
     rl.close();

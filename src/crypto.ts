@@ -187,7 +187,7 @@ export interface ProxyConfig {
 export interface CredentialStore {
   credentials: Record<string, AgentCredential>;
   proxy?: ProxyConfig;
-  host?: string; // e.g. "inkabeam.nimbusweb.me"
+  host?: string; // e.g. "yourorg.nimbusweb.me"
 }
 
 const CREDENTIALS_FILE = path.join(DATA_DIR, "credentials.enc");
