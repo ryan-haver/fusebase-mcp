@@ -211,14 +211,16 @@ async function main() {
   const noProxy = args.includes("--no-proxy");
   const headless = autoMode || args.includes("--headless");
 
-  const host = getArg("--host") || process.env.FUSEBASE_HOST || "";
+  // Host resolution: CLI flag > env var > credential store > hardcoded default
+  let host = getArg("--host") || process.env.FUSEBASE_HOST || "";
   const profile = getArg("--profile");
 
   // Load credential store — use URL href for ESM compatibility on Windows
   const cryptoUrl = new URL("../src/crypto.js", import.meta.url).href;
 
   let autoCredentials: { email: string; password: string } | undefined;
-  let proxy: { server: string; username: string; password: string } | undefined;
+  let proxyForBrowser: { server: string; username: string; password: string } | undefined;
+  let relayStop: (() => void) | undefined;
 
   if (autoMode || !noProxy) {
     const { loadCredentialStore } = await import(cryptoUrl);
@@ -238,15 +240,23 @@ async function main() {
       console.error(`[auth] Auto-login mode for ${profile} (${autoCredentials!.email})`);
     }
 
-    // Load proxy config (always-on unless --no-proxy)
+    // Start local proxy relay if proxy config exists
     if (!noProxy && store?.proxy) {
-      proxy = store.proxy;
-      console.error(`[auth] Using proxy: ${proxy!.server}`);
+      const relayUrl = new URL("../src/proxy-relay.js", import.meta.url).href;
+      const { startProxyRelay } = await import(relayUrl);
+      const relay = await startProxyRelay(store.proxy);
+      relayStop = relay.stop;
+      // Give Chromium the local relay (no auth needed)
+      proxyForBrowser = {
+        server: `socks5://127.0.0.1:${relay.port}`,
+        username: "",
+        password: "",
+      };
     }
   }
 
   try {
-    const cookie = await refreshCookies({ host, headless, profile, autoCredentials, proxy });
+    const cookie = await refreshCookies({ host, headless, profile, autoCredentials, proxy: proxyForBrowser });
     console.error(`[auth] Success! Cookie string length: ${cookie.length}`);
     // Output cookie to stdout for piping
     console.log(cookie);
@@ -256,6 +266,9 @@ async function main() {
       error instanceof Error ? error.message : error,
     );
     process.exit(1);
+  } finally {
+    // Always stop the relay
+    if (relayStop) relayStop();
   }
 }
 

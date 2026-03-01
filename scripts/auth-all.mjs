@@ -67,7 +67,7 @@ if (!accountsPath) {
 
 // ─── Load credentials check ────────────────────────────────────
 
-const cryptoUrl = new URL("../src/crypto.js", import.meta.url).href;
+const cryptoUrl = new URL("../dist/crypto.js", import.meta.url).href;
 const { loadCredentials } = await import(cryptoUrl);
 const creds = loadCredentials();
 

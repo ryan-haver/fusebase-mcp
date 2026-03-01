@@ -20,6 +20,8 @@
     "cheerio": "^1.2.0",
     "playwright": "^1.58.2",
     "socket.io-client": "^4.8.3",
+    "socks": "^2.8.7",
+    "socks-proxy-agent": "^8.0.5",
     "turndown": "^7.2.2",
     "y-protocols": "^1.0.7",
     "yjs": "^13.6.29"

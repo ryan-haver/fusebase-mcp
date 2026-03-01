@@ -68,7 +68,7 @@ if (!accountsPath) {
 
 let hasCredentials = false;
 if (!forceManual) {
-    const cryptoUrl = new URL("../src/crypto.js", import.meta.url).href;
+    const cryptoUrl = new URL("../dist/crypto.js", import.meta.url).href;
     try {
         const { loadCredentials } = await import(cryptoUrl);
         const creds = loadCredentials();

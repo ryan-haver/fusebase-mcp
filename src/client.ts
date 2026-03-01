@@ -10,6 +10,7 @@ import * as path from "path";
 import { fileURLToPath } from "url";
 import * as http from "http";
 import * as https from "https";
+import { SocksProxyAgent } from "socks-proxy-agent";
 
 export interface FusebaseConfig {
   host: string;
@@ -17,6 +18,7 @@ export interface FusebaseConfig {
   cookie: string;
   autoRefresh?: boolean;
   profile?: string;
+  proxyUrl?: string; // e.g. "socks5://user:pass@host:port"
 }
 
 import type {
@@ -79,6 +81,7 @@ export class FusebaseClient {
   private sessionId: string;
   private lastRequestTime: number = 0;
   private static readonly MIN_REQUEST_INTERVAL_MS = 200;
+  private proxyAgent?: SocksProxyAgent;
 
   constructor(config: FusebaseConfig) {
     this.host = config.host;
@@ -89,6 +92,10 @@ export class FusebaseClient {
     this.profile = config.profile;
     this.sessionId = crypto.randomUUID().replace(/-/g, "");
     fs.mkdirSync(DATA_DIR, { recursive: true });
+    if (config.proxyUrl) {
+      this.proxyAgent = new SocksProxyAgent(config.proxyUrl);
+      console.error(`[client] Using proxy: ${config.proxyUrl.replace(/\/\/.*@/, "//***@")}`);
+    }
   }
 
   private get headers(): Record<string, string> {
@@ -124,6 +131,7 @@ export class FusebaseClient {
         ...((options.headers as Record<string, string>) || {}),
       },
       signal: AbortSignal.timeout(timeout),
+      ...(this.proxyAgent ? { dispatcher: this.proxyAgent } : {}),
     };
 
     let res = await fetch(url, fetchOpts);

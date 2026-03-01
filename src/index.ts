@@ -17,7 +17,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { FusebaseClient } from "./client.js";
 import type { FusebaseMember, FusebaseOrgMember, FusebaseFile, FusebaseLabel } from "./types.js";
-import { loadEncryptedCookie, saveEncryptedCookie } from "./crypto.js";
+import { loadEncryptedCookie, saveEncryptedCookie, loadCredentialStore } from "./crypto.js";
 import { markdownToSchema } from "./markdown-parser.js";
 import { schemaToTokens } from "./token-builder.js";
 import type { ContentBlock } from "./content-schema.js";
@@ -75,7 +75,17 @@ function getClient(profile?: string): FusebaseClient {
     console.error(`[fusebase] Warning: No cookie found. Run 'npx tsx scripts/auth.ts${profile ? ` --profile ${profile}` : ""}' to authenticate.`);
   }
 
-  return new FusebaseClient({ host, orgId, cookie, autoRefresh: true, profile });
+  // Load proxy config for API calls
+  let proxyUrl: string | undefined;
+  const credStore = loadCredentialStore();
+  if (credStore?.proxy) {
+    const p = credStore.proxy;
+    // Parse host:port from server URL (e.g., "socks5://host:port")
+    const proxyParsed = new URL(p.server);
+    proxyUrl = `socks5://${encodeURIComponent(p.username)}:${encodeURIComponent(p.password)}@${proxyParsed.hostname}:${proxyParsed.port || "1080"}`;
+  }
+
+  return new FusebaseClient({ host, orgId, cookie, autoRefresh: true, profile, proxyUrl });
 }
 
 const server = new McpServer({
@@ -535,7 +545,7 @@ server.tool(
 
 server.tool(
   "get_page_content",
-  "Get the raw HTML content of a page/note. This is the primary way to READ page content — complementing create_page and update_page_content for the full read/write cycle. Returns the page's rendered HTML dump.",
+  "Get the HTML content of a page decoded from its Y.js document via WebSocket sync. Returns semantic HTML with headings, paragraphs, inline formats (bold, italic, code, links, strikethrough, underline), lists, blockquotes, code blocks, toggles, hints, collapsible headings, images, bookmarks, outlines, buttons, steps, tables, and grids. Complements update_page_content for the full read/write cycle.",
   {
     workspaceId: z.string().describe("Workspace ID"),
     pageId: z.string().describe("Page (note) ID"),
@@ -895,7 +905,7 @@ let extendedToolsRegistered = false;
 
 server.tool(
   "set_tool_tier",
-  "Enable extended Fusebase tools for this session. By default only core tools (18) are loaded for performance. Call this with tier 'all' to dynamically register 28 additional tools for admin, analytics, content mutations, and niche operations.",
+  "Enable extended Fusebase tools for this session. By default only core tools (21) are loaded for performance. Call this with tier 'all' to dynamically register 28 additional tools for admin, analytics, content mutations, and niche operations.",
   {
     tier: z
       .enum(["all", "core"])
@@ -909,7 +919,7 @@ server.tool(
           content: [
             {
               type: "text" as const,
-              text: "Extended tools are already enabled for this session (46 total tools active).",
+              text: "Extended tools are already enabled for this session (49 total tools active).",
             },
           ],
         };
@@ -919,7 +929,7 @@ server.tool(
         content: [
           {
             type: "text" as const,
-            text: "Extended tools enabled! 28 additional tools are now available (46 total). New tools: get_page_attachments, list_files, get_labels, get_org_usage, get_comment_threads, get_task_description, delete_page, update_page_content, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
+            text: "Extended tools enabled! 28 additional tools are now available (49 total). New tools: get_page_attachments, list_files, get_labels, get_org_usage, get_comment_threads, get_task_description, delete_page, update_page_content, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
           },
         ],
       };
@@ -929,7 +939,7 @@ server.tool(
         {
           type: "text" as const,
           text: extendedToolsRegistered
-            ? "Current tier: all (46 tools active). To revert to core-only, restart the MCP server."
+            ? "Current tier: all (49 tools active). To revert to core-only, restart the MCP server."
             : "Current tier: core (21 tools active). Call set_tool_tier with tier='all' to enable 28 extended tools.",
         },
       ],
@@ -1340,18 +1350,18 @@ function registerExtendedTools() {
 
   server.tool(
     "update_page_content",
-    "Write or replace content on a page using the native Y.js WebSocket protocol. Accepts markdown (recommended), structured content blocks, or raw tokens. Markdown is auto-converted to Fusebase's native format. Supports: headings (H1/H2/H3), paragraphs, **bold**, *italic*, bullet lists, numbered lists, checklists, dividers, blockquotes, and code blocks.",
+    "Write or replace content on a page using the native Y.js WebSocket protocol. Accepts markdown (recommended) or structured content blocks. Supports: headings (H1/H2/H3), paragraphs, bold, italic, strikethrough, underline, inline code, links, highlight, bullet/numbered/checkbox lists, dividers, blockquotes, code blocks (with language), toggles, hints/callouts, collapsible headings, images, files, bookmarks, remote frames, outlines, buttons, steps, tables, and grid layouts.",
     {
       workspaceId: z.string().describe("Workspace ID"),
       pageId: z.string().describe("Page (note) ID"),
       markdown: z
         .string()
         .optional()
-        .describe("Markdown string to write. Auto-converted to Fusebase format. Supports # headings, **bold**, *italic*, - lists, 1. numbered lists, ---, > blockquotes, ```code```"),
+        .describe("Markdown string to write. Auto-converted to Fusebase format. Supports # headings, **bold**, *italic*, ~~strikethrough~~, `code`, [links](url), - lists, 1. numbered, ---, > blockquotes, ```code```. For advanced blocks (toggle, hint, image, table), use the 'blocks' parameter instead."),
       blocks: z
         .array(z.unknown())
         .optional()
-        .describe("Structured content blocks array (ContentBlock[] schema). For programmatic control over each block type and formatting."),
+        .describe("Structured ContentBlock[] array for programmatic control. Supports all block types: paragraph, heading, list, code, blockquote, divider, toggle, hint, collapsible-heading, image, file, bookmark, remote-frame, outline, button, step, step-aggregator, table, and grid."),
       replace: z
         .boolean()
         .optional()
@@ -1975,7 +1985,7 @@ function registerExtendedTools() {
 if (process.env.FUSEBASE_TOOLS === "all") {
   registerExtendedTools();
 } else {
-  console.error("[fusebase] Running in core mode (21 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 46.");
+  console.error("[fusebase] Running in core mode (21 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 49.");
 }
 
 // ─── Helpers ────────────────────────────────────────────────────
