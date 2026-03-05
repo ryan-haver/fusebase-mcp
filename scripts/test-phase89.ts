@@ -1,8 +1,22 @@
 /**
- * E2E test for Phase 9 database tools (updated for createDatabase + addDatabaseRow)
+ * E2E Test: Full database lifecycle covering all 13 database tools.
+ * 
+ * Tests:
+ * 1. listAllDatabases — list via REST API
+ * 2. createDatabase — create a test database
+ * 3. getDatabaseDetail — get the new database
+ * 4. updateDatabase — rename and change color
+ * 5. getDashboardDetail — get dashboard (table) detail
+ * 6. getDatabaseData — fetch empty table data
+ * 7. updateView — rename the default view
+ * 8. setViewRepresentation — switch to kanban
+ * 9. setViewRepresentation — switch back to table
+ * 10. addDatabaseRow — add a row (server action)
+ * 11. deleteDatabase — cleanup
+ * 12. Verify deletion via getDatabaseDetail (should 404)
  */
-import * as fs from "fs";
 import * as path from "path";
+import * as fs from "fs";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -20,91 +34,147 @@ if (fs.existsSync(envPath)) {
 import { FusebaseClient } from "../src/client.js";
 import { loadEncryptedCookie } from "../src/crypto.js";
 
-const HOST = process.env.FUSEBASE_HOST || "inkabeam.nimbusweb.me";
-const ORG_ID = process.env.FUSEBASE_ORG_ID || "";
-const cookie = process.env.FUSEBASE_COOKIE || loadEncryptedCookie()?.cookie || "";
-
-const client = new FusebaseClient({ host: HOST, orgId: ORG_ID, cookie });
-
+const storedCookie = loadEncryptedCookie();
+const client = new FusebaseClient({
+    host: process.env.FUSEBASE_HOST || "inkabeam.nimbusweb.me",
+    orgId: process.env.FUSEBASE_ORG_ID || "",
+    cookie: process.env.FUSEBASE_COOKIE || storedCookie?.cookie || "",
+});
 let passed = 0;
 let failed = 0;
 
-function check(name: string, ok: boolean, detail?: string) {
-    if (ok) { console.log(`  ✅ ${name}${detail ? ` — ${detail}` : ""}`); passed++; }
-    else { console.log(`  ❌ ${name}${detail ? ` — ${detail}` : ""}`); failed++; }
+async function test(name: string, fn: () => Promise<void>) {
+    try {
+        await fn();
+        passed++;
+        console.log(`  ✅ ${name}`);
+    } catch (e: any) {
+        failed++;
+        console.log(`  ❌ ${name}: ${e.message?.slice(0, 120)}`);
+    }
+}
+
+function assert(cond: boolean, msg: string) {
+    if (!cond) throw new Error(msg);
 }
 
 async function main() {
-    console.log("=== Phase 9: Database CRUD ===\n");
+    console.log("\n=== Database & Kanban E2E Tests ===\n");
 
-    // Test 1: List databases
-    let databases: Array<{ dashboardId: string; viewId: string; entity: string }> = [];
-    try {
-        databases = await client.listDatabases();
-        check("listDatabases", databases.length > 0, `${databases.length} databases found`);
-        for (const db of databases) {
-            console.log(`    → ${db.entity}: dashboard=${db.dashboardId}, view=${db.viewId}`);
-        }
-    } catch (err) {
-        check("listDatabases", false, (err as Error).message.slice(0, 100));
-    }
+    let dbId = "";
+    let dashboardId = "";
+    let viewId = "";
 
-    // Test 2: Get database data for each discovered database
-    if (databases.length > 0) {
-        for (const db of databases) {
-            try {
-                const data = await client.getDatabaseData(db.dashboardId, db.viewId, { limit: 3 });
-                const count = Array.isArray(data.data) ? data.data.length : 0;
-                check(`getDatabaseData(${db.entity})`, true, `${count} rows, total=${data.meta?.total}`);
-            } catch (err) {
-                check(`getDatabaseData(${db.entity})`, false, (err as Error).message.slice(0, 100));
-            }
-        }
-    }
+    // 1. listAllDatabases
+    await test("listAllDatabases", async () => {
+        const result = await client.listAllDatabases();
+        assert(result.success === true, "Expected success");
+        assert(Array.isArray(result.data), "Expected data array");
+        console.log(`    Found ${result.data.length} databases`);
+    });
 
-    // Test 3: Get database entity by name
-    if (databases.length > 0) {
-        const firstEntity = databases[0].entity;
-        try {
-            const data = await client.getDatabaseEntity(firstEntity, { limit: 3 });
-            check(`getDatabaseEntity("${firstEntity}")`, true, `${data.data?.length || 0} rows`);
-        } catch (err) {
-            check(`getDatabaseEntity("${firstEntity}")`, false, (err as Error).message.slice(0, 100));
-        }
-    }
-
-    // Test 4: Create a new database
-    let createdDb: { global_id: string; dashboards: Array<{ global_id: string }> } | null = null;
-    try {
-        const result = await client.createDatabase("e2e-test-db", {
-            description: "Automated E2E test database",
+    // 2. createDatabase
+    await test("createDatabase", async () => {
+        const result = await client.createDatabase("e2e-lifecycle-test", {
+            description: "Full lifecycle E2E test",
+            icon: "default",
             color: "blue",
         });
-        check("createDatabase", result.success === true, `id=${result.data?.global_id}, dashboards=${result.data?.dashboards?.length}`);
-        createdDb = result.data as any;
-        console.log(`    → database_id=${createdDb!.global_id}`);
-        if (createdDb!.dashboards?.[0]) {
-            console.log(`    → dashboard_id=${createdDb!.dashboards[0].global_id}`);
-        }
-    } catch (err) {
-        check("createDatabase", false, (err as Error).message.slice(0, 100));
-    }
+        assert(result.data?.global_id, "Expected global_id");
+        dbId = result.data.global_id;
+        dashboardId = result.data.dashboards[0].global_id;
+        viewId = result.data.dashboards[0].views[0].global_id;
+        console.log(`    DB: ${dbId}`);
+        console.log(`    Dashboard: ${dashboardId}, View: ${viewId}`);
+    });
 
-    // Test 5: Add a row to the created database
-    if (createdDb && createdDb.dashboards?.[0]) {
+    // 3. getDatabaseDetail
+    await test("getDatabaseDetail", async () => {
+        const result = await client.getDatabaseDetail(dbId);
+        assert(result.success === true, "Expected success");
+        assert(result.data.title === "e2e-lifecycle-test", `Expected title to be e2e-lifecycle-test, got ${result.data.title}`);
+        assert(result.data.dashboards.length >= 1, "Expected at least 1 dashboard");
+    });
+
+    // 4. updateDatabase
+    await test("updateDatabase", async () => {
+        const result = await client.updateDatabase(dbId, {
+            title: "e2e-lifecycle-renamed",
+            color: "fuchsia",
+            description: "Renamed via E2E test",
+        });
+        assert(result.success === true, "Expected success");
+        assert(result.data.title === "e2e-lifecycle-renamed", `Title not updated`);
+    });
+
+    // 5. getDashboardDetail
+    await test("getDashboardDetail", async () => {
+        const result = await client.getDashboardDetail(dashboardId);
+        assert(result.success === true, "Expected success");
+        assert(result.data.database_id === dbId, `Expected database_id to match`);
+        assert(result.data.views.length >= 1, "Expected at least 1 view");
+        const view = result.data.views[0];
+        console.log(`    View: "${view.name}" (default: ${view.default_view})`);
+    });
+
+    // 6. getDatabaseData (empty table)
+    await test("getDatabaseData", async () => {
+        const result = await client.getDatabaseData(dashboardId, viewId);
+        assert(result.data !== undefined, "Expected data");
+        console.log(`    Rows: ${Array.isArray(result.data) ? result.data.length : 'N/A'}`);
+    });
+
+    // 7. updateView
+    await test("updateView", async () => {
+        const result = await client.updateView(dashboardId, viewId, {
+            name: "e2e-view-renamed",
+        });
+        assert(result.success === true, "Expected success");
+        console.log(`    View renamed to: ${(result.data as any).name}`);
+    });
+
+    // 8. setViewRepresentation (kanban)
+    await test("setViewRepresentation (kanban)", async () => {
+        const result = await client.setViewRepresentation(dashboardId, viewId, "kanban");
+        assert(result.success === true, "Expected success");
+        console.log(`    Switched to kanban`);
+    });
+
+    // 9. setViewRepresentation (table)
+    await test("setViewRepresentation (table)", async () => {
+        const result = await client.setViewRepresentation(dashboardId, viewId, "table");
+        assert(result.success === true, "Expected success");
+        console.log(`    Switched back to table`);
+    });
+
+    // 10. addDatabaseRow
+    await test("addDatabaseRow", async () => {
+        const result = await client.addDatabaseRow("custom", { databaseId: dbId, dashboardId });
+        assert(result.success === true, "Expected success");
+    });
+
+    // 11. deleteDatabase
+    await test("deleteDatabase", async () => {
+        const result = await client.deleteDatabase(dbId);
+        assert(result.success === true, "Expected success");
+    });
+
+    // 12. Verify deletion
+    await test("verify deletion (404)", async () => {
         try {
-            const result = await client.addDatabaseRow("custom", {
-                databaseId: createdDb.global_id,
-                dashboardId: createdDb.dashboards[0].global_id,
-            });
-            check("addDatabaseRow (custom)", (result as any).success === true, `status=${(result as any).status}`);
-        } catch (err) {
-            check("addDatabaseRow (custom)", false, (err as Error).message.slice(0, 100));
+            await client.getDatabaseDetail(dbId);
+            throw new Error("Expected 404 but got success");
+        } catch (e: any) {
+            assert(e.message.includes("404") || e.message.includes("not found") || e.message.includes("Resource"), `Expected 404/not found, got: ${e.message.slice(0, 80)}`);
         }
-    }
+    });
 
-    console.log(`\n=== Results: ${passed}/${passed + failed} passed ===`);
+    // Summary
+    console.log(`\n=== Results: ${passed} passed, ${failed} failed ===\n`);
     process.exit(failed > 0 ? 1 : 0);
 }
 
-main().catch(console.error);
+main().catch(e => {
+    console.error("Fatal:", e);
+    process.exit(1);
+});

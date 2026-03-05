@@ -1011,7 +1011,7 @@ let extendedToolsRegistered = false;
 
 server.tool(
   "set_tool_tier",
-  "Enable extended Fusebase tools for this session. By default only core tools (21) are loaded for performance. Call this with tier 'all' to dynamically register 33 additional tools for admin, analytics, content mutations, file upload, database CRUD, and niche operations.",
+  "Enable extended Fusebase tools for this session. By default only core tools (21) are loaded for performance. Call this with tier 'all' to dynamically register 42 additional tools for admin, analytics, content mutations, file upload, database CRUD, and niche operations.",
   {
     tier: z
       .enum(["all", "core"])
@@ -1025,7 +1025,7 @@ server.tool(
           content: [
             {
               type: "text" as const,
-              text: "Extended tools are already enabled for this session (49 total tools active).",
+              text: "Extended tools are already enabled for this session (63 total tools active).",
             },
           ],
         };
@@ -1035,7 +1035,7 @@ server.tool(
         content: [
           {
             type: "text" as const,
-            text: "Extended tools enabled! 34 additional tools are now available (55 total). New tools: get_page_attachments, list_files, upload_file, download_attachment, get_labels, get_org_usage, get_comment_threads, get_task_description, delete_page, update_page_content, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database, add_database_row, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
+            text: "Extended tools enabled! 42 additional tools are now available (63 total). New tools: get_page_attachments, list_files, upload_file, download_attachment, get_labels, get_org_usage, get_comment_threads, get_task_description, delete_page, update_page_content, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database, add_database_row, list_all_databases, get_database_detail, update_database, delete_database, get_dashboard_detail, delete_dashboard, update_view, set_view_representation, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
           },
         ],
       };
@@ -2070,7 +2070,199 @@ function registerExtendedTools() {
     },
   );
 
-  // === Org Limits & Usage Summary ===
+  server.tool(
+    "list_all_databases",
+    "List all databases in the organization via the dashboard-service REST API. Returns database metadata, dashboard (table) UUIDs, and view UUIDs. More comprehensive than list_databases — returns full database objects with nested dashboards.",
+    {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.listAllDatabases();
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_database_detail",
+    "Get detailed information about a specific database including all its dashboards (tables) and views. Use the database ID from list_all_databases or create_database.",
+    {
+      databaseId: z.string().describe("Database UUID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ databaseId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.getDatabaseDetail(databaseId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "update_database",
+    "Update a database's title, description, icon, color, favorite status, or public visibility. Uses PUT (PATCH is not supported by this API).",
+    {
+      databaseId: z.string().describe("Database UUID to update"),
+      title: z.string().optional().describe("New database title"),
+      description: z.string().optional().describe("New description"),
+      icon: z.string().optional().describe("Icon name (e.g. 'default')"),
+      color: z.string().optional().describe("Color name (e.g. 'blue', 'fuchsia', 'green')"),
+      isPublic: z.boolean().optional().describe("Whether the database is public"),
+      favorite: z.boolean().optional().describe("Toggle favorite status"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ databaseId, title, description, icon, color, isPublic, favorite, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.updateDatabase(databaseId, { title, description, icon, color, isPublic, favorite });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "delete_database",
+    "Delete a database and ALL its dashboards (tables), views, and data. This action is irreversible. Returns 204 on success.",
+    {
+      databaseId: z.string().describe("Database UUID to delete"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ databaseId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.deleteDatabase(databaseId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_dashboard_detail",
+    "Get detailed information about a dashboard (table within a database). Returns the dashboard's views array (including custom views), metadata, root entity, and scopes. Use the dashboard ID from list_all_databases or get_database_detail.",
+    {
+      dashboardId: z.string().describe("Dashboard UUID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ dashboardId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.getDashboardDetail(dashboardId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "delete_dashboard",
+    "Delete a dashboard (table) within a database. Removes the table and its data. Use get_database_detail first to see available dashboards.",
+    {
+      dashboardId: z.string().describe("Dashboard UUID to delete"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ dashboardId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.deleteDashboard(dashboardId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "update_view",
+    "Update a custom view's name, filters, sorts, or hidden columns. Use get_dashboard_detail to find available views. Uses PUT (PATCH is not supported).",
+    {
+      dashboardId: z.string().describe("Dashboard UUID containing the view"),
+      viewId: z.string().describe("View UUID to update"),
+      name: z.string().optional().describe("New view name"),
+      filters: z.array(z.object({
+        column: z.string().describe("Column name to filter on"),
+        op: z.string().describe("Filter operator (e.g. 'contains', 'equals', 'gt', 'lt')"),
+        value: z.unknown().describe("Filter value"),
+      })).optional().describe("Array of filter conditions"),
+      sorts: z.array(z.object({
+        column: z.string().describe("Column name to sort by"),
+        direction: z.enum(["asc", "desc"]).describe("Sort direction"),
+      })).optional().describe("Array of sort specifications"),
+      hidden_columns: z.array(z.string()).optional().describe("Array of column names to hide in this view"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ dashboardId, viewId, name, filters, sorts, hidden_columns, profile }) => {
+      const client = getClient(profile);
+      try {
+        const updates: Record<string, unknown> = {};
+        if (name !== undefined) updates.name = name;
+        if (filters !== undefined) updates.filters = filters;
+        if (sorts !== undefined) updates.sorts = sorts;
+        if (hidden_columns !== undefined) updates.hidden_columns = hidden_columns;
+        const result = await client.updateView(dashboardId, viewId, updates as any);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "set_view_representation",
+    "Switch a view's display mode between table and kanban. Kanban view groups rows by a column and displays them as cards. Use get_dashboard_detail to find the dashboard and view UUIDs.",
+    {
+      dashboardId: z.string().describe("Dashboard UUID"),
+      viewId: z.string().describe("View UUID"),
+      representationType: z.enum(["table", "kanban"]).describe("Display mode: 'table' for spreadsheet view, 'kanban' for card/board view"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ dashboardId, viewId, representationType, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.setViewRepresentation(dashboardId, viewId, representationType);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+
 
   server.tool(
     "get_org_limits",

@@ -173,6 +173,14 @@
 | ✅ | GET | `/dashboard/{orgId}/tables/entity/{entity}` | `get_database_entity` — Get entity data (resolves entity name → dashboard/view via list_databases) | ⭐⭐⭐ |
 | ✅ | POST | `/v4/api/proxy/dashboard-service/v1/databases` | `create_database` — Create a new database (table/kanban). Client generates UUID. | ⭐⭐⭐⭐ |
 | ✅ | POST | `/dashboard/{orgId}/tables/entity/{entity}` | `add_database_row` — Add a row via Next.js server action (requires `next-action` header) | ⭐⭐⭐⭐ |
+| ✅ | GET | `/v4/api/proxy/dashboard-service/v1/databases?scope_type=org&scope_id={id}` | `list_all_databases` — List all databases via REST API with full metadata | ⭐⭐⭐ |
+| ✅ | GET | `/v4/api/proxy/dashboard-service/v1/databases/{dbId}` | `get_database_detail` — Get database with nested dashboards/views | ⭐⭐⭐ |
+| ✅ | PUT | `/v4/api/proxy/dashboard-service/v1/databases/{dbId}` | `update_database` — Update title, metadata, favorite (PUT only, PATCH=404) | ⭐⭐⭐⭐ |
+| ✅ | DELETE | `/v4/api/proxy/dashboard-service/v1/databases/{dbId}` | `delete_database` — Delete database + all tables/views (returns 204) | ⭐⭐⭐⭐ |
+| ✅ | GET | `/v4/api/proxy/dashboard-service/v1/dashboards/{dashId}` | `get_dashboard_detail` — Get dashboard detail with views array | ⭐⭐⭐ |
+| ✅ | DELETE | `/v4/api/proxy/dashboard-service/v1/dashboards/{dashId}` | `delete_dashboard` — Delete a table within a database | ⭐⭐⭐⭐ |
+| ✅ | PUT | `/v4/api/proxy/dashboard-service/v1/dashboards/{did}/views/{vid}` | `update_view` — Rename view, change filters/sorts (PUT only) | ⭐⭐⭐ |
+| ✅ | POST | `/v4/api/proxy/dashboard-service/v1/dashboards/{did}/views/{vid}/representations/{type}` | `set_view_representation` — Switch between table and kanban | ⭐⭐⭐⭐ |
 | 🔲 | GET | `/v4/api/dashboard/representation-templates` | Dashboard widget/representation templates (table, kanban) | ⭐⭐ |
 
 ## 13. Automation (ActivePieces)
@@ -264,7 +272,7 @@
 | **Workspaces** | 4 | 3 | 0 | 0 |
 | **Portals** | 3 | 1 | 3 | 0 |
 | **AI & Agents** | 1 | 4 | 0 | 0 |
-| **Databases & Tables** | 5 | 1 | 0 | 0 |
+| **Databases & Tables** | 13 | 1 | 0 | 0 |
 | **Automation** | 0 | 17 | 0 | 1 |
 | **Billing & Account** | 0 | 2 | 0 | 0 |
 | **User Preferences** | 0 | 8 | 1 | 0 |
