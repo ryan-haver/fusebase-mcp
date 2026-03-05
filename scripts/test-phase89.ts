@@ -1,5 +1,5 @@
 /**
- * Final E2E smoke test for Phase 8 file tools
+ * E2E test for Phase 9 database tools + create probe
  */
 import * as fs from "fs";
 import * as path from "path";
@@ -22,7 +22,6 @@ import { loadEncryptedCookie } from "../src/crypto.js";
 
 const HOST = process.env.FUSEBASE_HOST || "inkabeam.nimbusweb.me";
 const ORG_ID = process.env.FUSEBASE_ORG_ID || "";
-const WS_ID = process.env.FUSEBASE_WORKSPACE_ID || "45h7lom5ryjak34u";
 const cookie = process.env.FUSEBASE_COOKIE || loadEncryptedCookie()?.cookie || "";
 
 const client = new FusebaseClient({ host: HOST, orgId: ORG_ID, cookie });
@@ -36,65 +35,67 @@ function check(name: string, ok: boolean, detail?: string) {
 }
 
 async function main() {
-    console.log("=== Phase 8: File Upload & Download ===\n");
+    console.log("=== Phase 9: Database CRUD ===\n");
 
-    // 1. Create temp page
-    const noteId = "smokeF" + Date.now().toString(36).slice(-10);
-    const createRes = await fetch(`https://${HOST}/v2/api/web-editor/notes/create`, {
-        method: "POST",
-        headers: { cookie, "content-type": "application/json" },
-        body: JSON.stringify({
-            workspaceId: WS_ID, noteId,
-            note: { textVersion: 2, title: "Smoke Test Upload", parentId: "default", is_portal_share: false },
-        }),
-    });
-    check("create test page", createRes.ok, `noteId=${noteId}`);
-
-    // 2. Upload file via client.uploadFile (2-step)
-    let attachmentId = "";
+    // Test 1: List databases
+    let databases: Array<{ dashboardId: string; viewId: string; entity: string }> = [];
     try {
-        const testData = Buffer.from("Hello from FuseBase MCP smoke test!\n" + new Date().toISOString());
-        const result = await client.uploadFile(WS_ID, noteId, testData, "smoke-test.txt", "text/plain", "attachment");
-        attachmentId = result.attachmentId;
-        check("client.uploadFile", !!result.attachmentId, `id=${result.attachmentId}, src=${result.src}`);
-    } catch (err) {
-        const msg = (err as Error).message;
-        check("client.uploadFile", false, msg.slice(0, 120));
-    }
-
-    // 3. List attachments on that page
-    try {
-        const atts = await client.getAttachments(WS_ID, noteId);
-        check("client.getAttachments", Array.isArray(atts), `${atts.length} attachments`);
-    } catch (err) {
-        check("client.getAttachments", false, (err as Error).message.slice(0, 80));
-    }
-
-    // 4. Download attachment
-    if (attachmentId) {
-        try {
-            const dl = await client.downloadAttachment(WS_ID, attachmentId, "smoke-test.txt");
-            const content = Buffer.from(dl.base64, "base64").toString("utf-8");
-            check("client.downloadAttachment", content.includes("Hello from FuseBase MCP"), `size=${dl.size}, mime=${dl.mime}`);
-        } catch (err) {
-            check("client.downloadAttachment", false, (err as Error).message.slice(0, 80));
+        databases = await client.listDatabases();
+        check("listDatabases", databases.length > 0, `${databases.length} databases found`);
+        for (const db of databases) {
+            console.log(`    → ${db.entity}: dashboard=${db.dashboardId}, view=${db.viewId}`);
         }
-    } else {
-        check("client.downloadAttachment", false, "Skipped — upload failed");
+    } catch (err) {
+        check("listDatabases", false, (err as Error).message.slice(0, 100));
     }
 
-    // 5. List files workspace-wide
-    try {
-        const files = await client.listFiles(WS_ID, 3);
-        check("client.listFiles", Array.isArray(files), `${files.length} files`);
-    } catch (err) {
-        check("client.listFiles", false, (err as Error).message.slice(0, 80));
+    // Test 2: Get database data for each discovered database
+    if (databases.length > 0) {
+        for (const db of databases) {
+            try {
+                const data = await client.getDatabaseData(db.dashboardId, db.viewId, { limit: 3 });
+                const count = Array.isArray(data.data) ? data.data.length : 0;
+                check(`getDatabaseData(${db.entity})`, true, `${count} rows, total=${data.meta?.total}`);
+            } catch (err) {
+                check(`getDatabaseData(${db.entity})`, false, (err as Error).message.slice(0, 100));
+            }
+        }
+    }
+
+    // Test 3: Get database entity by name
+    if (databases.length > 0) {
+        const firstEntity = databases[0].entity;
+        try {
+            const data = await client.getDatabaseEntity(firstEntity, { limit: 3 });
+            check(`getDatabaseEntity("${firstEntity}")`, true, `${data.data?.length || 0} rows`);
+        } catch (err) {
+            check(`getDatabaseEntity("${firstEntity}")`, false, (err as Error).message.slice(0, 100));
+        }
+    }
+
+    // Test 4: Probe createDatabaseEntity (non-destructive — send empty/minimal data)
+    if (databases.length > 0) {
+        const db = databases.find(d => d.entity === "clients") || databases[0];
+        console.log(`\n  [probe] createDatabaseEntity for ${db.entity}...`);
+        try {
+            const result = await client.createDatabaseEntity(db.dashboardId, db.viewId, {});
+            // If we get here, the endpoint responded
+            check("createDatabaseEntity (probe)", true, `response: ${JSON.stringify(result).slice(0, 120)}`);
+        } catch (err) {
+            const msg = (err as Error).message;
+            if (msg.includes("404")) {
+                check("createDatabaseEntity (probe)", false, "404 — endpoint path incorrect");
+            } else if (msg.includes("400") || msg.includes("422") || msg.includes("validation")) {
+                // 400/422 is actually good — means the endpoint exists but needs proper fields
+                check("createDatabaseEntity (probe)", true, `endpoint exists (validation error): ${msg.slice(0, 80)}`);
+            } else {
+                check("createDatabaseEntity (probe)", false, msg.slice(0, 100));
+            }
+        }
     }
 
     console.log(`\n=== Results: ${passed}/${passed + failed} passed ===`);
-
-    // Cleanup
-    try { await client.deletePage(WS_ID, noteId); console.log(`  Cleaned up: ${noteId}`); } catch { }
+    process.exit(failed > 0 ? 1 : 0);
 }
 
 main().catch(console.error);

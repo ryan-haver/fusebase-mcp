@@ -1977,14 +1977,15 @@ function registerExtendedTools() {
 
   server.tool(
     "list_databases",
-    "List all databases (dashboards) in a workspace. Returns database IDs and titles needed for get_database_data.",
+    "List all databases/dashboards in the organization. Returns dashboard and view UUIDs that can be used with get_database_data. Probes known entity types (spaces, clients) plus any custom entities you specify.",
     {
-      workspaceId: z.string().describe("Workspace ID"),
+      orgId: z.string().optional().describe("Organization ID (defaults to env FUSEBASE_ORG_ID)"),
+      customEntities: z.array(z.string()).optional().describe("Additional entity types to probe beyond defaults (spaces, clients)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, profile }) => {
+    }, async ({ orgId, customEntities, profile }) => {
       const client = getClient(profile);
       try {
-        const databases = await client.listDatabases(workspaceId);
+        const databases = await client.listDatabases(orgId, customEntities);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(databases, null, 2) },
@@ -1998,16 +1999,17 @@ function registerExtendedTools() {
 
   server.tool(
     "get_database_entity",
-    "Get data from a specific database entity type (e.g. clients, forms, portals, spaces). Supports pagination.",
+    "Get data from a specific database entity type (e.g. clients, spaces). Automatically discovers the correct dashboard/view UUIDs for the entity. Supports pagination.",
     {
-      entity: z.string().describe("Entity type (e.g. 'clients', 'forms', 'portals', 'spaces')"),
+      entity: z.string().describe("Entity type (e.g. 'clients', 'spaces', 'portals')"),
       page: z.number().optional().describe("Page number (default: 1)"),
       limit: z.number().optional().describe("Results per page"),
+      orgId: z.string().optional().describe("Organization ID (defaults to env FUSEBASE_ORG_ID)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ entity, page, limit, profile }) => {
+    }, async ({ entity, page, limit, orgId, profile }) => {
       const client = getClient(profile);
       try {
-        const data = await client.getDatabaseEntity(entity, { page, limit });
+        const data = await client.getDatabaseEntity(entity, { page, limit }, orgId);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(data, null, 2) },
@@ -2021,15 +2023,16 @@ function registerExtendedTools() {
 
   server.tool(
     "create_database_entity",
-    "Create or update a record in a database entity (e.g. clients, forms). Accepts arbitrary key-value data matching the entity schema.",
+    "Create a new record in a dashboard/database view. Requires dashboardId and viewId (from list_databases). Accepts arbitrary key-value data matching the view's schema.",
     {
-      entity: z.string().describe("Entity type (e.g. 'clients', 'forms')"),
-      data: z.record(z.string(), z.unknown()).describe("Record data as key-value pairs matching the entity schema"),
+      dashboardId: z.string().describe("Dashboard UUID (from list_databases)"),
+      viewId: z.string().describe("View UUID (from list_databases)"),
+      data: z.record(z.string(), z.unknown()).describe("Record data as key-value pairs matching the view schema"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ entity, data, profile }) => {
+    }, async ({ dashboardId, viewId, data, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.createDatabaseEntity(entity, data);
+        const result = await client.createDatabaseEntity(dashboardId, viewId, data);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
