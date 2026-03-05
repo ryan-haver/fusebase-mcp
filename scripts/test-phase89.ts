@@ -1,5 +1,5 @@
 /**
- * E2E test for Phase 9 database tools + create probe
+ * E2E test for Phase 9 database tools (updated for createDatabase + addDatabaseRow)
  */
 import * as fs from "fs";
 import * as path from "path";
@@ -73,24 +73,33 @@ async function main() {
         }
     }
 
-    // Test 4: Probe createDatabaseEntity (non-destructive — send empty/minimal data)
-    if (databases.length > 0) {
-        const db = databases.find(d => d.entity === "clients") || databases[0];
-        console.log(`\n  [probe] createDatabaseEntity for ${db.entity}...`);
+    // Test 4: Create a new database
+    let createdDb: { global_id: string; dashboards: Array<{ global_id: string }> } | null = null;
+    try {
+        const result = await client.createDatabase("e2e-test-db", {
+            description: "Automated E2E test database",
+            color: "blue",
+        });
+        check("createDatabase", result.success === true, `id=${result.data?.global_id}, dashboards=${result.data?.dashboards?.length}`);
+        createdDb = result.data as any;
+        console.log(`    → database_id=${createdDb!.global_id}`);
+        if (createdDb!.dashboards?.[0]) {
+            console.log(`    → dashboard_id=${createdDb!.dashboards[0].global_id}`);
+        }
+    } catch (err) {
+        check("createDatabase", false, (err as Error).message.slice(0, 100));
+    }
+
+    // Test 5: Add a row to the created database
+    if (createdDb && createdDb.dashboards?.[0]) {
         try {
-            const result = await client.createDatabaseEntity(db.dashboardId, db.viewId, {});
-            // If we get here, the endpoint responded
-            check("createDatabaseEntity (probe)", true, `response: ${JSON.stringify(result).slice(0, 120)}`);
+            const result = await client.addDatabaseRow("custom", {
+                databaseId: createdDb.global_id,
+                dashboardId: createdDb.dashboards[0].global_id,
+            });
+            check("addDatabaseRow (custom)", (result as any).success === true, `status=${(result as any).status}`);
         } catch (err) {
-            const msg = (err as Error).message;
-            if (msg.includes("404")) {
-                check("createDatabaseEntity (probe)", false, "404 — endpoint path incorrect");
-            } else if (msg.includes("400") || msg.includes("422") || msg.includes("validation")) {
-                // 400/422 is actually good — means the endpoint exists but needs proper fields
-                check("createDatabaseEntity (probe)", true, `endpoint exists (validation error): ${msg.slice(0, 80)}`);
-            } else {
-                check("createDatabaseEntity (probe)", false, msg.slice(0, 100));
-            }
+            check("addDatabaseRow (custom)", false, (err as Error).message.slice(0, 100));
         }
     }
 

@@ -1035,7 +1035,7 @@ server.tool(
         content: [
           {
             type: "text" as const,
-            text: "Extended tools enabled! 33 additional tools are now available (54 total). New tools: get_page_attachments, list_files, upload_file, download_attachment, get_labels, get_org_usage, get_comment_threads, get_task_description, delete_page, update_page_content, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database_entity, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
+            text: "Extended tools enabled! 34 additional tools are now available (55 total). New tools: get_page_attachments, list_files, upload_file, download_attachment, get_labels, get_org_usage, get_comment_threads, get_task_description, delete_page, update_page_content, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database, add_database_row, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
           },
         ],
       };
@@ -2022,17 +2022,43 @@ function registerExtendedTools() {
   );
 
   server.tool(
-    "create_database_entity",
-    "Create a new record in a dashboard/database view. Requires dashboardId and viewId (from list_databases). Accepts arbitrary key-value data matching the view's schema.",
+    "create_database",
+    "Create a new database (table or kanban view) in the organization. Returns the new database, dashboard, and view UUIDs. The database is created with a default table representation. Use list_databases afterwards to see it.",
     {
-      dashboardId: z.string().describe("Dashboard UUID (from list_databases)"),
-      viewId: z.string().describe("View UUID (from list_databases)"),
-      data: z.record(z.string(), z.unknown()).describe("Record data as key-value pairs matching the view schema"),
+      title: z.string().describe("Database title"),
+      description: z.string().optional().describe("Database description (defaults to title)"),
+      icon: z.string().optional().describe("Icon identifier (defaults to 'default')"),
+      color: z.string().optional().describe("Color theme (e.g. 'fuchsia', 'blue', 'green')"),
+      isPublic: z.boolean().optional().describe("Whether the database is public (defaults to false)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ dashboardId, viewId, data, profile }) => {
+    }, async ({ title, description, icon, color, isPublic, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.createDatabaseEntity(dashboardId, viewId, data);
+        const result = await client.createDatabase(title, { description, icon, color, isPublic });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "add_database_row",
+    "Add a new row to a database entity table. For built-in entities (clients, spaces), only entity name is needed. For custom databases, also provide databaseId and dashboardId (from list_databases or create_database). Uses Next.js server action internally.",
+    {
+      entity: z.string().describe("Entity type (e.g. 'clients', 'spaces', 'custom')"),
+      databaseId: z.string().optional().describe("Database UUID (required for custom databases, from create_database)"),
+      dashboardId: z.string().optional().describe("Dashboard UUID (required for custom databases, from create_database)"),
+      orgId: z.string().optional().describe("Organization ID (defaults to env FUSEBASE_ORG_ID)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ entity, databaseId, dashboardId, orgId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.addDatabaseRow(entity, { databaseId, dashboardId, orgId });
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },

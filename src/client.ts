@@ -1129,21 +1129,117 @@ export class FusebaseClient {
   }
 
   /**
-   * Create a new record in a dashboard/database view.
-   * Uses the dashboard-service items endpoint.
+   * Create a new database (table/kanban) in the organization.
+   *
+   * Discovered via Playwright capture: POST /v4/api/proxy/dashboard-service/v1/databases
+   * Returns 201 with the new database, dashboard, and view UUIDs.
+   *
+   * @param title - Database title
+   * @param options - Optional metadata (description, icon, color)
+   * @returns The created database object with dashboard/view UUIDs
    */
-  async createDatabaseEntity(
-    dashboardId: string,
-    viewId: string,
-    data: Record<string, unknown>,
-  ): Promise<unknown> {
-    return this.request<unknown>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/items`,
+  async createDatabase(
+    title: string,
+    options?: {
+      description?: string;
+      icon?: string;
+      color?: string;
+      isPublic?: boolean;
+    },
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      global_id: string;
+      title: string;
+      is_public: boolean;
+      metadata: Record<string, unknown>;
+      dashboards: Array<{
+        global_id: string;
+        database_id: string;
+        views?: Array<{
+          global_id: string;
+          [key: string]: unknown;
+        }>;
+        [key: string]: unknown;
+      }>;
+      [key: string]: unknown;
+    };
+  }> {
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/databases`,
       {
         method: "POST",
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          global_id: crypto.randomUUID(),
+          title,
+          is_public: options?.isPublic ?? false,
+          metadata: {
+            description: options?.description ?? title,
+            icon: options?.icon ?? "default",
+            favorite: false,
+            color: options?.color ?? "fuchsia",
+          },
+          scopes: [{ scope_type: "org", scope_id: this.orgId }],
+        }),
       },
     );
+  }
+
+  /**
+   * Add a new row to a database entity table.
+   *
+   * Discovered via Playwright capture: this uses a Next.js server action,
+   * not a standard REST API. The POST goes to the entity page URL with
+   * a `next-action` header identifying the server-side function.
+   *
+   * @param entity - Entity type (e.g. 'clients', 'spaces', 'custom')
+   * @param options - Optional databaseId/dashboardId for custom databases
+   */
+  async addDatabaseRow(
+    entity: string,
+    options?: {
+      databaseId?: string;
+      dashboardId?: string;
+      orgId?: string;
+    },
+  ): Promise<unknown> {
+    const org = options?.orgId || this.orgId;
+
+    // Build the entity page URL (different for built-in vs custom entities)
+    let entityUrl: string;
+    const body: Record<string, string> = { orgId: org, entity };
+
+    if (options?.databaseId && options?.dashboardId) {
+      // Custom database entity
+      entityUrl = `${this.baseUrl}/dashboard/${org}/tables/databases/${options.databaseId}/dashboard/${options.dashboardId}/entity/${entity}`;
+      body.databaseId = options.databaseId;
+      body.dashboardId = options.dashboardId;
+    } else {
+      // Built-in entity (clients, spaces)
+      entityUrl = `${this.baseUrl}/dashboard/${org}/tables/entity/${entity}`;
+    }
+
+    // This is a Next.js server action — requires the next-action header
+    // The action ID was discovered from the JS bundle hash
+    const res = await fetch(entityUrl, {
+      method: "POST",
+      headers: {
+        cookie: this.cookie,
+        "content-type": "text/plain;charset=UTF-8",
+        accept: "text/x-component",
+        "next-action": "a6bff18e5522fbea54d7a97bf0a4f0979a1771ce",
+      },
+      body: JSON.stringify([body]),
+      signal: AbortSignal.timeout(TIMEOUT_GET),
+    });
+
+    if (!res.ok) {
+      throw new Error(`addDatabaseRow failed: ${res.status} ${res.statusText}`);
+    }
+
+    // Response is RSC flight data, not JSON
+    return { success: true, status: res.status, entity };
   }
 
   /** Get org plan limits */

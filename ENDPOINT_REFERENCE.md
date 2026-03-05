@@ -171,8 +171,9 @@
 | ✅ | GET | `/v4/api/proxy/dashboard-service/v1/dashboards/{did}/views/{vid}/data` | `get_database_data` — Data from a database/dashboard view | ⭐⭐⭐ |
 | ✅ | GET | `/dashboard/{orgId}/tables/databases` | `list_databases` — List all databases (probes entity pages for dashboard/view UUIDs) | ⭐⭐⭐ |
 | ✅ | GET | `/dashboard/{orgId}/tables/entity/{entity}` | `get_database_entity` — Get entity data (resolves entity name → dashboard/view via list_databases) | ⭐⭐⭐ |
-| ⚠️ | POST | `/dashboard/{orgId}/tables/entity/{entity}` | `create_database_entity` — Create entity records (endpoint path unverified) | ⭐⭐⭐⭐ |
-| 🔲 | GET | `/v4/api/dashboard/representation-templates` | Dashboard widget/representation templates | ⭐⭐ |
+| ✅ | POST | `/v4/api/proxy/dashboard-service/v1/databases` | `create_database` — Create a new database (table/kanban). Client generates UUID. | ⭐⭐⭐⭐ |
+| ✅ | POST | `/dashboard/{orgId}/tables/entity/{entity}` | `add_database_row` — Add a row via Next.js server action (requires `next-action` header) | ⭐⭐⭐⭐ |
+| 🔲 | GET | `/v4/api/dashboard/representation-templates` | Dashboard widget/representation templates (table, kanban) | ⭐⭐ |
 
 ## 13. Automation (ActivePieces)
 
@@ -263,7 +264,7 @@
 | **Workspaces** | 4 | 3 | 0 | 0 |
 | **Portals** | 3 | 1 | 3 | 0 |
 | **AI & Agents** | 1 | 4 | 0 | 0 |
-| **Databases & Tables** | 3 | 1 | 1 | 0 |
+| **Databases & Tables** | 5 | 1 | 0 | 0 |
 | **Automation** | 0 | 17 | 0 | 1 |
 | **Billing & Account** | 0 | 2 | 0 | 0 |
 | **User Preferences** | 0 | 8 | 1 | 0 |
@@ -286,8 +287,7 @@
 | Priority | Category | Endpoints | Value | Impact |
 |---|---|---|---|---|
 | 🥇 | Automation | `flows`, `flow-runs`, `flows` (POST) | ⭐⭐⭐⭐ | Unlocks workflow automation management |
-| 🥈 | Databases | `create_database_entity` (POST path) | ⭐⭐⭐⭐ | Create endpoint needs real path discovery |
-| 🥉 | AI & Agents | `threads`, `main-page` | ⭐⭐⭐–⭐⭐⭐⭐ | AI conversation management |
+| 🥈 | AI & Agents | `threads`, `main-page` | ⭐⭐⭐–⭐⭐⭐⭐ | AI conversation management |
 | 4 | Tasks | `workspace-infos`, `time/{tid}` | ⭐⭐⭐ | Cross-workspace tasks + time tracking |
 
 ---
