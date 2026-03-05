@@ -1242,7 +1242,230 @@ export class FusebaseClient {
     return { success: true, status: res.status, entity };
   }
 
-  /** Get org plan limits */
+  // ────────────────────────────────────────────────────
+  // Database & Dashboard CRUD (dashboard-service REST API)
+  // Discovered via Playwright capture + API probing
+  // ────────────────────────────────────────────────────
+
+  /**
+   * List all databases in the organization via the dashboard-service REST API.
+   *
+   * Endpoint: GET /v4/api/proxy/dashboard-service/v1/databases?scope_type=org&scope_id={orgId}
+   * Returns 200 with array of database objects including dashboards and views.
+   */
+  async listAllDatabases(): Promise<{
+    success: boolean;
+    message: string;
+    data: Array<{
+      global_id: string;
+      title: string;
+      is_public: boolean;
+      metadata: Record<string, unknown>;
+      dashboards: Array<{
+        global_id: string;
+        database_id: string;
+        name: string;
+        root_entity: string;
+        views?: Array<{ global_id: string; name: string;[key: string]: unknown }>;
+        [key: string]: unknown;
+      }>;
+      [key: string]: unknown;
+    }>;
+  }> {
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/databases?scope_type=org&scope_id=${this.orgId}`,
+    );
+  }
+
+  /**
+   * Get detailed information about a specific database.
+   *
+   * Endpoint: GET /v4/api/proxy/dashboard-service/v1/databases/{dbId}
+   * Returns database metadata, scopes, and nested dashboards with their views.
+   */
+  async getDatabaseDetail(dbId: string): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      global_id: string;
+      title: string;
+      is_public: boolean;
+      metadata: Record<string, unknown>;
+      dashboards: Array<{
+        global_id: string;
+        database_id: string;
+        name: string;
+        root_entity: string;
+        views?: Array<{ global_id: string; name: string;[key: string]: unknown }>;
+        [key: string]: unknown;
+      }>;
+      scopes: Array<{ scope_type: string; scope_id: string }>;
+      [key: string]: unknown;
+    };
+  }> {
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/databases/${dbId}`,
+    );
+  }
+
+  /**
+   * Update a database's title, metadata, or public status.
+   *
+   * Endpoint: PUT /v4/api/proxy/dashboard-service/v1/databases/{dbId}
+   * Note: Uses PUT (PATCH returns 404).
+   */
+  async updateDatabase(
+    dbId: string,
+    updates: {
+      title?: string;
+      description?: string;
+      icon?: string;
+      color?: string;
+      isPublic?: boolean;
+      favorite?: boolean;
+    },
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data: Record<string, unknown>;
+  }> {
+    const body: Record<string, unknown> = {};
+    if (updates.title !== undefined) body.title = updates.title;
+    if (updates.isPublic !== undefined) body.is_public = updates.isPublic;
+
+    // Metadata fields are nested
+    const metadata: Record<string, unknown> = {};
+    if (updates.description !== undefined) metadata.description = updates.description;
+    if (updates.icon !== undefined) metadata.icon = updates.icon;
+    if (updates.color !== undefined) metadata.color = updates.color;
+    if (updates.favorite !== undefined) metadata.favorite = updates.favorite;
+    if (Object.keys(metadata).length > 0) body.metadata = metadata;
+
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/databases/${dbId}`,
+      { method: "PUT", body: JSON.stringify(body) },
+    );
+  }
+
+  /**
+   * Delete a database and all its dashboards/tables/views.
+   *
+   * Endpoint: DELETE /v4/api/proxy/dashboard-service/v1/databases/{dbId}
+   * Returns 204 No Content on success.
+   */
+  async deleteDatabase(dbId: string): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(
+      `${this.baseUrl}/v4/api/proxy/dashboard-service/v1/databases/${dbId}`,
+      {
+        method: "DELETE",
+        headers: { cookie: this.cookie },
+        signal: AbortSignal.timeout(TIMEOUT_GET),
+      },
+    );
+    if (!res.ok && res.status !== 204) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`deleteDatabase failed: ${res.status} ${text}`);
+    }
+    return { success: true, message: "Database deleted successfully" };
+  }
+
+  /**
+   * Get detailed information about a dashboard (table within a database).
+   * Includes the views array, which lists all custom views for this dashboard.
+   *
+   * Endpoint: GET /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}
+   * Returns dashboard metadata, root_entity, and nested views.
+   */
+  async getDashboardDetail(dashboardId: string): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      global_id: string;
+      database_id: string;
+      name: string;
+      root_entity: string;
+      is_public: boolean;
+      views: Array<{
+        global_id: string;
+        dashboard_id: string;
+        name: string;
+        default_view: boolean;
+        order: number;
+        metadata: Record<string, unknown>;
+        [key: string]: unknown;
+      }>;
+      scopes: Array<{ scope_type: string; scope_id: string }>;
+      metadata: Record<string, unknown>;
+      [key: string]: unknown;
+    };
+  }> {
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}`,
+    );
+  }
+
+  /**
+   * Delete a dashboard (table within a database).
+   *
+   * Endpoint: DELETE /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}
+   * Returns 200 with success message.
+   */
+  async deleteDashboard(dashboardId: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}`,
+      { method: "DELETE" },
+    );
+  }
+
+  /**
+   * Update a view within a dashboard (rename, change filters, sorts).
+   *
+   * Endpoint: PUT /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/views/{viewId}
+   * Note: Uses PUT (PATCH returns 404).
+   */
+  async updateView(
+    dashboardId: string,
+    viewId: string,
+    updates: {
+      name?: string;
+      filters?: Array<{ column: string; op: string; value: unknown }>;
+      sorts?: Array<{ column: string; direction: "asc" | "desc" }>;
+      hidden_columns?: string[];
+    },
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data: Record<string, unknown>;
+  }> {
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      { method: "PUT", body: JSON.stringify(updates) },
+    );
+  }
+
+  /**
+   * Switch a view's representation between table and kanban.
+   *
+   * Endpoint: POST /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/views/{viewId}/representations/{type}
+   * Returns 201 on success.
+   */
+  async setViewRepresentation(
+    dashboardId: string,
+    viewId: string,
+    representationType: "table" | "kanban",
+  ): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/representations/${representationType}`,
+      { method: "POST" },
+    );
+  }
+
   async getOrgLimits(): Promise<FusebaseOrgLimits> {
     return this.request<FusebaseOrgLimits>(
       `/v2/api/orgs/${this.orgId}/limits`,

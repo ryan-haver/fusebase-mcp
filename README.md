@@ -6,8 +6,8 @@ An [MCP](https://modelcontextprotocol.io/) server that lets AI assistants manage
 
 ## ✨ Features
 
-- **55 tools** across content, tasks, members, org admin, portals, databases, files, guides, and more
-- **Two-tier system** — 21 core tools load by default; 34 extended tools on demand
+- **63 tools** across content, tasks, members, org admin, portals, databases, files, guides, and more
+- **Two-tier system** — 21 core tools load by default; 42 extended tools on demand
 - **Auto auth retry** — detects 401/403 and refreshes session automatically
 - **Encrypted secrets** — cookies stored encrypted at rest (AES-256-GCM)
 - **Version checking** — built-in update detection from GitHub
@@ -152,7 +152,7 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Tier | Tools | Description |
 | --- | --- | --- |
 | **Core** (default) | 21 | Day-to-day: pages, folders, tasks, tags, members, guides |
-| **Extended** | +34 | Admin, analytics, content mutations, files, databases, portals |
+| **Extended** | +42 | Admin, analytics, content mutations, files, databases, portals |
 
 **Enable extended tools:**
 
@@ -183,7 +183,7 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Guides | `get_guide` | Get full guide content by section/slug |
 | Guides | `list_guide_sections` | Browse all 17 guide sections |
 
-### Extended Tools (34)
+### Extended Tools (42)
 
 Enable with `set_tool_tier(tier: "all")`:
 
@@ -195,7 +195,7 @@ Enable with `set_tool_tier(tier: "all")`:
 - **Organization**: `get_org_usage`, `get_org_limits`, `get_usage_summary`, `get_org_permissions`, `get_org_features`, `get_ai_usage`
 - **Workspaces**: `get_workspace_detail`, `get_workspace_emails`, `get_workspace_info`
 - **Navigation & AI**: `get_navigation_menu`, `get_mention_entities`, `list_agents`, `get_recently_updated_notes`
-- **Databases**: `get_database_data`, `list_databases`, `get_database_entity`, `create_database`, `add_database_row`
+- **Databases**: `get_database_data`, `list_databases`, `get_database_entity`, `create_database`, `add_database_row`, `list_all_databases`, `get_database_detail`, `update_database`, `delete_database`, `get_dashboard_detail`, `delete_dashboard`, `update_view`, `set_view_representation`
 - **Portals**: `list_portals`, `get_portal_pages`
 
 ## 🔐 Security
@@ -209,7 +209,7 @@ Enable with `set_tool_tier(tier: "all")`:
 
 ```text
 src/
-  index.ts              → MCP server (55 tools, stdio transport, tier system)
+  index.ts              → MCP server (63 tools, stdio transport, tier system)
   client.ts             → HTTP client (cookie auth, 401 auto-retry, logging)
   crypto.ts             → AES-256-GCM encryption for secrets at rest
   types.ts              → TypeScript interfaces for API responses

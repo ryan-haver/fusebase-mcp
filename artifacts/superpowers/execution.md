@@ -29,3 +29,23 @@ Fix listDatabases, E2E test database tools, update README/ENDPOINT_REFERENCE, co
 - The create endpoint path is incorrect — needs real API capture
 - Marking `create_database_entity` as experimental
 - **Verify**: `npx tsx scripts/test-phase89.ts` → 4/5 passed (create probe failed as expected)
+
+## Step 4 — Update README
+
+- **Files**: `README.md`
+- 49→54 tools, 28→33 extended
+- Added `upload_file`, `download_attachment`, `list_databases`, `get_database_entity`, `create_database_entity`
+- **Verify**: `Select-String -Path README.md -Pattern "49|28 extended"` → 0 matches ✅
+
+## Step 5 — Update ENDPOINT_REFERENCE
+
+- **Files**: `ENDPOINT_REFERENCE.md`
+- Database rows: 🔲→✅ for list/get, 🔲→⚠️ for create
+- Summary table: 1→3 implemented, updated priority gaps
+- **Verify**: visual inspection ✅
+
+## Step 6 — Build, commit, push
+
+- `npm run build` → ✅ clean
+- `git commit` → `f0873e0`
+- `git push` → `0d6ea34..f0873e0 master → master` ✅
