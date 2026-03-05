@@ -6,8 +6,8 @@ An [MCP](https://modelcontextprotocol.io/) server that lets AI assistants manage
 
 ## ✨ Features
 
-- **49 tools** across content, tasks, members, org admin, portals, databases, guides, and more
-- **Two-tier system** — 21 core tools load by default; 28 extended tools on demand
+- **54 tools** across content, tasks, members, org admin, portals, databases, files, guides, and more
+- **Two-tier system** — 21 core tools load by default; 33 extended tools on demand
 - **Auto auth retry** — detects 401/403 and refreshes session automatically
 - **Encrypted secrets** — cookies stored encrypted at rest (AES-256-GCM)
 - **Version checking** — built-in update detection from GitHub
@@ -66,6 +66,7 @@ npx tsx scripts/auth.ts
 This opens a browser window → log into Fusebase → cookies are automatically captured and saved **encrypted** to `data/cookie.enc`.
 
 > **Headless mode:** After the first login, you can re-authenticate without a browser window:
+>
 > ```bash
 > npx tsx scripts/auth.ts --headless
 > ```
@@ -151,7 +152,7 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Tier | Tools | Description |
 | --- | --- | --- |
 | **Core** (default) | 21 | Day-to-day: pages, folders, tasks, tags, members, guides |
-| **Extended** | +28 | Admin, analytics, content mutations, portals, databases |
+| **Extended** | +33 | Admin, analytics, content mutations, files, databases, portals |
 
 **Enable extended tools:**
 
@@ -182,19 +183,20 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Guides | `get_guide` | Get full guide content by section/slug |
 | Guides | `list_guide_sections` | Browse all 17 guide sections |
 
-### Extended Tools (28)
+### Extended Tools (33)
 
 Enable with `set_tool_tier(tier: "all")`:
 
 - **Content mutations**: `delete_page`, `update_page_content`
-- **Files & attachments**: `get_page_attachments`, `list_files`, `get_file_count`
+- **Files & attachments**: `get_page_attachments`, `list_files`, `get_file_count`, `upload_file`, `download_attachment`
 - **Labels & tags**: `get_labels`, `get_note_tags`
 - **Activity & comments**: `get_activity_stream`, `get_comment_threads`
 - **Tasks (advanced)**: `get_task_description`, `get_task_count`, `get_task_usage`
 - **Organization**: `get_org_usage`, `get_org_limits`, `get_usage_summary`, `get_org_permissions`, `get_org_features`, `get_ai_usage`
 - **Workspaces**: `get_workspace_detail`, `get_workspace_emails`, `get_workspace_info`
 - **Navigation & AI**: `get_navigation_menu`, `get_mention_entities`, `list_agents`, `get_recently_updated_notes`
-- **Databases & Portals**: `get_database_data`, `list_portals`, `get_portal_pages`
+- **Databases**: `get_database_data`, `list_databases`, `get_database_entity`, `create_database_entity`
+- **Portals**: `list_portals`, `get_portal_pages`
 
 ## 🔐 Security
 
@@ -207,7 +209,7 @@ Enable with `set_tool_tier(tier: "all")`:
 
 ```text
 src/
-  index.ts              → MCP server (49 tools, stdio transport, tier system)
+  index.ts              → MCP server (54 tools, stdio transport, tier system)
   client.ts             → HTTP client (cookie auth, 401 auto-retry, logging)
   crypto.ts             → AES-256-GCM encryption for secrets at rest
   types.ts              → TypeScript interfaces for API responses

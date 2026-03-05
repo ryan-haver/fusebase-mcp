@@ -169,9 +169,9 @@
 | Status | Method | Endpoint | Tool / Description | Value |
 |---|---|---|---|---|
 | ✅ | GET | `/v4/api/proxy/dashboard-service/v1/dashboards/{did}/views/{vid}/data` | `get_database_data` — Data from a database/dashboard view | ⭐⭐⭐ |
-| 🔲 | GET | `/dashboard/{orgId}/tables/databases` | List all databases (dashboard UI page) | ⭐⭐⭐ |
-| 🔲 | GET | `/dashboard/{orgId}/tables/entity/{entity}` | Get a specific database entity (clients, forms, portals, spaces) | ⭐⭐⭐ |
-| 🔲 | POST | `/dashboard/{orgId}/tables/entity/{entity}` | Create or modify database entity records | ⭐⭐⭐⭐ |
+| ✅ | GET | `/dashboard/{orgId}/tables/databases` | `list_databases` — List all databases (probes entity pages for dashboard/view UUIDs) | ⭐⭐⭐ |
+| ✅ | GET | `/dashboard/{orgId}/tables/entity/{entity}` | `get_database_entity` — Get entity data (resolves entity name → dashboard/view via list_databases) | ⭐⭐⭐ |
+| ⚠️ | POST | `/dashboard/{orgId}/tables/entity/{entity}` | `create_database_entity` — Create entity records (endpoint path unverified) | ⭐⭐⭐⭐ |
 | 🔲 | GET | `/v4/api/dashboard/representation-templates` | Dashboard widget/representation templates | ⭐⭐ |
 
 ## 13. Automation (ActivePieces)
@@ -263,7 +263,7 @@
 | **Workspaces** | 4 | 3 | 0 | 0 |
 | **Portals** | 3 | 1 | 3 | 0 |
 | **AI & Agents** | 1 | 4 | 0 | 0 |
-| **Databases & Tables** | 1 | 4 | 0 | 0 |
+| **Databases & Tables** | 3 | 1 | 1 | 0 |
 | **Automation** | 0 | 17 | 0 | 1 |
 | **Billing & Account** | 0 | 2 | 0 | 0 |
 | **User Preferences** | 0 | 8 | 1 | 0 |
@@ -286,10 +286,9 @@
 | Priority | Category | Endpoints | Value | Impact |
 |---|---|---|---|---|
 | 🥇 | Automation | `flows`, `flow-runs`, `flows` (POST) | ⭐⭐⭐⭐ | Unlocks workflow automation management |
-| 🥈 | Databases | `entity` (GET/POST), `databases` | ⭐⭐⭐–⭐⭐⭐⭐ | Full database CRUD (currently read-only) |
+| 🥈 | Databases | `create_database_entity` (POST path) | ⭐⭐⭐⭐ | Create endpoint needs real path discovery |
 | 🥉 | AI & Agents | `threads`, `main-page` | ⭐⭐⭐–⭐⭐⭐⭐ | AI conversation management |
-| 4 | Files | `file/attachment`, `file/v2-upload` | ⭐⭐⭐ | File upload capability |
-| 5 | Tasks | `workspace-infos`, `time/{tid}` | ⭐⭐⭐ | Cross-workspace tasks + time tracking |
+| 4 | Tasks | `workspace-infos`, `time/{tid}` | ⭐⭐⭐ | Cross-workspace tasks + time tracking |
 
 ---
 

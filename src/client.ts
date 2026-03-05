@@ -1018,53 +1018,127 @@ export class FusebaseClient {
   }
 
   /**
-   * List all databases/dashboards in a workspace.
-   * Uses the dashboard-service proxy to get the list of available databases.
+   * List all databases/dashboards by probing known entity types in the Tables UI.
+   *
+   * FuseBase Tables is a Next.js SSR app — entity names are rendered client-side
+   * and not available in the initial HTML. Instead, we probe a known set of entity
+   * types (spaces, clients) plus any user-supplied custom entities.
+   *
+   * For each entity, the page HTML contains embedded dashboard/view UUIDs in the
+   * React Server Component data. We extract these by:
+   * 1. Fetching the databases listing page to collect the "layout" UUID (common to all pages)
+   * 2. Fetching each entity page and finding UUIDs not in the layout set
+   * 3. The first two unique UUIDs are the dashboardId and viewId
+   *
+   * @param orgId - Organization ID (defaults to env FUSEBASE_ORG_ID)
+   * @param customEntities - Additional entity types to probe beyond the defaults
+   * @returns Array of { dashboardId, viewId, entity } objects for use with getDatabaseData
    */
   async listDatabases(
-    workspaceId: string,
+    orgId?: string,
+    customEntities?: string[],
   ): Promise<Array<{
-    id: string;
-    title: string;
-    workspaceId: string;
-    [key: string]: unknown;
+    dashboardId: string;
+    viewId: string;
+    entity: string;
   }>> {
-    return this.request<Array<{
-      id: string;
-      title: string;
-      workspaceId: string;
-      [key: string]: unknown;
-    }>>(
-      `/v4/api/proxy/dashboard-service/v1/workspaces/${workspaceId}/dashboards`,
+    const org = orgId || this.orgId;
+    const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+
+    // Known FuseBase entity types (discovered via Playwright network capture)
+    const KNOWN_ENTITIES = ["spaces", "clients"];
+    const entities = [
+      ...KNOWN_ENTITIES,
+      ...(customEntities || []).filter((e) => !KNOWN_ENTITIES.includes(e)),
+    ];
+
+    // Step 1: Fetch databases listing page to collect the "layout" UUID
+    const dbRes = await fetch(`${this.baseUrl}/dashboard/${org}/tables/databases`, {
+      headers: { cookie: this.cookie },
+      signal: AbortSignal.timeout(TIMEOUT_GET),
+    });
+    if (!dbRes.ok) {
+      throw new Error(`Failed to fetch tables page: ${dbRes.status} ${dbRes.statusText}`);
+    }
+    const dbHtml = await dbRes.text();
+
+    // Collect the "layout" UUID(s) that appear on ALL pages (not entity-specific)
+    const layoutUuids = new Set(
+      [...new Set(dbHtml.match(UUID_RE) || [])].map((u) => u.toLowerCase()),
     );
+
+    // Step 2: Fetch each entity page and extract its unique UUIDs
+    const results: Array<{ dashboardId: string; viewId: string; entity: string }> = [];
+
+    for (const entity of entities) {
+      try {
+        const entRes = await fetch(
+          `${this.baseUrl}/dashboard/${org}/tables/entity/${entity}`,
+          {
+            headers: { cookie: this.cookie },
+            signal: AbortSignal.timeout(TIMEOUT_GET),
+          },
+        );
+        if (!entRes.ok) continue;
+        const entHtml = await entRes.text();
+
+        // Get all UUIDs unique to this entity page (not in the layout set)
+        const pageUuids = [...new Set(entHtml.match(UUID_RE) || [])]
+          .map((u) => u.toLowerCase())
+          .filter((u) => !layoutUuids.has(u));
+
+        // The first two unique UUIDs are dashboardId and viewId
+        if (pageUuids.length >= 2) {
+          results.push({
+            dashboardId: pageUuids[0],
+            viewId: pageUuids[1],
+            entity,
+          });
+        }
+      } catch {
+        // Skip entities that fail to load
+      }
+    }
+
+    return results;
   }
 
   /**
-   * Get a specific database entity (clients, forms, portals, spaces, etc.)
-   * from the dashboard tables.
+   * Get a specific database entity's data.
+   * Wraps getDatabaseData after discovering the dashboard/view UUIDs
+   * for the given entity from the Tables page.
    */
   async getDatabaseEntity(
     entity: string,
     options?: { page?: number; limit?: number },
-  ): Promise<unknown> {
-    const params = new URLSearchParams();
-    if (options?.page) params.set("page", String(options.page));
-    if (options?.limit) params.set("limit", String(options.limit));
-    const qs = params.toString();
-    return this.request<unknown>(
-      `/v4/api/proxy/dashboard-service/v1/entities/${entity}${qs ? `?${qs}` : ""}`,
-    );
+    orgId?: string,
+  ): Promise<FusebaseDatabaseViewData> {
+    // First, discover dashboard/view UUIDs
+    const databases = await this.listDatabases(orgId);
+    const db = databases.find(d => d.entity === entity);
+
+    if (!db) {
+      // If we can't match by entity name, try to fetch each and return the first non-empty
+      throw new Error(
+        `Entity '${entity}' not found. Available entities: ${databases.map(d => d.entity).join(", ") || "none found"}. ` +
+        `Tip: Use list_databases first to see available dashboard/view IDs, then call get_database_data directly.`
+      );
+    }
+
+    return this.getDatabaseData(db.dashboardId, db.viewId, options);
   }
 
   /**
-   * Create or update a database entity record.
+   * Create a new record in a dashboard/database view.
+   * Uses the dashboard-service items endpoint.
    */
   async createDatabaseEntity(
-    entity: string,
+    dashboardId: string,
+    viewId: string,
     data: Record<string, unknown>,
   ): Promise<unknown> {
     return this.request<unknown>(
-      `/v4/api/proxy/dashboard-service/v1/entities/${entity}`,
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/items`,
       {
         method: "POST",
         body: JSON.stringify(data),

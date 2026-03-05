@@ -1,27 +1,31 @@
-# Phases 7-9 Execution Log
+# Phase 9 Finalization — Execution Log
 
 ## Plan Summary
-Phases 7 (auth hardening), 8 (file upload), 9 (database CRUD) — 17 steps total.
+
+Fix listDatabases, E2E test database tools, update README/ENDPOINT_REFERENCE, commit/push. 6 steps.
 
 ---
 
-## Phase 7 — Auth & Session Reliability ✅
+## Step 1 — Fix `listDatabases`
 
-### Step 7.1 — Retry logic in refreshCookies
-- **Files**: `scripts/auth.ts`
-- **Change**: Wrapped browser launch + navigation in retry loop (max 3 attempts, 5s backoff)
-- **Verify**: `npm run build` ✅
-
-### Steps 7.2-7.4 — Client hardening
 - **Files**: `src/client.ts`, `src/index.ts`
-- **Changes**:
-  - `refreshAuth()`: Added cookie freshness pre-check (skips Playwright if fresh), `forceFresh` param
-  - 401 retry: Added cookie age logging and >20h warning
-  - `refresh_auth` MCP tool: Returns cookie age/count, actionable error with proxy hint
-- **Verify**: `npm run build` ✅
+- Replaced broken entity name discovery (HTML regex) with known entity list (`spaces`, `clients`)
+- Added `customEntities` parameter for user extensibility
+- Updated MCP `list_databases` tool with `customEntities` param
+- **Verify**: `npm run build` → ✅ clean
 
-### Step 7.5 — Build verification
-- **Result**: Build clean, no errors
+## Step 2 — E2E test database tools
 
----
+- **Files**: `scripts/test-phase89.ts`
+- `listDatabases()` → 2 databases (spaces, clients) ✅
+- `getDatabaseData()` → spaces 3 rows, clients 0 rows ✅
+- `getDatabaseEntity("spaces")` → 3 rows ✅
+- **Verify**: `npx tsx scripts/test-phase89.ts` → 4/4 passed ✅
 
+## Step 3 — Probe `createDatabaseEntity`
+
+- **Files**: `scripts/test-phase89.ts`
+- POST to `/dashboards/{did}/views/{vid}/items` returned 404
+- The create endpoint path is incorrect — needs real API capture
+- Marking `create_database_entity` as experimental
+- **Verify**: `npx tsx scripts/test-phase89.ts` → 4/5 passed (create probe failed as expected)
