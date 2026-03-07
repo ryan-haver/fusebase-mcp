@@ -1242,6 +1242,22 @@ export class FusebaseClient {
     return { success: true, status: res.status, entity };
   }
 
+  /**
+   * Delete a row from a database dashboard.
+   *
+   * Endpoint: DELETE /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/rows/{rowId}
+   * Confirmed via browser intercept — standard REST DELETE, not server actions.
+   */
+  async deleteRow(
+    dashboardId: string,
+    rowId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/rows/${rowId}`,
+      { method: "DELETE" },
+    );
+  }
+
   // ────────────────────────────────────────────────────
   // Database & Dashboard CRUD (dashboard-service REST API)
   // Discovered via Playwright capture + API probing

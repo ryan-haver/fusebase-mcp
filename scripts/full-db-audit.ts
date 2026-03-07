@@ -304,8 +304,20 @@ async function run() {
         skip("Update cell value", nameKey ? "getDatabaseRows failed" : "No name column key");
     }
 
-    // Delete row — uses server actions, not REST
-    notImpl("Delete row", "Uses Next.js server actions, not REST API");
+    // Delete row — delete any row (the audit row we just added)
+    if (getRowsRes.ok) {
+        const rows = (getRowsRes.data as any)?.rows;
+        if (rows?.length > 0) {
+            const lastRow = rows[rows.length - 1];
+            const delRowRes = await tryApi(() => c.deleteRow(dashId, lastRow.rowUuid));
+            delRowRes.ok ? pass("Delete row", lastRow.rowUuid, "delete_database_row")
+                         : fail("Delete row", delRowRes.err, "delete_database_row");
+        } else {
+            skip("Delete row", "No rows to delete");
+        }
+    } else {
+        skip("Delete row", "getDatabaseRows failed");
+    }
 
     // Reorder rows
     notImpl("Reorder rows", "Uses Next.js server actions");
@@ -347,7 +359,7 @@ async function run() {
     // Lookup — needs an existing relation column
     if (relRes.ok) {
         const updatedSchema = await c.getViewSchema(dashId, viewId);
-        const relCol = (updatedSchema as any)?.schema?.find((s: any) => s.name === "Test_relation");
+        const relCol = updatedSchema.columns.find((s) => s.name === "Test_relation");
         if (relCol) {
             const lookupRes = await tryApi(() => c.addLookupColumn(dashId, viewId, "Test_lookup", relCol.key, nameKey));
             lookupRes.ok ? pass("Add column: lookup", undefined, "add_lookup_column")
@@ -361,7 +373,7 @@ async function run() {
 
     // delete_database_column
     const delColSchema = await c.getViewSchema(dashId, viewId);
-    const testCol = (delColSchema as any)?.schema?.find((s: any) => s.name === "Test_text");
+    const testCol = delColSchema.columns.find((s) => s.name === "Test_text");
     if (testCol) {
         const delColRes = await tryApi(() => c.deleteDatabaseColumn(dashId, viewId, testCol.key));
         delColRes.ok ? pass("Delete column", undefined, "delete_database_column")
@@ -372,7 +384,7 @@ async function run() {
 
     // Rename column
     const renamedSchema = await c.getViewSchema(dashId, viewId);
-    const renameTarget = (renamedSchema as any)?.schema?.find((s: any) => s.name === "Test_number");
+    const renameTarget = renamedSchema.columns.find((s) => s.name === "Test_number");
     if (renameTarget) {
         const renameRes = await tryApi(() => c.renameColumn(dashId, viewId, renameTarget.key, "Renamed_Number"));
         renameRes.ok ? pass("Rename column", undefined, "rename_database_column")
@@ -383,7 +395,7 @@ async function run() {
 
     // Reorder columns
     const reorderSchema = await c.getViewSchema(dashId, viewId);
-    const allKeys = (reorderSchema as any)?.schema?.map((s: any) => s.key) || [];
+    const allKeys = reorderSchema.columns.map((s) => s.key) || [];
     if (allKeys.length >= 2) {
         const reversed = [...allKeys].reverse();
         const reorderRes = await tryApi(() => c.reorderColumns(dashId, viewId, reversed));
@@ -393,8 +405,16 @@ async function run() {
         skip("Reorder columns", "Not enough columns");
     }
 
-    // Column width
-    notImpl("Column width adjustment", "Not implemented — stored in view metadata");
+    // Column width (use first test column)
+    const widthSchema = await c.getViewSchema(dashId, viewId);
+    const widthCol = widthSchema.columns.find((s) => s.name === "Test_number" || s.name === "Renamed_Number");
+    if (widthCol) {
+        const setWidthRes = await tryApi(() => c.setColumnWidth(dashId, viewId, widthCol.key, 250));
+        setWidthRes.ok ? pass("Column width adjustment", "250px", "set_column_width")
+                       : fail("Column width adjustment", setWidthRes.err, "set_column_width");
+    } else {
+        skip("Column width adjustment", "No test column found");
+    }
 
     // ════════════════════════════════════════════
     // 8. CSV OPERATIONS
