@@ -2071,6 +2071,28 @@ function registerExtendedTools() {
   );
 
   server.tool(
+    "delete_database_row",
+    "Delete a row from a database. Requires the dashboard ID and the row ID. Use get_database_rows to find row IDs.",
+    {
+      dashboardId: z.string().describe("Dashboard (table) ID"),
+      rowId: z.string().describe("Row ID to delete (from get_database_rows)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ dashboardId, rowId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.deleteRow(dashboardId, rowId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
     "list_all_databases",
     "List all databases in the organization via the dashboard-service REST API. Returns database metadata, dashboard (table) UUIDs, and view UUIDs. More comprehensive than list_databases — returns full database objects with nested dashboards.",
     {
