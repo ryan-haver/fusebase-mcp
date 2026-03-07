@@ -1279,29 +1279,44 @@ export class FusebaseClient {
   }
 
   /**
-   * List all relations for a database.
+   * List available relation targets and existing lookups for a dashboard.
    *
-   * Endpoint: GET /v4/api/proxy/dashboard-service/v1/relations?database_id={id}
+   * Browser-intercepted endpoint:
+   * GET /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/allowed-items?source_view_ids={viewId}&include_possible_lookup_items=true
    */
   async listRelations(
-    databaseId: string,
+    dashboardId: string,
+    viewId?: string,
   ): Promise<{ success: boolean; data: unknown }> {
-    try {
-      const result = await this.request<{ data: unknown }>(
-        `/v4/api/proxy/dashboard-service/v1/relations?database_id=${databaseId}`,
-      );
-      return { success: true, data: result };
-    } catch {
-      // Fallback: try via databases endpoint
-      try {
-        const result = await this.request<{ data: unknown }>(
-          `/v4/api/proxy/dashboard-service/v1/databases/${databaseId}/relations`,
-        );
-        return { success: true, data: result };
-      } catch (e2) {
-        throw e2;
-      }
-    }
+    const qs = viewId
+      ? `?source_view_ids=${viewId}&include_possible_lookup_items=true`
+      : `?include_possible_lookup_items=true`;
+    const result = await this.request<unknown>(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/allowed-items${qs}`,
+    );
+    return { success: true, data: result };
+  }
+
+  /**
+   * Create a new table (dashboard) within a database.
+   *
+   * Browser-intercepted: POST /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/views
+   * Body: { "title": "TableName" }
+   *
+   * Note: In FuseBase, creating a "table" within a database is actually creating a new view
+   * that acts as a separate table tab.
+   */
+  async createDashboardTable(
+    dashboardId: string,
+    title: string,
+  ): Promise<unknown> {
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views`,
+      {
+        method: "POST",
+        body: JSON.stringify({ title }),
+      },
+    );
   }
 
   /**
