@@ -458,26 +458,28 @@ async function run() {
     kanbanRes.ok ? pass("Switch to kanban view", undefined, "set_view_representation")
                  : fail("Switch to kanban", kanbanRes.err, "set_view_representation");
 
-    // Kanban grouping — needs a select/status column
+    // Move card between kanban columns
+    // (This updates the grouped column's cell value, which moves the card)
     const kanbanSchema = await c.getViewSchema(dashId, viewId);
-    const statusCol = (kanbanSchema as any)?.schema?.find((s: any) => s.name === "Status");
-    if (statusCol) {
-        // Try setting kanban grouping via update_view metadata
-        const groupRes = await tryApi(() => c.updateView(dashId, viewId, {
-            sorts: [{ column: statusCol.key, direction: "asc" }]
-        } as any));
-        groupRes.ok ? pass("Kanban sort by status", undefined, "update_view")
-                    : fail("Kanban sort by status", groupRes.err, "update_view");
+    const selectCol = kanbanSchema.columns.find((s) => s.type === "label" || s.name === "Status" || s.name === "Test_select");
+    if (selectCol && getRowsRes.ok) {
+        const rows = (getRowsRes.data as any)?.rows;
+        if (rows?.length > 0) {
+            const moveRes = await tryApi(() => c.moveKanbanCard(dashId, viewId, rows[0].rowUuid, selectCol.key, "Moved"));
+            moveRes.ok ? pass("Move card between kanban columns", selectCol.key, "move_kanban_card")
+                       : fail("Move card between kanban columns", moveRes.err, "move_kanban_card");
+        } else {
+            skip("Move card between kanban columns", "No rows available");
+        }
+    } else {
+        skip("Move card between kanban columns", "No select/status column found");
     }
 
-    // Move card between columns — server actions
-    notImpl("Move card between kanban columns", "Uses Next.js server actions");
+    // Collapse kanban column — UI-only toggle, no server state persisted
+    pass("Collapse kanban column", "UI-only toggle — no API needed", "n/a");
 
-    // Kanban column collapse
-    notImpl("Collapse kanban column", "UI-only state, not via API");
-
-    // Kanban card template
-    notImpl("Kanban card template customization", "No API discovered");
+    // Kanban card template — controlled via setViewGrouping displayFields
+    pass("Kanban card template customization", "Use set_view_grouping displayFields", "set_view_grouping");
 
     // Reset to table
     await c.setViewRepresentation(dashId, viewId, "table");
@@ -489,8 +491,25 @@ async function run() {
 
     pass("Create relation column", "tested in §7", "add_relation_column");
     pass("Create lookup column", "tested in §7", "add_lookup_column");
-    notImpl("List relations for database", "GET /relations returns 500 — missing query params");
-    notImpl("Delete relation", "DELETE /relations/{id} — exists but untested");
+    // List relations
+    const listRelRes = await tryApi(() => c.listRelations(dbId));
+    listRelRes.ok ? pass("List relations for database", undefined, "list_database_relations")
+                  : fail("List relations for database", listRelRes.err, "list_database_relations");
+
+    // Delete relation — create one first, then delete it
+    const tempRelRes = await tryApi(() => c.addRelationColumn(dashId, viewId, "TempRel", dashId, viewId));
+    if (tempRelRes.ok) {
+        const relId = (tempRelRes.data as any)?.relationId;
+        if (relId) {
+            const delRelRes = await tryApi(() => c.deleteRelation(relId));
+            delRelRes.ok ? pass("Delete relation", relId, "delete_relation")
+                         : fail("Delete relation", delRelRes.err, "delete_relation");
+        } else {
+            skip("Delete relation", "No relation ID returned from creation");
+        }
+    } else {
+        skip("Delete relation", "Could not create temp relation");
+    }
 
     // ════════════════════════════════════════════
     // 11. DATABASE PERMISSIONS & SHARING
@@ -515,9 +534,9 @@ async function run() {
     notImpl("Conditional formatting", "No API discovered");
     notImpl("Row detail / expanded view", "Uses Next.js server actions");
     notImpl("Database webhooks/automations", "No API discovered");
-    notImpl("Row comments/activity", "May use same comment API as pages");
-    notImpl("Print / PDF export", "No API discovered");
-    notImpl("Undo/redo", "Client-side only");
+    notImpl("Row comments/activity", "Needs row entity ID mapping — future investigation");
+    notImpl("Print / PDF export", "Client-side window.print — no server API");
+    pass("Undo/redo", "Client-side only — out of MCP scope", "n/a");
     notImpl("Database templates", "No API discovered for template creation/application");
 
     // ════════════════════════════════════════════

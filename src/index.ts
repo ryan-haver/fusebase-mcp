@@ -2093,6 +2093,73 @@ function registerExtendedTools() {
   );
 
   server.tool(
+    "move_kanban_card",
+    "Move a kanban card to a different column by updating the grouped column's cell value. Equivalent to update_database_cell but semantically describes moving a card. Use get_database_schema to find the groupBy column key, and get_database_rows to find the row UUID.",
+    {
+      dashboardId: z.string().describe("Dashboard (table) ID"),
+      viewId: z.string().describe("View ID"),
+      rowId: z.string().describe("Row UUID of the card to move"),
+      groupByColumnKey: z.string().describe("Column key of the kanban grouping column"),
+      newValue: z.string().describe("New value for the grouped column (moves card to that group)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ dashboardId, viewId, rowId, groupByColumnKey, newValue, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.moveKanbanCard(dashboardId, viewId, rowId, groupByColumnKey, newValue);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "list_database_relations",
+    "List all relations defined for a database. Returns relation IDs, types, and linked dashboards. Use this to discover existing relations before creating lookups or deleting relations.",
+    {
+      databaseId: z.string().describe("Database ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ databaseId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.listRelations(databaseId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "delete_relation",
+    "Delete a relation by its ID. This removes the link between two database tables. Use list_database_relations to find relation IDs.",
+    {
+      relationId: z.string().describe("Relation ID to delete"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ relationId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.deleteRelation(relationId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
     "list_all_databases",
     "List all databases in the organization via the dashboard-service REST API. Returns database metadata, dashboard (table) UUIDs, and view UUIDs. More comprehensive than list_databases — returns full database objects with nested dashboards.",
     {

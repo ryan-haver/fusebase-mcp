@@ -1258,6 +1258,66 @@ export class FusebaseClient {
     );
   }
 
+  /**
+   * Move a kanban card to a different column by updating the grouped column's cell value.
+   * This is a convenience wrapper around updateDatabaseCell.
+   *
+   * @param dashboardId - Dashboard (table) ID
+   * @param viewId - View ID
+   * @param rowUuid - Row UUID of the card to move
+   * @param groupByColumnKey - The column key used for kanban grouping
+   * @param newValue - The new value for that column (moves card to that group)
+   */
+  async moveKanbanCard(
+    dashboardId: string,
+    viewId: string,
+    rowUuid: string,
+    groupByColumnKey: string,
+    newValue: unknown,
+  ): Promise<{ success: boolean; message: string; data?: unknown }> {
+    return this.updateDatabaseCell(dashboardId, viewId, rowUuid, groupByColumnKey, newValue);
+  }
+
+  /**
+   * List all relations for a database.
+   *
+   * Endpoint: GET /v4/api/proxy/dashboard-service/v1/relations?database_id={id}
+   */
+  async listRelations(
+    databaseId: string,
+  ): Promise<{ success: boolean; data: unknown }> {
+    try {
+      const result = await this.request<{ data: unknown }>(
+        `/v4/api/proxy/dashboard-service/v1/relations?database_id=${databaseId}`,
+      );
+      return { success: true, data: result };
+    } catch {
+      // Fallback: try via databases endpoint
+      try {
+        const result = await this.request<{ data: unknown }>(
+          `/v4/api/proxy/dashboard-service/v1/databases/${databaseId}/relations`,
+        );
+        return { success: true, data: result };
+      } catch (e2) {
+        throw e2;
+      }
+    }
+  }
+
+  /**
+   * Delete a relation by its ID.
+   *
+   * Endpoint: DELETE /v4/api/proxy/dashboard-service/v1/relations/{relationId}
+   */
+  async deleteRelation(
+    relationId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/relations/${relationId}`,
+      { method: "DELETE" },
+    );
+  }
+
   // ────────────────────────────────────────────────────
   // Database & Dashboard CRUD (dashboard-service REST API)
   // Discovered via Playwright capture + API probing
