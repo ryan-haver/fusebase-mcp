@@ -1011,7 +1011,7 @@ let extendedToolsRegistered = false;
 
 server.tool(
   "set_tool_tier",
-  "Enable extended Fusebase tools for this session. By default only core tools (21) are loaded for performance. Call this with tier 'all' to dynamically register 42 additional tools for admin, analytics, content mutations, file upload, database CRUD, and niche operations.",
+  "Enable extended Fusebase tools for this session. By default only core tools (21) are loaded for performance. Call this with tier 'all' to dynamically register 47 additional tools for admin, analytics, content mutations, file upload, database CRUD, column management, and niche operations.",
   {
     tier: z
       .enum(["all", "core"])
@@ -1025,7 +1025,7 @@ server.tool(
           content: [
             {
               type: "text" as const,
-              text: "Extended tools are already enabled for this session (63 total tools active).",
+              text: "Extended tools are already enabled for this session (68 total tools active).",
             },
           ],
         };
@@ -1035,7 +1035,7 @@ server.tool(
         content: [
           {
             type: "text" as const,
-            text: "Extended tools enabled! 42 additional tools are now available (63 total). New tools: get_page_attachments, list_files, upload_file, download_attachment, get_labels, get_org_usage, get_comment_threads, get_task_description, delete_page, update_page_content, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database, add_database_row, list_all_databases, get_database_detail, update_database, delete_database, get_dashboard_detail, delete_dashboard, update_view, set_view_representation, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
+            text: "Extended tools enabled! 47 additional tools are now available (68 total). New tools: get_page_attachments, list_files, upload_file, download_attachment, get_labels, get_org_usage, get_comment_threads, get_task_description, delete_page, update_page_content, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database, add_database_row, list_all_databases, get_database_detail, update_database, delete_database, get_dashboard_detail, delete_dashboard, update_view, set_view_representation, update_database_cell, get_database_rows, get_database_schema, add_database_column, delete_database_column, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
           },
         ],
       };
@@ -2241,11 +2241,11 @@ function registerExtendedTools() {
 
   server.tool(
     "set_view_representation",
-    "Switch a view's display mode between table and kanban. Kanban view groups rows by a column and displays them as cards. Use get_dashboard_detail to find the dashboard and view UUIDs.",
+    "Switch a view's display mode. Supports 8 types: table (default spreadsheet), kanban (card columns), board, calendar, timeline, gallery, list, grid. Table and kanban use the representations endpoint; the rest use PUT with default_representation_template_id. Use get_dashboard_detail to find dashboard and view UUIDs.",
     {
       dashboardId: z.string().describe("Dashboard UUID"),
       viewId: z.string().describe("View UUID"),
-      representationType: z.enum(["table", "kanban"]).describe("Display mode: 'table' for spreadsheet view, 'kanban' for card/board view"),
+      representationType: z.enum(["table", "kanban", "board", "calendar", "timeline", "gallery", "list", "grid"]).describe("Display mode"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     }, async ({ dashboardId, viewId, representationType, profile }) => {
       const client = getClient(profile);
@@ -2262,7 +2262,278 @@ function registerExtendedTools() {
     },
   );
 
+  server.tool(
+    "duplicate_database",
+    "Duplicate (copy) an entire database, including tables, views, relations, and optionally data. Returns the new database with its UUIDs. Discovered via captured API: POST /databases/copy-from/database.",
+    {
+      sourceDbId: z.string().describe("Global ID of the database to duplicate"),
+      copyData: z.boolean().optional().describe("Copy row data too (default true). Set false for structure-only copy."),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ sourceDbId, copyData, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.duplicateDatabase(sourceDbId, { copyData });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
 
+  server.tool(
+    "create_view",
+    "Create a new view within a dashboard (table). Each view can have its own filters, sorts, grouping, column visibility, and display mode. Use set_view_representation afterwards to change the view type.",
+    {
+      dashboardId: z.string().describe("Dashboard UUID"),
+      name: z.string().optional().describe("View name (defaults to auto-generated name)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ dashboardId, name, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.createView(dashboardId, name);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "delete_view",
+    "Delete a view from a dashboard. Cannot delete the default (first) view. Use get_dashboard_detail to find view UUIDs.",
+    {
+      dashboardId: z.string().describe("Dashboard UUID"),
+      viewId: z.string().describe("View UUID to delete"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ dashboardId, viewId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.deleteView(dashboardId, viewId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "export_csv",
+    "Export a database view as CSV text. Returns the raw CSV content. Supports 5 delimiter options: comma, semicolon, pipe, tab, or caret. Use get_dashboard_detail to find dashboard and view UUIDs.",
+    {
+      dashboardId: z.string().describe("Dashboard UUID"),
+      viewId: z.string().describe("View UUID"),
+      delimiter: z.enum([",", ";", "|", "\t", "^"]).optional().describe("CSV delimiter (default comma)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ dashboardId, viewId, delimiter, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.exportCSV(dashboardId, viewId, delimiter);
+        return {
+          content: [
+            { type: "text" as const, text: result.csv },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+
+  server.tool(
+    "update_database_cell",
+    "Set the value of a specific cell in a database row. Use get_database_rows or get_database_data first to obtain the rowUuid and the column key (short opaque string like 'eoZSNDPy'). The get_database_rows tool returns a schema array mapping column names to keys for easy lookup. Note: rich-text (Description), file, and relation columns may not accept plain string values.",
+    {
+      dashboardId: z.string().describe("Dashboard (table) ID"),
+      viewId: z.string().describe("View ID"),
+      rowUuid: z.string().describe("Row UUID (from get_database_rows or get_database_data response)"),
+      columnKey: z.string().describe("Column key — the short opaque ID for the column (e.g. 'eoZSNDPy'), found in schema returned by get_database_rows"),
+      value: z.string().describe("New cell value as a string"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ dashboardId, viewId, rowUuid, columnKey, value, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.updateDatabaseCell(dashboardId, viewId, rowUuid, columnKey, value);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_database_rows",
+    "Get rows from a database view in a structured format optimised for agent use. Each row includes: rowUuid (needed for update_database_cell), cells (column name → value map), and rawCells (column key → value map). Also returns the schema (column name, key, type) so you can look up the correct column key before calling update_database_cell. Wraps get_database_data with friendly field names.",
+    {
+      dashboardId: z.string().describe("Dashboard (table) ID"),
+      viewId: z.string().describe("View ID"),
+      page: z.number().optional().describe("Page number (default 1)"),
+      limit: z.number().optional().describe("Rows per page (default 50)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ dashboardId, viewId, page, limit, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.getDatabaseRows(dashboardId, viewId, { page, limit });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_database_schema",
+    "Get the column schema for a database view. Returns an array of column definitions with key (opaque 8-char ID, needed for update_database_cell), name (human-readable), type (string, number, date, label, checkbox, etc.), and edit settings. Use this to understand a database's structure before reading or writing cells.",
+    {
+      dashboardId: z.string().describe("Dashboard (table) ID"),
+      viewId: z.string().describe("View ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ dashboardId, viewId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.getViewSchema(dashboardId, viewId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result.columns, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "add_database_column",
+    "Add a new column to a database view. Supported types: string (single-line text), multiline (multi-line text), number, date, label/status/select (with optional custom labels and colors), checkbox/boolean, email, phone, link/url, currency, files, user/assignee (assign org members), subtable/child-table-link (nested table). For relation columns use add_relation_column, for lookup columns use add_lookup_column. Returns the new column's key which is needed for update_database_cell. Use get_database_schema to verify the column was added.",
+    {
+      dashboardId: z.string().describe("Dashboard (table) ID"),
+      viewId: z.string().describe("View ID"),
+      name: z.string().describe("Human-readable column name (e.g. 'Priority', 'Email Address')"),
+      columnType: z.string().describe("Column type: string, multiline, number, date, label, status, select, checkbox, boolean, email, phone, link, url, currency, files, user, assignee, subtable"),
+      labels: z.array(z.object({
+        name: z.string().describe("Label text"),
+        color: z.string().describe("Label color (gray, purple, green, blue, red, yellow, orange, pink)"),
+      })).optional().describe("Custom label options (only for label/status/select type). Defaults to Option 1/2/3."),
+      multiSelect: z.boolean().optional().describe("Allow multiple selections (for label/status/select and user/assignee types). Defaults to false."),
+      description: z.string().optional().describe("Column description (defaults to 'A custom {type} field')"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ dashboardId, viewId, name, columnType, labels, multiSelect, description, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.addDatabaseColumn(dashboardId, viewId, name, columnType, { labels, multiSelect, description });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "delete_database_column",
+    "Delete a column from a database view by its key. Use get_database_schema first to find the column key. This removes the column definition from the schema — existing cell data for that column key will no longer be visible. This action cannot be undone.",
+    {
+      dashboardId: z.string().describe("Dashboard (table) ID"),
+      viewId: z.string().describe("View ID"),
+      columnKey: z.string().describe("Column key to delete (8-char opaque ID from get_database_schema)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ dashboardId, viewId, columnKey, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.deleteDatabaseColumn(dashboardId, viewId, columnKey);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+
+  server.tool(
+    "add_relation_column",
+    "Add a Relation column that links this database to another database table. This creates a cross-database relation (via POST /relations) and adds a lookup-source column. The column shows linked records from the target table. Use get_database_schema on the target table first to get its dashboardId and viewId.",
+    {
+      dashboardId: z.string().describe("Source dashboard (table) ID"),
+      viewId: z.string().describe("Source view ID"),
+      name: z.string().describe("Column name (e.g. 'Related Tasks', 'Linked Projects')"),
+      targetDashboardId: z.string().describe("Target dashboard (table) ID to link to"),
+      targetViewId: z.string().describe("Target view ID to link to"),
+      relationType: z.enum(["many_to_many", "one_to_many", "many_to_one"]).optional().describe("Relation type. Defaults to many_to_many."),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ dashboardId, viewId, name, targetDashboardId, targetViewId, relationType, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.addRelationColumn(dashboardId, viewId, name, targetDashboardId, targetViewId, { relationType: relationType as any });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "add_lookup_column",
+    "Add a Lookup column that displays data from a related table through an existing Relation column. The lookup column is read-only and automatically pulls data from the linked records. You must have an existing relation column first (created via add_relation_column). Use get_database_schema to find the relation column key.",
+    {
+      dashboardId: z.string().describe("Dashboard (table) ID"),
+      viewId: z.string().describe("View ID"),
+      name: z.string().describe("Column name (e.g. 'Project Name', 'Task Status')"),
+      relationColumnKey: z.string().describe("Key of the existing relation column to look through (8-char ID from get_database_schema)"),
+      lookupFieldKey: z.string().optional().describe("Key of the field in the related table to display. If omitted, defaults to the first text column (usually Name)."),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ dashboardId, viewId, name, relationColumnKey, lookupFieldKey, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.addLookupColumn(dashboardId, viewId, name, relationColumnKey, lookupFieldKey);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
 
   server.tool(
     "get_org_limits",
@@ -2371,14 +2642,14 @@ function registerExtendedTools() {
     },
   );
 
-  console.error(`[fusebase] Extended tools registered (46 total)`);
+  console.error(`[fusebase] Extended tools registered (49 total)`);
 }
 
 // Register extended tools at startup if FUSEBASE_TOOLS=all
 if (process.env.FUSEBASE_TOOLS === "all") {
   registerExtendedTools();
 } else {
-  console.error("[fusebase] Running in core mode (21 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 54.");
+  console.error("[fusebase] Running in core mode (21 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 68.");
 }
 
 // ─── Helpers ────────────────────────────────────────────────────

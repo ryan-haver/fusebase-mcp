@@ -1370,6 +1370,36 @@ export class FusebaseClient {
   }
 
   /**
+   * Duplicate (copy) a database including tables, views, relations, and optionally data.
+   *
+   * Endpoint: POST /v4/api/proxy/dashboard-service/v1/databases/copy-from/database?copy_tables=true&copy_views=true&copy_relations=true&copy_data={copyData}&create_default_rows=true
+   * Body: { source_database_id: string }
+   * Returns 201 with the new database.
+   */
+  async duplicateDatabase(
+    sourceDbId: string,
+    options?: { copyData?: boolean },
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data: Record<string, unknown>;
+  }> {
+    const copyData = options?.copyData !== false;
+    const qs = `copy_tables=true&copy_views=true&copy_relations=true&copy_data=${copyData}&create_default_rows=true`;
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/databases/copy-from/database?${qs}`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          global_id: crypto.randomUUID(),
+          source_database_id: sourceDbId,
+          scopes: [{ scope_type: "org", scope_id: this.orgId }],
+        }),
+      },
+    );
+  }
+
+  /**
    * Get detailed information about a dashboard (table within a database).
    * Includes the views array, which lists all custom views for this dashboard.
    *
@@ -1447,23 +1477,926 @@ export class FusebaseClient {
   }
 
   /**
-   * Switch a view's representation between table and kanban.
+   * Switch a view's representation / display mode.
    *
-   * Endpoint: POST /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/views/{viewId}/representations/{type}
-   * Returns 201 on success.
+   * - "table" and "kanban" use: POST .../representations/{type} → 201
+   * - "board", "calendar", "timeline", "gallery", "list", "grid" use:
+   *   PUT .../views/{viewId} with { default_representation_template_id: type } → 200
    */
   async setViewRepresentation(
     dashboardId: string,
     viewId: string,
-    representationType: "table" | "kanban",
+    representationType:
+      | "table"
+      | "kanban"
+      | "board"
+      | "calendar"
+      | "timeline"
+      | "gallery"
+      | "list"
+      | "grid",
   ): Promise<{
     success: boolean;
     message: string;
   }> {
+    if (representationType === "table" || representationType === "kanban") {
+      return this.request(
+        `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/representations/${representationType}`,
+        { method: "POST" },
+      );
+    }
+    // board, calendar, timeline, gallery, list, grid use PUT on the view
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/representations/${representationType}`,
-      { method: "POST" },
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({
+          default_representation_template_id: representationType,
+        }),
+      },
     );
+  }
+
+  /**
+   * Create a new view within a dashboard.
+   *
+   * Endpoint: POST /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/views
+   * Returns 201 with the new view.
+   */
+  async createView(
+    dashboardId: string,
+    name?: string,
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data: { global_id: string; dashboard_id: string; name: string; [key: string]: unknown };
+  }> {
+    // The API requires global_id, name, AND the full column schema.
+    // Fetch schema from the existing default view of this dashboard.
+    const detail = await this.getDashboardDetail(dashboardId);
+    const defaultViewId = detail.data.views?.[0]?.global_id;
+    let schema: unknown = {};
+    if (defaultViewId) {
+      const viewDetail = await this.request<{ success: boolean; data: { schema: unknown } }>(
+        `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${defaultViewId}`,
+      );
+      schema = viewDetail.data?.schema || {};
+    }
+    const body = {
+      global_id: crypto.randomUUID(),
+      name: name || "New View",
+      schema,
+      filters: { logic: "AND", conditions: [] },
+    };
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views`,
+      { method: "POST", body: JSON.stringify(body) },
+    );
+  }
+
+  /**
+   * Delete a view from a dashboard. Cannot delete the default view.
+   *
+   * Endpoint: DELETE /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/views/{viewId}
+   */
+  async deleteView(
+    dashboardId: string,
+    viewId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      { method: "DELETE" },
+    );
+  }
+
+  /**
+   * Export a dashboard view as CSV.
+   *
+   * Endpoint: GET /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/export/csv?view_id={viewId}&delimiter={delimiter}
+   * Supported delimiters: comma (,), semicolon (;), pipe (|), tab (\t), caret (^)
+   * Returns raw CSV text.
+   */
+  async exportCSV(
+    dashboardId: string,
+    viewId: string,
+    delimiter: "," | ";" | "|" | "\t" | "^" = ",",
+  ): Promise<{ success: boolean; csv: string }> {
+    const url = `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/export/csv?view_id=${viewId}&delimiter=${encodeURIComponent(delimiter)}`;
+    const res = await fetch(`${this.baseUrl}${url}`, {
+      headers: { cookie: this.cookie },
+      signal: AbortSignal.timeout(TIMEOUT_GET),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`exportCSV failed: ${res.status} ${text}`);
+    }
+    const csv = await res.text();
+    return { success: true, csv };
+  }
+
+  /**
+   * Get the column schema for a database view.
+   *
+   * Schema is returned by the view detail endpoint, nested under data.schema.items[].
+   * Each item contains: key (opaque 8-char ID), name, source.custom_type, render config,
+   * json_schema, and display/visibility settings.
+   *
+   * Endpoint: GET /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/views/{viewId}
+   */
+  async getViewSchema(
+    dashboardId: string,
+    viewId: string,
+  ): Promise<{
+    columns: Array<{
+      key: string;
+      name: string;
+      type: string;         // source.custom_type (string, date, label, files, number, etc.)
+      editType: string;     // render.edit_type
+      hidden: boolean;
+      readonly: boolean;
+      required: boolean;
+      description: string;
+      metadata: Record<string, unknown>;
+    }>;
+    rawSchema: Record<string, unknown>;
+  }> {
+    const res = await this.request<{ data: Record<string, unknown> }>(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+    );
+    const schema = (res as any)?.data?.schema ?? (res as any)?.schema ?? {};
+    const items: Array<Record<string, unknown>> = (schema as any).items ?? [];
+
+    const columns = items.map((item) => ({
+      key: String(item.key ?? ""),
+      name: String(item.name ?? ""),
+      type: String((item.source as any)?.custom_type ?? (item.source as any)?.type ?? "unknown"),
+      editType: String((item.render as any)?.edit_type ?? "unknown"),
+      hidden: Boolean(item.hidden),
+      readonly: Boolean(item.readonly),
+      required: Boolean(item.required),
+      description: String(item.description ?? ""),
+      metadata: (item.metadata ?? {}) as Record<string, unknown>,
+    }));
+
+    return { columns, rawSchema: schema as Record<string, unknown> };
+  }
+
+  /**
+   * Add a new column to a database view.
+   *
+   * Column management in FuseBase uses PUT /views/{viewId} — the same endpoint
+   * used for renaming views. To add a column, we:
+   * 1. Fetch the current view detail (which contains the full schema)
+   * 2. Generate a new column definition matching the FuseBase schema format
+   * 3. Append it to schema.items[]
+   * 4. PUT the updated schema back to the view
+   *
+   * Supported column types: string, number, date, label, checkbox, currency,
+   * email, phone, link, files
+   */
+  async addDatabaseColumn(
+    dashboardId: string,
+    viewId: string,
+    name: string,
+    columnType: string,
+    options?: {
+      labels?: Array<{ name: string; color: string }>;
+      multiSelect?: boolean;
+      description?: string;
+    },
+  ): Promise<{
+    success: boolean;
+    message: string;
+    column: { key: string; name: string; type: string };
+  }> {
+    // 1. Fetch current view detail
+    const viewRes = await this.request<{ data: Record<string, unknown> }>(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+    );
+    const viewData = (viewRes as any)?.data ?? viewRes;
+    const schema = { ...(viewData.schema ?? {}) };
+    const items: Array<Record<string, unknown>> = [...((schema as any).items ?? [])];
+
+    // 2. Generate a unique 8-char column key (nanoid-style)
+    const KEY_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+    let newKey = "";
+    for (let i = 0; i < 8; i++) {
+      newKey += KEY_CHARS.charAt(Math.floor(Math.random() * KEY_CHARS.length));
+    }
+
+    // 3. Build column definition based on type
+    const colDef = this.buildColumnDefinition(newKey, name, columnType, options);
+    items.push(colDef);
+
+    // 4. PUT updated schema
+    (schema as any).items = items;
+    await this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      { method: "PUT", body: JSON.stringify({ schema }) },
+    );
+
+    return {
+      success: true,
+      message: `Column "${name}" (${columnType}) added with key "${newKey}"`,
+      column: { key: newKey, name, type: columnType },
+    };
+  }
+
+  /**
+   * Delete a column from a database view by its key.
+   *
+   * Works by fetching the current schema, removing the column from items[],
+   * and PUTting the updated schema back.
+   */
+  async deleteDatabaseColumn(
+    dashboardId: string,
+    viewId: string,
+    columnKey: string,
+  ): Promise<{ success: boolean; message: string }> {
+    // 1. Fetch current view detail
+    const viewRes = await this.request<{ data: Record<string, unknown> }>(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+    );
+    const viewData = (viewRes as any)?.data ?? viewRes;
+    const schema = { ...(viewData.schema ?? {}) };
+    const items: Array<Record<string, unknown>> = [...((schema as any).items ?? [])];
+
+    // 2. Find and remove the column
+    const idx = items.findIndex((item) => item.key === columnKey);
+    if (idx === -1) {
+      const available = items.map((i) => `${i.key} (${i.name})`).join(", ");
+      throw new Error(`Column key "${columnKey}" not found. Available: ${available}`);
+    }
+    const removed = items.splice(idx, 1)[0];
+
+    // 3. PUT updated schema
+    (schema as any).items = items;
+    await this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      { method: "PUT", body: JSON.stringify({ schema }) },
+    );
+
+    return {
+      success: true,
+      message: `Column "${removed.name}" (key: ${columnKey}) deleted`,
+    };
+  }
+
+  /**
+   * Add a Relation column to a database view.
+   *
+   * Relations are more complex than simple columns — they require:
+   * 1. POST /v4/api/proxy/dashboard-service/v1/relations to create the relation link
+   * 2. PUT /views/{viewId} to add a lookup-source column referencing the relation
+   *
+   * The relation links this dashboard to a target dashboard (another table).
+   */
+  async addRelationColumn(
+    dashboardId: string,
+    viewId: string,
+    name: string,
+    targetDashboardId: string,
+    targetViewId: string,
+    options?: {
+      relationType?: "many_to_many" | "one_to_many" | "many_to_one";
+    },
+  ): Promise<{
+    success: boolean;
+    message: string;
+    column: { key: string; name: string; type: string };
+    relationId: string;
+  }> {
+    const relationType = options?.relationType ?? "many_to_many";
+
+    // 1. Create the relation via dedicated endpoint
+    const relationRes = await this.request<{ data: { global_id: string } }>(
+      `/v4/api/proxy/dashboard-service/v1/relations`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          source_dashboard_id: dashboardId,
+          target_dashboard_id: targetDashboardId,
+          relation_type: relationType,
+        }),
+      },
+    );
+    const relationId = (relationRes as any)?.data?.global_id ?? (relationRes as any)?.global_id;
+    if (!relationId) {
+      throw new Error(`Failed to create relation: ${JSON.stringify(relationRes)}`);
+    }
+
+    // 2. Get target view schema to find the Name column key
+    const targetViewRes = await this.request<{ data: Record<string, unknown> }>(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${targetDashboardId}/views/${targetViewId}`,
+    );
+    const targetItems: Array<Record<string, unknown>> = ((targetViewRes as any)?.data?.schema?.items ?? []);
+    // Use the first string column (usually "Name") as the lookup field
+    const nameCol = targetItems.find((i: any) => i.source?.custom_type === "string") ?? targetItems[0];
+    const targetItemKey = String(nameCol?.key ?? "");
+
+    // 3. Fetch source view schema and add the relation column
+    const viewRes = await this.request<{ data: Record<string, unknown> }>(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+    );
+    const viewData = (viewRes as any)?.data ?? viewRes;
+    const schema = { ...(viewData.schema ?? {}) };
+    const items: Array<Record<string, unknown>> = [...((schema as any).items ?? [])];
+
+    const KEY_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+    let newKey = "";
+    for (let i = 0; i < 8; i++) newKey += KEY_CHARS.charAt(Math.floor(Math.random() * KEY_CHARS.length));
+
+    // Build the lookup-source column definition that references the relation
+    const colDef = {
+      key: newKey,
+      name,
+      description: "A custom short text field",
+      group_ids: ["lookup"],
+      source: {
+        _type_lookup: true,
+        type: "lookup",
+        selectable: true,
+        relations: [{
+          relation_id: relationId,
+          dashboard_id: targetDashboardId,
+          view_id: targetViewId,
+          item_key: targetItemKey,
+          reverse: false,
+          relation_type: relationType,
+        }],
+      },
+      json_schema: {
+        type: "array",
+        items: {
+          type: "object",
+          required: ["value", "occurrences", "relation"],
+          properties: {
+            value: { type: "string" },
+            relation: {
+              type: "object",
+              required: ["relationId", "dashboardId", "viewId", "itemKey", "reverse", "relationType"],
+              properties: {
+                viewId: { type: "string" },
+                itemKey: { type: "string" },
+                reverse: { type: "boolean" },
+                relationId: { type: "string" },
+                dashboardId: { type: "string" },
+                relationType: { type: "string" },
+              },
+            },
+            errorCode: { type: "string" },
+            occurrences: { type: "number" },
+          },
+          additionalProperties: true,
+        },
+      },
+      render: {
+        is_lookup: true, edit_type: "string-single-line",
+        type: "string", _type_string: true,
+        text_wrap: "truncate", multi_line: false,
+      },
+      hidden: false,
+      readonly: false,
+      unique: false,
+      required: false,
+      async: false,
+      index: {
+        fields: [{ path: "$['{key}']", type: "TEXT", alias: "{key}", options: { sortable: true } }],
+        enabled: true, conditions: "text",
+      },
+      show_mode: { detailed: true, dashboard: true },
+      metadata: {},
+    };
+
+    items.push(colDef);
+    (schema as any).items = items;
+    await this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      { method: "PUT", body: JSON.stringify({ schema }) },
+    );
+
+    return {
+      success: true,
+      message: `Relation column "${name}" added with key "${newKey}", linked to dashboard ${targetDashboardId}`,
+      column: { key: newKey, name, type: "relation" },
+      relationId,
+    };
+  }
+
+  /**
+   * Add a Lookup column to a database view.
+   *
+   * Lookup columns display data from a related table through an existing
+   * relation column. They use source.type = "lookup" with a relations[] array.
+   *
+   * @param relationColumnKey - The key of the existing relation column to look through
+   * @param lookupFieldKey - The key of the field in the related table to display (optional, defaults to Name)
+   */
+  async addLookupColumn(
+    dashboardId: string,
+    viewId: string,
+    name: string,
+    relationColumnKey: string,
+    lookupFieldKey?: string,
+  ): Promise<{
+    success: boolean;
+    message: string;
+    column: { key: string; name: string; type: string };
+  }> {
+    // 1. Fetch current schema and find the relation column
+    const viewRes = await this.request<{ data: Record<string, unknown> }>(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+    );
+    const viewData = (viewRes as any)?.data ?? viewRes;
+    const schema = { ...(viewData.schema ?? {}) };
+    const items: Array<Record<string, unknown>> = [...((schema as any).items ?? [])];
+
+    const relationCol = items.find((i: any) => i.key === relationColumnKey);
+    if (!relationCol) {
+      const available = items.map((i: any) => `${i.key} (${i.name})`).join(", ");
+      throw new Error(`Relation column key "${relationColumnKey}" not found. Available: ${available}`);
+    }
+
+    const relSource = (relationCol as any).source;
+    if (!relSource?.relations?.length) {
+      throw new Error(`Column "${(relationCol as any).name}" is not a relation column (no relations[] in source)`);
+    }
+
+    // 2. Build the lookup column using the relation's config
+    const firstRelation = relSource.relations[0];
+    const targetDashId = firstRelation.dashboard_id;
+    const targetViewId = firstRelation.view_id;
+    const relationType = firstRelation.relation_type;
+    const relationId = firstRelation.relation_id;
+
+    // If lookupFieldKey not provided, find the Name field in the target view
+    let targetItemKey = lookupFieldKey;
+    if (!targetItemKey) {
+      const targetViewRes = await this.request<{ data: Record<string, unknown> }>(
+        `/v4/api/proxy/dashboard-service/v1/dashboards/${targetDashId}/views/${targetViewId}`,
+      );
+      const targetItems: Array<Record<string, unknown>> = ((targetViewRes as any)?.data?.schema?.items ?? []);
+      const nameCol = targetItems.find((i: any) => i.source?.custom_type === "string") ?? targetItems[0];
+      targetItemKey = String(nameCol?.key ?? "");
+    }
+
+    const KEY_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+    let newKey = "";
+    for (let i = 0; i < 8; i++) newKey += KEY_CHARS.charAt(Math.floor(Math.random() * KEY_CHARS.length));
+
+    const lookupDef = {
+      key: newKey,
+      name,
+      description: "A lookup field",
+      group_ids: ["lookup"],
+      source: {
+        _type_lookup: true,
+        type: "lookup",
+        selectable: false,
+        relations: [{
+          relation_id: relationId,
+          dashboard_id: targetDashId,
+          view_id: targetViewId,
+          item_key: targetItemKey,
+          reverse: false,
+          relation_type: relationType,
+        }],
+      },
+      json_schema: {
+        type: "array",
+        items: {
+          type: "object",
+          required: ["value", "occurrences", "relation"],
+          properties: {
+            value: { type: "string" },
+            relation: {
+              type: "object",
+              required: ["relationId", "dashboardId", "viewId", "itemKey", "reverse", "relationType"],
+              properties: {
+                viewId: { type: "string" },
+                itemKey: { type: "string" },
+                reverse: { type: "boolean" },
+                relationId: { type: "string" },
+                dashboardId: { type: "string" },
+                relationType: { type: "string" },
+              },
+            },
+            errorCode: { type: "string" },
+            occurrences: { type: "number" },
+          },
+          additionalProperties: true,
+        },
+      },
+      render: {
+        is_lookup: true, edit_type: "string-single-line",
+        type: "string", _type_string: true,
+        text_wrap: "truncate", multi_line: false,
+      },
+      hidden: false,
+      readonly: true,
+      unique: false,
+      required: false,
+      async: false,
+      index: {
+        fields: [{ path: "$['{key}']", type: "TEXT", alias: "{key}", options: { sortable: true } }],
+        enabled: true, conditions: "text",
+      },
+      show_mode: { detailed: true, dashboard: true },
+      metadata: {},
+    };
+
+    items.push(lookupDef);
+    (schema as any).items = items;
+    await this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      { method: "PUT", body: JSON.stringify({ schema }) },
+    );
+
+    return {
+      success: true,
+      message: `Lookup column "${name}" added with key "${newKey}", looking up field in related table`,
+      column: { key: newKey, name, type: "lookup" },
+    };
+  }
+
+  /**
+   * Build a FuseBase-compatible column definition for a given type.
+   * Based on the schema structure discovered from view detail responses.
+   */
+  private buildColumnDefinition(
+    key: string,
+    name: string,
+    columnType: string,
+    options?: {
+      labels?: Array<{ name: string; color: string }>;
+      multiSelect?: boolean;
+      description?: string;
+    },
+  ): Record<string, unknown> {
+    const base = {
+      key,
+      name,
+      description: options?.description ?? `A custom ${columnType} field`,
+      group_ids: ["custom"],
+      hidden: false,
+      readonly: false,
+      unique: false,
+      required: false,
+      async: false,
+      show_mode: { detailed: true, dashboard: true },
+      metadata: {},
+    };
+
+    switch (columnType) {
+      case "string":
+      case "text":
+        return {
+          ...base,
+          source: { _type_custom: true, type: "custom", custom_type: "string" },
+          json_schema: { type: "string" },
+          render: {
+            is_lookup: false, edit_type: "string-single-line",
+            type: "string", _type_string: true,
+            text_wrap: "truncate", multi_line: false,
+          },
+          index: {
+            fields: [{ path: `$['{key}']`, type: "TEXT", alias: "{key}", options: { sortable: true } }],
+            enabled: true, conditions: "text",
+          },
+        };
+
+      case "multiline":
+      case "description":
+        return {
+          ...base,
+          source: { _type_custom: true, type: "custom", custom_type: "string" },
+          json_schema: { type: "string" },
+          render: {
+            is_lookup: false, edit_type: "string-multi-line",
+            type: "string", _type_string: true,
+            text_wrap: "wrap", multi_line: true,
+          },
+          index: {
+            fields: [{ path: `$['{key}']`, type: "TEXT", alias: "{key}", options: { sortable: true } }],
+            enabled: true, conditions: "text",
+          },
+        };
+
+      case "number":
+        return {
+          ...base,
+          source: { _type_custom: true, type: "custom", custom_type: "number" },
+          json_schema: { type: "number" },
+          render: {
+            is_lookup: false, edit_type: "number",
+            type: "number", _type_number: true,
+          },
+          index: {
+            fields: [{ path: `$['{key}']`, type: "NUMERIC", alias: "{key}", options: { sortable: true } }],
+            enabled: true, conditions: "number",
+          },
+        };
+
+      case "date":
+        return {
+          ...base,
+          source: { _type_custom: true, type: "custom", custom_type: "date" },
+          json_schema: { type: "string", format: "date-time" },
+          render: {
+            is_lookup: false, edit_type: "date",
+            type: "date", _type_date: true,
+            date_render: "auto", date_format: "date",
+            time_format: "24h", time_zone: "UTC",
+          },
+          index: {
+            fields: [{
+              path: `$['{key}_unix']`, type: "NUMERIC", alias: "{key}",
+              source: { path: `$['{key}']`, transform_func: "ISOtoUnixTimestamp" },
+              options: { sortable: true },
+            }],
+            enabled: true, conditions: "date",
+          },
+          transform: { func: "transformDate" },
+        };
+
+      case "label":
+      case "status":
+      case "select":
+        return {
+          ...base,
+          source: { _type_custom: true, type: "custom", custom_type: "label" },
+          json_schema: { type: "array", items: { type: "string" } },
+          render: {
+            is_lookup: false, edit_type: "label",
+            type: "label", _type_label: true,
+            multi_select: options?.multiSelect ?? false,
+            labels: (options?.labels ?? [
+              { nanoid: this.nanoid(), name: "Option 1", color: "gray" },
+              { nanoid: this.nanoid(), name: "Option 2", color: "purple" },
+              { nanoid: this.nanoid(), name: "Option 3", color: "green" },
+            ]).map((l) => ({ nanoid: this.nanoid(), ...l })),
+          },
+          index: {
+            fields: [{ path: `$['{key}'][*]`, type: "TAG", alias: "{key}", options: { sortable: true } }],
+            enabled: true, conditions: "label",
+          },
+        };
+
+      case "checkbox":
+      case "boolean":
+        return {
+          ...base,
+          source: { _type_custom: true, type: "custom", custom_type: "boolean" },
+          json_schema: { type: "boolean" },
+          render: {
+            is_lookup: false, edit_type: "boolean",
+            type: "boolean", _type_boolean: true,
+          },
+          index: {
+            fields: [{ path: `$['{key}']`, type: "TAG", alias: "{key}", options: { sortable: true } }],
+            enabled: true, conditions: "checkbox",
+          },
+        };
+
+      case "email":
+        return {
+          ...base,
+          source: { _type_custom: true, type: "custom", custom_type: "email" },
+          json_schema: { type: "string", format: "email" },
+          render: {
+            is_lookup: false, edit_type: "email",
+            type: "email", _type_email: true,
+          },
+          index: {
+            fields: [{ path: `$['{key}']`, type: "TEXT", alias: "{key}", options: { sortable: true } }],
+            enabled: true, conditions: "text",
+          },
+        };
+
+      case "phone":
+        return {
+          ...base,
+          source: { _type_custom: true, type: "custom", custom_type: "phone" },
+          json_schema: { type: "string" },
+          render: {
+            is_lookup: false, edit_type: "phone",
+            type: "phone", _type_phone: true,
+          },
+          index: {
+            fields: [{ path: `$['{key}']`, type: "TEXT", alias: "{key}", options: { sortable: true } }],
+            enabled: true, conditions: "text",
+          },
+        };
+
+      case "link":
+      case "url":
+        return {
+          ...base,
+          source: { _type_custom: true, type: "custom", custom_type: "link" },
+          json_schema: { type: "string" },
+          render: {
+            is_lookup: false, edit_type: "link",
+            type: "link", _type_link: true,
+          },
+          index: {
+            fields: [{ path: `$['{key}']`, type: "TEXT", alias: "{key}", options: { sortable: true } }],
+            enabled: true, conditions: "text",
+          },
+        };
+
+      case "currency":
+        return {
+          ...base,
+          source: { _type_custom: true, type: "custom", custom_type: "currency" },
+          json_schema: { type: "number" },
+          render: {
+            is_lookup: false, edit_type: "currency",
+            type: "currency", _type_currency: true,
+            currency_code: "USD", currency_symbol: "$",
+          },
+          index: {
+            fields: [{ path: `$['{key}']`, type: "NUMERIC", alias: "{key}", options: { sortable: true } }],
+            enabled: true, conditions: "number",
+          },
+        };
+
+      case "files":
+        return {
+          ...base,
+          source: { _type_custom: true, type: "custom", custom_type: "files" },
+          json_schema: {
+            type: "object",
+            required: ["context", "files"],
+            properties: {
+              files: { type: "array", items: { type: "object", required: ["name", "url"], properties: { url: { type: "string" }, name: { type: "string" }, size: { type: "number" }, type: { type: "string" } } } },
+              context: { type: "object", required: ["workspaceId", "target"], properties: { workspaceId: { type: "string" }, target: { type: "string" } } },
+            },
+          },
+          render: {
+            is_lookup: false, edit_type: "files",
+            type: "files", _type_files: true,
+          },
+          transform: { func: "enrichFileContext" },
+        };
+
+      case "user":
+      case "assignee":
+        return {
+          ...base,
+          source: { _type_custom: true, type: "custom", custom_type: "assignee" },
+          json_schema: { type: "array", items: { type: "string" } },
+          render: {
+            is_lookup: false, edit_type: "assignee",
+            type: "assignee", _type_assignee: true,
+            multi_select: options?.multiSelect ?? false,
+          },
+          index: {
+            fields: [{ path: `$['{key}'][*]`, type: "TAG", alias: "{key}", options: { sortable: true } }],
+            enabled: true, conditions: "array",
+          },
+        };
+
+      case "subtable":
+      case "child-table-link":
+        return {
+          ...base,
+          source: {
+            _type_custom: true, type: "custom", custom_type: "child-table-link",
+            template: { search_in_template_org: true },
+            default_representation_template_id: "table",
+          },
+          json_schema: {
+            type: "object",
+            properties: {
+              title: { type: "string" },
+              childTableId: { type: ["string", "null"] },
+              childTableViewId: { type: ["string", "null"] },
+            },
+          },
+          render: {
+            is_lookup: false, edit_type: "child-table-link",
+            type: "child-table-link", _type_child_table_link: true,
+            required: true,
+          },
+          index: {
+            fields: [{ path: "$['{key}'].title", type: "TEXT", alias: "{key}", options: { sortable: true } }],
+            enabled: true, conditions: "text",
+          },
+        };
+
+      default:
+        // Fallback: treat as string
+        return {
+          ...base,
+          source: { _type_custom: true, type: "custom", custom_type: columnType },
+          json_schema: { type: "string" },
+          render: {
+            is_lookup: false, edit_type: "string-single-line",
+            type: "string", _type_string: true,
+            text_wrap: "truncate", multi_line: false,
+          },
+        };
+    }
+  }
+
+  /** Generate a short nanoid-style ID for label items */
+  private nanoid(length = 8): string {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let id = "";
+    for (let i = 0; i < length; i++) {
+      id += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return id;
+  }
+
+  /**
+   * Update a single cell value in a database row.
+   *
+   * Endpoint: PUT /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/views/{viewId}/data
+   *
+   * The rowUuid and columnKey can be obtained via getDatabaseRows or getDatabaseData.
+   * Column keys are short opaque strings (e.g. "eoZSNDPy") from the database schema.
+   *
+   * Note: Rich-text / relation / file columns may not accept plain string values.
+   */
+  async updateDatabaseCell(
+    dashboardId: string,
+    viewId: string,
+    rowUuid: string,
+    columnKey: string,
+    value: unknown,
+  ): Promise<{ success: boolean; message: string; data?: unknown }> {
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/data`,
+      {
+        method: "PUT",
+        body: JSON.stringify({
+          root_index_key: "rowUuid",
+          root_index_value: rowUuid,
+          item_key: columnKey,
+          data: { value },
+        }),
+      },
+    );
+  }
+
+  /**
+   * Get rows from a database view, formatted for easy agent consumption.
+   *
+   * Each row includes:
+   *   - rowUuid: the row's unique ID (the `root_index_value` field from the API, needed for updateDatabaseCell)
+   *   - cells: flat map of { columnKey: value } — columnKey is an opaque short string like "eoZSNDPy"
+   *
+   * The columnKeys array lists all column keys found in the first row, so the caller
+   * can identify which key to use when calling updateDatabaseCell.
+   *
+   * NOTE: The FuseBase API does not return human-readable column names in the data response.
+   * To see column names alongside keys, use get_database_data which may include schema
+   * in some database configurations.
+   *
+   * @param page - Page number (default 1)
+   * @param limit - Rows per page (default 50)
+   */
+  async getDatabaseRows(
+    dashboardId: string,
+    viewId: string,
+    options: { page?: number; limit?: number } = {},
+  ): Promise<{
+    rows: Array<{
+      rowUuid: string;
+      cells: Record<string, unknown>;  // { columnKey: value }
+    }>;
+    columnKeys: string[];   // column key list from first row
+    meta: { total: number; page: number; limit: number; total_pages: number };
+  }> {
+    const raw = await this.getDatabaseData(dashboardId, viewId, options) as any;
+
+    const dataRows: Array<Record<string, unknown>> = raw.data ?? raw.rows ?? [];
+
+    const rows = dataRows.map((row) => {
+      // The row UUID is stored in the `root_index_value` field
+      const rowUuid = String(row.root_index_value ?? "");
+      const cells: Record<string, unknown> = {};
+
+      for (const [k, v] of Object.entries(row)) {
+        if (k === "root_index_value") continue; // skip the UUID field
+        cells[k] = v;
+      }
+
+      return { rowUuid, cells };
+    });
+
+    // Derive column keys from the first row (if any)
+    const firstRow = dataRows[0];
+    const columnKeys = firstRow
+      ? Object.keys(firstRow).filter(k => k !== "root_index_value")
+      : [];
+
+    const meta = raw.meta ?? {
+      total: rows.length, page: 1, limit: rows.length, total_pages: 1,
+    };
+
+    return { rows, columnKeys, meta };
   }
 
   async getOrgLimits(): Promise<FusebaseOrgLimits> {

@@ -27,7 +27,6 @@ har_write_analysis.txt
 table_har_analysis.txt
 
 # Global Agent Toolkit (not project-specific)
-.agent/
 .gemini/
 
 # Dev/debug scripts (local-only)
