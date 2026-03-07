@@ -1,0 +1,5078 @@
+[
+  {
+    "time": 1772810939983,
+    "label": "schema-snapshot",
+    "method": "GET",
+    "url": "/v4/api/proxy/dashboard-service/v1/dashboards/f8b2f343-b9e6-44e2-baa7-67082a5cd87c/views/15f960ed-469f-4286-91c5-ad6afbec8707",
+    "requestBody": null,
+    "responseStatus": 200,
+    "responseBody": {
+      "success": true,
+      "message": "Dashboard view retrieved successfully",
+      "data": {
+        "global_id": "15f960ed-469f-4286-91c5-ad6afbec8707",
+        "dashboard_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+        "name": "Table 1",
+        "default_view": true,
+        "created_at": "2026-03-06T15:28:19.000Z",
+        "updated_at": "2026-03-06T15:28:19.000Z",
+        "deleted_at": null,
+        "schema": {
+          "root_entity": "custom",
+          "root_index_key": "rowUuid",
+          "items": [
+            {
+              "key": "tB5Lrk1b",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Name",
+              "description": "A custom short text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-single-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "truncate",
+                "multi_line": false
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "WKXqXBRw",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Description",
+              "description": "A custom long text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-multi-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "wrap",
+                "multi_line": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "zOgh2zAL",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "files"
+              },
+              "json_schema": {
+                "type": "object",
+                "required": [
+                  "context",
+                  "files"
+                ],
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "url"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "userId": {
+                          "type": "number"
+                        },
+                        "bucketId": {
+                          "type": "string"
+                        },
+                        "globalId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "storedFileUUID": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "context": {
+                    "type": "object",
+                    "required": [
+                      "workspaceId",
+                      "target"
+                    ],
+                    "properties": {
+                      "pageId": {
+                        "type": "string"
+                      },
+                      "target": {
+                        "type": "string"
+                      },
+                      "blockId": {
+                        "type": "string"
+                      },
+                      "portalId": {
+                        "type": "string"
+                      },
+                      "workspaceId": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "name": "Files",
+              "description": "A custom files field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "files",
+                "type": "files",
+                "_type_files": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "transform": {
+                "func": "enrichFileContext"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "3h-Upwg9",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "date"
+              },
+              "json_schema": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "name": "Date",
+              "description": "A custom date field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "date",
+                "type": "date",
+                "_type_date": true,
+                "date_render": "auto",
+                "date_format": "date",
+                "time_format": "24h",
+                "time_zone": "UTC"
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}_unix']",
+                    "type": "NUMERIC",
+                    "alias": "{key}",
+                    "source": {
+                      "path": "$['{key}']",
+                      "transform_func": "ISOtoUnixTimestamp"
+                    },
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "date"
+              },
+              "transform": {
+                "func": "transformDate"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "asTcXSTA",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "label"
+              },
+              "json_schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "name": "Status",
+              "description": "A custom label field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "label",
+                "type": "label",
+                "_type_label": true,
+                "multi_select": false,
+                "labels": [
+                  {
+                    "nanoid": "rHrX77w5",
+                    "name": "To Do",
+                    "color": "gray"
+                  },
+                  {
+                    "nanoid": "ttYIWAR6",
+                    "name": "In Progress",
+                    "color": "purple"
+                  },
+                  {
+                    "nanoid": "27mB41n_",
+                    "name": "Done",
+                    "color": "green"
+                  }
+                ]
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}'][*]",
+                    "type": "TAG",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "label"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            }
+          ],
+          "sections": [],
+          "data_sections": {
+            "section_type": "view",
+            "section_key": "view"
+          },
+          "metadata": {
+            "version": "1.23.9",
+            "created_at": "2026-03-06T10:09:09.466Z",
+            "updated_at": "2026-03-06T10:09:09.466Z",
+            "migrations": []
+          },
+          "readonly": false
+        },
+        "metadata": {},
+        "filters": {
+          "optional": {
+            "sort": {
+              "by": "viewOrder",
+              "order": "ASC"
+            },
+            "filters": {
+              "logic": "AND",
+              "conditions": []
+            }
+          },
+          "required": {
+            "filters": {
+              "logic": "AND",
+              "conditions": []
+            }
+          }
+        },
+        "dashboard": {
+          "global_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+          "database_id": "fa85dd54-fd65-43d4-8c59-c79b0170db63",
+          "name": "Table 1",
+          "root_entity": "custom",
+          "is_public": false,
+          "views_count": 1
+        },
+        "representations": []
+      }
+    }
+  },
+  {
+    "time": 1772810940141,
+    "label": "view-rep-table",
+    "method": "PUT",
+    "url": "view",
+    "requestBody": {
+      "representation": "table"
+    },
+    "responseStatus": 200,
+    "responseBody": {
+      "success": true,
+      "message": "Dashboard view updated successfully",
+      "data": {
+        "global_id": "15f960ed-469f-4286-91c5-ad6afbec8707",
+        "dashboard_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+        "name": "Table 1",
+        "default_view": true,
+        "created_at": "2026-03-06T15:28:19.000Z",
+        "updated_at": "2026-03-06T15:28:19.000Z",
+        "deleted_at": null,
+        "schema": {
+          "root_entity": "custom",
+          "root_index_key": "rowUuid",
+          "items": [
+            {
+              "key": "tB5Lrk1b",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Name",
+              "description": "A custom short text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-single-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "truncate",
+                "multi_line": false
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "WKXqXBRw",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Description",
+              "description": "A custom long text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-multi-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "wrap",
+                "multi_line": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "zOgh2zAL",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "files"
+              },
+              "json_schema": {
+                "type": "object",
+                "required": [
+                  "context",
+                  "files"
+                ],
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "url"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "userId": {
+                          "type": "number"
+                        },
+                        "bucketId": {
+                          "type": "string"
+                        },
+                        "globalId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "storedFileUUID": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "context": {
+                    "type": "object",
+                    "required": [
+                      "workspaceId",
+                      "target"
+                    ],
+                    "properties": {
+                      "pageId": {
+                        "type": "string"
+                      },
+                      "target": {
+                        "type": "string"
+                      },
+                      "blockId": {
+                        "type": "string"
+                      },
+                      "portalId": {
+                        "type": "string"
+                      },
+                      "workspaceId": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "name": "Files",
+              "description": "A custom files field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "files",
+                "type": "files",
+                "_type_files": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "transform": {
+                "func": "enrichFileContext"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "3h-Upwg9",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "date"
+              },
+              "json_schema": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "name": "Date",
+              "description": "A custom date field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "date",
+                "type": "date",
+                "_type_date": true,
+                "date_render": "auto",
+                "date_format": "date",
+                "time_format": "24h",
+                "time_zone": "UTC"
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}_unix']",
+                    "type": "NUMERIC",
+                    "alias": "{key}",
+                    "source": {
+                      "path": "$['{key}']",
+                      "transform_func": "ISOtoUnixTimestamp"
+                    },
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "date"
+              },
+              "transform": {
+                "func": "transformDate"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "asTcXSTA",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "label"
+              },
+              "json_schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "name": "Status",
+              "description": "A custom label field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "label",
+                "type": "label",
+                "_type_label": true,
+                "multi_select": false,
+                "labels": [
+                  {
+                    "nanoid": "rHrX77w5",
+                    "name": "To Do",
+                    "color": "gray"
+                  },
+                  {
+                    "nanoid": "ttYIWAR6",
+                    "name": "In Progress",
+                    "color": "purple"
+                  },
+                  {
+                    "nanoid": "27mB41n_",
+                    "name": "Done",
+                    "color": "green"
+                  }
+                ]
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}'][*]",
+                    "type": "TAG",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "label"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            }
+          ],
+          "sections": [],
+          "data_sections": {
+            "section_type": "view",
+            "section_key": "view"
+          },
+          "metadata": {
+            "version": "1.23.9",
+            "created_at": "2026-03-06T10:09:09.466Z",
+            "updated_at": "2026-03-06T10:09:09.466Z",
+            "migrations": []
+          },
+          "readonly": false
+        },
+        "metadata": {},
+        "filters": {
+          "optional": {
+            "sort": {
+              "by": "viewOrder",
+              "order": "ASC"
+            }
+          },
+          "required": {}
+        },
+        "dashboard": {
+          "global_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+          "database_id": "fa85dd54-fd65-43d4-8c59-c79b0170db63",
+          "name": "Table 1",
+          "root_entity": "custom",
+          "is_public": false
+        },
+        "representations": []
+      }
+    }
+  },
+  {
+    "time": 1772810940245,
+    "label": "view-rep-board",
+    "method": "PUT",
+    "url": "view",
+    "requestBody": {
+      "representation": "board"
+    },
+    "responseStatus": 200,
+    "responseBody": {
+      "success": true,
+      "message": "Dashboard view updated successfully",
+      "data": {
+        "global_id": "15f960ed-469f-4286-91c5-ad6afbec8707",
+        "dashboard_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+        "name": "Table 1",
+        "default_view": true,
+        "created_at": "2026-03-06T15:28:19.000Z",
+        "updated_at": "2026-03-06T15:28:19.000Z",
+        "deleted_at": null,
+        "schema": {
+          "root_entity": "custom",
+          "root_index_key": "rowUuid",
+          "items": [
+            {
+              "key": "tB5Lrk1b",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Name",
+              "description": "A custom short text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-single-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "truncate",
+                "multi_line": false
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "WKXqXBRw",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Description",
+              "description": "A custom long text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-multi-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "wrap",
+                "multi_line": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "zOgh2zAL",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "files"
+              },
+              "json_schema": {
+                "type": "object",
+                "required": [
+                  "context",
+                  "files"
+                ],
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "url"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "userId": {
+                          "type": "number"
+                        },
+                        "bucketId": {
+                          "type": "string"
+                        },
+                        "globalId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "storedFileUUID": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "context": {
+                    "type": "object",
+                    "required": [
+                      "workspaceId",
+                      "target"
+                    ],
+                    "properties": {
+                      "pageId": {
+                        "type": "string"
+                      },
+                      "target": {
+                        "type": "string"
+                      },
+                      "blockId": {
+                        "type": "string"
+                      },
+                      "portalId": {
+                        "type": "string"
+                      },
+                      "workspaceId": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "name": "Files",
+              "description": "A custom files field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "files",
+                "type": "files",
+                "_type_files": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "transform": {
+                "func": "enrichFileContext"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "3h-Upwg9",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "date"
+              },
+              "json_schema": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "name": "Date",
+              "description": "A custom date field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "date",
+                "type": "date",
+                "_type_date": true,
+                "date_render": "auto",
+                "date_format": "date",
+                "time_format": "24h",
+                "time_zone": "UTC"
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}_unix']",
+                    "type": "NUMERIC",
+                    "alias": "{key}",
+                    "source": {
+                      "path": "$['{key}']",
+                      "transform_func": "ISOtoUnixTimestamp"
+                    },
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "date"
+              },
+              "transform": {
+                "func": "transformDate"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "asTcXSTA",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "label"
+              },
+              "json_schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "name": "Status",
+              "description": "A custom label field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "label",
+                "type": "label",
+                "_type_label": true,
+                "multi_select": false,
+                "labels": [
+                  {
+                    "nanoid": "rHrX77w5",
+                    "name": "To Do",
+                    "color": "gray"
+                  },
+                  {
+                    "nanoid": "ttYIWAR6",
+                    "name": "In Progress",
+                    "color": "purple"
+                  },
+                  {
+                    "nanoid": "27mB41n_",
+                    "name": "Done",
+                    "color": "green"
+                  }
+                ]
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}'][*]",
+                    "type": "TAG",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "label"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            }
+          ],
+          "sections": [],
+          "data_sections": {
+            "section_type": "view",
+            "section_key": "view"
+          },
+          "metadata": {
+            "version": "1.23.9",
+            "created_at": "2026-03-06T10:09:09.466Z",
+            "updated_at": "2026-03-06T10:09:09.466Z",
+            "migrations": []
+          },
+          "readonly": false
+        },
+        "metadata": {},
+        "filters": {
+          "optional": {
+            "sort": {
+              "by": "viewOrder",
+              "order": "ASC"
+            }
+          },
+          "required": {}
+        },
+        "dashboard": {
+          "global_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+          "database_id": "fa85dd54-fd65-43d4-8c59-c79b0170db63",
+          "name": "Table 1",
+          "root_entity": "custom",
+          "is_public": false
+        },
+        "representations": []
+      }
+    }
+  },
+  {
+    "time": 1772810940344,
+    "label": "view-rep-calendar",
+    "method": "PUT",
+    "url": "view",
+    "requestBody": {
+      "representation": "calendar"
+    },
+    "responseStatus": 200,
+    "responseBody": {
+      "success": true,
+      "message": "Dashboard view updated successfully",
+      "data": {
+        "global_id": "15f960ed-469f-4286-91c5-ad6afbec8707",
+        "dashboard_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+        "name": "Table 1",
+        "default_view": true,
+        "created_at": "2026-03-06T15:28:19.000Z",
+        "updated_at": "2026-03-06T15:28:19.000Z",
+        "deleted_at": null,
+        "schema": {
+          "root_entity": "custom",
+          "root_index_key": "rowUuid",
+          "items": [
+            {
+              "key": "tB5Lrk1b",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Name",
+              "description": "A custom short text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-single-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "truncate",
+                "multi_line": false
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "WKXqXBRw",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Description",
+              "description": "A custom long text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-multi-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "wrap",
+                "multi_line": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "zOgh2zAL",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "files"
+              },
+              "json_schema": {
+                "type": "object",
+                "required": [
+                  "context",
+                  "files"
+                ],
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "url"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "userId": {
+                          "type": "number"
+                        },
+                        "bucketId": {
+                          "type": "string"
+                        },
+                        "globalId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "storedFileUUID": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "context": {
+                    "type": "object",
+                    "required": [
+                      "workspaceId",
+                      "target"
+                    ],
+                    "properties": {
+                      "pageId": {
+                        "type": "string"
+                      },
+                      "target": {
+                        "type": "string"
+                      },
+                      "blockId": {
+                        "type": "string"
+                      },
+                      "portalId": {
+                        "type": "string"
+                      },
+                      "workspaceId": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "name": "Files",
+              "description": "A custom files field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "files",
+                "type": "files",
+                "_type_files": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "transform": {
+                "func": "enrichFileContext"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "3h-Upwg9",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "date"
+              },
+              "json_schema": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "name": "Date",
+              "description": "A custom date field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "date",
+                "type": "date",
+                "_type_date": true,
+                "date_render": "auto",
+                "date_format": "date",
+                "time_format": "24h",
+                "time_zone": "UTC"
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}_unix']",
+                    "type": "NUMERIC",
+                    "alias": "{key}",
+                    "source": {
+                      "path": "$['{key}']",
+                      "transform_func": "ISOtoUnixTimestamp"
+                    },
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "date"
+              },
+              "transform": {
+                "func": "transformDate"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "asTcXSTA",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "label"
+              },
+              "json_schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "name": "Status",
+              "description": "A custom label field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "label",
+                "type": "label",
+                "_type_label": true,
+                "multi_select": false,
+                "labels": [
+                  {
+                    "nanoid": "rHrX77w5",
+                    "name": "To Do",
+                    "color": "gray"
+                  },
+                  {
+                    "nanoid": "ttYIWAR6",
+                    "name": "In Progress",
+                    "color": "purple"
+                  },
+                  {
+                    "nanoid": "27mB41n_",
+                    "name": "Done",
+                    "color": "green"
+                  }
+                ]
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}'][*]",
+                    "type": "TAG",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "label"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            }
+          ],
+          "sections": [],
+          "data_sections": {
+            "section_type": "view",
+            "section_key": "view"
+          },
+          "metadata": {
+            "version": "1.23.9",
+            "created_at": "2026-03-06T10:09:09.466Z",
+            "updated_at": "2026-03-06T10:09:09.466Z",
+            "migrations": []
+          },
+          "readonly": false
+        },
+        "metadata": {},
+        "filters": {
+          "optional": {
+            "sort": {
+              "by": "viewOrder",
+              "order": "ASC"
+            }
+          },
+          "required": {}
+        },
+        "dashboard": {
+          "global_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+          "database_id": "fa85dd54-fd65-43d4-8c59-c79b0170db63",
+          "name": "Table 1",
+          "root_entity": "custom",
+          "is_public": false
+        },
+        "representations": []
+      }
+    }
+  },
+  {
+    "time": 1772810940558,
+    "label": "view-rep-timeline",
+    "method": "PUT",
+    "url": "view",
+    "requestBody": {
+      "representation": "timeline"
+    },
+    "responseStatus": 200,
+    "responseBody": {
+      "success": true,
+      "message": "Dashboard view updated successfully",
+      "data": {
+        "global_id": "15f960ed-469f-4286-91c5-ad6afbec8707",
+        "dashboard_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+        "name": "Table 1",
+        "default_view": true,
+        "created_at": "2026-03-06T15:28:19.000Z",
+        "updated_at": "2026-03-06T15:28:19.000Z",
+        "deleted_at": null,
+        "schema": {
+          "root_entity": "custom",
+          "root_index_key": "rowUuid",
+          "items": [
+            {
+              "key": "tB5Lrk1b",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Name",
+              "description": "A custom short text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-single-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "truncate",
+                "multi_line": false
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "WKXqXBRw",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Description",
+              "description": "A custom long text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-multi-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "wrap",
+                "multi_line": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "zOgh2zAL",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "files"
+              },
+              "json_schema": {
+                "type": "object",
+                "required": [
+                  "context",
+                  "files"
+                ],
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "url"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "userId": {
+                          "type": "number"
+                        },
+                        "bucketId": {
+                          "type": "string"
+                        },
+                        "globalId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "storedFileUUID": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "context": {
+                    "type": "object",
+                    "required": [
+                      "workspaceId",
+                      "target"
+                    ],
+                    "properties": {
+                      "pageId": {
+                        "type": "string"
+                      },
+                      "target": {
+                        "type": "string"
+                      },
+                      "blockId": {
+                        "type": "string"
+                      },
+                      "portalId": {
+                        "type": "string"
+                      },
+                      "workspaceId": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "name": "Files",
+              "description": "A custom files field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "files",
+                "type": "files",
+                "_type_files": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "transform": {
+                "func": "enrichFileContext"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "3h-Upwg9",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "date"
+              },
+              "json_schema": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "name": "Date",
+              "description": "A custom date field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "date",
+                "type": "date",
+                "_type_date": true,
+                "date_render": "auto",
+                "date_format": "date",
+                "time_format": "24h",
+                "time_zone": "UTC"
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}_unix']",
+                    "type": "NUMERIC",
+                    "alias": "{key}",
+                    "source": {
+                      "path": "$['{key}']",
+                      "transform_func": "ISOtoUnixTimestamp"
+                    },
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "date"
+              },
+              "transform": {
+                "func": "transformDate"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "asTcXSTA",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "label"
+              },
+              "json_schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "name": "Status",
+              "description": "A custom label field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "label",
+                "type": "label",
+                "_type_label": true,
+                "multi_select": false,
+                "labels": [
+                  {
+                    "nanoid": "rHrX77w5",
+                    "name": "To Do",
+                    "color": "gray"
+                  },
+                  {
+                    "nanoid": "ttYIWAR6",
+                    "name": "In Progress",
+                    "color": "purple"
+                  },
+                  {
+                    "nanoid": "27mB41n_",
+                    "name": "Done",
+                    "color": "green"
+                  }
+                ]
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}'][*]",
+                    "type": "TAG",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "label"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            }
+          ],
+          "sections": [],
+          "data_sections": {
+            "section_type": "view",
+            "section_key": "view"
+          },
+          "metadata": {
+            "version": "1.23.9",
+            "created_at": "2026-03-06T10:09:09.466Z",
+            "updated_at": "2026-03-06T10:09:09.466Z",
+            "migrations": []
+          },
+          "readonly": false
+        },
+        "metadata": {},
+        "filters": {
+          "optional": {
+            "sort": {
+              "by": "viewOrder",
+              "order": "ASC"
+            }
+          },
+          "required": {}
+        },
+        "dashboard": {
+          "global_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+          "database_id": "fa85dd54-fd65-43d4-8c59-c79b0170db63",
+          "name": "Table 1",
+          "root_entity": "custom",
+          "is_public": false
+        },
+        "representations": []
+      }
+    }
+  },
+  {
+    "time": 1772810940777,
+    "label": "view-rep-gallery",
+    "method": "PUT",
+    "url": "view",
+    "requestBody": {
+      "representation": "gallery"
+    },
+    "responseStatus": 200,
+    "responseBody": {
+      "success": true,
+      "message": "Dashboard view updated successfully",
+      "data": {
+        "global_id": "15f960ed-469f-4286-91c5-ad6afbec8707",
+        "dashboard_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+        "name": "Table 1",
+        "default_view": true,
+        "created_at": "2026-03-06T15:28:19.000Z",
+        "updated_at": "2026-03-06T15:28:19.000Z",
+        "deleted_at": null,
+        "schema": {
+          "root_entity": "custom",
+          "root_index_key": "rowUuid",
+          "items": [
+            {
+              "key": "tB5Lrk1b",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Name",
+              "description": "A custom short text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-single-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "truncate",
+                "multi_line": false
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "WKXqXBRw",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Description",
+              "description": "A custom long text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-multi-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "wrap",
+                "multi_line": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "zOgh2zAL",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "files"
+              },
+              "json_schema": {
+                "type": "object",
+                "required": [
+                  "context",
+                  "files"
+                ],
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "url"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "userId": {
+                          "type": "number"
+                        },
+                        "bucketId": {
+                          "type": "string"
+                        },
+                        "globalId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "storedFileUUID": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "context": {
+                    "type": "object",
+                    "required": [
+                      "workspaceId",
+                      "target"
+                    ],
+                    "properties": {
+                      "pageId": {
+                        "type": "string"
+                      },
+                      "target": {
+                        "type": "string"
+                      },
+                      "blockId": {
+                        "type": "string"
+                      },
+                      "portalId": {
+                        "type": "string"
+                      },
+                      "workspaceId": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "name": "Files",
+              "description": "A custom files field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "files",
+                "type": "files",
+                "_type_files": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "transform": {
+                "func": "enrichFileContext"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "3h-Upwg9",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "date"
+              },
+              "json_schema": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "name": "Date",
+              "description": "A custom date field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "date",
+                "type": "date",
+                "_type_date": true,
+                "date_render": "auto",
+                "date_format": "date",
+                "time_format": "24h",
+                "time_zone": "UTC"
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}_unix']",
+                    "type": "NUMERIC",
+                    "alias": "{key}",
+                    "source": {
+                      "path": "$['{key}']",
+                      "transform_func": "ISOtoUnixTimestamp"
+                    },
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "date"
+              },
+              "transform": {
+                "func": "transformDate"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "asTcXSTA",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "label"
+              },
+              "json_schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "name": "Status",
+              "description": "A custom label field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "label",
+                "type": "label",
+                "_type_label": true,
+                "multi_select": false,
+                "labels": [
+                  {
+                    "nanoid": "rHrX77w5",
+                    "name": "To Do",
+                    "color": "gray"
+                  },
+                  {
+                    "nanoid": "ttYIWAR6",
+                    "name": "In Progress",
+                    "color": "purple"
+                  },
+                  {
+                    "nanoid": "27mB41n_",
+                    "name": "Done",
+                    "color": "green"
+                  }
+                ]
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}'][*]",
+                    "type": "TAG",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "label"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            }
+          ],
+          "sections": [],
+          "data_sections": {
+            "section_type": "view",
+            "section_key": "view"
+          },
+          "metadata": {
+            "version": "1.23.9",
+            "created_at": "2026-03-06T10:09:09.466Z",
+            "updated_at": "2026-03-06T10:09:09.466Z",
+            "migrations": []
+          },
+          "readonly": false
+        },
+        "metadata": {},
+        "filters": {
+          "optional": {
+            "sort": {
+              "by": "viewOrder",
+              "order": "ASC"
+            }
+          },
+          "required": {}
+        },
+        "dashboard": {
+          "global_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+          "database_id": "fa85dd54-fd65-43d4-8c59-c79b0170db63",
+          "name": "Table 1",
+          "root_entity": "custom",
+          "is_public": false
+        },
+        "representations": []
+      }
+    }
+  },
+  {
+    "time": 1772810940879,
+    "label": "view-rep-kanban",
+    "method": "PUT",
+    "url": "view",
+    "requestBody": {
+      "representation": "kanban"
+    },
+    "responseStatus": 200,
+    "responseBody": {
+      "success": true,
+      "message": "Dashboard view updated successfully",
+      "data": {
+        "global_id": "15f960ed-469f-4286-91c5-ad6afbec8707",
+        "dashboard_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+        "name": "Table 1",
+        "default_view": true,
+        "created_at": "2026-03-06T15:28:19.000Z",
+        "updated_at": "2026-03-06T15:28:19.000Z",
+        "deleted_at": null,
+        "schema": {
+          "root_entity": "custom",
+          "root_index_key": "rowUuid",
+          "items": [
+            {
+              "key": "tB5Lrk1b",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Name",
+              "description": "A custom short text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-single-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "truncate",
+                "multi_line": false
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "WKXqXBRw",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Description",
+              "description": "A custom long text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-multi-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "wrap",
+                "multi_line": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "zOgh2zAL",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "files"
+              },
+              "json_schema": {
+                "type": "object",
+                "required": [
+                  "context",
+                  "files"
+                ],
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "url"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "userId": {
+                          "type": "number"
+                        },
+                        "bucketId": {
+                          "type": "string"
+                        },
+                        "globalId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "storedFileUUID": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "context": {
+                    "type": "object",
+                    "required": [
+                      "workspaceId",
+                      "target"
+                    ],
+                    "properties": {
+                      "pageId": {
+                        "type": "string"
+                      },
+                      "target": {
+                        "type": "string"
+                      },
+                      "blockId": {
+                        "type": "string"
+                      },
+                      "portalId": {
+                        "type": "string"
+                      },
+                      "workspaceId": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "name": "Files",
+              "description": "A custom files field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "files",
+                "type": "files",
+                "_type_files": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "transform": {
+                "func": "enrichFileContext"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "3h-Upwg9",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "date"
+              },
+              "json_schema": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "name": "Date",
+              "description": "A custom date field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "date",
+                "type": "date",
+                "_type_date": true,
+                "date_render": "auto",
+                "date_format": "date",
+                "time_format": "24h",
+                "time_zone": "UTC"
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}_unix']",
+                    "type": "NUMERIC",
+                    "alias": "{key}",
+                    "source": {
+                      "path": "$['{key}']",
+                      "transform_func": "ISOtoUnixTimestamp"
+                    },
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "date"
+              },
+              "transform": {
+                "func": "transformDate"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "asTcXSTA",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "label"
+              },
+              "json_schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "name": "Status",
+              "description": "A custom label field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "label",
+                "type": "label",
+                "_type_label": true,
+                "multi_select": false,
+                "labels": [
+                  {
+                    "nanoid": "rHrX77w5",
+                    "name": "To Do",
+                    "color": "gray"
+                  },
+                  {
+                    "nanoid": "ttYIWAR6",
+                    "name": "In Progress",
+                    "color": "purple"
+                  },
+                  {
+                    "nanoid": "27mB41n_",
+                    "name": "Done",
+                    "color": "green"
+                  }
+                ]
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}'][*]",
+                    "type": "TAG",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "label"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            }
+          ],
+          "sections": [],
+          "data_sections": {
+            "section_type": "view",
+            "section_key": "view"
+          },
+          "metadata": {
+            "version": "1.23.9",
+            "created_at": "2026-03-06T10:09:09.466Z",
+            "updated_at": "2026-03-06T10:09:09.466Z",
+            "migrations": []
+          },
+          "readonly": false
+        },
+        "metadata": {},
+        "filters": {
+          "optional": {
+            "sort": {
+              "by": "viewOrder",
+              "order": "ASC"
+            }
+          },
+          "required": {}
+        },
+        "dashboard": {
+          "global_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+          "database_id": "fa85dd54-fd65-43d4-8c59-c79b0170db63",
+          "name": "Table 1",
+          "root_entity": "custom",
+          "is_public": false
+        },
+        "representations": []
+      }
+    }
+  },
+  {
+    "time": 1772810941102,
+    "label": "view-rep-list",
+    "method": "PUT",
+    "url": "view",
+    "requestBody": {
+      "representation": "list"
+    },
+    "responseStatus": 200,
+    "responseBody": {
+      "success": true,
+      "message": "Dashboard view updated successfully",
+      "data": {
+        "global_id": "15f960ed-469f-4286-91c5-ad6afbec8707",
+        "dashboard_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+        "name": "Table 1",
+        "default_view": true,
+        "created_at": "2026-03-06T15:28:19.000Z",
+        "updated_at": "2026-03-06T15:28:19.000Z",
+        "deleted_at": null,
+        "schema": {
+          "root_entity": "custom",
+          "root_index_key": "rowUuid",
+          "items": [
+            {
+              "key": "tB5Lrk1b",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Name",
+              "description": "A custom short text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-single-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "truncate",
+                "multi_line": false
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "WKXqXBRw",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Description",
+              "description": "A custom long text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-multi-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "wrap",
+                "multi_line": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "zOgh2zAL",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "files"
+              },
+              "json_schema": {
+                "type": "object",
+                "required": [
+                  "context",
+                  "files"
+                ],
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "url"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "userId": {
+                          "type": "number"
+                        },
+                        "bucketId": {
+                          "type": "string"
+                        },
+                        "globalId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "storedFileUUID": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "context": {
+                    "type": "object",
+                    "required": [
+                      "workspaceId",
+                      "target"
+                    ],
+                    "properties": {
+                      "pageId": {
+                        "type": "string"
+                      },
+                      "target": {
+                        "type": "string"
+                      },
+                      "blockId": {
+                        "type": "string"
+                      },
+                      "portalId": {
+                        "type": "string"
+                      },
+                      "workspaceId": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "name": "Files",
+              "description": "A custom files field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "files",
+                "type": "files",
+                "_type_files": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "transform": {
+                "func": "enrichFileContext"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "3h-Upwg9",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "date"
+              },
+              "json_schema": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "name": "Date",
+              "description": "A custom date field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "date",
+                "type": "date",
+                "_type_date": true,
+                "date_render": "auto",
+                "date_format": "date",
+                "time_format": "24h",
+                "time_zone": "UTC"
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}_unix']",
+                    "type": "NUMERIC",
+                    "alias": "{key}",
+                    "source": {
+                      "path": "$['{key}']",
+                      "transform_func": "ISOtoUnixTimestamp"
+                    },
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "date"
+              },
+              "transform": {
+                "func": "transformDate"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "asTcXSTA",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "label"
+              },
+              "json_schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "name": "Status",
+              "description": "A custom label field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "label",
+                "type": "label",
+                "_type_label": true,
+                "multi_select": false,
+                "labels": [
+                  {
+                    "nanoid": "rHrX77w5",
+                    "name": "To Do",
+                    "color": "gray"
+                  },
+                  {
+                    "nanoid": "ttYIWAR6",
+                    "name": "In Progress",
+                    "color": "purple"
+                  },
+                  {
+                    "nanoid": "27mB41n_",
+                    "name": "Done",
+                    "color": "green"
+                  }
+                ]
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}'][*]",
+                    "type": "TAG",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "label"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            }
+          ],
+          "sections": [],
+          "data_sections": {
+            "section_type": "view",
+            "section_key": "view"
+          },
+          "metadata": {
+            "version": "1.23.9",
+            "created_at": "2026-03-06T10:09:09.466Z",
+            "updated_at": "2026-03-06T10:09:09.466Z",
+            "migrations": []
+          },
+          "readonly": false
+        },
+        "metadata": {},
+        "filters": {
+          "optional": {
+            "sort": {
+              "by": "viewOrder",
+              "order": "ASC"
+            }
+          },
+          "required": {}
+        },
+        "dashboard": {
+          "global_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+          "database_id": "fa85dd54-fd65-43d4-8c59-c79b0170db63",
+          "name": "Table 1",
+          "root_entity": "custom",
+          "is_public": false
+        },
+        "representations": []
+      }
+    }
+  },
+  {
+    "time": 1772810941318,
+    "label": "view-rep-grid",
+    "method": "PUT",
+    "url": "view",
+    "requestBody": {
+      "representation": "grid"
+    },
+    "responseStatus": 200,
+    "responseBody": {
+      "success": true,
+      "message": "Dashboard view updated successfully",
+      "data": {
+        "global_id": "15f960ed-469f-4286-91c5-ad6afbec8707",
+        "dashboard_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+        "name": "Table 1",
+        "default_view": true,
+        "created_at": "2026-03-06T15:28:19.000Z",
+        "updated_at": "2026-03-06T15:28:19.000Z",
+        "deleted_at": null,
+        "schema": {
+          "root_entity": "custom",
+          "root_index_key": "rowUuid",
+          "items": [
+            {
+              "key": "tB5Lrk1b",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Name",
+              "description": "A custom short text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-single-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "truncate",
+                "multi_line": false
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "WKXqXBRw",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Description",
+              "description": "A custom long text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-multi-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "wrap",
+                "multi_line": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "zOgh2zAL",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "files"
+              },
+              "json_schema": {
+                "type": "object",
+                "required": [
+                  "context",
+                  "files"
+                ],
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "url"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "userId": {
+                          "type": "number"
+                        },
+                        "bucketId": {
+                          "type": "string"
+                        },
+                        "globalId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "storedFileUUID": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "context": {
+                    "type": "object",
+                    "required": [
+                      "workspaceId",
+                      "target"
+                    ],
+                    "properties": {
+                      "pageId": {
+                        "type": "string"
+                      },
+                      "target": {
+                        "type": "string"
+                      },
+                      "blockId": {
+                        "type": "string"
+                      },
+                      "portalId": {
+                        "type": "string"
+                      },
+                      "workspaceId": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "name": "Files",
+              "description": "A custom files field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "files",
+                "type": "files",
+                "_type_files": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "transform": {
+                "func": "enrichFileContext"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "3h-Upwg9",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "date"
+              },
+              "json_schema": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "name": "Date",
+              "description": "A custom date field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "date",
+                "type": "date",
+                "_type_date": true,
+                "date_render": "auto",
+                "date_format": "date",
+                "time_format": "24h",
+                "time_zone": "UTC"
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}_unix']",
+                    "type": "NUMERIC",
+                    "alias": "{key}",
+                    "source": {
+                      "path": "$['{key}']",
+                      "transform_func": "ISOtoUnixTimestamp"
+                    },
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "date"
+              },
+              "transform": {
+                "func": "transformDate"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "asTcXSTA",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "label"
+              },
+              "json_schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "name": "Status",
+              "description": "A custom label field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "label",
+                "type": "label",
+                "_type_label": true,
+                "multi_select": false,
+                "labels": [
+                  {
+                    "nanoid": "rHrX77w5",
+                    "name": "To Do",
+                    "color": "gray"
+                  },
+                  {
+                    "nanoid": "ttYIWAR6",
+                    "name": "In Progress",
+                    "color": "purple"
+                  },
+                  {
+                    "nanoid": "27mB41n_",
+                    "name": "Done",
+                    "color": "green"
+                  }
+                ]
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}'][*]",
+                    "type": "TAG",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "label"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            }
+          ],
+          "sections": [],
+          "data_sections": {
+            "section_type": "view",
+            "section_key": "view"
+          },
+          "metadata": {
+            "version": "1.23.9",
+            "created_at": "2026-03-06T10:09:09.466Z",
+            "updated_at": "2026-03-06T10:09:09.466Z",
+            "migrations": []
+          },
+          "readonly": false
+        },
+        "metadata": {},
+        "filters": {
+          "optional": {
+            "sort": {
+              "by": "viewOrder",
+              "order": "ASC"
+            }
+          },
+          "required": {}
+        },
+        "dashboard": {
+          "global_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+          "database_id": "fa85dd54-fd65-43d4-8c59-c79b0170db63",
+          "name": "Table 1",
+          "root_entity": "custom",
+          "is_public": false
+        },
+        "representations": []
+      }
+    }
+  },
+  {
+    "time": 1772810941653,
+    "label": "create-view",
+    "method": "POST",
+    "url": "/dashboards/f8b2f343-b9e6-44e2-baa7-67082a5cd87c/views",
+    "requestBody": {
+      "name": "Board View",
+      "representation": "board"
+    },
+    "responseStatus": 500,
+    "responseBody": {
+      "name": "Error",
+      "message": "global_id is required"
+    }
+  },
+  {
+    "time": 1772810941752,
+    "label": "sort",
+    "method": "PUT",
+    "url": "view",
+    "requestBody": {
+      "sort": {
+        "items": [
+          {
+            "key": "tB5Lrk1b",
+            "direction": "asc"
+          }
+        ]
+      }
+    },
+    "responseStatus": 200,
+    "responseBody": {
+      "success": true,
+      "message": "Dashboard view updated successfully",
+      "data": {
+        "global_id": "15f960ed-469f-4286-91c5-ad6afbec8707",
+        "dashboard_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+        "name": "Table 1",
+        "default_view": true,
+        "created_at": "2026-03-06T15:28:19.000Z",
+        "updated_at": "2026-03-06T15:28:19.000Z",
+        "deleted_at": null,
+        "schema": {
+          "root_entity": "custom",
+          "root_index_key": "rowUuid",
+          "items": [
+            {
+              "key": "tB5Lrk1b",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Name",
+              "description": "A custom short text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-single-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "truncate",
+                "multi_line": false
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "WKXqXBRw",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Description",
+              "description": "A custom long text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-multi-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "wrap",
+                "multi_line": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "zOgh2zAL",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "files"
+              },
+              "json_schema": {
+                "type": "object",
+                "required": [
+                  "context",
+                  "files"
+                ],
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "url"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "userId": {
+                          "type": "number"
+                        },
+                        "bucketId": {
+                          "type": "string"
+                        },
+                        "globalId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "storedFileUUID": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "context": {
+                    "type": "object",
+                    "required": [
+                      "workspaceId",
+                      "target"
+                    ],
+                    "properties": {
+                      "pageId": {
+                        "type": "string"
+                      },
+                      "target": {
+                        "type": "string"
+                      },
+                      "blockId": {
+                        "type": "string"
+                      },
+                      "portalId": {
+                        "type": "string"
+                      },
+                      "workspaceId": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "name": "Files",
+              "description": "A custom files field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "files",
+                "type": "files",
+                "_type_files": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "transform": {
+                "func": "enrichFileContext"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "3h-Upwg9",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "date"
+              },
+              "json_schema": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "name": "Date",
+              "description": "A custom date field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "date",
+                "type": "date",
+                "_type_date": true,
+                "date_render": "auto",
+                "date_format": "date",
+                "time_format": "24h",
+                "time_zone": "UTC"
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}_unix']",
+                    "type": "NUMERIC",
+                    "alias": "{key}",
+                    "source": {
+                      "path": "$['{key}']",
+                      "transform_func": "ISOtoUnixTimestamp"
+                    },
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "date"
+              },
+              "transform": {
+                "func": "transformDate"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "asTcXSTA",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "label"
+              },
+              "json_schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "name": "Status",
+              "description": "A custom label field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "label",
+                "type": "label",
+                "_type_label": true,
+                "multi_select": false,
+                "labels": [
+                  {
+                    "nanoid": "rHrX77w5",
+                    "name": "To Do",
+                    "color": "gray"
+                  },
+                  {
+                    "nanoid": "ttYIWAR6",
+                    "name": "In Progress",
+                    "color": "purple"
+                  },
+                  {
+                    "nanoid": "27mB41n_",
+                    "name": "Done",
+                    "color": "green"
+                  }
+                ]
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}'][*]",
+                    "type": "TAG",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "label"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            }
+          ],
+          "sections": [],
+          "data_sections": {
+            "section_type": "view",
+            "section_key": "view"
+          },
+          "metadata": {
+            "version": "1.23.9",
+            "created_at": "2026-03-06T10:09:09.466Z",
+            "updated_at": "2026-03-06T10:09:09.466Z",
+            "migrations": []
+          },
+          "readonly": false
+        },
+        "metadata": {},
+        "filters": {
+          "optional": {
+            "sort": {
+              "by": "viewOrder",
+              "order": "ASC"
+            }
+          },
+          "required": {}
+        },
+        "dashboard": {
+          "global_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+          "database_id": "fa85dd54-fd65-43d4-8c59-c79b0170db63",
+          "name": "Table 1",
+          "root_entity": "custom",
+          "is_public": false
+        },
+        "representations": []
+      }
+    }
+  },
+  {
+    "time": 1772810941853,
+    "label": "filter",
+    "method": "PUT",
+    "url": "view",
+    "requestBody": {
+      "filter": {
+        "operator": "and",
+        "items": [
+          {
+            "key": "tB5Lrk1b",
+            "condition": "is_not_empty"
+          }
+        ]
+      }
+    },
+    "responseStatus": 200,
+    "responseBody": {
+      "success": true,
+      "message": "Dashboard view updated successfully",
+      "data": {
+        "global_id": "15f960ed-469f-4286-91c5-ad6afbec8707",
+        "dashboard_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+        "name": "Table 1",
+        "default_view": true,
+        "created_at": "2026-03-06T15:28:19.000Z",
+        "updated_at": "2026-03-06T15:28:19.000Z",
+        "deleted_at": null,
+        "schema": {
+          "root_entity": "custom",
+          "root_index_key": "rowUuid",
+          "items": [
+            {
+              "key": "tB5Lrk1b",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Name",
+              "description": "A custom short text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-single-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "truncate",
+                "multi_line": false
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "WKXqXBRw",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Description",
+              "description": "A custom long text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-multi-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "wrap",
+                "multi_line": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "zOgh2zAL",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "files"
+              },
+              "json_schema": {
+                "type": "object",
+                "required": [
+                  "context",
+                  "files"
+                ],
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "url"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "userId": {
+                          "type": "number"
+                        },
+                        "bucketId": {
+                          "type": "string"
+                        },
+                        "globalId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "storedFileUUID": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "context": {
+                    "type": "object",
+                    "required": [
+                      "workspaceId",
+                      "target"
+                    ],
+                    "properties": {
+                      "pageId": {
+                        "type": "string"
+                      },
+                      "target": {
+                        "type": "string"
+                      },
+                      "blockId": {
+                        "type": "string"
+                      },
+                      "portalId": {
+                        "type": "string"
+                      },
+                      "workspaceId": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "name": "Files",
+              "description": "A custom files field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "files",
+                "type": "files",
+                "_type_files": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "transform": {
+                "func": "enrichFileContext"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "3h-Upwg9",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "date"
+              },
+              "json_schema": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "name": "Date",
+              "description": "A custom date field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "date",
+                "type": "date",
+                "_type_date": true,
+                "date_render": "auto",
+                "date_format": "date",
+                "time_format": "24h",
+                "time_zone": "UTC"
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}_unix']",
+                    "type": "NUMERIC",
+                    "alias": "{key}",
+                    "source": {
+                      "path": "$['{key}']",
+                      "transform_func": "ISOtoUnixTimestamp"
+                    },
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "date"
+              },
+              "transform": {
+                "func": "transformDate"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "asTcXSTA",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "label"
+              },
+              "json_schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "name": "Status",
+              "description": "A custom label field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "label",
+                "type": "label",
+                "_type_label": true,
+                "multi_select": false,
+                "labels": [
+                  {
+                    "nanoid": "rHrX77w5",
+                    "name": "To Do",
+                    "color": "gray"
+                  },
+                  {
+                    "nanoid": "ttYIWAR6",
+                    "name": "In Progress",
+                    "color": "purple"
+                  },
+                  {
+                    "nanoid": "27mB41n_",
+                    "name": "Done",
+                    "color": "green"
+                  }
+                ]
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}'][*]",
+                    "type": "TAG",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "label"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            }
+          ],
+          "sections": [],
+          "data_sections": {
+            "section_type": "view",
+            "section_key": "view"
+          },
+          "metadata": {
+            "version": "1.23.9",
+            "created_at": "2026-03-06T10:09:09.466Z",
+            "updated_at": "2026-03-06T10:09:09.466Z",
+            "migrations": []
+          },
+          "readonly": false
+        },
+        "metadata": {},
+        "filters": {
+          "optional": {
+            "sort": {
+              "by": "viewOrder",
+              "order": "ASC"
+            }
+          },
+          "required": {}
+        },
+        "dashboard": {
+          "global_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+          "database_id": "fa85dd54-fd65-43d4-8c59-c79b0170db63",
+          "name": "Table 1",
+          "root_entity": "custom",
+          "is_public": false
+        },
+        "representations": []
+      }
+    }
+  },
+  {
+    "time": 1772810941952,
+    "label": "group",
+    "method": "PUT",
+    "url": "view",
+    "requestBody": {
+      "group": {
+        "items": [
+          {
+            "key": "asTcXSTA"
+          }
+        ]
+      }
+    },
+    "responseStatus": 200,
+    "responseBody": {
+      "success": true,
+      "message": "Dashboard view updated successfully",
+      "data": {
+        "global_id": "15f960ed-469f-4286-91c5-ad6afbec8707",
+        "dashboard_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+        "name": "Table 1",
+        "default_view": true,
+        "created_at": "2026-03-06T15:28:19.000Z",
+        "updated_at": "2026-03-06T15:28:19.000Z",
+        "deleted_at": null,
+        "schema": {
+          "root_entity": "custom",
+          "root_index_key": "rowUuid",
+          "items": [
+            {
+              "key": "tB5Lrk1b",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Name",
+              "description": "A custom short text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-single-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "truncate",
+                "multi_line": false
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "WKXqXBRw",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Description",
+              "description": "A custom long text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-multi-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "wrap",
+                "multi_line": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "zOgh2zAL",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "files"
+              },
+              "json_schema": {
+                "type": "object",
+                "required": [
+                  "context",
+                  "files"
+                ],
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "url"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "userId": {
+                          "type": "number"
+                        },
+                        "bucketId": {
+                          "type": "string"
+                        },
+                        "globalId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "storedFileUUID": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "context": {
+                    "type": "object",
+                    "required": [
+                      "workspaceId",
+                      "target"
+                    ],
+                    "properties": {
+                      "pageId": {
+                        "type": "string"
+                      },
+                      "target": {
+                        "type": "string"
+                      },
+                      "blockId": {
+                        "type": "string"
+                      },
+                      "portalId": {
+                        "type": "string"
+                      },
+                      "workspaceId": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "name": "Files",
+              "description": "A custom files field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "files",
+                "type": "files",
+                "_type_files": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "transform": {
+                "func": "enrichFileContext"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "3h-Upwg9",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "date"
+              },
+              "json_schema": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "name": "Date",
+              "description": "A custom date field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "date",
+                "type": "date",
+                "_type_date": true,
+                "date_render": "auto",
+                "date_format": "date",
+                "time_format": "24h",
+                "time_zone": "UTC"
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}_unix']",
+                    "type": "NUMERIC",
+                    "alias": "{key}",
+                    "source": {
+                      "path": "$['{key}']",
+                      "transform_func": "ISOtoUnixTimestamp"
+                    },
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "date"
+              },
+              "transform": {
+                "func": "transformDate"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "asTcXSTA",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "label"
+              },
+              "json_schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "name": "Status",
+              "description": "A custom label field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "label",
+                "type": "label",
+                "_type_label": true,
+                "multi_select": false,
+                "labels": [
+                  {
+                    "nanoid": "rHrX77w5",
+                    "name": "To Do",
+                    "color": "gray"
+                  },
+                  {
+                    "nanoid": "ttYIWAR6",
+                    "name": "In Progress",
+                    "color": "purple"
+                  },
+                  {
+                    "nanoid": "27mB41n_",
+                    "name": "Done",
+                    "color": "green"
+                  }
+                ]
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}'][*]",
+                    "type": "TAG",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "label"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            }
+          ],
+          "sections": [],
+          "data_sections": {
+            "section_type": "view",
+            "section_key": "view"
+          },
+          "metadata": {
+            "version": "1.23.9",
+            "created_at": "2026-03-06T10:09:09.466Z",
+            "updated_at": "2026-03-06T10:09:09.466Z",
+            "migrations": []
+          },
+          "readonly": false
+        },
+        "metadata": {},
+        "filters": {
+          "optional": {
+            "sort": {
+              "by": "viewOrder",
+              "order": "ASC"
+            }
+          },
+          "required": {}
+        },
+        "dashboard": {
+          "global_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+          "database_id": "fa85dd54-fd65-43d4-8c59-c79b0170db63",
+          "name": "Table 1",
+          "root_entity": "custom",
+          "is_public": false
+        },
+        "representations": []
+      }
+    }
+  },
+  {
+    "time": 1772810942291,
+    "label": "hide-column",
+    "method": "PUT",
+    "url": "view-schema",
+    "requestBody": {
+      "action": "hide",
+      "column": "Description"
+    },
+    "responseStatus": 200,
+    "responseBody": {
+      "success": true,
+      "message": "Dashboard view updated successfully",
+      "data": {
+        "global_id": "15f960ed-469f-4286-91c5-ad6afbec8707",
+        "dashboard_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+        "name": "Table 1",
+        "default_view": true,
+        "created_at": "2026-03-06T15:28:19.000Z",
+        "updated_at": "2026-03-06T15:29:02.000Z",
+        "deleted_at": null,
+        "schema": {
+          "root_entity": "custom",
+          "root_index_key": "rowUuid",
+          "items": [
+            {
+              "key": "tB5Lrk1b",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Name",
+              "description": "A custom short text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-single-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "truncate",
+                "multi_line": false
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "WKXqXBRw",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "string"
+              },
+              "json_schema": {
+                "type": "string"
+              },
+              "name": "Description",
+              "description": "A custom long text field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "string-multi-line",
+                "type": "string",
+                "_type_string": true,
+                "text_wrap": "wrap",
+                "multi_line": true
+              },
+              "hidden": true,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}']",
+                    "type": "TEXT",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "text"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "zOgh2zAL",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "files"
+              },
+              "json_schema": {
+                "type": "object",
+                "required": [
+                  "context",
+                  "files"
+                ],
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "url"
+                      ],
+                      "properties": {
+                        "url": {
+                          "type": "string"
+                        },
+                        "kind": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "userId": {
+                          "type": "number"
+                        },
+                        "bucketId": {
+                          "type": "string"
+                        },
+                        "globalId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "storedFileUUID": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "context": {
+                    "type": "object",
+                    "required": [
+                      "workspaceId",
+                      "target"
+                    ],
+                    "properties": {
+                      "pageId": {
+                        "type": "string"
+                      },
+                      "target": {
+                        "type": "string"
+                      },
+                      "blockId": {
+                        "type": "string"
+                      },
+                      "portalId": {
+                        "type": "string"
+                      },
+                      "workspaceId": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "name": "Files",
+              "description": "A custom files field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "files",
+                "type": "files",
+                "_type_files": true
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "transform": {
+                "func": "enrichFileContext"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "3h-Upwg9",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "date"
+              },
+              "json_schema": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "name": "Date",
+              "description": "A custom date field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "date",
+                "type": "date",
+                "_type_date": true,
+                "date_render": "auto",
+                "date_format": "date",
+                "time_format": "24h",
+                "time_zone": "UTC"
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}_unix']",
+                    "type": "NUMERIC",
+                    "alias": "{key}",
+                    "source": {
+                      "path": "$['{key}']",
+                      "transform_func": "ISOtoUnixTimestamp"
+                    },
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "date"
+              },
+              "transform": {
+                "func": "transformDate"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            },
+            {
+              "key": "asTcXSTA",
+              "source": {
+                "_type_custom": true,
+                "type": "custom",
+                "custom_type": "label"
+              },
+              "json_schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "name": "Status",
+              "description": "A custom label field",
+              "group_ids": [
+                "custom"
+              ],
+              "render": {
+                "is_lookup": false,
+                "edit_type": "label",
+                "type": "label",
+                "_type_label": true,
+                "multi_select": false,
+                "labels": [
+                  {
+                    "nanoid": "rHrX77w5",
+                    "name": "To Do",
+                    "color": "gray"
+                  },
+                  {
+                    "nanoid": "ttYIWAR6",
+                    "name": "In Progress",
+                    "color": "purple"
+                  },
+                  {
+                    "nanoid": "27mB41n_",
+                    "name": "Done",
+                    "color": "green"
+                  }
+                ]
+              },
+              "hidden": false,
+              "readonly": false,
+              "unique": false,
+              "required": false,
+              "async": false,
+              "index": {
+                "fields": [
+                  {
+                    "path": "$['{key}'][*]",
+                    "type": "TAG",
+                    "alias": "{key}",
+                    "options": {
+                      "sortable": true
+                    }
+                  }
+                ],
+                "enabled": true,
+                "conditions": "label"
+              },
+              "show_mode": {
+                "detailed": true,
+                "dashboard": true
+              },
+              "metadata": {}
+            }
+          ],
+          "sections": [],
+          "data_sections": {
+            "section_type": "view",
+            "section_key": "view"
+          },
+          "metadata": {
+            "version": "1.23.9",
+            "created_at": "2026-03-06T10:09:09.466Z",
+            "updated_at": "2026-03-06T10:09:09.466Z",
+            "migrations": []
+          },
+          "readonly": false
+        },
+        "metadata": {},
+        "filters": {
+          "optional": {
+            "sort": {
+              "by": "viewOrder",
+              "order": "ASC"
+            }
+          },
+          "required": {}
+        },
+        "dashboard": {
+          "global_id": "f8b2f343-b9e6-44e2-baa7-67082a5cd87c",
+          "database_id": "fa85dd54-fd65-43d4-8c59-c79b0170db63",
+          "name": "Table 1",
+          "root_entity": "custom",
+          "is_public": false
+        },
+        "representations": []
+      }
+    }
+  }
+]

@@ -1,0 +1,226 @@
+[
+  {
+    "timestamp": "2026-03-07T01:47:13.397Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v2/api/orgs/u268r1/coupons",
+    "status": 200,
+    "contentType": "application/json",
+    "responseBody": "{\"couponNumber\":{\"appsumo2025\":10}}"
+  },
+  {
+    "timestamp": "2026-03-07T01:47:13.397Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v2/api/orgs/u268r1/usageSummary",
+    "status": 200,
+    "contentType": "application/json",
+    "responseBody": "{\"current\":1140546,\"max\":2199023255552,\"currentStorage\":12885526,\"maxStorage\":2199023255552,\"currentBlots\":1268,\"maxBlots\":0}"
+  },
+  {
+    "timestamp": "2026-03-07T01:47:13.397Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v2/api/orgs/u268r1/usage",
+    "status": 200,
+    "contentType": "application/json",
+    "responseBody": "{\"traffic\":{\"current\":1140546,\"max\":2199023255552},\"storage\":{\"current\":12885526,\"max\":2199023255552},\"blots\":{\"current\":1268,\"max\":0},\"workspaces\":{\"current\":4,\"max\":1000000},\"members\":{\"current\":15,\"max\":50,\"maxHard\":50},\"guests\":{\"current\":0,\"max\":150},\"clients\":{\"current\":0,\"max\":10000},\"activepieces\":{\"current\":0,\"max\":200000},\"transcribe\":{\"current\":0,\"max\":12000},\"ai\":{\"current\":0,\"max\":100000}}"
+  },
+  {
+    "timestamp": "2026-03-07T01:47:13.397Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v2/api/orgs/trials",
+    "status": 200,
+    "contentType": "application/json",
+    "responseBody": "[]"
+  },
+  {
+    "timestamp": "2026-03-07T01:47:13.397Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v2/api/orgs/u268r1/limits",
+    "status": 200,
+    "contentType": "application/json",
+    "responseBody": "{\"membersPerOrg\":50,\"ocr\":20000,\"maxMembers\":100,\"baseWorkspaces\":0,\"workspaces\":1000000,\"exactWorkspaces\":15,\"encryptionKeysPerWorkspace\":1000000,\"membersPerWorkspace\":10000,\"traffic\":2199023255552,\"baseTraffic\":0,\"storage\":2199023255552,\"baseStorage\":0,\"textSize\":10485760,\"attachmentSize\":53687091200,\"notesPerWorkspace\":100000,\"streamingVideosPerMonth\":1000,\"blots\":0,\"guestsPerMember\":3,\"taskDeadlinesPerWorkspace\":0,\"taskRemindersPerWorkspace\":0,\"activepieces\":200000,\"ai\":100000,\"transcribe\":12000,\"clients\":10000,\"guests\":150,\"aiAccess\":true}"
+  },
+  {
+    "timestamp": "2026-03-07T01:47:13.397Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v2/api/orgs/trials",
+    "status": 200,
+    "contentType": "application/json",
+    "responseBody": "[]"
+  },
+  {
+    "timestamp": "2026-03-07T01:47:13.535Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v2/api/orgs/trials",
+    "status": 200,
+    "contentType": "application/json",
+    "responseBody": "[]"
+  },
+  {
+    "timestamp": "2026-03-07T01:47:13.615Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v2/api/orgs/trials",
+    "status": 200,
+    "contentType": "application/json",
+    "responseBody": "[]"
+  },
+  {
+    "timestamp": "2026-03-07T01:55:06.867Z",
+    "method": "PUT",
+    "url": "https://inkabeam.nimbusweb.me/v4/api/proxy/dashboard-service/v1/databases/5a16f30b-1f02-46a7-a21c-3d87ca5c2105",
+    "status": 200,
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": "{\"success\":true,\"message\":\"Database updated successfully\",\"data\":{\"global_id\":\"5a16f30b-1f02-46a7-a21c-3d87ca5c2105\",\"title\":\"capture-test-db\",\"is_public\":false,\"metadata\":{\"description\":\"capture-test-db\",\"icon\":\"default\",\"favorite\":true,\"color\":\"fuchsia\"},\"scopes\":[{\"scope_type\":\"org\",\"scope_id\":\"u268r1\"}],\"created_at\":\"2026-03-07T01:47:03.000Z\",\"updated_at\":\"2026-03-07T01:55:06.000Z\",\"deleted_at\":null,\"dashboards\":[{\"global_id\":\"3fb552e1-7dab-4761-bbde-6f3aaee89ae0\",\"database_id\":\"5a16f30b-1f02-46a7-a21c-3d87ca5c2105\",\"name\":\"Table 1\",\"root_entity\":\"custom\",\"is_public\":false,\"views\":[{\"global_id\":\"83bbdc24-2b21-426e-a8af-fe91ba33a127\",\"dashboard_id\":\"3fb552e1-7dab-4761-bbde-6f3aaee89ae0\",\"name\":\"Table 1\",\"default_view\":true,\"order\":0,\"metadata\":{}}],\"scopes\":[{\"scope_type\":\"org\",\"scope_id\":\"u268r1\"}]}]}}"
+  },
+  {
+    "timestamp": "2026-03-07T01:55:09.707Z",
+    "method": "PUT",
+    "url": "https://inkabeam.nimbusweb.me/v4/api/proxy/dashboard-service/v1/databases/5a16f30b-1f02-46a7-a21c-3d87ca5c2105",
+    "status": 200,
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": "{\"success\":true,\"message\":\"Database updated successfully\",\"data\":{\"global_id\":\"5a16f30b-1f02-46a7-a21c-3d87ca5c2105\",\"title\":\"capture-test-db\",\"is_public\":false,\"metadata\":{\"description\":\"capture-test-db\",\"icon\":\"default\",\"favorite\":false,\"color\":\"fuchsia\"},\"scopes\":[{\"scope_type\":\"org\",\"scope_id\":\"u268r1\"}],\"created_at\":\"2026-03-07T01:47:03.000Z\",\"updated_at\":\"2026-03-07T01:55:09.000Z\",\"deleted_at\":null,\"dashboards\":[{\"global_id\":\"3fb552e1-7dab-4761-bbde-6f3aaee89ae0\",\"database_id\":\"5a16f30b-1f02-46a7-a21c-3d87ca5c2105\",\"name\":\"Table 1\",\"root_entity\":\"custom\",\"is_public\":false,\"views\":[{\"global_id\":\"83bbdc24-2b21-426e-a8af-fe91ba33a127\",\"dashboard_id\":\"3fb552e1-7dab-4761-bbde-6f3aaee89ae0\",\"name\":\"Table 1\",\"default_view\":true,\"order\":0,\"metadata\":{}}],\"scopes\":[{\"scope_type\":\"org\",\"scope_id\":\"u268r1\"}]}]}}"
+  },
+  {
+    "timestamp": "2026-03-07T01:55:11.042Z",
+    "method": "PUT",
+    "url": "https://inkabeam.nimbusweb.me/v4/api/proxy/dashboard-service/v1/databases/45ec975b-7e7a-42cd-b5c9-b29f796e3afb",
+    "status": 200,
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": "{\"success\":true,\"message\":\"Database updated successfully\",\"data\":{\"global_id\":\"45ec975b-7e7a-42cd-b5c9-b29f796e3afb\",\"title\":\"col-probe\",\"is_public\":false,\"metadata\":{\"description\":\"\",\"icon\":\"default\",\"favorite\":true,\"color\":\"purple\"},\"scopes\":[{\"scope_type\":\"org\",\"scope_id\":\"u268r1\"}],\"created_at\":\"2026-03-06T00:45:33.000Z\",\"updated_at\":\"2026-03-07T01:55:10.000Z\",\"deleted_at\":null,\"dashboards\":[{\"global_id\":\"4f0556bd-6fc0-4348-b404-0f64807dab79\",\"database_id\":\"45ec975b-7e7a-42cd-b5c9-b29f796e3afb\",\"name\":\"Table 1\",\"root_entity\":\"custom\",\"is_public\":false,\"views\":[{\"global_id\":\"8cc64ed7-a844-4180-96dc-072b9a61b563\",\"dashboard_id\":\"4f0556bd-6fc0-4348-b404-0f64807dab79\",\"name\":\"Table 1\",\"default_view\":true,\"order\":0,\"metadata\":{}}],\"scopes\":[{\"scope_type\":\"org\",\"scope_id\":\"u268r1\"}]}]}}"
+  },
+  {
+    "timestamp": "2026-03-07T01:55:12.099Z",
+    "method": "PUT",
+    "url": "https://inkabeam.nimbusweb.me/v4/api/proxy/dashboard-service/v1/databases/45ec975b-7e7a-42cd-b5c9-b29f796e3afb",
+    "status": 200,
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": "{\"success\":true,\"message\":\"Database updated successfully\",\"data\":{\"global_id\":\"45ec975b-7e7a-42cd-b5c9-b29f796e3afb\",\"title\":\"col-probe\",\"is_public\":false,\"metadata\":{\"description\":\"\",\"icon\":\"default\",\"favorite\":false,\"color\":\"purple\"},\"scopes\":[{\"scope_type\":\"org\",\"scope_id\":\"u268r1\"}],\"created_at\":\"2026-03-06T00:45:33.000Z\",\"updated_at\":\"2026-03-07T01:55:12.000Z\",\"deleted_at\":null,\"dashboards\":[{\"global_id\":\"4f0556bd-6fc0-4348-b404-0f64807dab79\",\"database_id\":\"45ec975b-7e7a-42cd-b5c9-b29f796e3afb\",\"name\":\"Table 1\",\"root_entity\":\"custom\",\"is_public\":false,\"views\":[{\"global_id\":\"8cc64ed7-a844-4180-96dc-072b9a61b563\",\"dashboard_id\":\"4f0556bd-6fc0-4348-b404-0f64807dab79\",\"name\":\"Table 1\",\"default_view\":true,\"order\":0,\"metadata\":{}}],\"scopes\":[{\"scope_type\":\"org\",\"scope_id\":\"u268r1\"}]}]}}"
+  },
+  {
+    "timestamp": "2026-03-07T01:55:13.239Z",
+    "method": "PUT",
+    "url": "https://inkabeam.nimbusweb.me/v4/api/proxy/dashboard-service/v1/databases/3df0dac3-a330-4973-a649-b8f5e0b0173d",
+    "status": 200,
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": "{\"success\":true,\"message\":\"Database updated successfully\",\"data\":{\"global_id\":\"3df0dac3-a330-4973-a649-b8f5e0b0173d\",\"title\":\"column-api-test\",\"is_public\":false,\"metadata\":{\"description\":\"\",\"icon\":\"default\",\"favorite\":true,\"color\":\"fuchsia\"},\"scopes\":[{\"scope_type\":\"org\",\"scope_id\":\"u268r1\"}],\"created_at\":\"2026-03-05T23:22:27.000Z\",\"updated_at\":\"2026-03-07T01:55:13.000Z\",\"deleted_at\":null,\"dashboards\":[{\"global_id\":\"24adc0e5-555b-4680-b5d7-3fc626f86a24\",\"database_id\":\"3df0dac3-a330-4973-a649-b8f5e0b0173d\",\"name\":\"Table 1\",\"root_entity\":\"custom\",\"is_public\":false,\"views\":[{\"global_id\":\"94099f60-3fcc-42e9-9e72-3a06a71a3b26\",\"dashboard_id\":\"24adc0e5-555b-4680-b5d7-3fc626f86a24\",\"name\":\"Table 1\",\"default_view\":true,\"order\":0,\"metadata\":{}}],\"scopes\":[{\"scope_type\":\"org\",\"scope_id\":\"u268r1\"}]}]}}"
+  },
+  {
+    "timestamp": "2026-03-07T01:55:14.416Z",
+    "method": "PUT",
+    "url": "https://inkabeam.nimbusweb.me/v4/api/proxy/dashboard-service/v1/databases/3df0dac3-a330-4973-a649-b8f5e0b0173d",
+    "status": 200,
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": "{\"success\":true,\"message\":\"Database updated successfully\",\"data\":{\"global_id\":\"3df0dac3-a330-4973-a649-b8f5e0b0173d\",\"title\":\"column-api-test\",\"is_public\":false,\"metadata\":{\"description\":\"\",\"icon\":\"default\",\"favorite\":false,\"color\":\"fuchsia\"},\"scopes\":[{\"scope_type\":\"org\",\"scope_id\":\"u268r1\"}],\"created_at\":\"2026-03-05T23:22:27.000Z\",\"updated_at\":\"2026-03-07T01:55:14.000Z\",\"deleted_at\":null,\"dashboards\":[{\"global_id\":\"24adc0e5-555b-4680-b5d7-3fc626f86a24\",\"database_id\":\"3df0dac3-a330-4973-a649-b8f5e0b0173d\",\"name\":\"Table 1\",\"root_entity\":\"custom\",\"is_public\":false,\"views\":[{\"global_id\":\"94099f60-3fcc-42e9-9e72-3a06a71a3b26\",\"dashboard_id\":\"24adc0e5-555b-4680-b5d7-3fc626f86a24\",\"name\":\"Table 1\",\"default_view\":true,\"order\":0,\"metadata\":{}}],\"scopes\":[{\"scope_type\":\"org\",\"scope_id\":\"u268r1\"}]}]}}"
+  },
+  {
+    "timestamp": "2026-03-07T01:55:23.549Z",
+    "method": "POST",
+    "url": "https://inkabeam.nimbusweb.me/v4/api/proxy/dashboard-service/v1/databases/copy-from/database?copy_tables=true&copy_views=true&copy_relations=true&copy_data=true&create_default_rows=true",
+    "status": 201,
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": "{\"success\":true,\"message\":\"Database copied successfully\",\"data\":{\"global_id\":\"981608d0-1102-4940-8fdb-c0f50e3b9e4e\",\"title\":\"capture-test-db (Copy)\",\"is_public\":false,\"metadata\":{\"description\":\"capture-test-db\",\"icon\":\"default\",\"favorite\":false,\"color\":\"fuchsia\"},\"scopes\":[{\"scope_type\":\"org\",\"scope_id\":\"u268r1\"}],\"created_at\":\"2026-03-07T01:55:23.000Z\",\"updated_at\":\"2026-03-07T01:55:23.000Z\",\"deleted_at\":null,\"dashboards\":[{\"global_id\":\"bd91a7e6-f773-4c53-9114-e116037b0060\",\"database_id\":\"981608d0-1102-4940-8fdb-c0f50e3b9e4e\",\"name\":\"Table 1\",\"root_entity\":\"custom\",\"is_public\":false,\"views\":[{\"global_id\":\"2aa59466-26f5-46f6-a686-ebbe4f039d04\",\"dashboard_id\":\"bd91a7e6-f773-4c53-9114-e116037b0060\",\"name\":\"Table 1\",\"default_view\":true,\"order\":0,\"metadata\":{}}],\"scopes\":[{\"scope_type\":\"org\",\"scope_id\":\"u268r1\"}]}]}}"
+  },
+  {
+    "timestamp": "2026-03-07T01:55:27.694Z",
+    "method": "POST",
+    "url": "https://inkabeam.nimbusweb.me/v4/api/proxy/dashboard-service/v1/databases/copy-from/database?copy_tables=true&copy_views=true&copy_relations=true&copy_data=false&create_default_rows=true",
+    "status": 201,
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": "{\"success\":true,\"message\":\"Database copied successfully\",\"data\":{\"global_id\":\"8f8003d3-8122-45ac-bbc2-5df1de5d3b1f\",\"title\":\"capture-test-db (Copy)\",\"is_public\":false,\"metadata\":{\"description\":\"capture-test-db\",\"icon\":\"default\",\"favorite\":false,\"color\":\"fuchsia\"},\"scopes\":[{\"scope_type\":\"org\",\"scope_id\":\"u268r1\"}],\"created_at\":\"2026-03-07T01:55:27.000Z\",\"updated_at\":\"2026-03-07T01:55:27.000Z\",\"deleted_at\":null,\"dashboards\":[{\"global_id\":\"c32584c8-6081-42fa-9572-5e8247f49f68\",\"database_id\":\"8f8003d3-8122-45ac-bbc2-5df1de5d3b1f\",\"name\":\"Table 1\",\"root_entity\":\"custom\",\"is_public\":false,\"views\":[{\"global_id\":\"fc155fd3-7e28-4010-9ec3-3269b7b60fb6\",\"dashboard_id\":\"c32584c8-6081-42fa-9572-5e8247f49f68\",\"name\":\"Table 1\",\"default_view\":true,\"order\":0,\"metadata\":{}}],\"scopes\":[{\"scope_type\":\"org\",\"scope_id\":\"u268r1\"}]}]}}"
+  },
+  {
+    "timestamp": "2026-03-07T01:55:35.640Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v4/api/proxy/dashboard-service/v1/dashboards/3fb552e1-7dab-4761-bbde-6f3aaee89ae0/views/83bbdc24-2b21-426e-a8af-fe91ba33a127/data?filters=%7B%22logic%22%3A%22AND%22%2C%22conditions%22%3A%5B%5D%7D&sort=%7B%22by%22%3A%22viewOrder%22%2C%22order%22%3A%22ASC%22%7D&exclude_async_items=false&page=1&limit=100&system_filters=false&use_stored_filters=true&use_stored_sort=true",
+    "status": 200,
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": "{\"data\":[{\"root_index_value\":\"7353f066-7d46-4ea7-bab9-792812f7c4df\",\"NXhMAFqs\":{\"files\":[],\"context\":{\"workspaceId\":\"44ieqib7z0eltarr\",\"target\":\"workspace\"}}},{\"root_index_value\":\"986a6e32-1cbe-44ab-b87d-59e6a86ff315\",\"NXhMAFqs\":{\"files\":[],\"context\":{\"workspaceId\":\"44ieqib7z0eltarr\",\"target\":\"workspace\"}}},{\"root_index_value\":\"687ca7a1-9f89-49d2-a41f-a5e63595ba85\",\"NXhMAFqs\":{\"files\":[],\"context\":{\"workspaceId\":\"44ieqib7z0eltarr\",\"target\":\"workspace\"}}}],\"meta\":{\"total\":3,\"page\":1,\"limit\":100,\"total_pages\":1}}"
+  },
+  {
+    "timestamp": "2026-03-07T01:55:36.197Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v2/api/orgs/u268r1/coupons",
+    "status": 200,
+    "contentType": "application/json",
+    "responseBody": "{\"couponNumber\":{\"appsumo2025\":10}}"
+  },
+  {
+    "timestamp": "2026-03-07T01:55:36.197Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v2/api/orgs/u268r1/usage",
+    "status": 200,
+    "contentType": "application/json",
+    "responseBody": "{\"traffic\":{\"current\":1140546,\"max\":2199023255552},\"storage\":{\"current\":12885526,\"max\":2199023255552},\"blots\":{\"current\":1268,\"max\":0},\"workspaces\":{\"current\":4,\"max\":1000000},\"members\":{\"current\":15,\"max\":50,\"maxHard\":50},\"guests\":{\"current\":0,\"max\":150},\"clients\":{\"current\":0,\"max\":10000},\"activepieces\":{\"current\":0,\"max\":200000},\"transcribe\":{\"current\":0,\"max\":12000},\"ai\":{\"current\":0,\"max\":100000}}"
+  },
+  {
+    "timestamp": "2026-03-07T01:55:36.197Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v2/api/orgs/u268r1/limits",
+    "status": 200,
+    "contentType": "application/json",
+    "responseBody": "{\"membersPerOrg\":50,\"ocr\":20000,\"maxMembers\":100,\"baseWorkspaces\":0,\"workspaces\":1000000,\"exactWorkspaces\":15,\"encryptionKeysPerWorkspace\":1000000,\"membersPerWorkspace\":10000,\"traffic\":2199023255552,\"baseTraffic\":0,\"storage\":2199023255552,\"baseStorage\":0,\"textSize\":10485760,\"attachmentSize\":53687091200,\"notesPerWorkspace\":100000,\"streamingVideosPerMonth\":1000,\"blots\":0,\"guestsPerMember\":3,\"taskDeadlinesPerWorkspace\":0,\"taskRemindersPerWorkspace\":0,\"activepieces\":200000,\"ai\":100000,\"transcribe\":12000,\"clients\":10000,\"guests\":150,\"aiAccess\":true}"
+  },
+  {
+    "timestamp": "2026-03-07T01:55:55.137Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v4/api/proxy/dashboard-service/v1/dashboards/3fb552e1-7dab-4761-bbde-6f3aaee89ae0/export/csv?view_id=83bbdc24-2b21-426e-a8af-fe91ba33a127&delimiter=%2C",
+    "status": 200,
+    "contentType": "text/csv; charset=utf-8",
+    "responseBody": "Name,Description,Files,Date,Status\n,,\"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\",,\n,,\"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\",,\n,,\"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\",,"
+  },
+  {
+    "timestamp": "2026-03-07T01:56:01.811Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v4/api/proxy/dashboard-service/v1/dashboards/3fb552e1-7dab-4761-bbde-6f3aaee89ae0/export/csv?view_id=83bbdc24-2b21-426e-a8af-fe91ba33a127&delimiter=%3B",
+    "status": 200,
+    "contentType": "text/csv; charset=utf-8",
+    "responseBody": "Name;Description;Files;Date;Status\n;;\"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\";;\n;;\"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\";;\n;;\"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\";;"
+  },
+  {
+    "timestamp": "2026-03-07T01:56:06.439Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v4/api/proxy/dashboard-service/v1/dashboards/3fb552e1-7dab-4761-bbde-6f3aaee89ae0/export/csv?view_id=83bbdc24-2b21-426e-a8af-fe91ba33a127&delimiter=%7C",
+    "status": 200,
+    "contentType": "text/csv; charset=utf-8",
+    "responseBody": "Name|Description|Files|Date|Status\n||\"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\"||\n||\"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\"||\n||\"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\"||"
+  },
+  {
+    "timestamp": "2026-03-07T01:56:11.088Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v4/api/proxy/dashboard-service/v1/dashboards/3fb552e1-7dab-4761-bbde-6f3aaee89ae0/export/csv?view_id=83bbdc24-2b21-426e-a8af-fe91ba33a127&delimiter=%09",
+    "status": 200,
+    "contentType": "text/csv; charset=utf-8",
+    "responseBody": "Name\tDescription\tFiles\tDate\tStatus\n\t\t\"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\"\t\t\n\t\t\"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\"\t\t\n\t\t\"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\"\t\t"
+  },
+  {
+    "timestamp": "2026-03-07T01:56:14.653Z",
+    "method": "POST",
+    "url": "https://inkabeam.nimbusweb.me/v4/api/proxy/dashboard-service/v1/dashboards/3fb552e1-7dab-4761-bbde-6f3aaee89ae0/views",
+    "status": 201,
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": "{\"success\":true,\"message\":\"Dashboard view created successfully\",\"data\":{\"global_id\":\"7679b775-b751-441c-9765-3284c16caf67\",\"dashboard_id\":\"3fb552e1-7dab-4761-bbde-6f3aaee89ae0\",\"name\":\"Table 1\",\"default_view\":false,\"created_at\":\"2026-03-07T01:56:14.000Z\",\"updated_at\":\"2026-03-07T01:56:14.000Z\",\"deleted_at\":null,\"schema\":{\"root_entity\":\"custom\",\"root_index_key\":\"rowUuid\",\"items\":[{\"key\":\"MnUrMkKB\",\"source\":{\"_type_custom\":true,\"type\":\"custom\",\"custom_type\":\"string\"},\"json_schema\":{\"type\":\"string\"},\"name\":\"Name\",\"description\":\"A custom short text field\",\"group_ids\":[\"custom\"],\"render\":{\"is_lookup\":false,\"edit_type\":\"string-single-line\",\"type\":\"string\",\"_type_string\":true,\"text_wrap\":\"truncate\",\"multi_line\":false},\"hidden\":false,\"readonly\":false,\"unique\":false,\"required\":false,\"async\":false,\"index\":{\"fields\":[{\"path\":\"$['{key}']\",\"type\":\"TEXT\",\"alias\":\"{key}\",\"options\":{\"sortable\":true}}],\"enabled\":true,\"conditions\":\"text\"},\"show_mode\":{\"detailed\":true,\"dashboard\":true},\"metadata\":{}},{\"key\":\"Oa7QAwr9\",\"source\":{\"_type_custom\":true,\"type\":\"custom\",\"custom_type\":\"string\"},\"json_schema\":{\"type\":\"string\"},\"name\":\"Description\",\"description\":\"A custom long text field\",\"group_ids\":[\"custom\"],\"render\":{\"is_lookup\":false,\"edit_type\":\"string-multi-line\",\"type\":\"string\",\"_type_string\":true,\"text_wrap\":\"wrap\",\"multi_line\":true},\"hidden\":false,\"readonly\":false,\"unique\":false,\"required\":false,\"async\":false,\"index\":{\"fields\":[{\"path\":\"$['{key}']\",\"type\":\"TEXT\",\"alias\":\"{key}\",\"options\":{\"sortable\":true}}],\"enabled\":true,\"conditions\":\"text\"},\"show_mode\":{\"detailed\":true,\"dashboard\":true},\"metadata\":{}},{\"key\":\"NXhMAFqs\",\"source\":{\"_type_custom\":true,\"type\":\"custom\",\"custom_type\":\"files\"},\"json_schema\":{\"type\":\"object\",\"required\":[\"context\",\"files\"],\"properties\":{\"files\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"name\",\"url\"],\"properties\":{\"url\":{\"type\":\"string\"},\"kind\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"},\"size\":{\"type\":\"number\"},\"type\":{\"type\":\"string\"},\"userId\":{\"t"
+  },
+  {
+    "timestamp": "2026-03-07T01:56:19.789Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v4/api/proxy/dashboard-service/v1/dashboards/3fb552e1-7dab-4761-bbde-6f3aaee89ae0/export/csv?view_id=83bbdc24-2b21-426e-a8af-fe91ba33a127&delimiter=%20",
+    "status": 200,
+    "contentType": "text/csv; charset=utf-8",
+    "responseBody": "Name Description Files Date Status\n  \"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\"  \n  \"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\"  \n  \"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\"  "
+  },
+  {
+    "timestamp": "2026-03-07T01:56:34.324Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v4/api/proxy/dashboard-service/v1/dashboards/3fb552e1-7dab-4761-bbde-6f3aaee89ae0/export/csv?view_id=83bbdc24-2b21-426e-a8af-fe91ba33a127&delimiter=%5E",
+    "status": 200,
+    "contentType": "text/csv; charset=utf-8",
+    "responseBody": "Name^Description^Files^Date^Status\n^^\"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\"^^\n^^\"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\"^^\n^^\"{\"\"files\"\":[],\"\"context\"\":{\"\"workspaceId\"\":\"\"44ieqib7z0eltarr\"\",\"\"target\"\":\"\"workspace\"\"}}\"^^"
+  },
+  {
+    "timestamp": "2026-03-07T01:56:39.923Z",
+    "method": "GET",
+    "url": "https://inkabeam.nimbusweb.me/v4/api/proxy/dashboard-service/v1/dashboards/import/csv/allowed-items?sort_by_detection_priority=true",
+    "status": 200,
+    "contentType": "application/json; charset=utf-8",
+    "responseBody": "{\"items\":[{\"key\":\"\",\"source\":{\"_type_custom\":true,\"type\":\"custom\",\"custom_type\":\"currency\"},\"json_schema\":{\"type\":\"number\"},\"name\":\"Currency\",\"description\":\"A custom currency field\",\"group_ids\":[\"custom\"],\"render\":{\"is_lookup\":false,\"edit_type\":\"currency\",\"type\":\"currency\",\"_type_currency\":true,\"precision\":2,\"thousand_separator\":\"comma\",\"decimal_separator\":\"period\",\"unit_position\":\"suffix\",\"currency_code\":\"USD\",\"currency_symbol\":\"$\"},\"hidden\":false,\"readonly\":false,\"unique\":false,\"required\":false,\"async\":false,\"index\":{\"enabled\":true,\"conditions\":\"number\",\"fields\":[{\"path\":\"$['{key}']\",\"alias\":\"{key}\",\"type\":\"NUMERIC\",\"options\":{\"sortable\":true}}]},\"show_mode\":{\"dashboard\":true,\"detailed\":true},\"metadata\":{}},{\"key\":\"\",\"source\":{\"_type_custom\":true,\"type\":\"custom\",\"custom_type\":\"number\"},\"json_schema\":{\"type\":\"number\"},\"name\":\"Number\",\"description\":\"A custom number field\",\"group_ids\":[\"custom\"],\"render\":{\"is_lookup\":false,\"edit_type\":\"number\",\"type\":\"number\",\"_type_number\":true,\"precision\":2,\"thousand_separator\":\"comma\",\"decimal_separator\":\"period\",\"unit_position\":\"suffix\"},\"hidden\":false,\"readonly\":false,\"unique\":false,\"required\":false,\"async\":false,\"index\":{\"enabled\":true,\"conditions\":\"number\",\"fields\":[{\"path\":\"$['{key}']\",\"alias\":\"{key}\",\"type\":\"NUMERIC\",\"options\":{\"sortable\":true}}]},\"show_mode\":{\"dashboard\":true,\"detailed\":true},\"metadata\":{}},{\"key\":\"\",\"source\":{\"_type_custom\":true,\"type\":\"custom\",\"custom_type\":\"phone\"},\"json_schema\":{\"type\":\"string\"},\"name\":\"Phone\",\"description\":\"A custom phone field\",\"group_ids\":[\"custom\"],\"render\":{\"is_lookup\":false,\"edit_type\":\"phone\",\"type\":\"phone\",\"_type_phone\":true},\"hidden\":false,\"readonly\":false,\"unique\":false,\"required\":false,\"async\":false,\"index\":{\"enabled\":true,\"conditions\":\"text\",\"fields\":[{\"path\":\"$['{key}']\",\"alias\":\"{key}\",\"type\":\"TEXT\",\"options\":{\"sortable\":true}}]},\"show_mode\":{\"dashboard\":true,\"detailed\":true},\"metadata\":{}},{\"key\":\"\",\"source\":{\"_type_custom\":true,\"type\":\"custom\",\"custom_type\":\"email\"},\"jso"
+  }
+]

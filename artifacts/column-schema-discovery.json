@@ -1,0 +1,616 @@
+{
+  "create-db": {
+    "DB_ID": "876fd2c4-7a2e-40ef-ba63-6f38d90b0682",
+    "DASH_ID": "8187a929-9587-4b7a-929a-b08fc006c6a4",
+    "VIEW_ID": "7dbe1076-fca2-4d90-96b8-ed67f5d44310",
+    "fullResponse": {
+      "success": true,
+      "message": "Database created successfully",
+      "data": {
+        "global_id": "876fd2c4-7a2e-40ef-ba63-6f38d90b0682",
+        "title": "column-discovery-test",
+        "is_public": false,
+        "metadata": {
+          "description": "column-discovery-test",
+          "icon": "default",
+          "favorite": false,
+          "color": "fuchsia"
+        },
+        "scopes": [
+          {
+            "scope_type": "org",
+            "scope_id": "u268r1"
+          }
+        ],
+        "created_at": "2026-03-06T05:15:31.000Z",
+        "updated_at": "2026-03-06T05:15:31.000Z",
+        "deleted_at": null,
+        "dashboards": [
+          {
+            "global_id": "8187a929-9587-4b7a-929a-b08fc006c6a4",
+            "database_id": "876fd2c4-7a2e-40ef-ba63-6f38d90b0682",
+            "name": "Table 1",
+            "root_entity": "custom",
+            "is_public": false,
+            "views": [
+              {
+                "global_id": "7dbe1076-fca2-4d90-96b8-ed67f5d44310",
+                "dashboard_id": "8187a929-9587-4b7a-929a-b08fc006c6a4",
+                "name": "Table 1",
+                "default_view": true,
+                "order": 0,
+                "metadata": {}
+              }
+            ],
+            "scopes": [
+              {
+                "scope_type": "org",
+                "scope_id": "u268r1"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "dashboard-detail-keys": [
+    "global_id",
+    "database_id",
+    "name",
+    "root_entity",
+    "is_public",
+    "views",
+    "scopes",
+    "created_at",
+    "updated_at",
+    "deleted_at",
+    "metadata"
+  ],
+  "dashboard-detail-full": {
+    "global_id": "8187a929-9587-4b7a-929a-b08fc006c6a4",
+    "database_id": "876fd2c4-7a2e-40ef-ba63-6f38d90b0682",
+    "name": "Table 1",
+    "root_entity": "custom",
+    "is_public": false,
+    "views": [
+      {
+        "global_id": "7dbe1076-fca2-4d90-96b8-ed67f5d44310",
+        "dashboard_id": "8187a929-9587-4b7a-929a-b08fc006c6a4",
+        "name": "Table 1",
+        "default_view": true,
+        "order": 0,
+        "metadata": {}
+      }
+    ],
+    "scopes": [
+      {
+        "scope_type": "org",
+        "scope_id": "u268r1"
+      }
+    ],
+    "created_at": "2026-03-06T05:15:31.000Z",
+    "updated_at": "2026-03-06T05:15:31.000Z",
+    "deleted_at": null,
+    "metadata": {}
+  },
+  "views": [
+    {
+      "global_id": "7dbe1076-fca2-4d90-96b8-ed67f5d44310",
+      "dashboard_id": "8187a929-9587-4b7a-929a-b08fc006c6a4",
+      "name": "Table 1",
+      "default_view": true,
+      "order": 0,
+      "metadata": {}
+    }
+  ],
+  "view-detail": {
+    "global_id": "7dbe1076-fca2-4d90-96b8-ed67f5d44310",
+    "dashboard_id": "8187a929-9587-4b7a-929a-b08fc006c6a4",
+    "name": "Table 1",
+    "default_view": true,
+    "created_at": "2026-03-06T05:15:32.000Z",
+    "updated_at": "2026-03-06T05:15:32.000Z",
+    "deleted_at": null,
+    "schema": {
+      "root_entity": "custom",
+      "root_index_key": "rowUuid",
+      "items": [
+        {
+          "key": "hd1fky6X",
+          "source": {
+            "_type_custom": true,
+            "type": "custom",
+            "custom_type": "string"
+          },
+          "json_schema": {
+            "type": "string"
+          },
+          "name": "Name",
+          "description": "A custom short text field",
+          "group_ids": [
+            "custom"
+          ],
+          "render": {
+            "is_lookup": false,
+            "edit_type": "string-single-line",
+            "type": "string",
+            "_type_string": true,
+            "text_wrap": "truncate",
+            "multi_line": false
+          },
+          "hidden": false,
+          "readonly": false,
+          "unique": false,
+          "required": false,
+          "async": false,
+          "index": {
+            "fields": [
+              {
+                "path": "$['{key}']",
+                "type": "TEXT",
+                "alias": "{key}",
+                "options": {
+                  "sortable": true
+                }
+              }
+            ],
+            "enabled": true,
+            "conditions": "text"
+          },
+          "show_mode": {
+            "detailed": true,
+            "dashboard": true
+          },
+          "metadata": {}
+        },
+        {
+          "key": "POZej1x3",
+          "source": {
+            "_type_custom": true,
+            "type": "custom",
+            "custom_type": "string"
+          },
+          "json_schema": {
+            "type": "string"
+          },
+          "name": "Description",
+          "description": "A custom long text field",
+          "group_ids": [
+            "custom"
+          ],
+          "render": {
+            "is_lookup": false,
+            "edit_type": "string-multi-line",
+            "type": "string",
+            "_type_string": true,
+            "text_wrap": "wrap",
+            "multi_line": true
+          },
+          "hidden": false,
+          "readonly": false,
+          "unique": false,
+          "required": false,
+          "async": false,
+          "index": {
+            "fields": [
+              {
+                "path": "$['{key}']",
+                "type": "TEXT",
+                "alias": "{key}",
+                "options": {
+                  "sortable": true
+                }
+              }
+            ],
+            "enabled": true,
+            "conditions": "text"
+          },
+          "show_mode": {
+            "detailed": true,
+            "dashboard": true
+          },
+          "metadata": {}
+        },
+        {
+          "key": "5QRI5ZqN",
+          "source": {
+            "_type_custom": true,
+            "type": "custom",
+            "custom_type": "files"
+          },
+          "json_schema": {
+            "type": "object",
+            "required": [
+              "context",
+              "files"
+            ],
+            "properties": {
+              "files": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "name",
+                    "url"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "number"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "userId": {
+                      "type": "number"
+                    },
+                    "bucketId": {
+                      "type": "string"
+                    },
+                    "globalId": {
+                      "type": "string"
+                    },
+                    "workspaceId": {
+                      "type": "string"
+                    },
+                    "storedFileUUID": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "context": {
+                "type": "object",
+                "required": [
+                  "workspaceId",
+                  "target"
+                ],
+                "properties": {
+                  "pageId": {
+                    "type": "string"
+                  },
+                  "target": {
+                    "type": "string"
+                  },
+                  "blockId": {
+                    "type": "string"
+                  },
+                  "portalId": {
+                    "type": "string"
+                  },
+                  "workspaceId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "name": "Files",
+          "description": "A custom files field",
+          "group_ids": [
+            "custom"
+          ],
+          "render": {
+            "is_lookup": false,
+            "edit_type": "files",
+            "type": "files",
+            "_type_files": true
+          },
+          "hidden": false,
+          "readonly": false,
+          "unique": false,
+          "required": false,
+          "async": false,
+          "transform": {
+            "func": "enrichFileContext"
+          },
+          "show_mode": {
+            "detailed": true,
+            "dashboard": true
+          },
+          "metadata": {}
+        },
+        {
+          "key": "gerj_FRs",
+          "source": {
+            "_type_custom": true,
+            "type": "custom",
+            "custom_type": "date"
+          },
+          "json_schema": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "name": "Date",
+          "description": "A custom date field",
+          "group_ids": [
+            "custom"
+          ],
+          "render": {
+            "is_lookup": false,
+            "edit_type": "date",
+            "type": "date",
+            "_type_date": true,
+            "date_render": "auto",
+            "date_format": "date",
+            "time_format": "24h",
+            "time_zone": "UTC"
+          },
+          "hidden": false,
+          "readonly": false,
+          "unique": false,
+          "required": false,
+          "async": false,
+          "index": {
+            "fields": [
+              {
+                "path": "$['{key}_unix']",
+                "type": "NUMERIC",
+                "alias": "{key}",
+                "source": {
+                  "path": "$['{key}']",
+                  "transform_func": "ISOtoUnixTimestamp"
+                },
+                "options": {
+                  "sortable": true
+                }
+              }
+            ],
+            "enabled": true,
+            "conditions": "date"
+          },
+          "transform": {
+            "func": "transformDate"
+          },
+          "show_mode": {
+            "detailed": true,
+            "dashboard": true
+          },
+          "metadata": {}
+        },
+        {
+          "key": "268A-SWx",
+          "source": {
+            "_type_custom": true,
+            "type": "custom",
+            "custom_type": "label"
+          },
+          "json_schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "name": "Status",
+          "description": "A custom label field",
+          "group_ids": [
+            "custom"
+          ],
+          "render": {
+            "is_lookup": false,
+            "edit_type": "label",
+            "type": "label",
+            "_type_label": true,
+            "multi_select": false,
+            "labels": [
+              {
+                "nanoid": "giSFMeeG",
+                "name": "To Do",
+                "color": "gray"
+              },
+              {
+                "nanoid": "0akyjGe4",
+                "name": "In Progress",
+                "color": "purple"
+              },
+              {
+                "nanoid": "SKknPsz2",
+                "name": "Done",
+                "color": "green"
+              }
+            ]
+          },
+          "hidden": false,
+          "readonly": false,
+          "unique": false,
+          "required": false,
+          "async": false,
+          "index": {
+            "fields": [
+              {
+                "path": "$['{key}'][*]",
+                "type": "TAG",
+                "alias": "{key}",
+                "options": {
+                  "sortable": true
+                }
+              }
+            ],
+            "enabled": true,
+            "conditions": "label"
+          },
+          "show_mode": {
+            "detailed": true,
+            "dashboard": true
+          },
+          "metadata": {}
+        }
+      ],
+      "sections": [],
+      "data_sections": {
+        "section_type": "view",
+        "section_key": "view"
+      },
+      "metadata": {
+        "version": "1.23.8",
+        "created_at": "2026-03-03T09:28:39.541Z",
+        "updated_at": "2026-03-03T09:28:39.541Z",
+        "migrations": []
+      },
+      "readonly": false
+    },
+    "metadata": {},
+    "filters": {
+      "optional": {
+        "sort": {
+          "by": "viewOrder",
+          "order": "ASC"
+        },
+        "filters": {
+          "logic": "AND",
+          "conditions": []
+        }
+      },
+      "required": {
+        "filters": {
+          "logic": "AND",
+          "conditions": []
+        }
+      }
+    },
+    "dashboard": {
+      "global_id": "8187a929-9587-4b7a-929a-b08fc006c6a4",
+      "database_id": "876fd2c4-7a2e-40ef-ba63-6f38d90b0682",
+      "name": "Table 1",
+      "root_entity": "custom",
+      "is_public": false,
+      "views_count": 1
+    },
+    "representations": []
+  },
+  "row-data": {
+    "ROW_UUID": "d957b32f-4a09-4ddf-aae6-75eb4e460534",
+    "ROW_KEYS": [
+      "5QRI5ZqN"
+    ],
+    "row": {
+      "root_index_value": "d957b32f-4a09-4ddf-aae6-75eb4e460534",
+      "5QRI5ZqN": {
+        "files": [],
+        "context": {
+          "workspaceId": "44ieqib7z0eltarr",
+          "target": "workspace"
+        }
+      }
+    }
+  },
+  "database-detail": {
+    "global_id": "876fd2c4-7a2e-40ef-ba63-6f38d90b0682",
+    "title": "column-discovery-test",
+    "is_public": false,
+    "metadata": {
+      "description": "column-discovery-test",
+      "icon": "default",
+      "favorite": false,
+      "color": "fuchsia"
+    },
+    "scopes": [
+      {
+        "scope_type": "org",
+        "scope_id": "u268r1"
+      }
+    ],
+    "created_at": "2026-03-06T05:15:31.000Z",
+    "updated_at": "2026-03-06T05:15:31.000Z",
+    "deleted_at": null,
+    "dashboards": [
+      {
+        "global_id": "8187a929-9587-4b7a-929a-b08fc006c6a4",
+        "database_id": "876fd2c4-7a2e-40ef-ba63-6f38d90b0682",
+        "name": "Table 1",
+        "root_entity": "custom",
+        "is_public": false,
+        "views": [
+          {
+            "global_id": "7dbe1076-fca2-4d90-96b8-ed67f5d44310",
+            "dashboard_id": "8187a929-9587-4b7a-929a-b08fc006c6a4",
+            "name": "Table 1",
+            "default_view": true,
+            "order": 0,
+            "metadata": {}
+          }
+        ],
+        "scopes": [
+          {
+            "scope_type": "org",
+            "scope_id": "u268r1"
+          }
+        ]
+      }
+    ]
+  },
+  "probe-POST /dashboards/{id}/columns": {
+    "status": 404,
+    "body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot POST /api/v1/dashboards/8187a929-9587-4b7a-929a-b08fc006c6a4/columns</pre>\n</body>\n</html>\n"
+  },
+  "probe-POST /dashboards/{id}/columns (with title)": {
+    "status": 404,
+    "body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot POST /api/v1/dashboards/8187a929-9587-4b7a-929a-b08fc006c6a4/columns</pre>\n</body>\n</html>\n"
+  },
+  "probe-POST /views/{id}/columns": {
+    "status": 404,
+    "body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot POST /api/v1/dashboards/8187a929-9587-4b7a-929a-b08fc006c6a4/views/7dbe1076-fca2-4d90-96b8-ed67f5d44310/columns</pre>\n</body>\n</html>\n"
+  },
+  "probe-PUT /dashboards/{id}/root_schema": {
+    "status": 404,
+    "body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot PUT /api/v1/dashboards/8187a929-9587-4b7a-929a-b08fc006c6a4/root_schema</pre>\n</body>\n</html>\n"
+  },
+  "probe-PATCH /dashboards/{id}": {
+    "status": 404,
+    "body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot PATCH /api/v1/dashboards/8187a929-9587-4b7a-929a-b08fc006c6a4</pre>\n</body>\n</html>\n"
+  },
+  "probe-GET /dashboards/{id}/columns": {
+    "status": 404,
+    "body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /api/v1/dashboards/8187a929-9587-4b7a-929a-b08fc006c6a4/columns</pre>\n</body>\n</html>\n"
+  },
+  "probe-GET /dashboards/{id}/schema": {
+    "status": 404,
+    "body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /api/v1/dashboards/8187a929-9587-4b7a-929a-b08fc006c6a4/schema</pre>\n</body>\n</html>\n"
+  },
+  "probe-GET /views/{id}/schema": {
+    "status": 404,
+    "body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /api/v1/dashboards/8187a929-9587-4b7a-929a-b08fc006c6a4/views/7dbe1076-fca2-4d90-96b8-ed67f5d44310/schema</pre>\n</body>\n</html>\n"
+  },
+  "probe-POST /api/dashboards/{id}/columns": {
+    "status": 404,
+    "body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot POST /api/dashboards/8187a929-9587-4b7a-929a-b08fc006c6a4/columns</pre>\n</body>\n</html>\n"
+  },
+  "probe-PUT /views/{id}/schema": {
+    "status": 404,
+    "body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot PUT /api/v1/dashboards/8187a929-9587-4b7a-929a-b08fc006c6a4/views/7dbe1076-fca2-4d90-96b8-ed67f5d44310/schema</pre>\n</body>\n</html>\n"
+  },
+  "probe-PUT /views/{id}/data (new key)": {
+    "status": 400,
+    "body": {
+      "name": "BadRequestError",
+      "message": "Item custom_number_1 is not found in dashboard view 7dbe1076-fca2-4d90-96b8-ed67f5d44310"
+    }
+  },
+  "write-5QRI5ZqN": {
+    "status": 200,
+    "body": {
+      "success": true,
+      "message": "",
+      "data": {
+        "global_id": "3ccf258c-589d-42ed-9241-fa5aab4c3a57",
+        "dashboard_id": "8187a929-9587-4b7a-929a-b08fc006c6a4",
+        "root_index_key": "rowUuid",
+        "root_index_value": "d957b32f-4a09-4ddf-aae6-75eb4e460534",
+        "item_key": "5QRI5ZqN",
+        "created_at": "2026-03-06T05:15:37.267Z",
+        "updated_at": "2026-03-06T05:15:37.269Z",
+        "value_type": "string",
+        "_type_string": true,
+        "value": "Test String Value"
+      }
+    }
+  }
+}

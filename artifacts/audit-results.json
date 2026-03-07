@@ -1,0 +1,587 @@
+[
+  {
+    "feature": "List databases",
+    "category": "DB CRUD",
+    "endpoint": "/databases",
+    "method": "GET",
+    "status": 403,
+    "ok": false,
+    "notes": "found ? databases"
+  },
+  {
+    "feature": "Get database detail",
+    "category": "DB CRUD",
+    "endpoint": "/databases/{id}",
+    "method": "GET",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Rename database",
+    "category": "DB CRUD",
+    "endpoint": "/databases/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "Database updated successfully"
+  },
+  {
+    "feature": "Duplicate database",
+    "category": "DB CRUD",
+    "endpoint": "/databases/{id}/duplicate",
+    "method": "POST",
+    "status": 404,
+    "ok": false,
+    "notes": "\"\""
+  },
+  {
+    "feature": "Favorite database",
+    "category": "DB CRUD",
+    "endpoint": "/databases/{id}/favorite",
+    "method": "POST",
+    "status": 404,
+    "ok": false,
+    "notes": "\"\""
+  },
+  {
+    "feature": "Unfavorite database",
+    "category": "DB CRUD",
+    "endpoint": "/databases/{id}/favorite",
+    "method": "DELETE",
+    "status": 404,
+    "ok": false,
+    "notes": "\"\""
+  },
+  {
+    "feature": "Add table to database",
+    "category": "TABLE",
+    "endpoint": "/databases/{id}/dashboards",
+    "method": "POST",
+    "status": 404,
+    "ok": false,
+    "notes": "\"\""
+  },
+  {
+    "feature": "Get dashboard detail",
+    "category": "TABLE",
+    "endpoint": "/dashboards/{id}",
+    "method": "GET",
+    "status": 200,
+    "ok": true,
+    "notes": "Table 1"
+  },
+  {
+    "feature": "Get view detail",
+    "category": "VIEW",
+    "endpoint": "/views/{id}",
+    "method": "GET",
+    "status": 200,
+    "ok": true,
+    "notes": "Table 1"
+  },
+  {
+    "feature": "Create view",
+    "category": "VIEW",
+    "endpoint": "/dashboards/{id}/views",
+    "method": "POST",
+    "status": 500,
+    "ok": false,
+    "notes": "{\"name\":\"Error\",\"message\":\"global_id is required\"}"
+  },
+  {
+    "feature": "Switch to table view",
+    "category": "VIEW REP",
+    "endpoint": "/views/{id}/representations/table",
+    "method": "POST",
+    "status": 201,
+    "ok": false,
+    "notes": ""
+  },
+  {
+    "feature": "Switch to board view",
+    "category": "VIEW REP",
+    "endpoint": "/views/{id}/representations/board",
+    "method": "POST",
+    "status": 404,
+    "ok": false,
+    "notes": ""
+  },
+  {
+    "feature": "Switch to calendar view",
+    "category": "VIEW REP",
+    "endpoint": "/views/{id}/representations/calendar",
+    "method": "POST",
+    "status": 404,
+    "ok": false,
+    "notes": ""
+  },
+  {
+    "feature": "Switch to timeline view",
+    "category": "VIEW REP",
+    "endpoint": "/views/{id}/representations/timeline",
+    "method": "POST",
+    "status": 404,
+    "ok": false,
+    "notes": ""
+  },
+  {
+    "feature": "Switch to gallery view",
+    "category": "VIEW REP",
+    "endpoint": "/views/{id}/representations/gallery",
+    "method": "POST",
+    "status": 404,
+    "ok": false,
+    "notes": ""
+  },
+  {
+    "feature": "Switch to kanban view",
+    "category": "VIEW REP",
+    "endpoint": "/views/{id}/representations/kanban",
+    "method": "POST",
+    "status": 201,
+    "ok": false,
+    "notes": ""
+  },
+  {
+    "feature": "Switch to list view",
+    "category": "VIEW REP",
+    "endpoint": "/views/{id}/representations/list",
+    "method": "POST",
+    "status": 404,
+    "ok": false,
+    "notes": ""
+  },
+  {
+    "feature": "Switch to grid view",
+    "category": "VIEW REP",
+    "endpoint": "/views/{id}/representations/grid",
+    "method": "POST",
+    "status": 404,
+    "ok": false,
+    "notes": ""
+  },
+  {
+    "feature": "Sort by Name ASC",
+    "category": "SORT",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Sort by Name DESC",
+    "category": "SORT",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Multi-column sort (Status+Name)",
+    "category": "SORT",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Clear sort",
+    "category": "SORT",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Filter text: contains",
+    "category": "FILTER",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Filter text: is (exact)",
+    "category": "FILTER",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Filter text: is_not",
+    "category": "FILTER",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Filter text: is_empty",
+    "category": "FILTER",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Filter text: is_not_empty",
+    "category": "FILTER",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Multi-filter AND",
+    "category": "FILTER",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Multi-filter OR",
+    "category": "FILTER",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Clear filter",
+    "category": "FILTER",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Group by Status",
+    "category": "GROUP",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Group by Date",
+    "category": "GROUP",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Clear group",
+    "category": "GROUP",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Hide column",
+    "category": "VISIBILITY",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "hid \"Description\""
+  },
+  {
+    "feature": "Show column",
+    "category": "VISIBILITY",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "showed \"Description\""
+  },
+  {
+    "feature": "Add string column",
+    "category": "COLUMN",
+    "endpoint": "PUT /views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "key=zz6wDjHk"
+  },
+  {
+    "feature": "Add multiline column",
+    "category": "COLUMN",
+    "endpoint": "PUT /views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "key=GvxQzgoa"
+  },
+  {
+    "feature": "Add number column",
+    "category": "COLUMN",
+    "endpoint": "PUT /views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "key=pJxihvrR"
+  },
+  {
+    "feature": "Add date column",
+    "category": "COLUMN",
+    "endpoint": "PUT /views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "key=MT9ePGcP"
+  },
+  {
+    "feature": "Add label column",
+    "category": "COLUMN",
+    "endpoint": "PUT /views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "key=s0igRJM6"
+  },
+  {
+    "feature": "Add checkbox column",
+    "category": "COLUMN",
+    "endpoint": "PUT /views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "key=a1JM4YDI"
+  },
+  {
+    "feature": "Add email column",
+    "category": "COLUMN",
+    "endpoint": "PUT /views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "key=kGPXdvmt"
+  },
+  {
+    "feature": "Add phone column",
+    "category": "COLUMN",
+    "endpoint": "PUT /views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "key=UMDylK67"
+  },
+  {
+    "feature": "Add link column",
+    "category": "COLUMN",
+    "endpoint": "PUT /views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "key=Z_KRzqSM"
+  },
+  {
+    "feature": "Add currency column",
+    "category": "COLUMN",
+    "endpoint": "PUT /views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "key=f6aWmdJd"
+  },
+  {
+    "feature": "Add files column",
+    "category": "COLUMN",
+    "endpoint": "PUT /views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "key=kgWv-gJ5"
+  },
+  {
+    "feature": "Add user column",
+    "category": "COLUMN",
+    "endpoint": "PUT /views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "key=npc4kqap"
+  },
+  {
+    "feature": "Add subtable column",
+    "category": "COLUMN",
+    "endpoint": "PUT /views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "key=1HndJtqI"
+  },
+  {
+    "feature": "Add relation column",
+    "category": "COLUMN",
+    "endpoint": "POST /relations + PUT /views/{id}",
+    "method": "POST+PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "key=w0nLPLBj relId=ff564c1c-6004-42c6-9fe6-02c905fc4c1f"
+  },
+  {
+    "feature": "Add lookup column",
+    "category": "COLUMN",
+    "endpoint": "PUT /views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "key=kcgvQ7d3"
+  },
+  {
+    "feature": "Delete column",
+    "category": "COLUMN",
+    "endpoint": "PUT /views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": "deleted \"Test_phone\""
+  },
+  {
+    "feature": "Add row (empty)",
+    "category": "ROW",
+    "endpoint": "/views/{id}/entities",
+    "method": "POST",
+    "status": 404,
+    "ok": false,
+    "notes": "\"\""
+  },
+  {
+    "feature": "Get rows (search)",
+    "category": "ROW",
+    "endpoint": "/views/{id}/entities/search",
+    "method": "POST",
+    "status": 404,
+    "ok": false,
+    "notes": "0 rows"
+  },
+  {
+    "feature": "Bulk add rows",
+    "category": "ROW",
+    "endpoint": "/views/{id}/entities/bulk",
+    "method": "POST",
+    "status": 404,
+    "ok": false,
+    "notes": "\"\""
+  },
+  {
+    "feature": "List all relations",
+    "category": "RELATION",
+    "endpoint": "/relations",
+    "method": "GET",
+    "status": 500,
+    "ok": false,
+    "notes": "? relations"
+  },
+  {
+    "feature": "Create relation",
+    "category": "RELATION",
+    "endpoint": "/relations",
+    "method": "POST",
+    "status": 201,
+    "ok": true,
+    "notes": "ff564c1c-6004-42c6-9fe6-02c905fc4c1f"
+  },
+  {
+    "feature": "Get relation detail",
+    "category": "RELATION",
+    "endpoint": "/relations/{id}",
+    "method": "GET",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Delete relation",
+    "category": "RELATION",
+    "endpoint": "/relations/{id}",
+    "method": "DELETE",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Export CSV",
+    "category": "CSV",
+    "endpoint": "/views/{id}/export/csv",
+    "method": "GET",
+    "status": 404,
+    "ok": false,
+    "notes": "0 chars"
+  },
+  {
+    "feature": "Import CSV (probe)",
+    "category": "CSV",
+    "endpoint": "/views/{id}/import/csv",
+    "method": "POST",
+    "status": 404,
+    "ok": true,
+    "notes": "\"\""
+  },
+  {
+    "feature": "Create column group",
+    "category": "COL GROUP",
+    "endpoint": "/views/{id}",
+    "method": "PUT",
+    "status": 200,
+    "ok": true,
+    "notes": ""
+  },
+  {
+    "feature": "Search databases",
+    "category": "MISC",
+    "endpoint": "/databases?search=...",
+    "method": "GET",
+    "status": 403,
+    "ok": false,
+    "notes": "0 results"
+  },
+  {
+    "feature": "Database stats",
+    "category": "MISC",
+    "endpoint": "/databases/{id}/stats",
+    "method": "GET",
+    "status": 404,
+    "ok": false,
+    "notes": "\"\""
+  },
+  {
+    "feature": "List views for dashboard",
+    "category": "MISC",
+    "endpoint": "/dashboards/{id}/views",
+    "method": "GET",
+    "status": 404,
+    "ok": false,
+    "notes": "? views"
+  },
+  {
+    "feature": "Entity count",
+    "category": "MISC",
+    "endpoint": "/views/{id}/entities/count",
+    "method": "GET",
+    "status": 404,
+    "ok": false,
+    "notes": "\"\""
+  }
+]
