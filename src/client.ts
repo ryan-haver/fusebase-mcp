@@ -1518,6 +1518,93 @@ export class FusebaseClient {
   }
 
   /**
+   * Set the grouping column for a kanban/board view.
+   *
+   * Sends: POST /dashboards/{id}/views/{id}/representations/{type}
+   * with body: { settings: { groupByField: columnKey, displayFields: [...] } }
+   */
+  async setViewGrouping(
+    dashboardId: string,
+    viewId: string,
+    groupByColumnKey: string,
+    representationType: "kanban" | "board" = "kanban",
+    displayFields?: string[],
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data: Record<string, unknown>;
+  }> {
+    // If displayFields not provided, fetch schema to get all column keys
+    let fields = displayFields;
+    if (!fields) {
+      try {
+        const schema = await this.getViewSchema(dashboardId, viewId);
+        fields = schema.columns.map((col) => col.key).filter(Boolean) || [];
+      } catch {
+        fields = [groupByColumnKey];
+      }
+    }
+
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/representations/${representationType}`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          settings: {
+            groupByField: groupByColumnKey,
+            displayFields: fields,
+          },
+        }),
+      },
+    );
+  }
+
+  /**
+   * Set column width in a view.
+   *
+   * Sends: PUT /dashboards/{id}/views/{id}
+   * with the schema items containing metadata.width for the target column.
+   */
+  async setColumnWidth(
+    dashboardId: string,
+    viewId: string,
+    columnKey: string,
+    width: number,
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data: Record<string, unknown>;
+  }> {
+    // Fetch the current view schema
+    const schema = await this.getViewSchema(dashboardId, viewId);
+    const items = (schema.rawSchema as any)?.items;
+    if (!items || !Array.isArray(items)) {
+      throw new Error("Could not retrieve view schema items");
+    }
+
+    // Find the target column and set its width
+    const targetItem = items.find((item: any) => item.key === columnKey);
+    if (!targetItem) {
+      throw new Error(`Column with key '${columnKey}' not found in schema`);
+    }
+
+    // Ensure metadata exists and set width
+    if (!targetItem.metadata) {
+      targetItem.metadata = {};
+    }
+    targetItem.metadata.width = width;
+
+    // PUT the updated schema back
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ schema: { items } }),
+      },
+    );
+  }
+
+  /**
    * Create a new view within a dashboard.
    *
    * Endpoint: POST /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/views
@@ -1567,6 +1654,241 @@ export class FusebaseClient {
       `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "DELETE" },
     );
+  }
+
+  /**
+   * Duplicate an existing view within a dashboard.
+   *
+   * Creates a new view by copying the source view's schema, filters, and configuration.
+   * Uses the createView endpoint with source_view_id to clone the view.
+   *
+   * @param dashboardId - Dashboard containing the view
+   * @param sourceViewId - View to duplicate
+   * @param name - Optional name for the new view (defaults to "Copy of {sourceViewId}")
+   */
+  async duplicateView(
+    dashboardId: string,
+    sourceViewId: string,
+    name?: string,
+  ): Promise<{ success: boolean; data: unknown }> {
+    // First, get the source view's schema and filters
+    const sourceView = await this.request<{ data: Record<string, unknown> }>(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${sourceViewId}`,
+    );
+    const viewData = (sourceView as any)?.data ?? sourceView;
+    const schema = viewData.schema || {};
+    const filters = viewData.filters || { logic: "AND", conditions: [] };
+
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          global_id: crypto.randomUUID(),
+          name: name || `Copy of View`,
+          schema,
+          filters,
+          source_view_id: sourceViewId,
+        }),
+      },
+    );
+  }
+
+  /**
+   * Import CSV data into a new database dashboard.
+   *
+   * Endpoint: POST /v4/api/proxy/dashboard-service/v1/dashboards/import/csv
+   * Accepts multipart form data with the CSV file.
+   *
+   * @param csvContent - CSV content as a string
+   * @param databaseId - Database ID
+   * @param dashboardId - Dashboard (table) ID to import into
+   * @param viewId - View ID to import into
+   * @param options.delimiter - CSV delimiter (default: ",")
+   * @param options.mapping - Column mapping array (auto-generated from CSV headers if omitted)
+   */
+  async importCSV(
+    csvContent: string,
+    databaseId: string,
+    dashboardId: string,
+    viewId: string,
+    options?: {
+      delimiter?: "," | ";" | "|" | "\t" | "^";
+      mapping?: Array<{ index: number; type: string; edit_type: string }>;
+    },
+  ): Promise<{ success: boolean; data: unknown }> {
+    const delimiter = options?.delimiter || ",";
+
+    // Auto-generate mapping from CSV headers if not provided
+    let mapping = options?.mapping;
+    if (!mapping) {
+      const firstLine = csvContent.split("\n")[0]?.trim();
+      if (firstLine) {
+        const headers = firstLine.split(delimiter).map(h => h.trim().replace(/^"|"$/g, ""));
+        mapping = headers.map((_, i) => ({
+          index: i,
+          type: "string",
+          edit_type: "string-single-line",
+        }));
+      }
+    }
+
+    // The FuseBase import API uses a GET request with all params as query strings.
+    // File content is sent as a Blob in a multipart POST first, but the actual
+    // import trigger is via query params. Based on browser intercept, the flow is:
+    // 1. Upload file via the dialog (client-side reads it)
+    // 2. GET /dashboards/import/csv?database_id=...&dashboard_id=...&view_id=...&delimiter=...&mapping[columns][0][index]=0&...
+    //
+    // However, since we're sending CSV content programmatically, we use POST with
+    // the file in form data and all other params as query strings.
+    const params = new URLSearchParams();
+    params.set("database_id", databaseId);
+    params.set("dashboard_id", dashboardId);
+    params.set("view_id", viewId);
+    params.set("delimiter", delimiter);
+
+    if (mapping) {
+      for (let i = 0; i < mapping.length; i++) {
+        const col = mapping[i];
+        params.set(`mapping[columns][${i}][index]`, String(col.index));
+        params.set(`mapping[columns][${i}][type]`, col.type);
+        params.set(`mapping[columns][${i}][edit_type]`, col.edit_type);
+      }
+    }
+
+    // Try GET first (as observed in browser), fall back to POST with form data
+    const baseEndpoint = `/v4/api/proxy/dashboard-service/v1/dashboards/import/csv`;
+    const queryString = params.toString();
+
+    // First, try the GET approach (browser-observed method)
+    const getUrl = `${this.baseUrl}${baseEndpoint}?${queryString}`;
+    const getRes = await fetch(getUrl, {
+      method: "GET",
+      headers: { cookie: this.cookie },
+      signal: AbortSignal.timeout(TIMEOUT_WRITE),
+    });
+
+    if (getRes.ok) {
+      try {
+        return { success: true, data: await getRes.json() };
+      } catch {
+        return { success: true, data: await getRes.text() };
+      }
+    }
+
+    // Fallback: POST with CSV as form data + query params
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const formData = new FormData();
+    formData.append("file", blob, "import.csv");
+
+    const postUrl = `${this.baseUrl}${baseEndpoint}?${queryString}`;
+    const postRes = await fetch(postUrl, {
+      method: "POST",
+      headers: { cookie: this.cookie },
+      body: formData,
+      signal: AbortSignal.timeout(TIMEOUT_WRITE),
+    });
+
+    if (!postRes.ok) {
+      const text = await postRes.text().catch(() => "");
+      throw new Error(`importCSV failed: ${postRes.status} ${text}`);
+    }
+    try {
+      return { success: true, data: await postRes.json() };
+    } catch {
+      return { success: true, data: await postRes.text() };
+    }
+  }
+
+  /**
+   * Rename a column in a database view.
+   *
+   * Updates the column's name in the view schema via PUT.
+   *
+   * @param dashboardId - Dashboard containing the view
+   * @param viewId - View containing the column
+   * @param columnKey - The 8-char column key to rename
+   * @param newName - New name for the column
+   */
+  async renameColumn(
+    dashboardId: string,
+    viewId: string,
+    columnKey: string,
+    newName: string,
+  ): Promise<{ success: boolean; message: string }> {
+    const viewRes = await this.request<{ data: Record<string, unknown> }>(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+    );
+    const viewData = (viewRes as any)?.data ?? viewRes;
+    const schema = { ...(viewData.schema ?? {}) };
+    const items: Array<Record<string, unknown>> = [...((schema as any).items ?? [])];
+
+    const col = items.find((i) => i.key === columnKey);
+    if (!col) {
+      throw new Error(`Column key "${columnKey}" not found in schema`);
+    }
+    col.name = newName;
+
+    (schema as any).items = items;
+    await this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      { method: "PUT", body: JSON.stringify({ schema }) },
+    );
+
+    return { success: true, message: `Column "${columnKey}" renamed to "${newName}"` };
+  }
+
+  /**
+   * Reorder columns in a database view.
+   *
+   * Rearranges the schema items array according to the given ordered key list.
+   * Keys not in the list are appended at the end in their original order.
+   *
+   * @param dashboardId - Dashboard containing the view
+   * @param viewId - View to reorder columns in
+   * @param orderedKeys - Array of column keys in the desired order
+   */
+  async reorderColumns(
+    dashboardId: string,
+    viewId: string,
+    orderedKeys: string[],
+  ): Promise<{ success: boolean; message: string }> {
+    const viewRes = await this.request<{ data: Record<string, unknown> }>(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+    );
+    const viewData = (viewRes as any)?.data ?? viewRes;
+    const schema = { ...(viewData.schema ?? {}) };
+    const items: Array<Record<string, unknown>> = [...((schema as any).items ?? [])];
+
+    // Build a map of key → item
+    const itemMap = new Map<string, Record<string, unknown>>();
+    for (const item of items) {
+      itemMap.set(String(item.key), item);
+    }
+
+    // Reorder: ordered keys first, then remaining in their original order
+    const reordered: Array<Record<string, unknown>> = [];
+    const placed = new Set<string>();
+    for (const key of orderedKeys) {
+      const item = itemMap.get(key);
+      if (item) {
+        reordered.push(item);
+        placed.add(key);
+      }
+    }
+    for (const item of items) {
+      if (!placed.has(String(item.key))) {
+        reordered.push(item);
+      }
+    }
+
+    (schema as any).items = reordered;
+    await this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      { method: "PUT", body: JSON.stringify({ schema }) },
+    );
+
+    return { success: true, message: `Columns reordered: ${orderedKeys.join(", ")}` };
   }
 
   /**
@@ -2119,6 +2441,11 @@ export class FusebaseClient {
           transform: { func: "transformDate" },
         };
 
+      case "multiselect":
+      case "multi_select":
+      case "multi-select":
+        return this.buildColumnDefinition(key, name, "select", { ...options, multiSelect: true });
+
       case "label":
       case "status":
       case "select":
@@ -2213,6 +2540,23 @@ export class FusebaseClient {
             is_lookup: false, edit_type: "currency",
             type: "currency", _type_currency: true,
             currency_code: "USD", currency_symbol: "$",
+          },
+          index: {
+            fields: [{ path: `$['{key}']`, type: "NUMERIC", alias: "{key}", options: { sortable: true } }],
+            enabled: true, conditions: "number",
+          },
+        };
+
+      case "percent":
+      case "percentage":
+        return {
+          ...base,
+          source: { _type_custom: true, type: "custom", custom_type: "number" },
+          json_schema: { type: "number" },
+          render: {
+            is_lookup: false, edit_type: "number",
+            type: "number", _type_number: true,
+            format: "percent",
           },
           index: {
             fields: [{ path: `$['{key}']`, type: "NUMERIC", alias: "{key}", options: { sortable: true } }],

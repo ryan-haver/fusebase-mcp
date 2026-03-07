@@ -2353,6 +2353,149 @@ function registerExtendedTools() {
 
 
   server.tool(
+    "duplicate_view",
+    "Duplicate an existing view within a dashboard. Creates a copy with the same schema, filters, and configuration. Use get_dashboard_detail to find dashboard and view UUIDs.",
+    {
+      dashboardId: z.string().describe("Dashboard UUID"),
+      sourceViewId: z.string().describe("Source view UUID to duplicate"),
+      name: z.string().optional().describe("Name for the new view (defaults to 'Copy of View')"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ dashboardId, sourceViewId, name, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.duplicateView(dashboardId, sourceViewId, name);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "import_csv",
+    "Import CSV data into an existing database table/view. Provide the CSV content, the database ID, dashboard (table) ID, and the view ID. The server will import the rows into the database. Column mapping is auto-generated from CSV headers (all imported as 'Single line text').",
+    {
+      csvContent: z.string().describe("CSV content as a string"),
+      databaseId: z.string().describe("Database ID"),
+      dashboardId: z.string().describe("Dashboard (table) ID to import into"),
+      viewId: z.string().describe("View ID to import into"),
+      delimiter: z.enum([",", ";", "|", "\t", "^"]).optional().describe("CSV delimiter (default comma)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ csvContent, databaseId, dashboardId, viewId, delimiter, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.importCSV(csvContent, databaseId, dashboardId, viewId, { delimiter });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "set_view_grouping",
+    "Set the grouping column for a kanban or board view. Groups cards/rows by the specified column. Requires the dashboard ID, view ID, and the column key to group by. Use get_database_schema first to find column keys.",
+    {
+      dashboardId: z.string().describe("Dashboard (table) ID"),
+      viewId: z.string().describe("View ID"),
+      groupByColumnKey: z.string().describe("Column key to group by (use get_database_schema to find keys)"),
+      representationType: z.enum(["kanban", "board"]).optional().describe("Representation type (default: kanban)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ dashboardId, viewId, groupByColumnKey, representationType, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.setViewGrouping(dashboardId, viewId, groupByColumnKey, representationType || "kanban");
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "set_column_width",
+    "Set the width of a column in a database view. Use get_database_schema first to find column keys. Width is in pixels.",
+    {
+      dashboardId: z.string().describe("Dashboard (table) ID"),
+      viewId: z.string().describe("View ID"),
+      columnKey: z.string().describe("Column key to resize"),
+      width: z.number().describe("Width in pixels (e.g. 200, 350, 500)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ dashboardId, viewId, columnKey, width, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.setColumnWidth(dashboardId, viewId, columnKey, width);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "rename_database_column",
+    "Rename a column in a database view. Updates the column's name in the view schema. Use get_database_schema first to find the column key.",
+    {
+      dashboardId: z.string().describe("Dashboard (table) ID"),
+      viewId: z.string().describe("View ID"),
+      columnKey: z.string().describe("The column key to rename (8-char opaque string)"),
+      newName: z.string().describe("New name for the column"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ dashboardId, viewId, columnKey, newName, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.renameColumn(dashboardId, viewId, columnKey, newName);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "reorder_database_columns",
+    "Reorder columns in a database view. Provide an array of column keys in the desired order. Columns not in the array are appended at the end. Use get_database_schema first to see current column keys and order.",
+    {
+      dashboardId: z.string().describe("Dashboard (table) ID"),
+      viewId: z.string().describe("View ID"),
+      orderedKeys: z.array(z.string()).describe("Column keys in desired order"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ dashboardId, viewId, orderedKeys, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.reorderColumns(dashboardId, viewId, orderedKeys);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
     "update_database_cell",
     "Set the value of a specific cell in a database row. Use get_database_rows or get_database_data first to obtain the rowUuid and the column key (short opaque string like 'eoZSNDPy'). The get_database_rows tool returns a schema array mapping column names to keys for easy lookup. Note: rich-text (Description), file, and relation columns may not accept plain string values.",
     {
