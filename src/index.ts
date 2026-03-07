@@ -2119,14 +2119,37 @@ function registerExtendedTools() {
 
   server.tool(
     "list_database_relations",
-    "List all relations defined for a database. Returns relation IDs, types, and linked dashboards. Use this to discover existing relations before creating lookups or deleting relations.",
+    "List available relation targets and existing lookups for a dashboard. Returns linked tables/views that can be used for creating relation or lookup columns.",
     {
-      databaseId: z.string().describe("Database ID"),
+      dashboardId: z.string().describe("Dashboard (table) ID"),
+      viewId: z.string().optional().describe("View ID (helps narrow results)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ databaseId, profile }) => {
+    }, async ({ dashboardId, viewId, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.listRelations(databaseId);
+        const result = await client.listRelations(dashboardId, viewId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "create_dashboard_table",
+    "Create a new table (tab) within an existing database dashboard. This adds an additional table view alongside the existing one.",
+    {
+      dashboardId: z.string().describe("Dashboard ID of the existing table"),
+      title: z.string().describe("Name for the new table"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ dashboardId, title, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.createDashboardTable(dashboardId, title);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },

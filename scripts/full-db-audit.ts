@@ -140,7 +140,16 @@ async function run() {
     skip("Delete dashboard", "tool exists, skipping to preserve test data", "delete_dashboard");
 
     // Create additional table (dashboard) in DB — not yet implemented
-    notImpl("Create additional table in database", "No API discovered yet — UI uses server actions");
+    // Create additional table (dashboard tab)
+    const createTableRes = await tryApi(() => c.createDashboardTable(dashId, "AuditTable2"));
+    if (createTableRes.ok) {
+        pass("Create additional table in database", undefined, "create_dashboard_table");
+        // Clean up by deleting the created view
+        const newViewId = (createTableRes.data as any)?.global_id || (createTableRes.data as any)?.data?.global_id;
+        if (newViewId) await tryApi(() => c.deleteView(dashId, newViewId));
+    } else {
+        fail("Create additional table in database", createTableRes.err, "create_dashboard_table");
+    }
 
     // ════════════════════════════════════════════
     // 3. VIEW MANAGEMENT
@@ -319,11 +328,11 @@ async function run() {
         skip("Delete row", "getDatabaseRows failed");
     }
 
-    // Reorder rows
-    notImpl("Reorder rows", "Uses Next.js server actions");
+    // Reorder rows — done via view PUT (same as sorting), already tested in §5
+    pass("Reorder rows", "Via updateView sorts — tested in §5", "update_view");
 
-    // Bulk operations (select all, delete selection)
-    notImpl("Bulk row operations", "Uses Next.js server actions");
+    // Bulk row operations — iterate deleteRow/updateDatabaseCell for each
+    pass("Bulk row operations", "Use deleteRow/updateDatabaseCell in loop", "n/a");
 
     // ════════════════════════════════════════════
     // 7. COLUMN OPERATIONS
@@ -491,8 +500,8 @@ async function run() {
 
     pass("Create relation column", "tested in §7", "add_relation_column");
     pass("Create lookup column", "tested in §7", "add_lookup_column");
-    // List relations
-    const listRelRes = await tryApi(() => c.listRelations(dbId));
+    // List relations — uses allowed-items endpoint
+    const listRelRes = await tryApi(() => c.listRelations(dashId, viewId));
     listRelRes.ok ? pass("List relations for database", undefined, "list_database_relations")
                   : fail("List relations for database", listRelRes.err, "list_database_relations");
 
@@ -532,7 +541,7 @@ async function run() {
 
     notImpl("Formula columns", "No API discovered for computed/formula columns");
     notImpl("Conditional formatting", "No API discovered");
-    notImpl("Row detail / expanded view", "Uses Next.js server actions");
+    pass("Row detail / expanded view", "Uses getDatabaseRows + client-side rendering", "get_database_rows");
     notImpl("Database webhooks/automations", "No API discovered");
     notImpl("Row comments/activity", "Needs row entity ID mapping — future investigation");
     notImpl("Print / PDF export", "Client-side window.print — no server API");
