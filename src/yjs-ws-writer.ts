@@ -1225,8 +1225,8 @@ export async function writeContentViaWebSocket(
           tokenMsg.set(jwtBytes, tokenHeader.length);
           ws.send(Buffer.from(tokenMsg));
 
-          // Encode diff as V1 — server expects V1 despite encv2=true in URL
-          const diff = Y.encodeStateAsUpdate(ydoc, beforeSv);
+          // Encode diff as V2 to match encv2=true in connection URL
+          const diff = Y.encodeStateAsUpdateV2(ydoc, beforeSv);
           ws.send(Buffer.from(encodeSyncMessage(0x02, diff)));
 
           // Wait for server to process the update before closing

@@ -1,13 +1,15 @@
 # Fusebase MCP Server
 
-An [MCP](https://modelcontextprotocol.io/) server that lets AI assistants manage your [Fusebase](https://www.fusebase.com/) (formerly Nimbus Note) workspaces — pages, folders, tasks, tags, files, members, and more.
+An [MCP](https://modelcontextprotocol.io/) server that lets AI assistants manage your [Fusebase](https://www.fusebase.com/) (formerly Nimbus Note) workspaces — pages, folders, tasks, tags, files, members, databases, and more.
 
 > **Note:** Fusebase has no public REST API. This server uses reverse-engineered internal endpoints with cookie-based authentication.
 
 ## ✨ Features
 
-- **63 tools** across content, tasks, members, org admin, portals, databases, files, guides, and more
-- **Two-tier system** — 21 core tools load by default; 42 extended tools on demand
+- **91 tools** across content, tasks, members, files, databases, org admin, portals, guides, and more
+- **Two-tier system** — 23 core tools load by default; 68 extended tools on demand
+- **Content writing** — create pages with markdown or structured blocks via Y.js WebSocket
+- **Database CRUD** — full kanban/table management: rows, columns, views, relations, CSV import/export
 - **Auto auth retry** — detects 401/403 and refreshes session automatically
 - **Encrypted secrets** — cookies stored encrypted at rest (AES-256-GCM)
 - **Version checking** — built-in update detection from GitHub
@@ -151,15 +153,15 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 
 | Tier | Tools | Description |
 | --- | --- | --- |
-| **Core** (default) | 21 | Day-to-day: pages, folders, tasks, tags, members, guides |
-| **Extended** | +42 | Admin, analytics, content mutations, files, databases, portals |
+| **Core** (default) | 23 | Day-to-day: pages, folders, tasks, tags, members, files, guides |
+| **Extended** | +68 | Admin, analytics, content mutations, databases, columns, relations, portals |
 
 **Enable extended tools:**
 
 - Mid-session: ask your AI to use `set_tool_tier` with `tier: "all"`
 - Always-on: add `FUSEBASE_TOOLS=all` to your `.env`
 
-### Core Tools (21)
+### Core Tools (23)
 
 | Category | Tool | Description |
 | --- | --- | --- |
@@ -171,8 +173,12 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Content | `get_page` | Get page metadata |
 | Content | `get_page_content` | Get page content as HTML (Y.js decoded) |
 | Content | `get_recent_pages` | Recently accessed pages |
-| Content | `create_page` | Create a new blank page |
+| Content | `create_page` | Create a page with optional markdown/blocks content |
 | Content | `list_folders` | Folder tree for a workspace |
+| Files | `get_page_attachments` | List attachments on a page |
+| Files | `list_files` | List workspace-wide uploaded files |
+| Files | `upload_file` | Upload a file to a page (base64 content) |
+| Files | `download_attachment` | Download an attachment as base64 |
 | Tags | `get_tags` | Workspace or page tags |
 | Tags | `update_page_tags` | Set tags on a page |
 | Members | `get_members` | Workspace or org members |
@@ -183,19 +189,23 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Guides | `get_guide` | Get full guide content by section/slug |
 | Guides | `list_guide_sections` | Browse all 17 guide sections |
 
-### Extended Tools (42)
+### Extended Tools (68)
 
 Enable with `set_tool_tier(tier: "all")`:
 
-- **Content mutations**: `delete_page`, `update_page_content`
-- **Files & attachments**: `get_page_attachments`, `list_files`, `get_file_count`, `upload_file`, `download_attachment`
+- **Content mutations**: `create_folder`, `update_page`, `delete_page`, `update_page_content`
+- **Tasks (advanced)**: `update_task`, `delete_task`, `get_task_description`, `get_task_count`, `get_task_usage`
 - **Labels & tags**: `get_labels`, `get_note_tags`
-- **Activity & comments**: `get_activity_stream`, `get_comment_threads`
-- **Tasks (advanced)**: `get_task_description`, `get_task_count`, `get_task_usage`
+- **Activity & comments**: `get_activity_stream`, `get_comment_threads`, `fusebase_poll_mentions`, `fusebase_post_comment`, `fusebase_reply_comment`, `fusebase_resolve_thread`
+- **Files**: `get_file_count`
 - **Organization**: `get_org_usage`, `get_org_limits`, `get_usage_summary`, `get_org_permissions`, `get_org_features`, `get_ai_usage`
 - **Workspaces**: `get_workspace_detail`, `get_workspace_emails`, `get_workspace_info`
 - **Navigation & AI**: `get_navigation_menu`, `get_mention_entities`, `list_agents`, `get_recently_updated_notes`
-- **Databases**: `get_database_data`, `list_databases`, `get_database_entity`, `create_database`, `add_database_row`, `list_all_databases`, `get_database_detail`, `update_database`, `delete_database`, `get_dashboard_detail`, `delete_dashboard`, `update_view`, `set_view_representation`
+- **Databases**: `get_database_data`, `list_databases`, `get_database_entity`, `create_database`, `add_database_row`, `delete_database_row`, `move_kanban_card`, `list_database_relations`, `create_dashboard_table`, `delete_relation`, `list_all_databases`, `get_database_detail`, `update_database`, `delete_database`, `get_dashboard_detail`, `delete_dashboard`
+- **Views**: `update_view`, `set_view_representation`, `create_view`, `delete_view`, `duplicate_view`, `set_view_grouping`
+- **Columns**: `add_database_column`, `delete_database_column`, `rename_database_column`, `reorder_database_columns`, `set_column_width`, `add_relation_column`, `add_lookup_column`
+- **Cells & rows**: `update_database_cell`, `get_database_rows`, `get_database_schema`
+- **Import/Export**: `duplicate_database`, `export_csv`, `import_csv`
 - **Portals**: `list_portals`, `get_portal_pages`
 
 ## 🔐 Security
@@ -209,7 +219,7 @@ Enable with `set_tool_tier(tier: "all")`:
 
 ```text
 src/
-  index.ts              → MCP server (63 tools, stdio transport, tier system)
+  index.ts              → MCP server (91 tools, stdio transport, tier system)
   client.ts             → HTTP client (cookie auth, 401 auto-retry, logging)
   crypto.ts             → AES-256-GCM encryption for secrets at rest
   types.ts              → TypeScript interfaces for API responses
@@ -222,6 +232,7 @@ src/
 scripts/
   auth.ts               → Capture session cookies via Playwright
   scrape-guides.ts      → Scrape FuseBase help guides into markdown + NLM sync
+  full-db-audit.ts      → Comprehensive database & kanban feature audit
   test-regression.ts    → Comprehensive write→read regression test (20 checks)
   test-guide-tools.ts   → Guide loader integration test (13 checks)
   discover.ts           → Crawl Fusebase UI to discover API endpoints
@@ -232,10 +243,12 @@ data/                   → (gitignored) Cookie store, API logs, workspace cache
 
 ## 🗺️ Roadmap
 
-See [UNIMPLEMENTED_ENDPOINTS.md](UNIMPLEMENTED_ENDPOINTS.md) for 36 discovered but unimplemented API endpoints, prioritized by value:
+See [ENDPOINT_REFERENCE.md](ENDPOINT_REFERENCE.md) for all discovered and implemented API endpoints.
 
-- **Automation** — ActivePieces flow/run management (11 endpoints)
-- **Databases** — entity/table CRUD (3 endpoints)
+Areas of interest for future development:
+
+- **Automation** — ActivePieces flow/run management
+- **Sharing** — Portal invitation and access control APIs
 - **AI assistant** — thread and preference management
 
 ## 🤝 Contributing

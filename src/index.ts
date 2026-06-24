@@ -306,7 +306,7 @@ server.tool(
 
 server.tool(
   "create_page",
-  "Create a new blank page in a Fusebase workspace with the given title. Optionally specify a folderId to place it in a specific folder (defaults to root). Returns the created page's metadata including its new globalId.",
+  "Create a new page in a Fusebase workspace with the given title. Optionally provide initial content via 'markdown' (recommended) or structured 'blocks'. Optionally specify a folderId to place it in a specific folder (defaults to root). Returns the created page's metadata including its new globalId.",
   {
     workspaceId: z.string().describe("Workspace ID"),
     title: z.string().describe("Page title"),
@@ -314,26 +314,56 @@ server.tool(
       .string()
       .optional()
       .describe("Parent folder ID (default: root/default)"),
+    markdown: z
+      .string()
+      .optional()
+      .describe("Markdown string for initial page content. Auto-converted to Fusebase format. Supports # headings, **bold**, *italic*, ~~strikethrough~~, `code`, [links](url), - lists, 1. numbered, ---, > blockquotes, ```code```. For advanced blocks use 'blocks' instead."),
+    blocks: z
+      .array(z.unknown())
+      .optional()
+      .describe("Structured ContentBlock[] array for initial page content. Supports all block types: paragraph, heading, list, code, blockquote, divider, toggle, hint, collapsible-heading, image, file, bookmark, remote-frame, outline, button, step, step-aggregator, table, and grid."),
     profile: z.string().optional().describe("Agent profile to use for authentication"),
-  }, async ({ workspaceId, title, folderId, profile }) => {
+  }, async ({ workspaceId, title, folderId, markdown, blocks, profile }) => {
     const client = getClient(profile);
     try {
       const page = await client.createPage(workspaceId, title, folderId);
+      const result: Record<string, unknown> = {
+        id: page.globalId,
+        title: page.title,
+        parentId: page.parentId,
+        workspaceId: page.workspaceId,
+        createdAt: new Date(page.createdAt * 1000).toISOString(),
+      };
+
+      // Write initial content if provided
+      if (markdown || blocks) {
+        let contentBlocks: ContentBlock[];
+        if (markdown) {
+          contentBlocks = markdownToSchema(markdown);
+        } else {
+          contentBlocks = blocks as ContentBlock[];
+        }
+
+        const writeResult = await writeContentViaWebSocket(
+          client["host"],
+          workspaceId,
+          page.globalId,
+          client["cookie"],
+          contentBlocks,
+          { replace: true, timeout: 20000 },
+        );
+
+        result.contentWritten = writeResult.success;
+        if (!writeResult.success) {
+          result.contentError = writeResult.error;
+        }
+      }
+
       return {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify(
-              {
-                id: page.globalId,
-                title: page.title,
-                parentId: page.parentId,
-                workspaceId: page.workspaceId,
-                createdAt: new Date(page.createdAt * 1000).toISOString(),
-              },
-              null,
-              2,
-            ),
+            text: JSON.stringify(result, null, 2),
           },
         ],
       };
@@ -1011,7 +1041,7 @@ let extendedToolsRegistered = false;
 
 server.tool(
   "set_tool_tier",
-  "Enable extended Fusebase tools for this session. By default only core tools (21) are loaded for performance. Call this with tier 'all' to dynamically register 47 additional tools for admin, analytics, content mutations, file upload, database CRUD, column management, and niche operations.",
+  "Enable extended Fusebase tools for this session. By default only core tools (23) are loaded for performance. Call this with tier 'all' to dynamically register 68 additional tools for admin, analytics, content mutations, file upload, database CRUD, column management, and niche operations.",
   {
     tier: z
       .enum(["all", "core"])
@@ -1025,7 +1055,7 @@ server.tool(
           content: [
             {
               type: "text" as const,
-              text: "Extended tools are already enabled for this session (68 total tools active).",
+              text: "Extended tools are already enabled for this session (91 total tools active).",
             },
           ],
         };
@@ -1035,7 +1065,7 @@ server.tool(
         content: [
           {
             type: "text" as const,
-            text: "Extended tools enabled! 47 additional tools are now available (68 total). New tools: get_page_attachments, list_files, upload_file, download_attachment, get_labels, get_org_usage, get_comment_threads, get_task_description, delete_page, update_page_content, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database, add_database_row, list_all_databases, get_database_detail, update_database, delete_database, get_dashboard_detail, delete_dashboard, update_view, set_view_representation, update_database_cell, get_database_rows, get_database_schema, add_database_column, delete_database_column, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
+            text: "Extended tools enabled! 68 additional tools are now available (91 total). New tools: get_labels, get_org_usage, get_comment_threads, get_task_description, create_folder, update_page, update_task, delete_task, delete_page, update_page_content, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, fusebase_poll_mentions, fusebase_post_comment, fusebase_reply_comment, fusebase_resolve_thread, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database, add_database_row, delete_database_row, move_kanban_card, list_database_relations, create_dashboard_table, delete_relation, list_all_databases, get_database_detail, update_database, delete_database, get_dashboard_detail, delete_dashboard, update_view, set_view_representation, duplicate_database, create_view, delete_view, export_csv, duplicate_view, import_csv, set_view_grouping, set_column_width, rename_database_column, reorder_database_columns, update_database_cell, get_database_rows, get_database_schema, add_database_column, delete_database_column, add_relation_column, add_lookup_column, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
           },
         ],
       };
@@ -1045,8 +1075,8 @@ server.tool(
         {
           type: "text" as const,
           text: extendedToolsRegistered
-            ? "Current tier: all (49 tools active). To revert to core-only, restart the MCP server."
-            : "Current tier: core (21 tools active). Call set_tool_tier with tier='all' to enable 28 extended tools.",
+            ? "Current tier: all (91 tools active). To revert to core-only, restart the MCP server."
+            : "Current tier: core (23 tools active). Call set_tool_tier with tier='all' to enable 68 extended tools.",
         },
       ],
     };
@@ -1058,126 +1088,6 @@ server.tool(
 function registerExtendedTools() {
   if (extendedToolsRegistered) return;
   extendedToolsRegistered = true;
-
-  // === Attachments & Files ===
-
-  server.tool(
-    "get_page_attachments",
-    "Get all attachments (images, files, audio recordings) embedded in a specific page. Returns file names, MIME types, sizes, and UUIDs. Useful for auditing media content or finding downloadable assets.",
-    {
-      workspaceId: z.string().describe("Workspace ID"),
-      pageId: z.string().describe("Page (note) ID"),
-      profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, pageId, profile }) => {
-      const client = getClient(profile);
-      try {
-        const attachments = await client.getAttachments(workspaceId, pageId);
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(
-                attachments.map((a) => ({
-                  id: a.globalId,
-                  name: a.displayName,
-                  type: a.type,
-                  mime: a.mime,
-                  size: a.size,
-                  role: a.role,
-                })),
-                null,
-                2,
-              ),
-            },
-          ],
-        };
-      } catch (error) {
-        return errorResult(error);
-      }
-    },
-  );
-
-  server.tool(
-    "list_files",
-    "List all uploaded files across a workspace with names, sizes, formats, and URLs. Supports pagination with limit and offset. Different from get_page_attachments — this covers workspace-wide file storage.",
-    {
-      workspaceId: z.string().describe("Workspace ID"),
-      limit: z.number().optional().describe("Max files to return (default: 25)"),
-      offset: z.number().optional().describe("Pagination offset (default: 0)"),
-      profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, limit, offset, profile }) => {
-      const client = getClient(profile);
-      try {
-        const files = await client.listFiles(workspaceId, limit, offset);
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(
-                files.map((f: FusebaseFile) => ({
-                  id: f.globalId,
-                  name: f.filename,
-                  format: f.format,
-                  size: f.size,
-                  url: f.url,
-                })),
-                null,
-                2,
-              ),
-            },
-          ],
-        };
-      } catch (error) {
-        return errorResult(error);
-      }
-    },
-  );
-
-  // === File Upload ===
-
-  server.tool(
-    "upload_file",
-    "Upload a file to a FuseBase page. The file becomes an attachment on the page. Returns the attachment ID and src path that can be used in content blocks (e.g. image blocks, file blocks, table attachment cells). File content must be base64-encoded.",
-    {
-      workspaceId: z.string().describe("Workspace ID"),
-      pageId: z.string().describe("Page (note) ID to attach the file to"),
-      base64Content: z
-        .string()
-        .describe("Base64-encoded file content"),
-      filename: z.string().describe("File name with extension (e.g. 'photo.png')"),
-      mime: z
-        .string()
-        .describe("MIME type (e.g. 'image/png', 'application/pdf', 'text/plain')"),
-      role: z
-        .enum(["attachment", "inline"])
-        .optional()
-        .describe("Role of the file: 'attachment' (default) or 'inline' for embedded images"),
-      profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, pageId, base64Content, filename, mime, role, profile }) => {
-      const client = getClient(profile);
-      try {
-        const fileBuffer = Buffer.from(base64Content, "base64");
-        const result = await client.uploadFile(
-          workspaceId,
-          pageId,
-          fileBuffer,
-          filename,
-          mime,
-          role || "attachment",
-        );
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(result, null, 2),
-            },
-          ],
-        };
-      } catch (error) {
-        return errorResult(error);
-      }
-    },
-  );
 
   // === Labels ===
 
@@ -2897,14 +2807,14 @@ function registerExtendedTools() {
     },
   );
 
-  console.error(`[fusebase] Extended tools registered (49 total)`);
+  console.error(`[fusebase] Extended tools registered (91 total)`);
 }
 
 // Register extended tools at startup if FUSEBASE_TOOLS=all
 if (process.env.FUSEBASE_TOOLS === "all") {
   registerExtendedTools();
 } else {
-  console.error("[fusebase] Running in core mode (21 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 68.");
+  console.error("[fusebase] Running in core mode (23 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 91.");
 }
 
 // ─── Helpers ────────────────────────────────────────────────────
