@@ -863,7 +863,7 @@ export class FusebaseClient {
   /** Delete a page */
   async deletePage(workspaceId: string, noteId: string): Promise<void> {
     await this.request<void>(
-      `/v2/api/web-editor/space/${workspaceId}/note/${noteId}`,
+      `/v2/api/workspaces/${workspaceId}/notes/${noteId}`,
       { method: "DELETE" },
     );
   }

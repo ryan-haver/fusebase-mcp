@@ -297,11 +297,25 @@ function renderBlockWithChildren(
   const effectiveContent = content || childHtml;
 
   // Custom container block output when child blocks are present
+  if (type === "list" && childHtml) {
+    return { type, html: childHtml };
+  }
   if (type === "grid" && childHtml) {
     return { type, html: `<div class="grid-layout">\n${childHtml}\n</div>` };
   }
   if (type === "gridCol" && effectiveContent) {
     return { type, html: `<div class="grid-column">${effectiveContent}</div>` };
+  }
+  if (type === "toggle") {
+    const collapsed = block.get("collapsed") as boolean | undefined;
+    const summary = content || "Toggle";
+    const body = childHtml ? `\n${childHtml}\n` : "";
+    return { type, html: `<details${collapsed ? "" : " open"}><summary>${summary}</summary>${body}</details>` };
+  }
+  if (type === "collapsibleHLarge" || type === "collapsibleHMedium" || type === "collapsibleHSmall") {
+    const tag = type === "collapsibleHLarge" ? "h1" : type === "collapsibleHMedium" ? "h2" : "h3";
+    const body = childHtml ? `\n${childHtml}\n` : "";
+    return { type, html: `<details><summary><${tag}>${content}</${tag}></summary>${body}</details>` };
   }
 
   const html = renderBlock(type, effectiveContent, align, color, indent, block);
