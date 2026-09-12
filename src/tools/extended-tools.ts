@@ -387,6 +387,73 @@ export function registerExtendedTools(
     },
   );
 
+  server.tool(
+    "get_ai_assistant_state",
+    "Get the workspace AI assistant state, prompt suggestions, assistant preferences, and recent chat threads.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ workspaceId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const state = await client.getAiAssistantState(workspaceId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(state, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "list_ai_agent_threads",
+    "List active conversation threads and history for a specific AI agent in the organization.",
+    {
+      agentId: z.string().describe("AI Agent ID (numeric string, e.g. '39')"),
+      orgId: z.string().optional().describe("Optional organization ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ agentId, orgId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const threads = await client.listAiAgentThreads(agentId, orgId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(threads, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_ai_agent_favorites",
+    "Get favorited or bookmarked AI agents configured in the organization.",
+    {
+      orgId: z.string().optional().describe("Optional organization ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ orgId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const favs = await client.getAiAgentFavorites(orgId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(favs, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
   // === Mention Entities ===
 
   server.tool(

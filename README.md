@@ -6,8 +6,8 @@ An [MCP](https://modelcontextprotocol.io/) server that lets AI assistants manage
 
 ## ✨ Features
 
-- **116 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, multi-agent profiles, and swarm orchestration
-- **Two-tier system** — 26 core tools load by default; 90 extended tools on demand
+- **120 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, multi-agent profiles, and swarm orchestration
+- **Two-tier system** — 27 core tools load by default; 93 extended tools on demand
 - **Native MCP Resources (7)** — `fusebase://workspaces`, `fusebase://guides/index`, `fusebase://work/connectors`, `fusebase://workspaces/{wid}/pages/{nid}`, `fusebase://databases/{did}`, `fusebase://portals/{portalId}/clients`
 - **Native MCP Prompts (7)** — pre-engineered workflow templates (`create-sop`, `summarize-page`, `build-kanban-project`, `design-automation-workflow`, `build-hosted-app`, `build-event-bridge`, `orchestrate-multi-agent-swarm`)
 - **Official FuseBase CLI & Hosted Apps** — inspect CLI status (`fusebase_cli_status`), initialize products (`fusebase_cli_init`), list apps (`fusebase_cli_list_apps`), and deploy Vite/React SPA apps to the FuseBase Cloud (`fusebase_cli_deploy`)
@@ -193,21 +193,22 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 
 | Tier | Tools | Description |
 | --- | --- | --- |
-| **Core** (default) | 26 | Day-to-day: pages, folders, tasks, tags, members, files, guides, profiles |
-| **Extended** | +90 | Admin, CLI apps, automations, portal lifecycle, databases, swarm state machines |
+| **Core** (default) | 27 | Day-to-day: pages, folders, tasks, tags, members, files, guides, session health, profiles |
+| **Extended** | +93 | Admin, CLI apps, automations, portal lifecycle, databases, swarm state machines |
 
 **Enable extended tools:**
 
 - Mid-session: ask your AI to use `set_tool_tier` with `tier: "all"`
 - Always-on: add `FUSEBASE_TOOLS=all` to your `.env`
 
-### Core Tools (26)
+### Core Tools (27)
 
 | Category | Tool | Description |
 | --- | --- | --- |
 | Meta | `set_tool_tier` | Enable extended tools or check current tier |
 | Meta | `check_version` | Check for server updates from GitHub |
 | Auth | `refresh_auth` | Refresh session cookies via Playwright |
+| Auth | `check_session_health` | Inspect cookie age, profile metadata, and test API connectivity without launching browser |
 | Content | `list_workspaces` | List all workspaces |
 | Content | `list_pages` | List pages (filter by folder, pagination) |
 | Content | `get_page` | Get page metadata |
@@ -232,7 +233,7 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Profiles | `list_agent_profiles` | List all configured encrypted agent credential profiles |
 | Profiles | `switch_active_profile` | Switch active agent session profile dynamically |
 
-### Extended Tools (90)
+### Extended Tools (93)
 
 Enable with `set_tool_tier(tier: "all")`:
 
@@ -247,7 +248,7 @@ Enable with `set_tool_tier(tier: "all")`:
 - **Files**: `get_file_count`
 - **Organization**: `get_org_usage`, `get_org_limits`, `get_usage_summary`, `get_org_permissions`, `get_org_features`, `get_ai_usage`
 - **Workspaces**: `get_workspace_detail`, `get_workspace_emails`, `get_workspace_info`
-- **Navigation & AI**: `get_navigation_menu`, `get_mention_entities`, `list_agents`, `get_recently_updated_notes`
+- **Navigation & AI**: `get_navigation_menu`, `get_mention_entities`, `list_agents`, `get_recently_updated_notes`, `get_ai_assistant_state`, `list_ai_agent_threads`, `get_ai_agent_favorites`
 - **Databases**: `get_database_data`, `list_databases`, `get_database_entity`, `create_database`, `add_database_row`, `delete_database_row`, `move_kanban_card`, `list_database_relations`, `create_dashboard_table`, `delete_relation`, `list_all_databases`, `get_database_detail`, `update_database`, `delete_database`, `get_dashboard_detail`, `delete_dashboard`
 - **Views**: `update_view`, `set_view_representation`, `create_view`, `delete_view`, `duplicate_view`, `set_view_grouping`
 - **Columns**: `add_database_column`, `delete_database_column`, `rename_database_column`, `reorder_database_columns`, `set_column_width`, `add_relation_column`, `add_lookup_column`
@@ -265,7 +266,7 @@ Enable with `set_tool_tier(tier: "all")`:
 
 ```text
 src/
-  index.ts              → MCP server (91 tools, stdio transport, tier system)
+  index.ts              → MCP server (120 tools, stdio transport, tier system)
   client.ts             → HTTP client (cookie auth, 401 auto-retry, logging)
   crypto.ts             → AES-256-GCM encryption for secrets at rest
   types.ts              → TypeScript interfaces for API responses

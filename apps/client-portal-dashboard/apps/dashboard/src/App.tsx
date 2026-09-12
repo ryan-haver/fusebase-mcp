@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface Milestone {
   id: string
@@ -9,24 +9,81 @@ interface Milestone {
   category: string
 }
 
-const INITIAL_MILESTONES: Milestone[] = [
+interface ClientRequest {
+  id: string
+  text: string
+  date: string
+  priority: 'Low' | 'Medium' | 'High'
+}
+
+const DEFAULT_MILESTONES: Milestone[] = [
   { id: 'm1', title: 'Client Onboarding & Scope Alignment', status: 'completed', date: 'Sept 4, 2026', owner: 'Ryan Haver', category: 'Strategy' },
   { id: 'm2', title: 'Ecosystem Architecture & MCP Bridge Design', status: 'completed', date: 'Sept 8, 2026', owner: 'Agent Architect', category: 'Architecture' },
-  { id: 'm3', title: 'Portal Customizer & Hub Integration Sprint', status: 'in-progress', date: 'Sept 12, 2026', owner: 'Agent Dev', category: 'Engineering' },
-  { id: 'm4', title: 'Security Audit & Rate-Limit Hardening', status: 'pending', date: 'Sept 18, 2026', owner: 'Agent QA', category: 'Security' },
+  { id: 'm3', title: 'Portal Customizer & Hub Integration Sprint', status: 'completed', date: 'Sept 12, 2026', owner: 'Agent Dev', category: 'Engineering' },
+  { id: 'm4', title: 'Security Audit & Rate-Limit Hardening', status: 'in-progress', date: 'Sept 18, 2026', owner: 'Agent QA', category: 'Security' },
   { id: 'm5', title: 'Final Client Portal Go-Live & Handover', status: 'pending', date: 'Sept 25, 2026', owner: 'Agent PM', category: 'Release' },
 ]
 
+const DEFAULT_REQUESTS: ClientRequest[] = [
+  { id: 'r1', text: 'Enable custom CNAME domain verification for partner portal', date: 'Today, 2:15 PM', priority: 'High' },
+  { id: 'r2', text: 'Add ActivePieces webhook trigger on form submission', date: 'Yesterday', priority: 'Medium' },
+]
+
 export default function App() {
-  const [milestones, setMilestones] = useState<Milestone[]>(INITIAL_MILESTONES)
+  const [milestones, setMilestones] = useState<Milestone[]>(() => {
+    try {
+      const saved = localStorage.getItem('fusebase_hub_milestones')
+      return saved ? JSON.parse(saved) : DEFAULT_MILESTONES
+    } catch {
+      return DEFAULT_MILESTONES
+    }
+  })
+
+  const [requests, setRequests] = useState<ClientRequest[]>(() => {
+    try {
+      const saved = localStorage.getItem('fusebase_hub_requests')
+      return saved ? JSON.parse(saved) : DEFAULT_REQUESTS
+    } catch {
+      return DEFAULT_REQUESTS
+    }
+  })
+
   const [activeTab, setActiveTab] = useState<'overview' | 'milestones' | 'requests'>('overview')
-  const [requests, setRequests] = useState<Array<{ id: string; text: string; date: string; priority: string }>>([
-    { id: 'r1', text: 'Enable custom CNAME domain verification for partner portal', date: 'Today, 2:15 PM', priority: 'High' },
-    { id: 'r2', text: 'Add ActivePieces webhook trigger on form submission', date: 'Yesterday', priority: 'Medium' },
-  ])
   const [newRequestText, setNewRequestText] = useState('')
-  const [newPriority, setNewPriority] = useState('Medium')
+  const [newPriority, setNewPriority] = useState<'Low' | 'Medium' | 'High'>('Medium')
   const [filter, setFilter] = useState<'all' | 'completed' | 'in-progress' | 'pending'>('all')
+  const [copyNotification, setCopyNotification] = useState<string | null>(null)
+
+  // Persist to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('fusebase_hub_milestones', JSON.stringify(milestones))
+    } catch (err) {
+      console.warn('Could not persist milestones:', err)
+    }
+  }, [milestones])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('fusebase_hub_requests', JSON.stringify(requests))
+    } catch (err) {
+      console.warn('Could not persist requests:', err)
+    }
+  }, [requests])
+
+  // Cross-tab storage listener
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'fusebase_hub_milestones' && e.newValue) {
+        try { setMilestones(JSON.parse(e.newValue)) } catch (err) { console.warn(err) }
+      }
+      if (e.key === 'fusebase_hub_requests' && e.newValue) {
+        try { setRequests(JSON.parse(e.newValue)) } catch (err) { console.warn(err) }
+      }
+    }
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [])
 
   const toggleMilestone = (id: string) => {
     setMilestones((prev) =>
@@ -45,22 +102,41 @@ export default function App() {
   const handleAddRequest = (e: React.FormEvent) => {
     e.preventDefault()
     if (!newRequestText.trim()) return
-    setRequests([
-      {
-        id: `r-${Date.now()}`,
-        text: newRequestText.trim(),
-        date: 'Just now',
-        priority: newPriority,
-      },
-      ...requests,
-    ])
+    const newReq: ClientRequest = {
+      id: `r-${Date.now()}`,
+      text: newRequestText.trim(),
+      date: 'Just now',
+      priority: newPriority,
+    }
+    setRequests([newReq, ...requests])
     setNewRequestText('')
+  }
+
+  const handleDeleteRequest = (id: string) => {
+    setRequests((prev) => prev.filter((r) => r.id !== id))
   }
 
   const completedCount = milestones.filter((m) => m.status === 'completed').length
   const progressPercent = Math.round((completedCount / milestones.length) * 100)
-
   const filteredMilestones = filter === 'all' ? milestones : milestones.filter((m) => m.status === filter)
+
+  const handleExportSummary = () => {
+    const lines = [
+      `# FuseBase Project Delivery Summary`,
+      `**Generated:** ${new Date().toLocaleString()}`,
+      `**Overall Progress:** ${progressPercent}% (${completedCount}/${milestones.length} milestones complete)\n`,
+      `## Milestones`,
+      ...milestones.map(
+        (m) => `- [${m.status === 'completed' ? 'x' : ' '}] **${m.title}** (${m.status.toUpperCase()}) — Target: ${m.date}, Lead: ${m.owner}`
+      ),
+      `\n## Client Requests (${requests.length})`,
+      ...requests.map((r) => `- [${r.priority}] ${r.text} (${r.date})`),
+    ]
+    const md = lines.join('\n')
+    navigator.clipboard?.writeText(md)
+    setCopyNotification('Summary copied to clipboard!')
+    setTimeout(() => setCopyNotification(null), 3000)
+  }
 
   return (
     <div className="hub-container">
@@ -75,10 +151,10 @@ export default function App() {
         </div>
         <div className="hub-actions">
           <span className="live-indicator">
-            <span className="pulse-dot"></span> Live Sync Active
+            <span className="pulse-dot"></span> Persistent State Active
           </span>
-          <button id="export-summary-btn" className="btn btn-secondary" onClick={() => alert('Project Summary Exported!')}>
-            Export Summary
+          <button id="export-summary-btn" className="btn btn-secondary" onClick={handleExportSummary}>
+            {copyNotification || 'Export Summary'}
           </button>
         </div>
       </header>
@@ -129,13 +205,13 @@ export default function App() {
         <div className="metric-card">
           <div className="metric-label">Active Agents</div>
           <div className="metric-value">10 Profiles</div>
-          <div className="metric-pill pill-violet">Swarm Ready</div>
+          <div className="metric-pill pill-violet">32 Models Ready</div>
           <span className="metric-subtext">Architect, Dev, QA, PM sync</span>
         </div>
 
         <div className="metric-card">
           <div className="metric-label">Total MCP Tools</div>
-          <div className="metric-value status-cyan">113 Tools</div>
+          <div className="metric-value status-cyan">120 Tools</div>
           <div className="metric-pill pill-cyan">Core + Extended</div>
           <span className="metric-subtext">Y.js real-time collaborative state</span>
         </div>
@@ -199,7 +275,7 @@ export default function App() {
           <div className="section-header">
             <div>
               <h2 className="section-title">Client Requests & Change Log</h2>
-              <p className="section-desc">Submit new items or view pending change orders</p>
+              <p className="section-desc">Submit new items or manage client change requests (persisted across sessions)</p>
             </div>
           </div>
 
@@ -216,7 +292,7 @@ export default function App() {
               id="request-priority-select"
               className="form-select"
               value={newPriority}
-              onChange={(e) => setNewPriority(e.target.value)}
+              onChange={(e) => setNewPriority(e.target.value as 'Low' | 'Medium' | 'High')}
             >
               <option value="Low">Low Priority</option>
               <option value="Medium">Medium Priority</option>
@@ -234,6 +310,16 @@ export default function App() {
                 <div className="request-meta">
                   <span className={`priority-badge priority-${r.priority.toLowerCase()}`}>{r.priority}</span>
                   <span className="request-date">{r.date}</span>
+                  <button
+                    className="delete-request-btn"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDeleteRequest(r.id)
+                    }}
+                    title="Dismiss request"
+                  >
+                    ✕
+                  </button>
                 </div>
               </div>
             ))}

@@ -507,6 +507,22 @@ body {
   color: var(--text-muted);
 }
 
+.delete-request-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: var(--transition-smooth);
+}
+
+.delete-request-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
 /* Footer */
 .hub-footer {
   display: flex;

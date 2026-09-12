@@ -4,8 +4,8 @@
 > Update this document when new endpoints are discovered or new tools are implemented.
 >
 > Source: API discovery crawl (141 unique endpoints, 927 requests).
-> Cross-referenced against 46 implemented MCP tools.
-> Last updated: 2026-02-08
+> Cross-referenced against 120 implemented MCP tools (27 Core, 93 Extended).
+> Last updated: 2026-09-12
 
 ---
 
@@ -43,7 +43,7 @@
 | ✅ | POST | `/v4/api/workspaces/{wid}/texts/{nid}/tokens` | `update_page_content` — Update a page's content (replaces HTML body) | ⭐⭐⭐⭐⭐ |
 | ✅ | DELETE | (via client method) | `delete_page` — Permanently deletes a page | ⭐⭐ |
 | ✅ | GET | `/v2/api/note-service-proxy/v1/orgs/{orgId}/recentlyUpdatedNotes` | `get_recently_updated_notes` — Pages updated recently across workspace | ⭐⭐⭐ |
-| 🔲 | GET | `/ai-assistant/rest/workspaces/{wid}/main-page` | AI assistant state page — threads, preferences, usage | ⭐⭐⭐⭐ |
+| ✅ | GET | `/ai-assistant/rest/workspaces/{wid}/main-page` | `get_ai_assistant_state` — AI assistant state page: prompt suggestions, user preferences, recent threads | ⭐⭐⭐⭐ |
 | 🔲 | GET | `/gwapi2/ft:cta/workspaces/{wid}/notes/{nid}/cta` | Call-to-action data embedded in a page | ⭐⭐ |
 | 🔲 | GET | `/box/attachment/{wid}/{id}/{filename}` | Direct binary download of an attachment file | ⭐⭐⭐ |
 
@@ -165,8 +165,8 @@
 | Status | Method | Endpoint | Tool / Description | Value |
 |---|---|---|---|---|
 | ✅ | GET | `/v4/api/proxy/ai-service/v1/orgs/{orgId}/agent-categories/agents` | `list_agents` — Available AI agents in the org | ⭐⭐ |
-| 🔲 | GET | `/ai-assistant/rest/orgs/{orgId}/agents/{agentId}/threads` | AI agent conversation threads | ⭐⭐⭐ |
-| 🔲 | GET | `/v4/api/proxy/ai-service/v1/orgs/{orgId}/agentFavorites` | Favorited AI agents | ⭐⭐ |
+| ✅ | GET | `/ai-assistant/rest/orgs/{orgId}/agents/{agentId}/threads` | `list_ai_agent_threads` — AI agent conversation threads for specific agent ID | ⭐⭐⭐ |
+| ✅ | GET | `/v4/api/proxy/ai-service/v1/orgs/{orgId}/agentFavorites` | `get_ai_agent_favorites` — User favorited AI agents list | ⭐⭐ |
 | 🔲 | GET | `/v4/api/proxy/ai-service/v1/orgs/{orgId}/agents/{agentId}/public` | Public AI agent profile | ⭐⭐ |
 | 🔲 | GET | `/v4/api/proxy/mcp-service/v1/auth/channel/{agentId}` | MCP service auth channel for an agent | ⭐⭐ |
 

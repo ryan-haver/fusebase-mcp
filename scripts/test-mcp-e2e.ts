@@ -120,6 +120,7 @@ async function main() {
     "create_page",
     "get_page_content",
     "append_page_content",
+    "check_session_health",
     "list_agent_profiles",
     "switch_active_profile",
     "set_tool_tier",
@@ -128,7 +129,7 @@ async function main() {
       throw new Error(`Expected core tool '${expected}' not found!`);
     }
   }
-  console.log("✅ Essential core tools present (including append & profiles)");
+  console.log("✅ Essential core tools present (including append, profiles, session health)");
 
   console.log("\n--- Testing Tier Switching (set_tool_tier -> all) ---");
   await client.callTool({
@@ -154,6 +155,9 @@ async function main() {
     "check_portal_availability",
     "fusebase_swarm_init",
     "fusebase_swarm_task_transition",
+    "get_ai_assistant_state",
+    "list_ai_agent_threads",
+    "get_ai_agent_favorites",
     "list_portal_clients",
     "invite_portal_client",
     "create_portal_magic_link",
@@ -187,6 +191,18 @@ async function main() {
   });
   console.log("switch_active_profile response:", (switchRes.content as any)[0]?.text);
   console.log("✅ switch_active_profile passed");
+
+  console.log("Testing check_session_health...");
+  const healthRes = await client.callTool({
+    name: "check_session_health",
+    arguments: {},
+  });
+  const healthData = JSON.parse((healthRes.content as any)[0]?.text);
+  console.log("Session Health:", healthData.status, `(${healthData.ageHours}h old, ${healthData.workspaceCount} workspaces)`);
+  if (!healthData.authenticated || healthData.status === "EXPIRED") {
+    throw new Error("Expected session health to be active/authenticated!");
+  }
+  console.log("✅ check_session_health passed");
 
   // ─── 5. Full Page Lifecycle with Append ─────────────────────────
   const targetWsId = parsedWorkspaces[0].workspaceId || "49b306wxd9oa7hyc";
@@ -366,8 +382,37 @@ async function main() {
   });
   console.log("✅ Swarm test database deleted");
 
+  // ─── 12. Native AI Assistant & Agent Threads ────────────────────
+  console.log("\n--- Testing Native AI Assistant & Agent Threads ---");
+  const aiStateRes = await client.callTool({
+    name: "get_ai_assistant_state",
+    arguments: { workspaceId: targetWsId },
+  });
+  const aiStateData = JSON.parse((aiStateRes.content as any)[0]?.text);
+  console.log("get_ai_assistant_state promptSuggestions count:", aiStateData?.promptSuggestions?.length || 0);
+  if (!Array.isArray(aiStateData?.promptSuggestions)) {
+    throw new Error("get_ai_assistant_state returned invalid schema");
+  }
+  console.log("✅ get_ai_assistant_state passed");
+
+  const threadsRes = await client.callTool({
+    name: "list_ai_agent_threads",
+    arguments: { agentId: "39" },
+  });
+  const threadsData = JSON.parse((threadsRes.content as any)[0]?.text);
+  console.log("list_ai_agent_threads for agent 39 count:", threadsData?.length ?? 0);
+  console.log("✅ list_ai_agent_threads passed");
+
+  const favsRes = await client.callTool({
+    name: "get_ai_agent_favorites",
+    arguments: {},
+  });
+  const favsData = JSON.parse((favsRes.content as any)[0]?.text);
+  console.log("get_ai_agent_favorites count:", favsData?.length ?? 0);
+  console.log("✅ get_ai_agent_favorites passed");
+
   await client.close();
-  console.log("\n🎉 ALL PLATFORM TESTS PASSED (RESOURCES, PROMPTS, APPEND, VIBE APPS, CLI, AUTOMATIONS, PORTALS, SWARM, PROFILES)!");
+  console.log("\n🎉 ALL 12 PLATFORM TESTS PASSED (RESOURCES, PROMPTS, APPEND, VIBE APPS, CLI, AUTOMATIONS, PORTALS, SWARM, HEALTH, AI AGENTS)!");
 }
 
 main().catch((err) => {

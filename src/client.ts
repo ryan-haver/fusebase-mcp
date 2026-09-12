@@ -901,6 +901,29 @@ export class FusebaseClient {
     );
   }
 
+  /** Get AI assistant state, prompt suggestions, and preferences for a workspace */
+  async getAiAssistantState(workspaceId: string): Promise<Record<string, unknown>> {
+    return this.request<Record<string, unknown>>(
+      `/ai-assistant/rest/workspaces/${workspaceId}/main-page`,
+    );
+  }
+
+  /** List conversation threads for a specific AI agent */
+  async listAiAgentThreads(agentId: string, orgId?: string): Promise<unknown[]> {
+    const org = orgId || this.orgId;
+    return this.request<unknown[]>(
+      `/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads`,
+    );
+  }
+
+  /** Get favorited AI agents in the organization */
+  async getAiAgentFavorites(orgId?: string): Promise<unknown[]> {
+    const org = orgId || this.orgId;
+    return this.request<unknown[]>(
+      `/v4/api/proxy/ai-service/v1/orgs/${org}/agentFavorites`,
+    );
+  }
+
   // ─── Mentions ─────────────────────────────────────────────────
 
   /** Get mentionable entities for a workspace */
