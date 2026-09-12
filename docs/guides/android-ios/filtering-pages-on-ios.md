@@ -2,7 +2,7 @@
 title: "Filtering pages on iOS"
 url: "https://thefusebase.com/guides/android-ios/filtering-pages-on-ios/"
 section: "android-ios"
-lastScraped: "2026-02-28T21:28:10.387Z"
+lastScraped: "2026-09-12T05:18:40.617Z"
 ---
 
 # Filtering pages on iOS
@@ -34,6 +34,6 @@ You can also see the list of pages with upcoming reminders.
 
 To do this, tap on **Upcoming reminders** in the filter menu. You will see a list of pages with reminders that are sorted by date: from nearest to farthest.
 
-![You can also see the list of pages with upcoming reminders.](https://app.nimbusweb.me/box/attachment/5163319/y3320oh6yk9rvw649a0s/yX8h8Rglk6aYV5PH/Group%20135%20(1).png)
+![You can also see the list of pages with upcoming reminders.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20350%200'%3E%3C/svg%3E)
 
 **☝Note: To reset the filters, open the filter menu again and click All Pages.**

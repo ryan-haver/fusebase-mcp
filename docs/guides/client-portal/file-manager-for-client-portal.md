@@ -2,7 +2,7 @@
 title: "File Manager – Use Cases & Features"
 url: "https://thefusebase.com/guides/client-portal/file-manager-for-client-portal/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:52.985Z"
+lastScraped: "2026-09-12T05:17:18.954Z"
 ---
 
 # File Manager – Use Cases & Features
@@ -21,7 +21,7 @@ All customers invited to the portal can upload directly to the File Manager. Thi
 
 1\. Click on **Upload Files**:
 
-![](https://thefusebase.com/wp-content/uploads/2024/01/File-manager-02-1024x467.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20467'%3E%3C/svg%3E)
 
 2\. **Select** the files you wish to upload.
 
@@ -33,20 +33,20 @@ All customers invited to the portal can upload directly to the File Manager. Thi
 
 You can manage files using the **File** menu:
 
-![](https://thefusebase.com/wp-content/uploads/2024/01/File-Manager-03-1024x640.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20640'%3E%3C/svg%3E)
 
 ### Renaming a file [#](#b326628976_2522)
 
 1.  Click on the menu of the desired file and select **Rename**.
 2.  Enter a new file name and click **Save**:
 
-![](https://thefusebase.com/wp-content/uploads/2024/01/File-Manager-04-1024x601.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20601'%3E%3C/svg%3E)
 
 ### Delete a file [#](#b326628976_2547)
 
 1.  Click the menu of the desired file and select **Delete**.
 
-![](https://thefusebase.com/wp-content/uploads/2024/01/File-Manager-06-1024x648.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20648'%3E%3C/svg%3E)
 
 ## File permissions in File Manager [#](#5-toc-title)
 
@@ -59,13 +59,13 @@ We strongly recommend using a separate portal for each client, as this will allo
 
 ## Downloading a File [#](#b326628976_2818)
 
-[Embedded content](https://www.youtube.com/embed/yRQLRFQPGqI?feature=oembed)
+[Embedded content](about:blank)
 
 To download a file, click on the file and then click on **Download**.
 
 You can also download the file from the **File menu**.
 
-![](https://thefusebase.com/wp-content/uploads/2024/01/File-Manager-09-1024x514.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20514'%3E%3C/svg%3E)
 
 ## Widgets For Working With Files [#](#b326628976_3634)
 
@@ -73,10 +73,10 @@ Other widgets for working with files are also available:
 
 **Latest Files** – a list of the latest files uploaded to the File Manager.
 
-[Embedded content](https://www.youtube.com/embed/Udg20RQ-VMQ?feature=oembed)
+[Embedded content](about:blank)
 
 **File Uploader** – a widget that allows you to upload and instantly view uploaded files. For example, you need to ask your client to upload all the data for the project: statement of work, design, supporting documents. You add a widget called Project Name, and the client uploads the files associated with the project. You can create a second widget for a different project, and so on.
 
-[Embedded content](https://www.youtube.com/embed/WFXweGI4mjY?feature=oembed)
+[Embedded content](about:blank)
 
 You can add widgets in the standard way using the ****(+)**** option. You can specify your widgets’ names, and you can also write a description for the File Uploader widget.

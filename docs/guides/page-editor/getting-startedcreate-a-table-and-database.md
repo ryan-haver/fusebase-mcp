@@ -2,7 +2,7 @@
 title: "Getting started | Create a table"
 url: "https://thefusebase.com/guides/page-editor/getting-startedcreate-a-table-and-database/"
 section: "page-editor"
-lastScraped: "2026-02-28T21:28:19.533Z"
+lastScraped: "2026-09-12T05:18:48.333Z"
 ---
 
 # Getting started | Create a table
@@ -20,7 +20,7 @@ You can create tables, change the number of rows & columns and amend the appeara
 -   Click on the table icon or use **cmd/ctrl** + **⌥/alt** + **t**.
 -   Pull the corner to resize the table.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/ixwSJ7RYzR-1024x466.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20466'%3E%3C/svg%3E)
 
 ## Insert objects into your table [#](#b2244205861_646)
 
@@ -30,17 +30,17 @@ You can easily use different types of columns/cells. Choose what works best for 
 
 -   click on the three dots menu and select **Copy tabl**e, then paste it into another page using the right mouse button or **cmd / ctrl** + **v**
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/KLpaTyhPTF-1024x442.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20442'%3E%3C/svg%3E)
 
 -   click on the three dots menu and choose **Duplicate**
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/image-1024x559.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20559'%3E%3C/svg%3E)
 
 ## Copy cells from one table to another [#](#b2244205861_1380)
 
 -   Choose cells in a table, make a right-click, select **Copy cells**, then paste it in another table by using **cmd/ctrl** + **v**
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/image-1.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20884%20539'%3E%3C/svg%3E)
 
 ## Table options [#](#b2244205861_1565)
 

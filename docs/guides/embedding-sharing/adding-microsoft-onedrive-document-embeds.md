@@ -2,7 +2,7 @@
 title: "Adding Microsoft OneDrive Document embeds to FuseBase"
 url: "https://thefusebase.com/guides/embedding-sharing/adding-microsoft-onedrive-document-embeds/"
 section: "embedding-sharing"
-lastScraped: "2026-02-28T21:27:53.612Z"
+lastScraped: "2026-09-12T05:18:26.102Z"
 ---
 
 # Adding Microsoft OneDrive Document embeds to FuseBase
@@ -34,10 +34,10 @@ If you create Microsoft Office documents through OneDrive, then you will likely 
 
 -   Drag the upper-right corner and **resize** (all proportions will be preserved).
 
-![Drag the upper-right corner and resize (all proportions will be preserved).](https://app.nimbusweb.me/box/attachment/5359327/bhhwpcipnhg59qmsvz2m/rEz5k2H3NYboVWSN/Group%20159%20(1).png)
+![Drag the upper-right corner and resize (all proportions will be preserved).](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   For free resizing, hold the **ALT key** and change the size using the bottom-right chip.
 
-![For free resizing, hold the ALT key and change the size using the bottom-right chip.](https://app.nimbusweb.me/box/attachment/5359327/bhhwpcipnhg59qmsvz2m/5XVov2PnPh5TdD7L/Group%20160%20(1).png)
+![For free resizing, hold the ALT key and change the size using the bottom-right chip.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **Note: To return the embed to its original position, use the hotkey Ctrl + Z, or click the three dots and select Undo.**

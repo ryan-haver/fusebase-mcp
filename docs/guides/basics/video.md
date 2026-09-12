@@ -2,7 +2,7 @@
 title: "Video"
 url: "https://thefusebase.com/guides/basics/video/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:23.333Z"
+lastScraped: "2026-09-12T05:16:51.020Z"
 ---
 
 # Video
@@ -31,7 +31,7 @@ With [FuseBase Pro AI](https://chromewebstore.google.com/detail/pljdghaomjmmleol
 
 ### Why did I get a message saying I can’t play my video? [#](#b1338734181_1617)
 
-![Why did I get a message saying I can't play my video?](https://app.nimbusweb.me/box/attachment/4485395/0g188gi48sxnkqz1aaxx/OIsDD4yYT4x0wbVg/Group%20170.png)
+![Why did I get a message saying I can't play my video?](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Most likely, your video is encoded by the H.265 codec, which is not supported by most browsers, including Google Chrome and Mozilla Firefox.
 
@@ -71,19 +71,19 @@ Option control is available through the video menu – Video parameters.
 
 Click on the three dots next to a video to open the menu for the video in the editor.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Menu-editor-1024x661.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20661'%3E%3C/svg%3E)
 
 #### Download [#](#b3905362100_0)
 
 Download videos into your computer – for this, select **Download**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Download-1024x602.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20602'%3E%3C/svg%3E)
 
 #### Open in new tab [#](#b3905362100_28)
 
 To open a video in a new tab, click on the three dots menu and select **Open in new tab**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/open-in-new-tab-1024x597.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20597'%3E%3C/svg%3E)
 
 #### Copy link to file [#](#b3905362100_62)
 
@@ -97,7 +97,7 @@ Watch videos in full-screen mode by selecting **Expand in full window**.
 
 To rename a video file, select the three dots menu and click **Rename**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/rename-1024x613.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20613'%3E%3C/svg%3E)
 
 #### Replace [#](#b3905362100_156)
 
@@ -107,13 +107,13 @@ Replace a video file with any other file by selecting **Replace**.
 
 To delete the video file, select **Delete**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/delete-1-1024x602.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20602'%3E%3C/svg%3E)
 
 ### Add a caption [#](#b2165069471_175)
 
 You can add descriptions to video files by clicking under the file.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Add-a-caption-1024x664.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20664'%3E%3C/svg%3E)
 
 ## Adding video files to tables [#](#b138215659_1014)
 
@@ -139,7 +139,7 @@ With the embed function, you can insert links from popular sites including YouTu
 
 If it’s a YouTube embed, click the square icon on the right below the video.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/video-full-screen-1024x669.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20669'%3E%3C/svg%3E)
 
 ## Related Guides [#](#b1331410547_0)
 

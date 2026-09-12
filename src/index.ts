@@ -19,6 +19,8 @@ import { loadEncryptedCookie, loadCredentialStore } from "./crypto.js";
 import { startProxyRelay } from "./proxy-relay.js";
 import { registerCoreTools } from "./tools/core-tools.js";
 import { registerExtendedTools } from "./tools/extended-tools.js";
+import { registerResources } from "./resources.js";
+import { registerPrompts } from "./prompts.js";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
@@ -52,6 +54,7 @@ loadDotEnv();
 // ─── Server Setup ───────────────────────────────────────────────
 
 let _proxyRelayUrl: string | undefined;
+let _activeProfile: string | undefined = process.env.FUSEBASE_PROFILE;
 
 function getClient(profile?: string): FusebaseClient {
   const host = process.env.FUSEBASE_HOST;
@@ -62,23 +65,24 @@ function getClient(profile?: string): FusebaseClient {
     process.exit(1);
   }
 
+  const effectiveProfile = profile || _activeProfile;
   let cookie = process.env.FUSEBASE_COOKIE || "";
   // If a profile is requested, or if no default cookie was provided in env, load from disk
-  if (!cookie || profile) {
-    const stored = loadEncryptedCookie(profile);
+  if (!cookie || effectiveProfile) {
+    const stored = loadEncryptedCookie(effectiveProfile);
     if (stored?.cookie) {
       cookie = stored.cookie;
-    } else if (profile) {
-      console.error(`[fusebase] Warning: No cookie found for profile "${profile}". Will attempt to fall back or fail.`);
+    } else if (effectiveProfile) {
+      console.error(`[fusebase] Warning: No cookie found for profile "${effectiveProfile}". Will attempt to fall back or fail.`);
     }
   }
 
   if (!cookie) {
-    console.error(`[fusebase] Warning: No cookie found. Run 'npx tsx scripts/auth.ts${profile ? ` --profile ${profile}` : ""}' to authenticate.`);
+    console.error(`[fusebase] Warning: No cookie found. Run 'npx tsx scripts/auth.ts${effectiveProfile ? ` --profile ${effectiveProfile}` : ""}' to authenticate.`);
   }
 
   // Use proxy relay URL if started in main()
-  return new FusebaseClient({ host, orgId, cookie, autoRefresh: true, profile, proxyRelayUrl: _proxyRelayUrl });
+  return new FusebaseClient({ host, orgId, cookie, autoRefresh: true, profile: effectiveProfile, proxyRelayUrl: _proxyRelayUrl });
 }
 
 const server = new McpServer({
@@ -94,20 +98,24 @@ function enableExtendedTools() {
   if (extendedToolsRegistered) return;
   registerExtendedTools(server, getClient);
   extendedToolsRegistered = true;
-  console.error(`[fusebase] Extended tools registered (91 total)`);
+  console.error(`[fusebase] Extended tools registered`);
 }
 
-// Register core tools
+// Register core tools, resources, and prompts
 registerCoreTools(server, getClient, {
   enableExtendedTools,
   isExtendedToolsEnabled: () => extendedToolsRegistered,
+  setActiveProfile: (p) => { _activeProfile = p; },
+  getActiveProfile: () => _activeProfile,
 });
+registerResources(server, getClient);
+registerPrompts(server, getClient);
 
 // Register extended tools at startup if FUSEBASE_TOOLS=all
 if (process.env.FUSEBASE_TOOLS === "all") {
   enableExtendedTools();
 } else {
-  console.error("[fusebase] Running in core mode (23 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 91.");
+  console.error("[fusebase] Running in core mode (26 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 99.");
 }
 
 // ─── Start ──────────────────────────────────────────────────────

@@ -2,7 +2,7 @@
 title: "AI Assistant – Quick Guide"
 url: "https://thefusebase.com/guides/fusebase-ai/ai-assistant-quick-guide/"
 section: "fusebase-ai"
-lastScraped: "2026-02-28T21:27:20.026Z"
+lastScraped: "2026-09-12T05:17:40.840Z"
 ---
 
 # AI Assistant – Quick Guide
@@ -26,29 +26,29 @@ Once opened, the assistant window allows you to:
 
 1) Click on one of the ready-made queries created based on the content of your workspace.
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-1-1024x711.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20711'%3E%3C/svg%3E)
 
 2) Write your own query. It’s important to note that you can write your query in plain, conversational language, just as you would in everyday communication. For example, if I’m a support team member and need to find out what data access can be restricted in the portal, I might type, “What portal data can I restrict access to?” and receive an answer.
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-2-1024x713.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20713'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-3-1024x713.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20713'%3E%3C/svg%3E)
 
 You can then ask follow-up questions within the same context. For example, you might ask, “Which roles can restrict access?”
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-4-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 You can copy the received answer to your clipboard.
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-5-1024x725.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20725'%3E%3C/svg%3E)
 
 Additionally, you can create a note based on the content of the answer.
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-6-1024x721.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20721'%3E%3C/svg%3E)
 
 If the response doesn’t meet your expectations, you can send feedback to support.
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-7-1024x719.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20719'%3E%3C/svg%3E)
 
 ## **Changing the Assistant’s Name and Logo** [#](#1-toc-title)
 
@@ -60,17 +60,17 @@ You can also change the assistant’s name and logo to align with your company�
 
 3) Click on the menu of the desired workspace and select “Branding: AI Assistant”
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-9-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 4) Then, upload the desired logo and specify the assistant’s name.
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-10.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20742%20793'%3E%3C/svg%3E)
 
 ## **Using Mentions for More Targeted Work** [#](#2-toc-title)
 
 What if you want to work with a specific note or folder? For example, you may want to summarize all pages within a folder or compare several pages to find differences. For these cases, you can use mentions of pages or folders. Simply type `@` and select the desired folder or page. For instance, you could type: “Create a summary of all pages in the Client 1 folder.”
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-11-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 ## **Threads** [#](#3-toc-title)
 
@@ -78,35 +78,35 @@ Interaction with the assistant is conducted through threads. Each thread retains
 
 To view the list of threads, go back to the assistant’s main page.
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-12-1024x712.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20712'%3E%3C/svg%3E)
 
 To create a new thread, simply start typing in the input field on the assistant’s main page.
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-13-1024x715.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20715'%3E%3C/svg%3E)
 
 To delete an unwanted thread, hover over it and click “Delete.”
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-14-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 ## **AI Assistant and Tasks** [#](#4-toc-title)
 
 In addition to text, you can also work with tasks. Currently, the assistant supports searching task content and filtering tasks by various parameters. For example, I want to see all tasks that need to be completed by the end of the year.
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-15-1024x713.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20713'%3E%3C/svg%3E)
 
 Or, for example, I want to view only tasks with a specific label.
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-16-1024x721.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20721'%3E%3C/svg%3E)
 
 Clicking on a task opens its detailed view.
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-17-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 ## **Disabling Workspace Content Indexing** [#](#5-toc-title)
 
 If, for any reason, you do not want the content of your workspace to be indexed, you can disable indexing through the assistant’s menu.
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-8-1024x713.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20713'%3E%3C/svg%3E)
 
 ## Browser extension [#](#6-toc-title)
 

@@ -2,7 +2,7 @@
 title: "Custom SMTP"
 url: "https://thefusebase.com/guides/branding/custom-smtp/"
 section: "branding"
-lastScraped: "2026-02-28T21:27:25.657Z"
+lastScraped: "2026-09-12T05:18:01.989Z"
 ---
 
 # Custom SMTP
@@ -17,7 +17,7 @@ Connect your SMTP server to FuseBase and then all messages from the organization
 
 Provide your clients and teams with a powerful on-brand experience and set yourself apart from others!
 
-[Embedded content](https://www.youtube.com/embed/SELELB0I7QM?feature=oembed)
+[Embedded content](about:blank)
 
 **Please note:** this feature is a part of the White-Label solution.
 
@@ -42,7 +42,7 @@ Let’s assume that you already have an SMTP server and you know its settings. N
 
 2) In the SMTP server option, select **Custom Server**:
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/image-32-1024x982.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20982'%3E%3C/svg%3E)
 
 3) The server settings will open, where you will need to **fill in** the following data:
 
@@ -55,19 +55,19 @@ Let’s assume that you already have an SMTP server and you know its settings. N
 
 After all the data is entered, click on **Save** to save the server settings. Now, you can check the SMTP server – for this, for example, you can mention any workspace member in a page and check from which email the notification was received.
 
-![After all the data is entered, click on Save to save the server settings. ](https://app.nimbusweb.me/box/attachment/5626371/xv63rg7xptrolhg58lbg/wTvRdGaC4GvnykQG/image.png)
+![After all the data is entered, click on Save to save the server settings. ](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### How to change SMTP server settings? [#](#b1040013840_1785)
 
 It’s very easy to do this! Open your organization’s settings again and click on **Open Settings**, then change the settings to the desired ones.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/image-33-938x1024.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20938%201024'%3E%3C/svg%3E)
 
 ### How do you return to SMTP from FuseBase? [#](#b1040013840_1987)
 
 If you don’t want to use your SMTP server, then you can return to the SMTP server from FuseBase. To do this, you need to open the settings of your organization and switch to **FuseBase Server**, and then save the changes.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/image-34-796x1024.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20796%201024'%3E%3C/svg%3E)
 
 ## SMTP From Gmail/GSuite Does Not Work For Me. Why? [#](#b1658079541_0)
 
@@ -77,15 +77,15 @@ Most likely, you have not enabled IMAP, or security settings are not configured.
 
 -   Open your Gmail and click on the settings icon. Next, select See all settings –
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/image-35.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20714%20775'%3E%3C/svg%3E)
 
 2) Open the Forwarding and POP / IMAP tab and enable IMAP –
 
-![Open the Forwarding and POP / IMAP tab and enable IMAP -](https://app.nimbusweb.me/box/attachment/5626371/xv63rg7xptrolhg58lbg/yrwSQ65Egmy8KDOO/image.png)
+![Open the Forwarding and POP / IMAP tab and enable IMAP -](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 3) Save changes –
 
-![Save changes](https://app.nimbusweb.me/box/attachment/5626371/xv63rg7xptrolhg58lbg/x9f2gAW9eS7HnGMw/image.png)
+![Save changes](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### Ensure your account is properly configured [#](#7-toc-title)
 

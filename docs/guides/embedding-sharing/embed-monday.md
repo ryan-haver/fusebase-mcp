@@ -2,7 +2,7 @@
 title: "Embed Monday"
 url: "https://thefusebase.com/guides/embedding-sharing/embed-monday/"
 section: "embedding-sharing"
-lastScraped: "2026-02-28T21:27:48.013Z"
+lastScraped: "2026-09-12T05:18:22.316Z"
 ---
 
 # Embed Monday
@@ -30,12 +30,12 @@ lastScraped: "2026-02-28T21:27:48.013Z"
 
 -   Drag the upper-right corner and resize (all proportions will be preserved).
 
-![Drag the upper-right corner and resize (all proportions will be preserved).](https://app.nimbusweb.me/box/attachment/5003966/rcy5kry5h9nyudpi7xdx/HwmMeNROks5sGnG8/Group%20124.png)
+![Drag the upper-right corner and resize (all proportions will be preserved).](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   For free resizing, hold the ALT key and start resizing using the bottom-right chip.
 
-![For free resizing, hold the ALT key and start resizing using the bottom-right chip.](https://app.nimbusweb.me/box/attachment/5003966/rcy5kry5h9nyudpi7xdx/FT3N7DaQdovcLRN9/Group%20125.png)
+![For free resizing, hold the ALT key and start resizing using the bottom-right chip.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **Note: To return the embed to its original position, use the hotkey Ctrl + Z, or click on the three dots and select Undo.**
 
-![To return the embed to its original position, use the hotkey Ctrl + Z, or click on the three dots and select Undo.](https://app.nimbusweb.me/box/attachment/5003966/rcy5kry5h9nyudpi7xdx/ePZFBo0cx7JR60Hv/Group%20126.png)
+![To return the embed to its original position, use the hotkey Ctrl + Z, or click on the three dots and select Undo.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)

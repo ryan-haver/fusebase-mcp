@@ -2,7 +2,7 @@
 title: "Get Started with AI in FuseBase"
 url: "https://thefusebase.com/guides/getting-started/get-started-with-ai-in-fusebase/"
 section: "getting-started"
-lastScraped: "2026-02-28T21:26:15.122Z"
+lastScraped: "2026-09-12T05:16:40.938Z"
 ---
 
 # Get Started with AI in FuseBase
@@ -19,25 +19,25 @@ Key capabilities include:
 
 Get suggested ideas for future projects and creative solutions to problems by simply prompting the AI. It can pull concepts from multiple sources to provide unique recommendations.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/Brandstorming-ideas.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20768%20506'%3E%3C/svg%3E)
 
 ### Summarizing Discussions [#](#2-toc-title)
 
 Don’t waste time reviewing long conversations. FuseBase AI can analyze chat or meeting transcripts and identify the key discussion points, action items, and conclusions. This allows you to quickly catch up or share summaries with others quickly.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/Summarizing-Discussions.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20768%20506'%3E%3C/svg%3E)
 
 ### Personalized Recommendations [#](#3-toc-title)
 
 Receive tailored suggestions based on your company knowledge, industry expertise, past work, and page context. The more information FuseBase AI has about you, the more relevant its recommendations.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/Personalized-Recommendations.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20768%20506'%3E%3C/svg%3E)
 
 ### Writing & Refining Content [#](#4-toc-title)
 
 Use AI to generate initial drafts of content like emails, posts, proposals, or other documents to save time. Then refine the wording, tone, and level of detail to fit your needs before sending.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/Writing-Refining-Content.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20768%20505'%3E%3C/svg%3E)
 
 👀 You will find several tips on writing sales emails, proposals, and blog posts in this [guide](https://thefusebase.com/guides/fusebase-ai/nimbus-ai-effective-practices-and-uses/).
 
@@ -45,7 +45,7 @@ Use AI to generate initial drafts of content like emails, posts, proposals, or o
 
 Focus on developing your ideas while AI handles proofreading for spelling, grammar, formatting, and style. It can mistakes before content goes out.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/Proofreading-Content.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20768%20506'%3E%3C/svg%3E)
 
 ## Getting Started with FuseBase AI [#](#6-toc-title)
 
@@ -78,7 +78,7 @@ FuseBase Assistant is a powerful tool for interactive engagement with the conten
 
 You can open the assistant by clicking the button in the bottom right corner of the screen.
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-1024x542.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20542'%3E%3C/svg%3E)
 
 Additionally, the assistant is available as a browser extension, which you can find here: [https://chromewebstore.google.com/detail/fusebase-assistant-smart/haafigbapbpbpnmgcknnmilaaaimggpk?hl=en](https://chromewebstore.google.com/detail/fusebase-assistant-smart/haafigbapbpbpnmgcknnmilaaaimggpk?hl=en).
 

@@ -2,7 +2,7 @@
 title: "Clipper for the mobile clients"
 url: "https://thefusebase.com/guides/android-ios/clipper-for-the-mobile-clients/"
 section: "android-ios"
-lastScraped: "2026-02-28T21:28:10.324Z"
+lastScraped: "2026-09-12T05:18:40.445Z"
 ---
 
 # Clipper for the mobile clients

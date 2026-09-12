@@ -271,32 +271,31 @@
 | **Organization** | 5 | 5 | 0 | 0 |
 | **Workspaces** | 4 | 3 | 0 | 0 |
 | **Portals** | 3 | 1 | 3 | 0 |
-| **AI & Agents** | 1 | 4 | 0 | 0 |
+| **AI & Agents** | 3 | 2 | 0 | 0 |
 | **Databases & Tables** | 13 | 1 | 0 | 0 |
-| **Automation** | 0 | 17 | 0 | 1 |
+| **Automation** | 4 | 13 | 0 | 1 |
 | **Billing & Account** | 0 | 2 | 0 | 0 |
 | **User Preferences** | 0 | 8 | 1 | 0 |
 | **Chat** | 0 | 0 | 0 | 1 |
 | **Auth & Navigation** | 0 | 0 | 3 | 14+ |
-| **TOTAL** | **50** | **53** | **7** | **16+** |
+| **TOTAL** | **57** | **47** | **7** | **16+** |
 
 ### Value Distribution (Implemented tools by daily value)
 
 | Rating | Count | % | Examples |
 |---|---|---|---|
-| ⭐⭐⭐⭐⭐ Essential | 5 | 10% | `list_pages`, `get_page`, `get_page_content`, `update_page_content`, `list_workspaces` |
-| ⭐⭐⭐⭐ High | 8 | 16% | `create_page`, `search_tasks`, `list_task_lists`, `create_task`, `refresh_auth` |
-| ⭐⭐⭐ Moderate | 18 | 36% | `get_tags`, `get_members`, `get_comment_threads`, `get_database_data` |
-| ⭐⭐ Low | 13 | 26% | `get_workspace_detail`, `get_labels`, `delete_page`, `get_mention_entities` |
-| ⭐ Rare | 6 | 12% | `check_version`, `get_file_count`, `get_task_usage`, `get_org_features` |
+| ⭐⭐⭐⭐⭐ Essential | 6 | 11% | `list_pages`, `get_page`, `get_page_content`, `update_page_content`, `append_page_content`, `list_workspaces` |
+| ⭐⭐⭐⭐ High | 10 | 18% | `create_page`, `create_interactive_app_page`, `list_automation_flows`, `search_tasks`, `list_task_lists`, `create_task`, `refresh_auth` |
+| ⭐⭐⭐ Moderate | 22 | 39% | `get_tags`, `get_members`, `get_comment_threads`, `get_database_data`, `list_agent_profiles`, `switch_active_profile` |
+| ⭐⭐ Low | 13 | 23% | `get_workspace_detail`, `get_labels`, `delete_page`, `get_mention_entities` |
+| ⭐ Rare | 6 | 10% | `check_version`, `get_file_count`, `get_task_usage`, `get_org_features` |
 
 ### Top Priority Gaps (highest value unimplemented)
 
 | Priority | Category | Endpoints | Value | Impact |
 |---|---|---|---|---|
-| 🥇 | Automation | `flows`, `flow-runs`, `flows` (POST) | ⭐⭐⭐⭐ | Unlocks workflow automation management |
-| 🥈 | AI & Agents | `threads`, `main-page` | ⭐⭐⭐–⭐⭐⭐⭐ | AI conversation management |
-| 4 | Tasks | `workspace-infos`, `time/{tid}` | ⭐⭐⭐ | Cross-workspace tasks + time tracking |
+| 🥇 | AI & Agents | `threads`, `main-page` | ⭐⭐⭐–⭐⭐⭐⭐ | AI conversation management |
+| 🥈 | Tasks | `workspace-infos`, `time/{tid}` | ⭐⭐⭐ | Cross-workspace tasks + time tracking |
 
 ---
 

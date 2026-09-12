@@ -58,6 +58,8 @@ const CATEGORY_URLS = [
     'https://thefusebase.com/guides/android-ios/',
     'https://thefusebase.com/guides/import-fusebase/',
     'https://thefusebase.com/guides/personal-use/',
+    'https://thefusebase.com/guides/fusebase-vibe-code/',
+    'https://thefusebase.com/guides/fusebase-work/',
 ];
 
 // ---------------------------------------------------------------------------

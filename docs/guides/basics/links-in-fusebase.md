@@ -2,7 +2,7 @@
 title: "Links in FuseBase"
 url: "https://thefusebase.com/guides/basics/links-in-fusebase/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:35.540Z"
+lastScraped: "2026-09-12T05:16:55.946Z"
 ---
 
 # Links in FuseBase
@@ -29,7 +29,7 @@ To mention a page, just do the following.
 -   Start typing the page title or manually select the page.
 -   Click on the mention and the selected page will automatically open.
 
-![In Nimbus Note, you can mention a team member, page, folder, or even another workspace in your pages.](https://app.nimbusweb.me/box/attachment/6019852/ggpxbm422tmwktk7zi9b/EVA2UNcj5X5whXpr/3%201549.gif)
+![In Nimbus Note, you can mention a team member, page, folder, or even another workspace in your pages.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Another way to link pages by mentions is creating a new page from selection.
 
@@ -50,7 +50,7 @@ When you share a page with the internal link, users who are not authorized in Fu
 -   Select **Copy internal link**.
 -   Paste it inside a page in the desired place.
 
-![Each page has an internal link, which only works for workspace members. You can find it in the page menu.](https://app.nimbusweb.me/box/attachment/6019852/ggpxbm422tmwktk7zi9b/6Y0AgOUIoXQJhEyQ/image.png)
+![Each page has an internal link, which only works for workspace members. You can find it in the page menu.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Links to blocks inside pages [#](#b1686173633_139)
 
@@ -60,7 +60,7 @@ You can copy links to blocks inside a page to create anchors. An anchor is a boo
 -   Select **Copy link**.
 -   Paste the link anywhere inside your page.
 
-![Links to blocks inside pages](https://app.nimbusweb.me/box/attachment/6019852/ggpxbm422tmwktk7zi9b/vCgLzCjcEVjyHlh8/preview.gif)
+![Links to blocks inside pages](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## External links [#](#b1533040143_168)
 
@@ -79,7 +79,7 @@ Examples of embed links:
 -   Figma – [https://www.figma.com/file/LKQ4FJ4bTnCSjedbRpk931/Sample-File](https://www.figma.com/file/LKQ4FJ4bTnCSjedbRpk931/Sample-File)
 -   Airtable – [https://airtable.com/embed/shrp9Is7PLYNJ6lpr?backgroundColor=orange&viewControls=on](https://airtable.com/embed/shrp9Is7PLYNJ6lpr?backgroundColor=orange&viewControls=on)
 
-![Using embeds you can significantly expand the possibilities offered by Nimbus Note! ](https://app.nimbusweb.me/box/attachment/6019852/ggpxbm422tmwktk7zi9b/IuEgQtckRUJdbJVD/youtube%20sheets.gif)
+![Using embeds you can significantly expand the possibilities offered by Nimbus Note! ](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 The size of the embed can be changed. To do this, you need to move the cursor over the embed and click on the resize icons. Next, change the size of the embed while holding and moving the mouse.
 
@@ -94,7 +94,7 @@ The bookmark in FuseBase is a special card where, in addition to a link, there i
 -   Add a link through **Paste** or **Ctrl** + **V**.
 -   Select **Bookmark**.
 
-![The bookmark in Nimbus Note is a special card where, in addition to a link, there is a title, small description and preview picture of the website shown.](https://app.nimbusweb.me/box/attachment/6019852/ggpxbm422tmwktk7zi9b/gvYb2fugXRbBUEx8/preview.gif)
+![The bookmark in Nimbus Note is a special card where, in addition to a link, there is a title, small description and preview picture of the website shown.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Read more about Bookmarks [here](https://thefusebase.com/guides/basics/bookmarks/).
 
@@ -110,6 +110,6 @@ In FuseBase, you can add links to any website and hide it under text or a button
 
 -   To change the link or description of the link or button, press on it and select Edit. To delete the link, select Remove.
 
-![To change the link or description of the link or button, press on it and select Edit. To delete the link, select Remove.](https://app.nimbusweb.me/box/attachment/6019852/ggpxbm422tmwktk7zi9b/ngEKcj9aVBSP9LU4/image.png)
+![To change the link or description of the link or button, press on it and select Edit. To delete the link, select Remove.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Read more about buttons [here](https://thefusebase.com/guides/basics/button-object/).

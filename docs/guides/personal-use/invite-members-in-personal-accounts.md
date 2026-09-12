@@ -2,7 +2,7 @@
 title: "Invite members in Personal accounts"
 url: "https://thefusebase.com/guides/personal-use/invite-members-in-personal-accounts/"
 section: "personal-use"
-lastScraped: "2026-02-28T21:28:16.531Z"
+lastScraped: "2026-09-12T05:18:47.692Z"
 ---
 
 # Invite members in Personal accounts
@@ -25,7 +25,7 @@ You can invite members (such as colleagues, relatives, or friends) to your works
 -   Permissions (Edit or Read Only).
 -   If the workspace has a portal, you can immediately invite a new member there.
 
-![](https://thefusebase.com/wp-content/uploads/2023/08/image-12-1024x454.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20454'%3E%3C/svg%3E)
 
 4) Next, click **Send Invitations**. Member must accept the invitations (or follow the [Magic link](https://thefusebase.com/guides/client-portal/magic-links/)) to become a member of the organization.
 

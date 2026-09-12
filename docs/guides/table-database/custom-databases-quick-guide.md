@@ -2,7 +2,7 @@
 title: "Custom Databases – Quick Guide"
 url: "https://thefusebase.com/guides/table-database/custom-databases-quick-guide/"
 section: "table-database"
-lastScraped: "2026-02-28T21:28:04.968Z"
+lastScraped: "2026-09-12T05:18:36.727Z"
 ---
 
 # Custom Databases – Quick Guide
@@ -21,7 +21,7 @@ Here, you will see a list of all databases created within your organization. Ple
 
 If you have many databases, you can add specific databases to Favorites by clicking the star icon. This will allow you to quickly access them through the Favorites section. Clicking the star again will remove the database from Favorites.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-68-1024x397.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20397'%3E%3C/svg%3E)
 
 Each database also has its own menu, which you can open by clicking the three dots. Here you can:
 
@@ -29,13 +29,13 @@ Each database also has its own menu, which you can open by clicking the three do
 -   Get a link to the database
 -   Delete the database along with all its contents
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-69-1024x390.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20390'%3E%3C/svg%3E)
 
 ## **Database structure in Fusebase** [#](#2-toc-title)
 
 Let’s start with the structure of databases. Each database is a container that consists of tables. For example, you can create a database for your company’s employees, where each table represents a department — for instance, Sales, HR, Finance, Legal, IT, etc.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-72-1024x461.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20461'%3E%3C/svg%3E)
 
 A table consists of columns and rows. If we take the employee example, each row represents an employee of the company, and the columns are attributes or data about the employee — for example, their age, salary, list of documents, date of the last vacation, and so on.
 
@@ -47,11 +47,11 @@ You can read more about custom views here – [https://thefusebase.com/guides/da
 
 Click on “Create new database” to create a new database. Each database consists of tables, and you can create as many tables as you need within a single database.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-70-1024x360.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20360'%3E%3C/svg%3E)
 
 By default, the first table is created automatically, and clicking the “+” button allows you to add a new table with your chosen name.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-71-1024x435.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20435'%3E%3C/svg%3E)
 
 ## Adding and Editing Data in a Table [#](#4-toc-title)
 
@@ -69,4 +69,4 @@ Each table has its own menu, which you can open by clicking the arrow. Here you 
 -   Rename the table
 -   Copy the link to the table
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-73-1024x417.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20417'%3E%3C/svg%3E)

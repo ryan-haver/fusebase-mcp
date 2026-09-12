@@ -2,7 +2,7 @@
 title: "FuseBase AI – Effective Practices and Uses"
 url: "https://thefusebase.com/guides/fusebase-ai/fusebase-ai-effective-practices-and-uses/"
 section: "fusebase-ai"
-lastScraped: "2026-02-28T21:27:19.924Z"
+lastScraped: "2026-09-12T05:17:40.867Z"
 ---
 
 # FuseBase AI – Effective Practices and Uses
@@ -33,7 +33,7 @@ It is important to remember the basic rule – the more information there is in 
 
 FuseBase AI allows you to use not only your own prompts, but also ready-made prompts, we created especially for you. They already include information that will allow you to create the most useful content for your project.
 
-![](https://thefusebase.com/wp-content/uploads/2023/06/sales-and-proposal-1024x552.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20552'%3E%3C/svg%3E)
 
 ### Sales email [#](#2-toc-title)
 
@@ -50,7 +50,7 @@ Next, FuseBase AI will do everything for you!
 
 An example of a sales email:
 
-![](https://thefusebase.com/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-16-17-51.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20778%20687'%3E%3C/svg%3E)
 
 ### Proposal [#](#3-toc-title)
 
@@ -62,7 +62,7 @@ With FuseBase AI, you will be able to compose a promotion of any complexity and 
 
 An example of a written proposal:
 
-![](https://thefusebase.com/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-16-25-26.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20799%20675'%3E%3C/svg%3E)
 
 ### Blog post [#](#4-toc-title)
 
@@ -70,37 +70,37 @@ FuseBase Platform is great for external collaboration with clients or your team.
 
 -   FuseBase AI can write an article from scratch – use the **Blog post** draft for this. You can specify the number of characters and any other information in the prompt right away:
 
-![](https://thefusebase.com/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-16-26-26.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201198%20638'%3E%3C/svg%3E)
 
 -   You can start an article and FuseBase AI will continue it. To do this, click on **Ask AI** and select **AI Helper**:
 
-![](https://thefusebase.com/wp-content/uploads/2023/06/image-14-1.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20631%20203'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-16-31-33-1024x206.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20206'%3E%3C/svg%3E)
 
 In the pop-up prompt, type **continue writing**, after which FuseBase AI will generate a continuation:
 
-![](https://thefusebase.com/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-16-28-55.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201204%20594'%3E%3C/svg%3E)
 
 ## Clarifying the request [#](#b3603098900_5462)
 
 Consider the following case – you made a request to FuseBase AI, but you are not satisfied with the result. For example, you want to make the tone more serious or remove any mentions of undesirable moments. Do you have to make a new query? Not at all! Immediately after generating it, click on the input and enter a refinement.
 
-![](https://thefusebase.com/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-16-35-35.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201196%20648'%3E%3C/svg%3E)
 
 After that, a new text will be generated, which you can insert into the page or improve again as desired.
 
-![](https://thefusebase.com/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-16-37-13-1.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201220%20614'%3E%3C/svg%3E)
 
 ## Continuing generation [#](#6-toc-title)
 
 Let’s consider another case – you made a query to FuseBase AI and you are satisfied with the result, but you want to expand the text and add new sections to it. For example, we wrote an article about FuseBase Platform, but want to add a section about the task list. To do this, select **continue writing** after generating your text and specify a refinement in the prompt.
 
-![](https://thefusebase.com/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-16-38-30.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201204%20606'%3E%3C/svg%3E)
 
 After that, a new text will be generated, which you can insert into the page or improve again as desired.
 
-![](https://thefusebase.com/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-16-37-13-2.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201220%20614'%3E%3C/svg%3E)
 
 ## Unlock More with FuseBase AI: Beyond the Editor [#](#7-toc-title)
 

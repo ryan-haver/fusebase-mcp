@@ -2,7 +2,7 @@
 title: "Filtering and Sorting – Quick Guide"
 url: "https://thefusebase.com/guides/table-database/filtering-and-sorting-quick-guide/"
 section: "table-database"
-lastScraped: "2026-02-28T21:28:02.292Z"
+lastScraped: "2026-09-12T05:18:39.315Z"
 ---
 
 # Filtering and Sorting – Quick Guide
@@ -15,7 +15,7 @@ If there is a lot of data in the database, it is often necessary to focus only o
 
 To activate filtering, click on Filter –
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-32-1024x495.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20495'%3E%3C/svg%3E)
 
 Next, you will see the filtering bar. Here, you can:
 
@@ -23,19 +23,19 @@ Next, you will see the filtering bar. Here, you can:
 -   choose the filter condition (2);
 -   specify the filtering value (3).
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-33-1024x545.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20545'%3E%3C/svg%3E)
 
 ## How do I enable multi-column filtering? [#](#1-toc-title)
 
 You can also utilize multiple filters. To do this, open the filter bar, and click Add condition. Then enter the filter values.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-34-1024x401.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20401'%3E%3C/svg%3E)
 
 ## OR/AND operators [#](#2-toc-title)
 
 If you use multiple filtering, you can use OR / AND operators to make filtering more accurate.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-35-1024x414.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20414'%3E%3C/svg%3E)
 
 If the OR filter is selected, the table only shows rows that match ALL filters simultaneously.  
 If the filter AND was chosen instead, only rows that have a match for all the selected filters should show up. In our case, one row.
@@ -44,11 +44,11 @@ If the filter AND was chosen instead, only rows that have a match for all the se
 
 You can remove a filter by clicking on the trash can icon next to the filter.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-36-1024x414.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20414'%3E%3C/svg%3E)
 
 You can also remove all filters by clicking Clear all.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-37-1024x386.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20386'%3E%3C/svg%3E)
 
 ## Columns and filter types [#](#4-toc-title)
 
@@ -161,7 +161,7 @@ Text injection where necessary text can be entered.
 
 Also, for a number of columns, the **Choose from list** filter is available. It allows you to select specific rows from the database and display only them. This is a great option for creating segments. For example, you can create separate Views and display only the rows you need in them.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-38-1024x430.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20430'%3E%3C/svg%3E)
 
 ## **Dynamic filters** [#](#28-toc-title)
 
@@ -169,7 +169,7 @@ In addition to standard ones, you also have access to dynamic filters that allow
 
 They work very simply: in the filter value, click on the variable option and select the desired one.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-80-1024x367.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20367'%3E%3C/svg%3E)
 
 Then, if the row contains the corresponding data (for example, the email in the cell matches the visitor’s email), that row will be displayed to the user.
 
@@ -185,25 +185,25 @@ Here’s what we do:
 
 1) Add an **Email** column to the view that will be added to the portal.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-81-1024x467.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20467'%3E%3C/svg%3E)
 
 2) Add test@thefusebase1.com to the required rows.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-82-1024x456.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20456'%3E%3C/svg%3E)
 
 3) Then, set up a filter for the **Email** column and specify the condition **IS**, and in **Value**, select the **UserEmail** variable.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-83-1024x389.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20389'%3E%3C/svg%3E)
 
 That’s it — all set! Now you can test it: log in as test@thefusebase1.com, and you’ll see the intended rows.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-84-1024x519.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20519'%3E%3C/svg%3E)
 
 Then log in with another email, and you won’t see the rows you shouldn’t have access to.
 
 You can also extend the filter conditions so that if the email is empty, the rows are displayed to all portal visitors. To do this, add a new **Empty** condition with the **OR** operator.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-86-1024x342.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20342'%3E%3C/svg%3E)
 
 # Sorting [#](#29-toc-title)
 
@@ -219,7 +219,7 @@ Number columns can be sorted from smaller to larger numbers; in columns with che
 
 To change the sorting, simply click on the sorting icon next to the column name. Clicking the same icon again changes its type, for example A-z switches to z-A and vice versa.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-39-1024x440.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20440'%3E%3C/svg%3E)
 
 If you want to sort by another column, then click on the sorting icon in that column (the sorting icon will appear when you hover over the column).
 
@@ -244,4 +244,4 @@ After that, you can manually move a row to the desired position. Simply click on
 
 In the top bar of the dashboard, you can see the data refresh button. The built-in CRM does not have real-time data updates (for example, if another member invites a client or creates a portal, it will not immediately appear in the list until you refresh). To avoid refreshing the entire page, you can simply click on the icon, and you will always have up-to-date data.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-40-1024x497.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20497'%3E%3C/svg%3E)

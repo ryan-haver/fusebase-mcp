@@ -2,7 +2,7 @@
 title: "What’s the Difference Between Agents and Automation?"
 url: "https://thefusebase.com/guides/automations-and-integrations/whats-the-difference-between-agents-and-automation/"
 section: "automations-and-integrations"
-lastScraped: "2026-02-28T21:27:35.297Z"
+lastScraped: "2026-09-12T05:18:10.935Z"
 ---
 
 # What’s the Difference Between Agents and Automation?

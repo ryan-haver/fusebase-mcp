@@ -2,7 +2,7 @@
 title: "How to sort columns in tables (FuseBase Document Editor)"
 url: "https://thefusebase.com/guides/page-editor/how-to-sort-columns-in-tables/"
 section: "page-editor"
-lastScraped: "2026-02-28T21:28:25.237Z"
+lastScraped: "2026-09-12T05:18:53.044Z"
 ---
 
 # How to sort columns in tables (FuseBase Document Editor)
@@ -23,13 +23,13 @@ A little tip — clicking on the active sorting icon allows you to quickly chang
 
 In FuseBase you can sort columns by various parameters. In FuseBase sorting is dynamic, so if you change data in the cell of the column being sorted, the row automatically changes its place. The column used for sorting is marked with a special icon.
 
-![The column used for sorting is marked with a special icon.](https://thefusebase.com/images/st1.jpg)
+![The column used for sorting is marked with a special icon.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### How to enable sorting? [#](#b2340363143_611)
 
 Click on the desired column in the Sort menu –
 
-![Click on the desired column in the Sort menu](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/qlPNoJqVLccLmW8Q/sort.png)
+![Click on the desired column in the Sort menu](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 and select the type you need:
 
@@ -49,10 +49,10 @@ A little tip – click on the active sorting icon to quickly change the order: f
 
 Open the menu of the column being sorted and select Disable sorting in the sorting menu. You can also return to the original order (BEFORE sorting) or save the current one.
 
-![Open the menu of the column being sorted and select Disable sorting in the sorting menu. ](https://thefusebase.com/images/st3.jpg)
+![Open the menu of the column being sorted and select Disable sorting in the sorting menu. ](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### I want to disable sorting but keep its current row order. [#](#b2340363143_646)
 
 When disabling sorting, you can enable Keep sorted.
 
-![When disabling sorting, you can enable Keep sorted.](https://thefusebase.com/images/st4.jpg)
+![When disabling sorting, you can enable Keep sorted.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)

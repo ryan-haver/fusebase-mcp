@@ -2,7 +2,7 @@
 title: "Categories and Favorites for AI Agents"
 url: "https://thefusebase.com/guides/fusebase-ai/categories-and-favorites-for-ai-agents/"
 section: "fusebase-ai"
-lastScraped: "2026-02-28T21:27:16.969Z"
+lastScraped: "2026-09-12T05:17:40.299Z"
 ---
 
 # Categories and Favorites for AI Agents

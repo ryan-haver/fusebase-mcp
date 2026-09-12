@@ -2,20 +2,20 @@
 title: "Navigation: Dashboards, workspaces, Folders, Sub-folders, Pages, Tags"
 url: "https://thefusebase.com/guides/basics/tags-favorites-fast-access-to-your-pages/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:32.896Z"
+lastScraped: "2026-09-12T05:16:53.007Z"
 ---
 
 # Navigation: Dashboards, workspaces, Folders, Sub-folders, Pages, Tags
 
 ## How to navigate inside FuseBase [#](#0-toc-title)
 
-[Embedded content](https://www.youtube.com/embed/d3y6xZkCQvw?feature=oembed)
+[Embedded content](about:blank)
 
 ## Structure [#](#1-toc-title)
 
-![](https://app.thefusebase.com/box/attachment/2b9iijasr16d90me/TF2awPWzBksECCIP/image.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
-[Embedded content](https://www.youtube.com/embed/EZFswk5B6bo?feature=oembed)
+[Embedded content](about:blank)
 
 **Read more:** [https://thefusebase.com/guides/getting-started/structure-in-fusebase/](https://thefusebase.com/guides/getting-started/structure-in-fusebase/)
 
@@ -41,4 +41,4 @@ In FuseBase, you can not only use dashboards for your internal CRM, but also cre
 
 Inside every workspace you have Folders, Sub-filders, tags:
 
-[Embedded content](https://www.youtube.com/embed/d3y6xZkCQvw?start=105&feature=oembed)
+[Embedded content](about:blank)

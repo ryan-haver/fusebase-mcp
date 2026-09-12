@@ -2,7 +2,7 @@
 title: "How to Invite a Customer to The Portal via Client Role"
 url: "https://thefusebase.com/guides/client-portal/inviting-via-client-role/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:59.202Z"
+lastScraped: "2026-09-12T05:17:22.751Z"
 ---
 
 # How to Invite a Customer to The Portal via Client Role
@@ -22,11 +22,11 @@ To invite a client to the portal, please follow these steps:
 
 You can grant a client access not to the entire portal, but to specific folders. To do this, click on the menu of the desired folder and select Manage access.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/image-36-1024x442.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20442'%3E%3C/svg%3E)
 
 Next, click Invite and send an invite to the appropriate client –
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/image-37-1024x522.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20522'%3E%3C/svg%3E)
 
 You can read more about this functionality here: [https://thefusebase.com/guides/client-portal/granular-permissions/](https://thefusebase.com/guides/client-portal/granular-permissions/)
 
@@ -38,13 +38,13 @@ You can also accelerate your client workflows using our automation features. For
 
 Example use case: If you use Hubspot as your CRM and change a client’s status to Closed Won, access to the portal with an onboarding tour can be sent automatically. This flow is easy to set up and significantly reduces manual work.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/image-40-1024x698.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20698'%3E%3C/svg%3E)
 
 ## **Client management** [#](#3-toc-title)
 
 If you want to view all clients who have been added to your portals, you can do this through the client dashboard. To open it, click the Home button and select Clients -.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/image-38-1024x374.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20374'%3E%3C/svg%3E)
 
 Here you will see all the clients you have invited to your portals. You can filter clients by various parameters, view analytics, add additional data, and more. Essentially, this is a mini-CRM that allows you to efficiently manage your clients.
 

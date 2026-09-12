@@ -2,7 +2,7 @@
 title: "Managing Access to Pages"
 url: "https://thefusebase.com/guides/organization/managing-access-to-pages/"
 section: "organization"
-lastScraped: "2026-02-28T21:27:11.115Z"
+lastScraped: "2026-09-12T05:17:36.135Z"
 ---
 
 # Managing Access to Pages
@@ -40,15 +40,15 @@ The following members can manage folder access:
 
 2) Select Manage Members.
 
-![](https://thefusebase.com/wp-content/uploads/2023/04/image-102-1024x732.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20732'%3E%3C/svg%3E)
 
 3) In the window that appears, you will see a list of participants who have access to the page.
 
-![](https://thefusebase.com/wp-content/uploads/2023/04/image-103-1024x845.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20845'%3E%3C/svg%3E)
 
 4) Click on **the Deny Access icon**.
 
-![](https://thefusebase.com/wp-content/uploads/2023/04/image-106-1024x545.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20545'%3E%3C/svg%3E)
 
 5) Confirm the action.
 
@@ -70,18 +70,18 @@ If you have limited access to pages, then you can also restore access to them fo
 
 3) In the window that appears, click on **Add Members**.
 
-![](https://thefusebase.com/wp-content/uploads/2023/04/image-105-1024x845.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20845'%3E%3C/svg%3E)
 
 4) In the window that appears, you will see:
 
 -   a list of workspace members who have been denied access to the page
 -   a list of organization members who are not members of the workspace
 
-![](https://thefusebase.com/wp-content/uploads/2023/04/image-88.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20633%20511'%3E%3C/svg%3E)
 
 5) To give access to the page, click on No Access and select the desired permission (Edit or Read Only), after which the corresponding permission will be given to the user.
 
-![](https://thefusebase.com/wp-content/uploads/2023/04/image-89.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20674%20449'%3E%3C/svg%3E)
 
 If the user is already a member of the workspace, then they will be given access to the page, depending on the permissions in the workspace. If the workspace has Edit permission, then the folder will also have Edit access. You can change the workspace’s permissions in the organization’s business console.  
   
@@ -101,7 +101,7 @@ You can also invite a new member to the note through an invite.
 
 5) Enter the email address of the desired user and specify their role and permissions. Next, click on Send Invitation.
 
-![](https://thefusebase.com/wp-content/uploads/2023/04/image-90.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20631%20520'%3E%3C/svg%3E)
 
 ## How to return full access to the workspace for a user [#](#b2110891586_3545)
 
@@ -117,4 +117,4 @@ To do this, you must:
 
 4) In the menu for the required member, select Set as Full Member and agree to the action.
 
-![](https://thefusebase.com/wp-content/uploads/2023/04/image-91-1024x517.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20517'%3E%3C/svg%3E)

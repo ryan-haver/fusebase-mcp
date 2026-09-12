@@ -2,7 +2,7 @@
 title: "Custom JS/HTML for public links and web-client"
 url: "https://thefusebase.com/guides/embedding-sharing/custom-js-html-for-public-links-and-web-client/"
 section: "embedding-sharing"
-lastScraped: "2026-02-28T21:27:41.674Z"
+lastScraped: "2026-09-12T05:18:18.888Z"
 ---
 
 # Custom JS/HTML for public links and web-client
@@ -23,19 +23,19 @@ An example of adding the first script:
 
 2) Go to workspaces management. In the menu select the desired workspace.
 
-![Go to workspaces management. In the menu select the desired workspace.](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/Ocfb37o1pkAh7ebY/image.png)
+![Go to workspaces management. In the menu select the desired workspace.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 3) Select Custom HTML/JS –
 
-![Select Custom HTML/JS](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/m1GErC1nw7BAjMwN/image.png)
+![Select Custom HTML/JS](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 4) Next, you will see the script management page –
 
-![Next, you will see the script management page](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/iQOSnSqGA3EYMmzq/image.png)
+![Next, you will see the script management page](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 5) To add a script, you need to click on the button “Add HTML/JS” –
 
-![To add a script, you need to click on the button "Add HTML/JS"](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/z3lrTzVpPnlhfvF2/image.png)
+![To add a script, you need to click on the button "Add HTML/JS"](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 6) After that, the page for adding the code will appear:
 
@@ -51,23 +51,23 @@ The code can be added to either “Head” or “Body,” or both blocks at once
 
 After adding the script code, you need to save it. When you’re ready, press Publish.
 
-![After adding the script code, you need to save it. When you're ready, press Publish.](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/KFc0CIy4MPNJ4LyS/image.png)
+![After adding the script code, you need to save it. When you're ready, press Publish.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Scripts management [#](#b745032984_3859)
 
 Any added and saved script will be stored in the project’s script list. You can easily find it in the “Custom HTML / JS” section.
 
-![You can easily find it in the "Custom HTML / JS" section.](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/hZxapFCHnrnaT45t/image.png)
+![You can easily find it in the "Custom HTML / JS" section.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 This list displays not only the name of the script, but also its author, as well as the location (public pages and/or web client). You can also see the last edit date and much more. In a large number of scripts, the one you need can be found using the search function.
 
 You can also sort the script names alphabetically –
 
-![You can also sort the script names alphabetically](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/kl8uIHd8N9oJsvuv/image.png)
+![You can also sort the script names alphabetically](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 In addition to general information, each script has a separate menu with actions –
 
-![In addition to general information, each script has a separate menu with actions](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/YVuruWVbaz6s8vJn/image.png)
+![In addition to general information, each script has a separate menu with actions](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 the following items are available here:
 
@@ -78,7 +78,7 @@ the following items are available here:
 
 As mentioned above, the “Edit” button in the menu of each script allows you to edit it.
 
-![As mentioned above, the “Edit” button in the menu of each script allows you to edit it.](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/zOwwc6yvVMy8yOtN/image.png)
+![As mentioned above, the “Edit” button in the menu of each script allows you to edit it.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 After clicking it, the script editing page will open, where you can change all the values: the name, the code itself in head and body, and where you want to place the script. Changes take effect immediately after saving the script.
 

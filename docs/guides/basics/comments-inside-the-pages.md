@@ -2,7 +2,7 @@
 title: "Comments inside the pages"
 url: "https://thefusebase.com/guides/basics/comments-inside-the-pages/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:20.726Z"
+lastScraped: "2026-09-12T05:16:47.358Z"
 ---
 
 # Comments inside the pages
@@ -24,20 +24,20 @@ In FuseBase, you can add inline comments to the selected text.
 -   Highlight the desired text (a word/sentence or multiple blocks of text).
 -   Click on the comment icon.
 
-![](https://thefusebase.com/wp-content/uploads/2023/08/image-28.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20828%20320'%3E%3C/svg%3E)
 
 -   Add comment.
 -   A thread with an inline comment will be created.
 
 After creating a comment, you will see the commented text is highlighted and the counter icon next to the commented block will appear. The counter defines the number of comments inside the thread.
 
-![](https://thefusebase.com/wp-content/uploads/2023/08/image-29.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20753%20260'%3E%3C/svg%3E)
 
 ## View comments [#](#2-toc-title)
 
 To view a comment for a desired block, tap on the comment icon, which can be found to the right of the block.
 
-![](https://thefusebase.com/wp-content/uploads/2023/08/image-30.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20808%20302'%3E%3C/svg%3E)
 
 ### Adding replies to comments [#](#b501781426_7985)
 
@@ -47,7 +47,7 @@ To add a reply, you need to:
 -   Tap on the desired comment.
 -   Select the reply icon.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Frame-2147207152-17-1024x409.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20409'%3E%3C/svg%3E)
 
 -   Write the comment in the input field and press **Enter**.
 
@@ -63,7 +63,7 @@ To delete a comment inside a thread:
 -   Click on the desired comment.
 -   Select the trash icon.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Frame-2147207152-22.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201598%20696'%3E%3C/svg%3E)
 
 ### Deleting the entire thread [#](#6-toc-title)
 
@@ -72,7 +72,7 @@ To delete the entire thread, do the following.
 -   Open the thread.
 -   Click on the **Delete** in thread’s menu.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Frame-2147207152-19.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201548%20646'%3E%3C/svg%3E)
 
 ## Editing a comment [#](#b501781426_9159)
 
@@ -82,7 +82,7 @@ You can also edit your comment at any time (it will be marked as edited). To do 
 -   Click on the desired comment.
 -   Select the Edit icon.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Frame-2147207152-21.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201550%20712'%3E%3C/svg%3E)
 
 ## Resolve thread [#](#8-toc-title)
 
@@ -91,13 +91,13 @@ If the issue in the thread is fixed, then you can mark it as resolved.
 -   Open the thread.
 -   Select the checkmark (resolved icon) at the top of the pop-up.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Frame-2147207152-18.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201536%20652'%3E%3C/svg%3E)
 
 After resolving a thread, you will not see it in the list of threads.
 
 To see the resolved threads, open the page and enable the **Show resolved comments** toggle in the page’s menu.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/image-36-1-1.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20981%20292'%3E%3C/svg%3E)
 
 ## Adding files to comments [#](#9-toc-title)
 
@@ -107,15 +107,15 @@ In addition to text, you can add files to your comments. For example, they can b
 
 To add a file, click on **the attachment icon** in the comment input.
 
-![](https://thefusebase.com/wp-content/uploads/2023/08/image-6.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20722%20263'%3E%3C/svg%3E)
 
 Next, select the desired file and wait for it to load. It will be displayed on the comment card.
 
-![](https://thefusebase.com/wp-content/uploads/2023/08/image-7.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20731%20246'%3E%3C/svg%3E)
 
 Click on **the submit comment button** to add it to the thread.
 
-![](https://thefusebase.com/wp-content/uploads/2023/08/image-8.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20682%20271'%3E%3C/svg%3E)
 
 🚩 You can also paste a picture into a comment via the **ctrl+v hotkey**.
 
@@ -123,10 +123,10 @@ Click on **the submit comment button** to add it to the thread.
 
 Click on **the file name** or on **Download** to download the file.
 
-![](https://thefusebase.com/wp-content/uploads/2023/08/image-9.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20775%20297'%3E%3C/svg%3E)
 
 ### Deleting a file [#](#b1135554126_775)
 
 If you want to delete a file, click on **Delete** in the file menu (displayed when you hover over the file).
 
-![](https://thefusebase.com/wp-content/uploads/2023/08/image-10.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20745%20375'%3E%3C/svg%3E)

@@ -2,7 +2,7 @@
 title: "Manage Your Projects"
 url: "https://thefusebase.com/guides/organization/manage-your-projects/"
 section: "organization"
-lastScraped: "2026-02-28T21:27:11.057Z"
+lastScraped: "2026-09-12T05:17:36.283Z"
 ---
 
 # Manage Your Projects
@@ -15,7 +15,7 @@ Make yourself comfortable, there is a lot to learn!
 
 ##   First Things First — Create Workspaces [#](#0-toc-title)
 
-[Embedded content](https://www.youtube.com/embed/A5R1x2wSUjk?feature=oembed)
+[Embedded content](about:blank)
 
 Organize your projects within workspaces. We recommend creating separate workspaces for your projects. Each workspace has its own nested folder structure, tags, permission settings and branding.  
 This way, you can easily manage your information, tasks, teams and projects.
@@ -35,36 +35,36 @@ You can also add task descriptions, leave clarifying comments and add cost & tim
 
 ### How to Create Tasks and Add Them to the Task Lists [#](#2-toc-title)
 
-[Embedded content](https://www.youtube.com/embed/uXOKTuWUXNk?feature=oembed)
+[Embedded content](about:blank)
 
 ### How to Comment on Tasks [#](#3-toc-title)
 
-[Embedded content](https://www.youtube.com/embed/6XwqKHSR8TY?feature=oembed)
+[Embedded content](about:blank)
 
 ### How to Move Your Tasks  [#](#4-toc-title)
 
-[Embedded content](https://www.youtube.com/embed/haJjtrlcBlI?feature=oembed)
+[Embedded content](about:blank)
 
 ### How to Filter Tasks [#](#5-toc-title)
 
-[Embedded content](https://www.youtube.com/embed/Z5OyaTxxwrY?feature=oembed)
+[Embedded content](about:blank)
 
 ### How to Track Progress on Task Lists [#](#6-toc-title)
 
-[Embedded content](https://www.youtube.com/embed/2H76ztj0VNw?feature=oembed)
+[Embedded content](about:blank)
 
 ##  Visualize Your Workflow — Try the Kanban Method [#](#7-toc-title)
 
 You can organize your work using the Kanban method in FuseBase. Turn your goals into task cards and move them across the board. With Kanban boards, you can fully visualize the project process, manage tasks and analyze the flow.  
 Watch the video on **how to organize your tasks with Kanban Boards** 👇
 
-[Embedded content](https://www.youtube.com/embed/NX9poAoygkg?feature=oembed)
+[Embedded content](about:blank)
 
 😎 **FuseBase Team suggests**  
 Create both task lists and Kanban boards. While **task lists** can consist of backlog ideas, **Kanban boards** will help you visualize ongoing tasks and their status.  
 Check out the examples below 👇
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/Kanban-boards.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20715%20332'%3E%3C/svg%3E)
 
 ###  Organize Your Portfolio [#](#8-toc-title)
 
@@ -88,7 +88,7 @@ Check out the examples below 👇
 **💡 **Quick tip**  
 **Adapt content, choose the responsible team and change risk level to get to know how databases work in FuseBase.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/databases.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20954%20277'%3E%3C/svg%3E)
 
 ## Get Help from Our Experts [#](#9-toc-title)
 

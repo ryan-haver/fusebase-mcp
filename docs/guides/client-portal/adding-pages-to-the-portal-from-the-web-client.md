@@ -2,7 +2,7 @@
 title: "Adding a Page to the Portal from the Internal Space"
 url: "https://thefusebase.com/guides/client-portal/adding-pages-to-the-portal-from-the-web-client/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:27:02.704Z"
+lastScraped: "2026-09-12T05:17:25.990Z"
 ---
 
 # Adding a Page to the Portal from the Internal Space
@@ -25,16 +25,16 @@ The steps are very simple and fast!
 
 3.  In the popup that appears, you will be able to change the page name (if necessary), as well as switch its status from Invisible to Visible.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/image-6-1024x507.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20507'%3E%3C/svg%3E)
 
 4.  Click on **Add page**.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/image-7-1024x510.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20510'%3E%3C/svg%3E)
 
 Congratulations, the page has been added to the portal! The icon of the added page will change.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/image-8-1024x524.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20524'%3E%3C/svg%3E)
 
 After the page has been added to the portal, you will be able to change its status or open it.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/image-9-1024x372.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20372'%3E%3C/svg%3E)

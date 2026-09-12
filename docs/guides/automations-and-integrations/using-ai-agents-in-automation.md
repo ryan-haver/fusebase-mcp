@@ -2,7 +2,7 @@
 title: "Using AI Agents in Automation"
 url: "https://thefusebase.com/guides/automations-and-integrations/using-ai-agents-in-automation/"
 section: "automations-and-integrations"
-lastScraped: "2026-02-28T21:27:35.146Z"
+lastScraped: "2026-09-12T05:18:08.259Z"
 ---
 
 # Using AI Agents in Automation
@@ -35,7 +35,7 @@ List of news in bullet format. + show the source link for each news item.**
 
 Don’t forget to activate the web search switcher. This will allow the agent to access the internet to search for information.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-33-896x1024.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20896%201024'%3E%3C/svg%3E)
 
 Next, publish the agent.
 
@@ -45,15 +45,15 @@ Now, we need to create an automation flow. Go to the Automation section and crea
 
 1) For the trigger, select Scheduler and set it to run once a week.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-34-1024x591.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20591'%3E%3C/svg%3E)
 
 2) Next, add our new agent as the first action. To do this, select Fusebase AI Agents. Then, choose Call agent -> select the agent you created.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-35-1024x659.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20659'%3E%3C/svg%3E)
 
 For the response format, select Markdown. Don’t forget to click Step test or Load data to fetch the data for the next step.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-36-1024x716.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20716'%3E%3C/svg%3E)
 
 If you get an empty response during **Load Data**, don’t worry – this is normal and sufficient for passing data to the next action.
 
@@ -63,10 +63,10 @@ When using **Load Data**, we only retrieve variables but do not actually run the
 
 For the action, select Send a message to either a channel or a user, depending on your preference. Then, choose the desired channel or member.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-39-1024x704.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20704'%3E%3C/svg%3E)
 
 In the Message field, insert the response from the agent.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-40-1024x730.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20730'%3E%3C/svg%3E)
 
 For the Username, enter any name you prefer, and then publish the flow. The flow is now published, and once a week, you’ll receive the latest news from your competitors.

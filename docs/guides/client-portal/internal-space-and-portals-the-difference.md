@@ -2,7 +2,7 @@
 title: "Internal Space and Portals – how do they differ?"
 url: "https://thefusebase.com/guides/client-portal/internal-space-and-portals-the-difference/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:59.343Z"
+lastScraped: "2026-09-12T05:17:25.311Z"
 ---
 
 # Internal Space and Portals – how do they differ?
@@ -15,11 +15,11 @@ In the standard web version, there is an **Internal Space** area where you can w
 -   Hold chats
 -   Manage and control tasks
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/Internal-space-2.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20350%20674'%3E%3C/svg%3E)
 
 It is an **Inner area**, available only to you and other organization members. When you make a portal, its layout will appear in your **Sidebar**.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/Internal-space-3.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20362%20744'%3E%3C/svg%3E)
 
 Here, you can:
 

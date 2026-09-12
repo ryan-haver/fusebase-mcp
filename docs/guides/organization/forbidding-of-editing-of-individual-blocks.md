@@ -2,7 +2,7 @@
 title: "Forbidding of editing of individual blocks"
 url: "https://thefusebase.com/guides/organization/forbidding-of-editing-of-individual-blocks/"
 section: "organization"
-lastScraped: "2026-02-28T21:27:07.965Z"
+lastScraped: "2026-09-12T05:17:33.313Z"
 ---
 
 # Forbidding of editing of individual blocks

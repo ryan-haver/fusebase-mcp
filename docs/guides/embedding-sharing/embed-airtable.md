@@ -2,7 +2,7 @@
 title: "Embed Airtable"
 url: "https://thefusebase.com/guides/embedding-sharing/embed-airtable/"
 section: "embedding-sharing"
-lastScraped: "2026-02-28T21:27:44.543Z"
+lastScraped: "2026-09-12T05:18:18.956Z"
 ---
 
 # Embed Airtable
@@ -29,21 +29,21 @@ You can add tables and databases of the [https://airtable.com](https://airtable
 -   Open the desired page in FuseBase.
 -   Click on the arrow and select **Embed** or use the **cmd/ctrl** + **⌥/alt** + **m** keyboard combination.
 
-![](https://thefusebase.com/wp-content/uploads/2022/09/image-15-2-1024x707.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20707'%3E%3C/svg%3E)
 
 -   Paste the copied code from Airtable.
 -   The database will appear in your page!
 
-![](https://thefusebase.com/wp-content/uploads/2022/09/image-16-4-1024x304.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20304'%3E%3C/svg%3E)
 
 ### Resize Embeds [#](#b1888568803_1062)
 
 -   Drag the upper-right corner and **resize** (all proportions will be preserved).
 
-![](https://thefusebase.com/wp-content/uploads/2022/09/image-17-1.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20756%20529'%3E%3C/svg%3E)
 
 -   For free resizing, hold the **⌥/alt** key and start resizing using the bottom-right chip.
 
-![](https://thefusebase.com/wp-content/uploads/2022/09/image-18-2.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201020%20483'%3E%3C/svg%3E)
 
 **Note: To return the embed to its original position, use the hotkey Command/Ctrl + Z, or click on the three dots and select Undo.**

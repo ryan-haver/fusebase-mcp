@@ -2,7 +2,7 @@
 title: "Managing access to folders and subfolders"
 url: "https://thefusebase.com/guides/organization/managing-access-to-folders-and-subfolders/"
 section: "organization"
-lastScraped: "2026-02-28T21:27:08.079Z"
+lastScraped: "2026-09-12T05:17:33.290Z"
 ---
 
 # Managing access to folders and subfolders
@@ -42,15 +42,15 @@ The following members have the ability to manage folder access:
 
 2\. Select Manage members.
 
-![](https://thefusebase.com/wp-content/uploads/2022/10/image-1024x720.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20720'%3E%3C/svg%3E)
 
 3\. In the window that appears, you will see a list of participants who have access to the folder.
 
-![In the window that appears, you will see a list of participants who have access to the folder.](https://app.nimbusweb.me/box/attachment/7570238/r7gbn3wnx4yh58zlas3b/rlqoX9i2WwbfUMhb/image.png)
+![In the window that appears, you will see a list of participants who have access to the folder.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 4\. Click on the Deny access icon.
 
-![Click on the Deny access icon.](https://app.nimbusweb.me/box/attachment/7570238/r7gbn3wnx4yh58zlas3b/Fd7k0BYSf4eQBkiP/image.png)
+![Click on the Deny access icon.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 5\. Confirm the action.
 
@@ -76,14 +76,14 @@ If you have limited access to folders, then you can also restore access to them 
 
 3\. In the window that appears, click on Add members.
 
-![](https://thefusebase.com/wp-content/uploads/2022/10/image-3.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20704%20587'%3E%3C/svg%3E)
 
 4\. In the window that appears, you will see:
 
 -   list of workspace members whom have been denied access to the folder
 -   list of organization members who are not members of the workspace
 
-![In the window that appears, you will see](https://app.nimbusweb.me/box/attachment/7570238/r7gbn3wnx4yh58zlas3b/0Imj1dqKCkVIEe9I/image.png)
+![In the window that appears, you will see](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 5\. To give access to the folder, click on No access and select the desired permission (Edit or Read Only), after which the corresponding access to folder will be given to the user.
 
@@ -101,7 +101,7 @@ Also, you can invite a new member to the folder via an invite.
 4) Go to the **By email tab**.  
 5) Enter the email address of the desired user and specify his/her role and permissions. Next, click on **Send invitation**.
 
-![](https://thefusebase.com/wp-content/uploads/2023/04/image-92.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20631%20524'%3E%3C/svg%3E)
 
 ## How to return full access to the workspace for a user [#](#b4139667178_84)
 

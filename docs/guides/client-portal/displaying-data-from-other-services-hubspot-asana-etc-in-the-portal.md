@@ -2,7 +2,7 @@
 title: "Displaying data from other services (HubSpot, Asana, etc.) in the portal"
 url: "https://thefusebase.com/guides/client-portal/displaying-data-from-other-services-hubspot-asana-etc-in-the-portal/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:44.210Z"
+lastScraped: "2026-09-12T05:17:06.085Z"
 ---
 
 # Displaying data from other services (HubSpot, Asana, etc.) in the portal
@@ -19,17 +19,17 @@ This can be done using the Dynamic Table block. In the future, we will expand th
 
 ![](https://thefusebase.com/wp-content/uploads/2025/02/image-3.png)
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-7.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201855%20969'%3E%3C/svg%3E)
 
 3) Next, you need to select the service from which you want to display data in the table. To do this, click on Data source and select Add new data source.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-12.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201886%20924'%3E%3C/svg%3E)
 
 4) Then, choose and authorize the required service. In our case, this will be HubSpot.
 
 5) Next, you can choose the type of data to display in the table. Each service may have its own data types. For example, in HubSpot, you can display tickets, tasks, contacts, and more. Let’s select Company List as an example.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-13.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201895%20896'%3E%3C/svg%3E)
 
 ## Configuring Table Columns [#](#1-toc-title)
 
@@ -37,7 +37,7 @@ By default, we display the main column types in the table, such as Company Name,
 
 However, you can choose which columns to display and which to hide. To do this, expand the Table Fields section, where you can see the currently added columns.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-14.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201892%201004'%3E%3C/svg%3E)
 
 It is important to note that when using external data sources, each column must be mapped to a corresponding parameter from the external service.
 
@@ -47,21 +47,21 @@ Let’s try creating a new column Date Created and mapping it to the Created Dat
 
 1) Click on **Add Field**.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-15.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202360%201058'%3E%3C/svg%3E)
 
 2) Enter the column name (Date Created).
 
 3) In the Map to field, select the corresponding parameter in HubSpot. In this case, choose CreatedAt.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-16.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201915%201001'%3E%3C/svg%3E)
 
 4) In the Field Type section, you can select the column type. Currently, several options are available, such as Text, Email, Numbers, and more. In our case, we only need a date, so we will select the Date type.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-17.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202374%201028'%3E%3C/svg%3E)
 
 If you don’t need a specific column, you can delete it through the column menu.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-18.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202370%20914'%3E%3C/svg%3E)
 
 ## Filtering Data [#](#2-toc-title)
 
@@ -71,7 +71,7 @@ Let’s filter our table to display only companies that were added after 2023.
 
 1) Click on Add Condition.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-19.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202356%201023'%3E%3C/svg%3E)
 
 2) Select the HubSpot parameter to filter by. In our case, choose Createddate.
 
@@ -79,8 +79,8 @@ Let’s filter our table to display only companies that were added after 2023.
 
 4) In the Value field, enter 2023 (to display only companies added after 2023).
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-20.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202357%201066'%3E%3C/svg%3E)
 
 You can add multiple filters to refine your data further. If a filter is no longer needed, you can disable or delete it through the menu.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-21.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202358%20982'%3E%3C/svg%3E)

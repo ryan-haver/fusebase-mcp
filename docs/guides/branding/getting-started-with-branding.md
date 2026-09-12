@@ -2,7 +2,7 @@
 title: "Getting started with Branding"
 url: "https://thefusebase.com/guides/branding/getting-started-with-branding/"
 section: "branding"
-lastScraped: "2026-02-28T21:27:25.596Z"
+lastScraped: "2026-09-12T05:18:06.274Z"
 ---
 
 # Getting started with Branding
@@ -19,15 +19,15 @@ Deliver your services professionally with no mention of third-party tools with F
 -   Add a custom CNAME
 -   Choose from 2000+ integrations
 
-[Embedded content](https://www.youtube.com/embed/IN39lqkH_5M?feature=oembed)
+[Embedded content](about:blank)
 
 ## Custom Subdomains (CNAME) [#](#b2282531627_949)
 
 You can add your personal domain. The web client and public pages will be displayed on a subdomain like “**mypages.mydomain.com**“.
 
-![You can add your personal domain. The web client and public pages will be displayed on a subdomain like "mypages.mydomain.com".](https://app.nimbusweb.me/box/attachment/5030486/io2d4o2zo3bewz6xl3x2/pScmKu5yjteKvldh/Group%20191.png)
+![You can add your personal domain. The web client and public pages will be displayed on a subdomain like "mypages.mydomain.com".](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
-![You can add your personal domain. The web client and public pages will be displayed on a subdomain like "mypages.mydomain.com".](https://app.nimbusweb.me/box/attachment/5030486/io2d4o2zo3bewz6xl3x2/v11EbqxQWa2WYKFP/Group%20161.png)
+![You can add your personal domain. The web client and public pages will be displayed on a subdomain like "mypages.mydomain.com".](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 [**Read more about CNAME**](https://thefusebase.com/guides/branding/custom-subdomains-cname/)
 
@@ -37,17 +37,17 @@ You can add your personal domain. The web client and public pages will be displa
 
 You can set a big logo for the sign-in page as well as small logo for the organization.
 
-[Embedded content](https://www.youtube.com/embed/E6xPD6CedDU?feature=oembed)
+[Embedded content](about:blank)
 
 **☝** **Note:** If you have added a big logo of the organization and indicated its name, then this data will be used in emails sent to members of the organization – for instance, when you invite members or mention them in pages.
 
-![If you have added a big logo of the organization and indicated its name, then this data will be used in emails sent to members of the organization - for instance, when you invite members or mention them in pages.](https://app.nimbusweb.me/box/attachment/5030486/io2d4o2zo3bewz6xl3x2/Oeu67swBAFSz1EEu/540_2041_branding_logo_new.gif)
+![If you have added a big logo of the organization and indicated its name, then this data will be used in emails sent to members of the organization - for instance, when you invite members or mention them in pages.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **[Read more about organization logos](https://thefusebase.com/guides/branding/white-label-for-organization/)**
 
 ### Authorization page branding [#](#b3032900014_208)
 
-[Embedded content](https://www.youtube.com/embed/IwwDlsjiFuc?feature=oembed)
+[Embedded content](about:blank)
 
 -   Write a welcome text for members of the organization (instead of the default standard welcome).
 -   Provide your link for the Privacy Policy (or remove it).
@@ -56,7 +56,7 @@ You can set a big logo for the sign-in page as well as small logo for the organi
 
 -   Click on **Change** to change the subdomain of the organization
 
-![Click on Change to change the subdomain of the organization](https://app.nimbusweb.me/box/attachment/5030486/io2d4o2zo3bewz6xl3x2/CPk4R4VNREGK6Ju7/Group%20178.png)
+![Click on Change to change the subdomain of the organization](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Branding for public pages [#](#b2282531627_880)
 
@@ -75,8 +75,8 @@ You can do this through the business organization dashboard at [https://teams.ni
 -   Go to the Workspaces page.
 -   Click the menu of the desired workspace and select **Branding : Public pages.**
 
-![You can change the appearance of public pages / folders and add components of your brand to them](https://app.nimbusweb.me/box/attachment/5030486/io2d4o2zo3bewz6xl3x2/ft9bHELjshbmpRAH/Group%20223.png)
+![You can change the appearance of public pages / folders and add components of your brand to them](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
-![You can change the appearance of public pages / folders and add components of your brand to them:](https://app.nimbusweb.me/box/attachment/5030486/io2d4o2zo3bewz6xl3x2/yH3MladrUJNLikKP/Group%20224.png)
+![You can change the appearance of public pages / folders and add components of your brand to them:](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 [**Read more about Branding for public pages**](https://thefusebase.com/guides/branding/branding-for-public-pages/)

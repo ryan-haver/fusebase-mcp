@@ -2,7 +2,7 @@
 title: "Notification/Updates Panel – Quick Guide"
 url: "https://thefusebase.com/guides/client-portal/notification-updates-panel-quick-guide/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:49.966Z"
+lastScraped: "2026-09-12T05:17:13.069Z"
 ---
 
 # Notification/Updates Panel – Quick Guide
@@ -30,18 +30,18 @@ The panel is divided into two tabs:
 
 Clicking on an event will take you to the source, such as the portal page, task dashboard, etc.
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-76.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20819%20655'%3E%3C/svg%3E)
 
 If you need to hide the notification panel, it’s easy to do:
 
 1) Go to edit the top bar (hover over it and click the pencil icon) –
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-80-1024x545.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20545'%3E%3C/svg%3E)
 
 2) Deactivate the **Updates panel** switcher –
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-81-1024x549.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20549'%3E%3C/svg%3E)
 
 3) Save and then publish the changes –
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-82-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)

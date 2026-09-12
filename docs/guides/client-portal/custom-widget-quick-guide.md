@@ -2,7 +2,7 @@
 title: "Custom Widget – Quick Guide"
 url: "https://thefusebase.com/guides/client-portal/custom-widget-quick-guide/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:50.114Z"
+lastScraped: "2026-09-12T05:17:13.095Z"
 ---
 
 # Custom Widget – Quick Guide
@@ -22,39 +22,39 @@ Using the Custom Widget, you can design a custom block of any complexity on the 
 -   **Wrapper and Layout** – Controls the appearance of the widget.
 -   **Block Info** – Technical information about the widget.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-1-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 ## Edit the title of the widget [#](#1-toc-title)
 
 Click on the title field in the “General” section of the widget settings. Type in the desired title for your widget.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-2-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 **Adding and Editing Blocks**
 
 Each Custom Widget is made up of blocks (text, image, rating, etc.). To add a new block, click on **Add block** and select the desired block from the list.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-3-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-4-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 After adding a block, you can edit its content, for example, change the text and its formatting in a text block.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-5-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-6-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 Or, for instance, replace the image in an image block.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-7-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-8-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 **Deleting or Hiding a Block**
 
 If you want to temporarily hide a block, you can do so through the block’s menu. You can also delete an unnecessary block using the same menu.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-9-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 **Moving Blocks**
 
@@ -64,7 +64,7 @@ You can move blocks using drag-and-drop (DND). Click on the icon next to the des
 
 Click on the “Layout” dropdown menu in the “General” section. Select “6 columns” for a wider layout.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-10-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 **Managing Widget Background and Padding**
 
@@ -74,4 +74,4 @@ Through the **Wrapper** section, you can manage the block’s background, adjust
 
 Once you’ve made your changes, don’t forget to save them. After saving, you can publish the changes to make them visible on the portal.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-11-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)

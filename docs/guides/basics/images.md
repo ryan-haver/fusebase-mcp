@@ -2,7 +2,7 @@
 title: "Images"
 url: "https://thefusebase.com/guides/basics/images/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:23.393Z"
+lastScraped: "2026-09-12T05:16:51.233Z"
 ---
 
 # Images
@@ -32,7 +32,7 @@ To add a picture into the table:
 
 Click the three dots next to an image to open the menu for the picture in the editor.
 
-![Click the three dots next to an image to open the menu for the picture in the editor.](https://app.nimbusweb.me/box/attachment/4485409/7ydr5g05c11aya8la5kg/r2fJ87BRkkIUBY4c/4.gif)
+![Click the three dots next to an image to open the menu for the picture in the editor.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 #### Image alignment [#](#b2427682051_0)
 
@@ -48,7 +48,7 @@ Just go to the Settings – Page Appearance and set the default image alignment 
 
 To add a block, select the three dots menu and press **Add block**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/add-block-1024x614.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20614'%3E%3C/svg%3E)
 
 #### Convert to file [#](#b2427682051_252)
 
@@ -68,7 +68,7 @@ Image-to-text recognition is a powerful feature that enables searching for text 
 
 To replace the picture with another click on the three dots menu and select **Replace**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/replace-1024x612.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20612'%3E%3C/svg%3E)
 
 #### Rotate [#](#b2427682051_528)
 
@@ -78,21 +78,21 @@ To rotate the picture choose **Rotate**.
 
 When you open a picture in full-screen mode, you can rotate it, zoom in or out, and print it. To open a picture in full-screen mode, double-click on it.
 
-![When you open a picture in full-screen mode, you can rotate it, zoom in or out, and print it. To open a picture in full-screen mode, double-click on it.](https://app.nimbusweb.me/box/attachment/4485409/7ydr5g05c11aya8la5kg/JMEnrXJTZTuzWIqM/Comp_1%201828%20center.gif)
+![When you open a picture in full-screen mode, you can rotate it, zoom in or out, and print it. To open a picture in full-screen mode, double-click on it.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 #### Resize images [#](#b756089151_40)
 
 -   Drag the upper-right corner and **resize** (all proportions will be preserved).
 
-![Drag the upper-right corner and resize (all proportions will be preserved).](https://app.nimbusweb.me/box/attachment/4485409/7ydr5g05c11aya8la5kg/beFzv3Ly0Mzcd0xc/Group%20142%20(1).png)
+![Drag the upper-right corner and resize (all proportions will be preserved).](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   For free resizing, hold the **ALT key** and change the size using the bottom-right chip.
 
-![For free resizing, hold the ALT key and change the size using the bottom-right chip.](https://app.nimbusweb.me/box/attachment/4485409/7ydr5g05c11aya8la5kg/cHfuKFVE0qkTpsPq/Group%20143.png)
+![For free resizing, hold the ALT key and change the size using the bottom-right chip.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **☝Note: To return the image to its original position, click on the block menu and select the Default size icon.**
 
-![To return the image to its original position, click on the block menu and select the Default size icon.](https://app.nimbusweb.me/box/attachment/4485409/7ydr5g05c11aya8la5kg/5doyjCoY5YKVQTX6/Group%20179.png)
+![To return the image to its original position, click on the block menu and select the Default size icon.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 #### Set as preview [#](#b3284289719_191)
 
@@ -104,7 +104,7 @@ To set the picture as a preview, select **Set as preview**.
 
 Download pictures into your computer – for this, select **Download**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Download-1-1024x616.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20616'%3E%3C/svg%3E)
 
 #### View Full size [#](#b784904327_493)
 
@@ -124,15 +124,15 @@ In FuseBase, you can highlight not only text, but also pictures and video. This 
 
 Click on **Layou/Style** in the object menu and activate **Full width**.
 
-![Click on Layou/Style in the object menu and activate Full width.](https://app.nimbusweb.me/box/attachment/4485409/7ydr5g05c11aya8la5kg/DAS7FQhTFYmYqoLj/Group%20174.png)
+![Click on Layou/Style in the object menu and activate Full width.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 #### Image info [#](#b784904327_787)
 
 You can see information about a photo, such as its type / size / location. Access by clicking on **Image info**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Image-info-1024x634.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20634'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Image-info-2-1024x634.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20634'%3E%3C/svg%3E)
 
 #### Background color [#](#b3866542200_82)
 
@@ -142,19 +142,19 @@ For each picture you can set the background color.
 
 Duplicate a picture by clicking on the three dots menu and selecting **Duplicate**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Duplicate-1024x611.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20611'%3E%3C/svg%3E)
 
 #### Delete [#](#b3866542200_305)
 
 To delete a picture, select **Delete**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Delete-2-1024x616.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20616'%3E%3C/svg%3E)
 
 ### Add a caption [#](#b2073141922_154)
 
 You can add a description to any picture by clicking on the three dots menu and selecting **Add caption**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/caption-1-1024x572.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20572'%3E%3C/svg%3E)
 
 ## Related Guides [#](#b1696381206_0)
 

@@ -2,7 +2,7 @@
 title: "Calculation panel in tables (FuseBase Document Editor)"
 url: "https://thefusebase.com/guides/page-editor/calculation-panel-in-tables/"
 section: "page-editor"
-lastScraped: "2026-02-28T21:28:24.916Z"
+lastScraped: "2026-09-12T05:18:51.991Z"
 ---
 
 # Calculation panel in tables (FuseBase Document Editor)
@@ -125,4 +125,4 @@ You can also add negative numbers in your tables. Just write down “-“ in the
 
 Yes, click on the counting menu of the desired column and select None. To enable counting, you need to point to the place where the counting menu is displayed and select the desired type of counting.
 
-![To enable counting, you need to point to the place where the counting menu is displayed and select the desired type of counting.](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/V7gLCgWofrSyIOtz/image.png)
+![To enable counting, you need to point to the place where the counting menu is displayed and select the desired type of counting.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)

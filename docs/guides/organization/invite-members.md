@@ -2,7 +2,7 @@
 title: "Invite members and clients"
 url: "https://thefusebase.com/guides/organization/invite-members/"
 section: "organization"
-lastScraped: "2026-02-28T21:27:11.022Z"
+lastScraped: "2026-09-12T05:17:36.183Z"
 ---
 
 # Invite members and clients
@@ -40,7 +40,7 @@ To add a member to the organization, follow these steps.
 -   **Can create and edit** – users will be able to do full-fledged work on pages – read, edit, and even delete pages. Folders and tags management will also be available.
 -   **Read only** – user’s pages will be available only for reading.
 
-![Types of permissions in workspaces](https://app.nimbusweb.me/box/attachment/4512071/4xd1wz1oqvm4xa0sacc4/rlpeKoVcU3Ns6nUC/2%20(5).gif)
+![Types of permissions in workspaces](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Add members in the workspace [#](#b4024208028_342)
 
@@ -54,15 +54,15 @@ To add a member directly to the workspace, you need to:
 -   Select permissions for the user.
 -   Send an invite.
 
-![Add members in the workspace](https://app.nimbusweb.me/box/attachment/4512071/4xd1wz1oqvm4xa0sacc4/u2c4WriBnp6BxsMs/2%20(2)%20(1)%20(1).gif)
+![Add members in the workspace](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **Note: After adding a member to the workspace, you can always change their permissions.**
 
-![The user will receive an email with an invitation to join. After accepting, the user will become a member of the organization.](https://app.nimbusweb.me/box/attachment/4512071/4xd1wz1oqvm4xa0sacc4/0987mpRQXTWxEyvT/Group%2026%20(3).png)
+![The user will receive an email with an invitation to join. After accepting, the user will become a member of the organization.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **Note: You can also add a member to the workspace from existing members.**
 
-![You can also add a member to the workspace from existing members.](https://app.nimbusweb.me/box/attachment/4512071/4xd1wz1oqvm4xa0sacc4/h3F41kGOq3xYtKP1/Group%2028%20(3).png)
+![You can also add a member to the workspace from existing members.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## I want to invite a new member to only a specific folder or page. Is that possible? [#](#4-toc-title)
 

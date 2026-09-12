@@ -2,7 +2,7 @@
 title: "How do I import pages from Evernote?"
 url: "https://thefusebase.com/guides/import-fusebase/how-do-i-import-pages-from-evernote/"
 section: "import-fusebase"
-lastScraped: "2026-02-28T21:28:16.501Z"
+lastScraped: "2026-09-12T05:18:47.208Z"
 ---
 
 # How do I import pages from Evernote?
@@ -98,7 +98,7 @@ Enjoy your old notes boosted by Nimbus superpowers.
 
 Here is a video instruction:
 
-![Import pages from Evernote to Nimbus](https://app.thefusebase.com/box/attachment/3619592/xy0gqbv700g6mvmd5tfn/Tvv679tgMzNtlx96/import.gif)
+![Import pages from Evernote to Nimbus](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 This software instruction was prepared by a third-party company and FuseBase can’t guarantee the accuracy of the information.
 

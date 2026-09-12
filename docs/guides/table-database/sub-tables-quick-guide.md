@@ -2,7 +2,7 @@
 title: "Sub-tables – Quick Guide"
 url: "https://thefusebase.com/guides/table-database/sub-tables-quick-guide/"
 section: "table-database"
-lastScraped: "2026-02-28T21:27:59.408Z"
+lastScraped: "2026-09-12T05:18:30.603Z"
 ---
 
 # Sub-tables – Quick Guide
@@ -25,7 +25,7 @@ It’s very simple!
 
 2) Enter the column name.
 
-![](https://thefusebase.com/wp-content/uploads/2026/01/image-78-1024x471.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20471'%3E%3C/svg%3E)
 
 3) That’s it! You can create a subtable for each cell in the column. Just enter a name and press Enter. For example, if you need a table with a list of tasks and subtasks in the subtables, simply enter “Subtasks”—when you click, it will take you to the subtable.
 

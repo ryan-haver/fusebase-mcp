@@ -2,7 +2,7 @@
 title: "Webhook Trigger – Guide"
 url: "https://thefusebase.com/guides/automations-and-integrations/webhook-trigger-guide/"
 section: "automations-and-integrations"
-lastScraped: "2026-02-28T21:27:31.488Z"
+lastScraped: "2026-09-12T05:18:08.310Z"
 ---
 
 # Webhook Trigger – Guide
@@ -25,7 +25,7 @@ Below we will show the basic settings: how to get the webhook URL and which sett
 
 3) Copy the webhook URL and specify it in the application that should send the request to the webhook.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-18-1024x698.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20698'%3E%3C/svg%3E)
 
 **Request Method**
 
@@ -62,4 +62,4 @@ The keys and values you include here will be available in your automation workfl
 
 After you have configured sending to the webhook, make sure to test data reception using Send Data. This information will be necessary for setting up the next steps.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-19-1024x738.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20738'%3E%3C/svg%3E)

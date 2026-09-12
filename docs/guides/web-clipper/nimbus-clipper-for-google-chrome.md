@@ -2,7 +2,7 @@
 title: "Nimbus Clipper for Google Chrome"
 url: "https://thefusebase.com/guides/web-clipper/nimbus-clipper-for-google-chrome/"
 section: "web-clipper"
-lastScraped: "2026-02-28T21:28:07.878Z"
+lastScraped: "2026-09-12T05:18:39.816Z"
 ---
 
 # Nimbus Clipper for Google Chrome
@@ -17,7 +17,7 @@ lastScraped: "2026-02-28T21:28:07.878Z"
 
 To save information from the Internet, we recommend using the **Fragment** feature which allows you to save only the things you need. To use it, just click on Fragment and choose the fragments you want to save. To confirm the highlighting, you need to left-click on the fragment. This way, you can select several fragments from a site at once. If you want to discard the selection of one of the fragments, you can do so by clicking the delete button.
 
-![To save information from the Internet, we recommend using the Fragment feature which allows you to save only the things you need. ](http://nimbus.everhelper.me/images/savefragment1.jpg)
+![To save information from the Internet, we recommend using the Fragment feature which allows you to save only the things you need. ](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **Full Page** menu item allows you to clip the whole web page.
 
@@ -29,7 +29,7 @@ The **Article** button will clear any unnecessary elements from the page and dis
 
 You also can edit future notes before sending them to Nimbus. For example, if the text includes any ads, images or links you you don’t want, you can delete them in the edit field or add your text.
 
-![You also can edit future notes before sending them to Nimbus. For example, if the text includes any ads, images or links you you don’t want, you can delete them in the edit field or add your text.](http://nimbus.everhelper.me/images/previewfragment1.jpg)
+![You also can edit future notes before sending them to Nimbus. For example, if the text includes any ads, images or links you you don’t want, you can delete them in the edit field or add your text.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 4) After the note is saved, you will be able to get its direct URL by clicking on **get public link**.
 
@@ -43,15 +43,15 @@ Nimbus Screenshot will save pages as screenshots (you can also create screencast
 
 Yes, you need to choose an organization and specify a workspace.
 
-![Can I send a clip to a business organization?](https://app.nimbusweb.me/box/attachment/7577990/e5rbp4o31rcdl8zuen1m/edbqj1GTjmFKNz9Q/%D0%B8%D0%B7%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5.png)
+![Can I send a clip to a business organization?](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
-![Yes, you need to choose an organization and specify a workspace.](https://app.nimbusweb.me/box/attachment/7577990/e5rbp4o31rcdl8zuen1m/CszQbt4ZOnSuaMgC/%D0%B8%D0%B7%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5.png)
+![Yes, you need to choose an organization and specify a workspace.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### Can I send a screenshot or a video to the project I was added to? [#](#b2428365678_1069)
 
 Yes, you need to select a project in Personal of the organization.
 
-![Can I send a screenshot or a video to the project I was added to?](https://app.nimbusweb.me/box/attachment/7577990/e5rbp4o31rcdl8zuen1m/wCqR7lHP494fgmP7/%D0%B8%D0%B7%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5.png)
+![Can I send a screenshot or a video to the project I was added to?](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### When clipping in Nimbus Note, I see organizations and workspaces. What are those? [#](#b912321390_117)
 
@@ -83,11 +83,11 @@ There are cases in which [Clipper](https://thefusebase.com/clipper/) is unable t
 
 1) In the clipper menu you need to select item Save to Nimbus without Share.
 
-![In the clipper menu you need to select item Save to Nimbus without Share.](http://nimbus.everhelper.me/images/savetoshare.jpg)
+![In the clipper menu you need to select item Save to Nimbus without Share.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 2) In Settings, enable quick clip button and select Article from the drop-down menu.
 
-![In Settings, enable quick clip button and select Article from the drop-down menu.](http://nimbus.everhelper.me/images/settings555.jpg)
+![In Settings, enable quick clip button and select Article from the drop-down menu.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 3) Then all you need to do is click once on the clipper button to save the article and send it to [Nimbus Note](https://thefusebase.com/note/).
 
@@ -95,7 +95,7 @@ There are cases in which [Clipper](https://thefusebase.com/clipper/) is unable t
 
 Yes, you can. You just need to select the required option in the app menu.
 
-![Can I send stuff directly to Nimbus Note avoiding the preview window?](http://nimbus.everhelper.me/images/savetoshare555.jpg)
+![Can I send stuff directly to Nimbus Note avoiding the preview window?](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Preview clip – displays preview window.
 

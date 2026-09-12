@@ -2,7 +2,7 @@
 title: "WebPage Context – create AI agent using page content"
 url: "https://thefusebase.com/guides/fusebase-ai/webpage-context-create-ai-agent-using-page-content/"
 section: "fusebase-ai"
-lastScraped: "2026-02-28T21:27:17.070Z"
+lastScraped: "2026-09-12T05:17:37.770Z"
 ---
 
 # WebPage Context – create AI agent using page content
@@ -17,7 +17,7 @@ Let’s try creating an agent that can turn the current open page into a Q&A for
 
 2) Next, we simply describe in the prompt what we want the agent to do—specifically, to analyze the content of the current page and turn it into questions and answers. How does the agent know the content of the page? For that, we need to include Webpage Context in the prompt. To do this, type @ and select Webpage Context.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-18-1024x693.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20693'%3E%3C/svg%3E)
 
 In addition to the instruction itself, we also provide an example of the output we expect—let’s say, for an online store (but you can use your own example). The complete prompt might look like this –
 
@@ -39,12 +39,12 @@ In addition to the instruction itself, we also provide an example of the output 
 
 And then, just click Publish Change.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-19-1024x575.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20575'%3E%3C/svg%3E)
 
 3) Now let’s test how the new agent works. To do this, open the desired article and click on the agent from the list.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-20-1024x556.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20556'%3E%3C/svg%3E)
 
 As a result, we’ll get a convenient summary of the article in the form of questions and answers. Super handy!
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-21-1024x553.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20553'%3E%3C/svg%3E)

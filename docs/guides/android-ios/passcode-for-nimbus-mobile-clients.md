@@ -2,7 +2,7 @@
 title: "Passcode for FuseBase mobile clients"
 url: "https://thefusebase.com/guides/android-ios/passcode-for-nimbus-mobile-clients/"
 section: "android-ios"
-lastScraped: "2026-02-28T21:28:10.617Z"
+lastScraped: "2026-09-12T05:18:43.811Z"
 ---
 
 # Passcode for FuseBase mobile clients
@@ -22,21 +22,21 @@ You need to do the following:
 -   Set a 4-digit passcode.
 -   Confirm the passcode.
 
-![How to set a passcode](https://app.nimbusweb.me/box/attachment/4586051/xaa721u3s4b6gkiaxhub/4QEX5UVmMPT2fVkU/2%20(9).gif)
+![How to set a passcode](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 iOS
 
-![How to set a passcode](https://app.nimbusweb.me/box/attachment/4586051/xaa721u3s4b6gkiaxhub/EEALrMVzd7SWYQuA/1%20(9).gif)
+![How to set a passcode](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Android
 
 You can also activate fingerprint login.
 
-![You can also activate fingerprint login.](https://app.nimbusweb.me/box/attachment/4586051/xaa721u3s4b6gkiaxhub/Z3765JByCccundMU/Group%2010%20(8).png)
+![You can also activate fingerprint login.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Android
 
-![You can also activate fingerprint login.](https://app.nimbusweb.me/box/attachment/4586051/xaa721u3s4b6gkiaxhub/RYoMHHrbmOHMYMRf/Group%209%20(7).png)
+![You can also activate fingerprint login.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 iOS
 
@@ -57,11 +57,11 @@ The application will ask for a passcode depending on which interval you have cho
 
 **☝** **By default, the passcode is asked after any exit from the application, even if it’s just for 5 seconds.**
 
-![Manage your passcode](https://app.nimbusweb.me/box/attachment/4586051/xaa721u3s4b6gkiaxhub/Reb1fD4ayAa2QY5r/Group%207%20(9).png)
+![Manage your passcode](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Android
 
-![Manage your passcode](https://app.nimbusweb.me/box/attachment/4586051/xaa721u3s4b6gkiaxhub/Dn0rwt5zAnq7Vh2v/Group%208%20(9).png)
+![Manage your passcode](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 iOS
 
@@ -69,11 +69,11 @@ iOS
 
 To change the passcode, you must first enter the old one and then input the new desired passcode.
 
-![Change passcode](https://app.nimbusweb.me/box/attachment/4586051/xaa721u3s4b6gkiaxhub/NDkcUMElYbpUQt0t/Group%206%20(11).png)
+![Change passcode](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Android
 
-![Change passcode](https://app.nimbusweb.me/box/attachment/4586051/xaa721u3s4b6gkiaxhub/ebTGFA0aG0HCcSQV/Group%205%20(12).png)
+![Change passcode](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 iOS
 
@@ -84,11 +84,11 @@ To delete a passcode, do the following.
 -   Click on **Delete passcode** or move the toggle to inactive position.
 -   Enter the current passcode.
 
-![Delete passcode](https://app.nimbusweb.me/box/attachment/4586051/xaa721u3s4b6gkiaxhub/nN9hozJsSprqU1wX/Group%201%20(41).png)
+![Delete passcode](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Android
 
-![Delete passcode](https://app.nimbusweb.me/box/attachment/4586051/xaa721u3s4b6gkiaxhub/eXkmt6LCFNzS5Ytn/Group%203%20(22).png)
+![Delete passcode](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 iOS
 
@@ -98,11 +98,11 @@ Two-Step verification is designed to increase the security of your data.
 
 You can set **2-Step Verification** in the web client. Then after entering your login / password on the mobile client, you will need to enter the code.
 
-![Two-Step verification is designed to increase the security of your data.](https://app.nimbusweb.me/box/attachment/4586051/xaa721u3s4b6gkiaxhub/NP0nRZMGLTmQh6v4/Group%201%20(39).png)
+![Two-Step verification is designed to increase the security of your data.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Android
 
-![Two-Step verification is designed to increase the security of your data.](https://app.nimbusweb.me/box/attachment/4586051/xaa721u3s4b6gkiaxhub/J6zxMd49HzCRg3M1/Group%202%20(32).png)
+![Two-Step verification is designed to increase the security of your data.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 iOS
 

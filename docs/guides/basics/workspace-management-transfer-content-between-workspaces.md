@@ -2,7 +2,7 @@
 title: "Workspace management | Transfer content between workspaces"
 url: "https://thefusebase.com/guides/basics/workspace-management-transfer-content-between-workspaces/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:29.348Z"
+lastScraped: "2026-09-12T05:16:51.960Z"
 ---
 
 # Workspace management | Transfer content between workspaces

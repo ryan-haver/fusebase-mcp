@@ -2,7 +2,7 @@
 title: "How to copy and duplicate blocks and tables"
 url: "https://thefusebase.com/guides/getting-started/how-to-copy-and-duplicate-pages-blocks-tables/"
 section: "getting-started"
-lastScraped: "2026-02-28T21:26:17.665Z"
+lastScraped: "2026-09-12T05:16:46.713Z"
 ---
 
 # How to copy and duplicate blocks and tables
@@ -22,24 +22,24 @@ Copy as many block as you need and paste them in any page! Try it out!
 
 -   Click on Cell options menu near the table, select **Copy table**, then paste it in another page by right-click menu or **ctrl/cmd** + **v**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Frame-2147207153-6-1024x387.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20387'%3E%3C/svg%3E)
 
 ## Copy/paste cells [#](#b266403424_10)
 
 -   Choose cells in a table, right-click, select **Copy cells**, then paste it in another table by **ctrl/cmd** + **v**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Frame-2147207154.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20890%20452'%3E%3C/svg%3E)
 
 ## Duplicate a block [#](#b2080659078_117)
 
 -   Click on Cell options menu near the block, select **Duplicate**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Frame-2147207152-7-1-1024x412.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20412'%3E%3C/svg%3E)
 
 Save a template from public page
 
 -   On the public page, click **SAVE TO FUSEBASE** for saving a template to your workspace:
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/screenshot-nimbus-nimbusweb-me-2025-11-14-17-26-08.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20701%20197'%3E%3C/svg%3E)
 
 Then go to FuseBase web client (https://thefusebase.com/client) and you can find saved template.

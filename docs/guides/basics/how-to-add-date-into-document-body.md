@@ -2,7 +2,7 @@
 title: "How to add date into FuseBase document body?"
 url: "https://thefusebase.com/guides/basics/how-to-add-date-into-document-body/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:25.966Z"
+lastScraped: "2026-09-12T05:16:51.855Z"
 ---
 
 # How to add date into FuseBase document body?
@@ -16,8 +16,8 @@ If you click on the custom value option, a calendar will open where you can:
 – select the needed date;  
 – set the time.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-41-1024x732.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20732'%3E%3C/svg%3E)
 
 If you need to make changes, you can click on the date and change time / date. You can also delete the date.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-42-1024x871.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20871'%3E%3C/svg%3E)

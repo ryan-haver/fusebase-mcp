@@ -2,7 +2,7 @@
 title: "Display data from Monday.com in the Fusebase portal"
 url: "https://thefusebase.com/guides/client-portal/display-of-data-from-monday-com-in-the-fusebase-portal/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:44.239Z"
+lastScraped: "2026-09-12T05:17:08.800Z"
 ---
 
 # Display data from Monday.com in the Fusebase portal
@@ -17,15 +17,15 @@ As you know, [dynamic blocks](https://thefusebase.com/guides/client-portal/displ
 
 2) Next, you need to install the Monday app in your organization (this takes just a couple of clicks) and grant Fusebase access to the required workspaces.
 
-![](https://thefusebase.com/wp-content/uploads/2025/03/image-17-1024x468.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20468'%3E%3C/svg%3E)
 
 3) Next, you need to select the desired workspace, board, and group within the board (by default, we display all groups).
 
-![](https://thefusebase.com/wp-content/uploads/2025/03/image-18-1024x558.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20558'%3E%3C/svg%3E)
 
 4) Next, you will see a table with the selected data. By default, we display the first 5 columns from the table.
 
-![](https://thefusebase.com/wp-content/uploads/2025/03/image-19-1024x501.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20501'%3E%3C/svg%3E)
 
 But you can add other fields, where you can select a column from Monday, and the corresponding data will be displayed in that column.
 

@@ -2,7 +2,7 @@
 title: "AI Agents in Editor – Quick Guide"
 url: "https://thefusebase.com/guides/fusebase-ai/ai-agents-in-editor-quick-guide/"
 section: "fusebase-ai"
-lastScraped: "2026-02-28T21:27:13.738Z"
+lastScraped: "2026-09-12T05:17:36.988Z"
 ---
 
 # AI Agents in Editor – Quick Guide
@@ -19,15 +19,15 @@ To activate an agent in the editor, simply click on Work with AI and select AI A
 
 ![](https://thefusebase.com/wp-content/uploads/2025/07/image-20-1024x480.png)
 
-![](https://thefusebase.com/wp-content/uploads/2025/07/image-21-1024x575.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20575'%3E%3C/svg%3E)
 
 Next, select the desired agent from the list and start working with it –
 
-![](https://thefusebase.com/wp-content/uploads/2025/07/test-image-2.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202561%201398'%3E%3C/svg%3E)
 
 Once you’re satisfied with the result, you can add it to the page by clicking **Insert to Page** –
 
-![](https://thefusebase.com/wp-content/uploads/2025/07/screenshot-22222344-nimbustest-nimbusweb-me-2025-07-31-18-35-011-1024x559.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20559'%3E%3C/svg%3E)
 
 Afterwards, the created page can be added to a portal or, for example, shared with colleagues via a public page.
 
@@ -37,10 +37,10 @@ It’s important to note that in the current version, our agents only add new co
 
 Our agents can understand the content of the currently open page. To do this, you can use the **Page context** option. If it is active, the agent has access to the page content and you can generate content based on that page.
 
-![](https://thefusebase.com/wp-content/uploads/2025/07/image-22-1024x565.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20565'%3E%3C/svg%3E)
 
 For example, the agent can immediately translate the page content or, for instance, create a summary, rewrite it, etc. It’s important to note that agents understand not only the text on the page but also video transcripts, the contents of PDF or DOC files, and more.
 
 You can also add the option to use page content directly in the agent prompt. To do this, type `@` and select **Page content**. This allows you to create agents that, for example, can generate documents based on the page template in one click or rewrite the page with parameters defined in the prompt, and so on.
 
-![](https://thefusebase.com/wp-content/uploads/2025/07/image-24-1024x567.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20567'%3E%3C/svg%3E)

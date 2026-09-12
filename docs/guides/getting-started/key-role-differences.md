@@ -2,14 +2,14 @@
 title: "Key Role Differences – Guest, Member, Manager and Client"
 url: "https://thefusebase.com/guides/getting-started/key-role-differences/"
 section: "getting-started"
-lastScraped: "2026-02-28T21:26:15.063Z"
+lastScraped: "2026-09-12T05:16:40.870Z"
 ---
 
 # Key Role Differences – Guest, Member, Manager and Client
 
 When you invite a colleague, friend or client to FuseBase, you can choose from several **User Roles**:
 
-![Image powered by FuseBase](https://thefusebase.com/wp-content/uploads/2023/11/key-role-differences-1-1024x466.jpg)
+![Image powered by FuseBase](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20466'%3E%3C/svg%3E)
 
 ## Guest [#](#0-toc-title)
 

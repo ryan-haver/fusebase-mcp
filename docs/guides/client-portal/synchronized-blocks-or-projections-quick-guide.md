@@ -2,7 +2,7 @@
 title: "Linked Blocks or Projections – Quick Guide"
 url: "https://thefusebase.com/guides/client-portal/synchronized-blocks-or-projections-quick-guide/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:47.444Z"
+lastScraped: "2026-09-12T05:17:09.525Z"
 ---
 
 # Linked Blocks or Projections – Quick Guide
@@ -21,12 +21,12 @@ lastScraped: "2026-02-28T21:26:47.444Z"
 
 4) Click on **Linked block**.
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-19-1024x558.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20558'%3E%3C/svg%3E)
 
 5) Press **Ctrl+V** to paste the code.
 
 6) Click on **Create Linked Block**.
 
-![](https://thefusebase.com/wp-content/uploads/2024/11/image-20-1024x904.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20904'%3E%3C/svg%3E)
 
 The block will then be inserted as a projection of the source block. Changes in these blocks are one-way: if you modify the content of the main block, the projected blocks will update accordingly.

@@ -2,7 +2,7 @@
 title: "Business/Teams account | Getting started"
 url: "https://thefusebase.com/guides/organization/business-teams-account-getting-started/"
 section: "organization"
-lastScraped: "2026-02-28T21:27:05.493Z"
+lastScraped: "2026-09-12T05:17:32.147Z"
 ---
 
 # Business/Teams account | Getting started
@@ -21,11 +21,11 @@ Before you create any pages, it’s worthwhile to think about how you want to st
 -   Workspaces have custom access permissions.
 -   Folder-level access (coming soon).
 
-![Account Owner can create multiple organizations. Each organization is entirely independent from other workspaces.](https://app.nimbusweb.me/box/attachment/4581470/nvelnqncqmnq3rkf4y1v/FCdzRgKTG4i47961/structure%20plashka%203.jpg)
+![Account Owner can create multiple organizations. Each organization is entirely independent from other workspaces.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
-![Account Owner can create multiple organizations. Each organization is entirely independent from other workspaces.](https://app.nimbusweb.me/box/attachment/4581470/nvelnqncqmnq3rkf4y1v/URMcomwBvMqH51mJ/structure%20plashka%202.jpg)
+![Account Owner can create multiple organizations. Each organization is entirely independent from other workspaces.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
-![Account Owner can create multiple organizations. Each organization is entirely independent from other workspaces.](https://app.nimbusweb.me/box/attachment/4581470/nvelnqncqmnq3rkf4y1v/r2DktMKH72xLRHAE/structure%20plashka%204.jpg)
+![Account Owner can create multiple organizations. Each organization is entirely independent from other workspaces.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Set access permissions [#](#b1507068463_915)
 
@@ -71,15 +71,15 @@ If needed, you can link to your own website. For example, if you own **example.c
 
 [**Read more about CNAME**](https://thefusebase.com/guides/branding/custom-subdomains-cname/)
 
-![If needed, you can link to your own website. For example, if you own example.com you can link to pages.example.com - so next time all your members will access workspaces through pages.example.com/client](https://app.nimbusweb.me/box/attachment/4581470/nvelnqncqmnq3rkf4y1v/Pf1XauLRCowIzZtS/1111.png)
+![If needed, you can link to your own website. For example, if you own example.com you can link to pages.example.com - so next time all your members will access workspaces through pages.example.com/client](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### Organization logo [#](#b1507068463_3690)
 
-![Organization logo](https://app.nimbusweb.me/box/attachment/4581470/nvelnqncqmnq3rkf4y1v/TcFMHeP88EmmCY88/1%20(4)%20(2).gif)
+![Organization logo](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Select which logo users will see on the sign-in page and other places where your Organization is mentioned.
 
-![Select which logo users will see on the sign-in page and other places where your Organization is mentioned.](https://app.nimbusweb.me/box/attachment/4581470/nvelnqncqmnq3rkf4y1v/T4pmOyxCVt4u3RVE/12345.png)
+![Select which logo users will see on the sign-in page and other places where your Organization is mentioned.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### Workspace branding [#](#b1507068463_4581)
 
@@ -89,11 +89,11 @@ You can personalize every workspace. You can set:
 -   Banner in the sidebar (coming soon)
 -   Short description in the sidebar (coming soon).
 
-![You can personalize every workspace.](https://app.nimbusweb.me/box/attachment/4581470/nvelnqncqmnq3rkf4y1v/wUv6OGc8RF5310bi/Group%202%20(24).png)
+![You can personalize every workspace.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### Public pages branding [#](#b1507068463_4954)
 
-![Public pages branding](https://app.nimbusweb.me/box/attachment/4581470/nvelnqncqmnq3rkf4y1v/8UuW4pWGu0u1iVqE/branding%20(2).gif)
+![Public pages branding](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   Logo
 -   Options for top bar and buttons
@@ -101,7 +101,7 @@ You can personalize every workspace. You can set:
 -   Favicon
 -   Search engine indexing
 
-![Public pages branding](https://app.nimbusweb.me/box/attachment/4581470/nvelnqncqmnq3rkf4y1v/V78nv7AU1kU7eOcd/branding.png)
+![Public pages branding](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 [**Read more about branding**](https://thefusebase.com/guides/organization/business-teams-account-branding/)
 
@@ -124,7 +124,7 @@ We provide a unique ability to integrate additional tools that you may need to w
 -   You can integrate every code into <Head> or <Body>.
 -   Code can be added to Workspace and/or Public Pages.
 
-![Ways to integrate on public pages](https://app.nimbusweb.me/box/attachment/4581470/nvelnqncqmnq3rkf4y1v/l2VooMKHzAXLjrlM/share_form_2%20(1)%20(1).gif)
+![Ways to integrate on public pages](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 on public pages
 

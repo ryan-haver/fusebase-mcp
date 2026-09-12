@@ -6,9 +6,14 @@ An [MCP](https://modelcontextprotocol.io/) server that lets AI assistants manage
 
 ## ✨ Features
 
-- **91 tools** across content, tasks, members, files, databases, org admin, portals, guides, and more
-- **Two-tier system** — 23 core tools load by default; 68 extended tools on demand
-- **Content writing** — create pages with markdown or structured blocks via Y.js WebSocket
+- **99 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, and multi-agent profiles
+- **Two-tier system** — 26 core tools load by default; 73 extended tools on demand
+- **Native MCP Resources** — `fusebase://workspaces`, `fusebase://guides/index`, `fusebase://workspaces/{wid}/pages/{nid}`, `fusebase://databases/{did}` for direct context attachment without function calling
+- **Native MCP Prompts** — pre-engineered workflow templates (`create-sop`, `summarize-page`, `build-kanban-project`)
+- **Granular block mutations** — non-destructive page block appending (`append_page_content`) via Y.js WebSockets
+- **Vibe Coding & Web Apps** — generate interactive web app pages (`create_interactive_app_page`) with responsive full-width embeds (`allowOverWidth`)
+- **ActivePieces Workflow Automation** — flow, run, and piece inspection tools
+- **Multi-Agent Profile Management** — list and switch between encrypted credentials seamlessly
 - **Database CRUD** — full kanban/table management: rows, columns, views, relations, CSV import/export
 - **Auto auth retry** — detects 401/403 and refreshes session automatically
 - **Encrypted secrets** — cookies stored encrypted at rest (AES-256-GCM)
@@ -147,21 +152,47 @@ Ask your AI assistant:
 
 If it works, you're all set! 🎉
 
+## 📚 Native MCP Resources & Prompts
+
+FuseBase MCP supports first-class MCP protocol primitives for zero-overhead context injection:
+
+### Resources (`fusebase://`)
+
+Clients can attach FuseBase data directly into their context window:
+
+| URI Pattern | Type | Description |
+| --- | --- | --- |
+| `fusebase://workspaces` | Static | JSON array of all accessible workspaces |
+| `fusebase://guides/index` | Static | Comprehensive index of all FuseBase documentation guides |
+| `fusebase://guides/{section}/{slug}` | Template | Full markdown content of any specific guide |
+| `fusebase://workspaces/{wid}/pages/{nid}` | Template | Decoded HTML representation of any page |
+| `fusebase://databases/{did}` | Template | Complete JSON schema and views for a database |
+
+### Pre-Engineered Prompts
+
+Quick-start workflow prompts available to AI clients:
+
+- **`create-sop`**: Guides the assistant in generating a rigorous Standard Operating Procedure document with scope, prerequisites, step-by-step procedures, and verification checklists.
+- **`summarize-page`**: Prompts the model to synthesize a specific page into an executive summary, key decisions, and prioritized action items.
+- **`build-kanban-project`**: Guides the AI to design a structured project board with customized column flows and starter cards.
+
+---
+
 ## 🔧 Tool Tiers
 
 The server uses a **core/extended tier system** to optimize agent context usage:
 
 | Tier | Tools | Description |
 | --- | --- | --- |
-| **Core** (default) | 23 | Day-to-day: pages, folders, tasks, tags, members, files, guides |
-| **Extended** | +68 | Admin, analytics, content mutations, databases, columns, relations, portals |
+| **Core** (default) | 26 | Day-to-day: pages, folders, tasks, tags, members, files, guides, profiles |
+| **Extended** | +73 | Admin, analytics, block mutations, databases, vibe coding, automations, portals |
 
 **Enable extended tools:**
 
 - Mid-session: ask your AI to use `set_tool_tier` with `tier: "all"`
 - Always-on: add `FUSEBASE_TOOLS=all` to your `.env`
 
-### Core Tools (23)
+### Core Tools (26)
 
 | Category | Tool | Description |
 | --- | --- | --- |
@@ -174,6 +205,7 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Content | `get_page_content` | Get page content as HTML (Y.js decoded) |
 | Content | `get_recent_pages` | Recently accessed pages |
 | Content | `create_page` | Create a page with optional markdown/blocks content |
+| Content | `append_page_content` | Append markdown or structured blocks to an existing page without overwrite |
 | Content | `list_folders` | Folder tree for a workspace |
 | Files | `get_page_attachments` | List attachments on a page |
 | Files | `list_files` | List workspace-wide uploaded files |
@@ -185,15 +217,19 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Tasks | `search_tasks` | Search tasks (by workspace/page) |
 | Tasks | `list_task_lists` | Task boards and tasks |
 | Tasks | `create_task` | Create a task in a task list |
-| Guides | `search_guides` | Search 231 FuseBase guides by keyword |
+| Guides | `search_guides` | Search FuseBase guides by keyword |
 | Guides | `get_guide` | Get full guide content by section/slug |
-| Guides | `list_guide_sections` | Browse all 17 guide sections |
+| Guides | `list_guide_sections` | Browse all guide sections |
+| Profiles | `list_agent_profiles` | List all configured encrypted agent credential profiles |
+| Profiles | `switch_active_profile` | Switch active agent session profile dynamically |
 
-### Extended Tools (68)
+### Extended Tools (73)
 
 Enable with `set_tool_tier(tier: "all")`:
 
 - **Content mutations**: `create_folder`, `update_page`, `delete_page`, `update_page_content`
+- **Vibe Coding & Apps**: `create_interactive_app_page` (interactive web app embed with full-width responsive framing)
+- **Automations (ActivePieces)**: `list_automation_flows`, `get_automation_flow`, `list_flow_runs`, `list_automation_pieces`
 - **Tasks (advanced)**: `update_task`, `delete_task`, `get_task_description`, `get_task_count`, `get_task_usage`
 - **Labels & tags**: `get_labels`, `get_note_tags`
 - **Activity & comments**: `get_activity_stream`, `get_comment_threads`, `fusebase_poll_mentions`, `fusebase_post_comment`, `fusebase_reply_comment`, `fusebase_resolve_thread`

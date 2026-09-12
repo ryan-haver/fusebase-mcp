@@ -2,7 +2,7 @@
 title: "Placeholder"
 url: "https://thefusebase.com/guides/basics/placeholder/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:23.645Z"
+lastScraped: "2026-09-12T05:16:50.410Z"
 ---
 
 # Placeholder
@@ -18,7 +18,7 @@ To add a placeholder, do the following.
 -   Select the text.
 -   Click on the **Placeholder** icon in the panel or use **cmd/ctrl** \+ **⌥/alt** + **p**.
 
-![How to create a placeholder?](https://thefusebase.com/wp-content/uploads/2022/08/111-1024x587.png)
+![How to create a placeholder?](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20587'%3E%3C/svg%3E)
 
 Placeholders have a huge number of uses, for example, creating templates or simple forms.
 
@@ -30,17 +30,17 @@ It’s easy – click on the placeholder text and specify the desired value in t
 
 Placeholders can be deleted just like plain text. To do this, highlight the placeholder and click delete. You can also return to plain text by selecting the placeholder and clicking on the icon again.
 
-![Placeholders can be deleted just like plain text. To do this, highlight the placeholder and click delete.](https://thefusebase.com/wp-content/uploads/2022/08/222-1024x587.png)
+![Placeholders can be deleted just like plain text. To do this, highlight the placeholder and click delete.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20587'%3E%3C/svg%3E)
 
 ## Is it possible to make the placeholder text bold or highlight it with a marker? [#](#b2347456889_392)
 
 Yes, just select the text and apply the desired action.
 
-![Is it possible to make the placeholder text bold or highlight it with a marker?](https://thefusebase.com/wp-content/uploads/2022/08/333-1024x585.png)
+![Is it possible to make the placeholder text bold or highlight it with a marker?](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20585'%3E%3C/svg%3E)
 
 ## How to duplicate a placeholder? [#](#b2347456889_483)
 
 -   Click on the three dots menu next to the block.
 -   Select **Duplicate**.
 
-![How to duplicate a placeholder?](https://thefusebase.com/wp-content/uploads/2022/08/444-1024x587.png)
+![How to duplicate a placeholder?](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20587'%3E%3C/svg%3E)

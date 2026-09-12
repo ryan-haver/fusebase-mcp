@@ -2,7 +2,7 @@
 title: "Custom views – building a dashboard for ourselves"
 url: "https://thefusebase.com/guides/dashboard-crm/custom-views-building-a-dashboard-for-ourselves/"
 section: "dashboard-crm"
-lastScraped: "2026-02-28T21:28:02.141Z"
+lastScraped: "2026-09-12T05:18:33.741Z"
 ---
 
 # Custom views – building a dashboard for ourselves
@@ -25,15 +25,15 @@ And then I work with this view without touching the main dashboard. And I can cr
 
 2) Click on the Custom views option.
 
-![](https://thefusebase.com/wp-content/uploads/2025/09/image-4-1024x542.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20542'%3E%3C/svg%3E)
 
 3) Click on Add new view.
 
-![](https://thefusebase.com/wp-content/uploads/2025/09/image-5-1024x534.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20534'%3E%3C/svg%3E)
 
 4) Next, specify the name of your new view and a description, if needed.
 
-![](https://thefusebase.com/wp-content/uploads/2025/09/image-6-1024x493.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20493'%3E%3C/svg%3E)
 
 Next, you can customize your custom view as you like:
 
@@ -50,4 +50,4 @@ Click on the 3-dot menu to open the menu of the current custom view. Here you ca
 -   Duplicate it and create a new view based on the current one
 -   Delete the view (except for the default view)
 
-![](https://thefusebase.com/wp-content/uploads/2025/09/image-7-1024x521.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20521'%3E%3C/svg%3E)

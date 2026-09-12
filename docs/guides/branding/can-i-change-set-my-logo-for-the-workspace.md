@@ -2,7 +2,7 @@
 title: "Can I change/set my logo for the workspace?"
 url: "https://thefusebase.com/guides/branding/can-i-change-set-my-logo-for-the-workspace/"
 section: "branding"
-lastScraped: "2026-02-28T21:27:22.679Z"
+lastScraped: "2026-09-12T05:17:59.399Z"
 ---
 
 # Can I change/set my logo for the workspace?
@@ -25,8 +25,8 @@ lastScraped: "2026-02-28T21:27:22.679Z"
 
 7) Click on the checkmark to save the changes.
 
-![](https://thefusebase.com/wp-content/uploads/2022/10/image-10.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20744%20697'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2022/10/image-11-1.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20749%20277'%3E%3C/svg%3E)
 
 8) If you want to erase the logo, then again point to the logo and select Reset, and then confirm the action.

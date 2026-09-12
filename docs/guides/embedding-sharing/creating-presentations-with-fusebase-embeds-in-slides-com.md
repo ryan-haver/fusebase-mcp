@@ -2,7 +2,7 @@
 title: "Creating presentations with FuseBase embeds in Slides.com"
 url: "https://thefusebase.com/guides/embedding-sharing/creating-presentations-with-fusebase-embeds-in-slides-com/"
 section: "embedding-sharing"
-lastScraped: "2026-02-28T21:27:53.551Z"
+lastScraped: "2026-09-12T05:18:25.997Z"
 ---
 
 # Creating presentations with FuseBase embeds in Slides.com
@@ -21,16 +21,16 @@ With Slides.com, you can create a presentation with FuseBase public pages.
 
 -   In the public link dialog, select **Embed** and **copy** the iFrame code.
 
-![](https://thefusebase.com/wp-content/uploads/2022/09/Group-210.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20746%20605'%3E%3C/svg%3E)
 
 -   **Add the copied code** to Slides.
 
-![](https://thefusebase.com/wp-content/uploads/2022/09/Frame-2147207154-2-1024x553.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20553'%3E%3C/svg%3E)
 
 For the frame that appears, you can also change the size.
 
-![](https://thefusebase.com/wp-content/uploads/2022/09/Frame-2147207154-3-1024x705.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20705'%3E%3C/svg%3E)
 
 Next, you can add embeds to other slides, and then share your presentation.
 
-![](https://thefusebase.com/wp-content/uploads/2022/09/Frame-2147207154-4-1024x543.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20543'%3E%3C/svg%3E)

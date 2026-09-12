@@ -2,7 +2,7 @@
 title: "Create a new page"
 url: "https://thefusebase.com/guides/getting-started/create-a-new-page/"
 section: "getting-started"
-lastScraped: "2026-02-28T21:26:14.807Z"
+lastScraped: "2026-09-12T05:16:40.759Z"
 ---
 
 # Create a new page
@@ -20,15 +20,15 @@ There are several ways to quickly create a page:
 
 -   Click the + in the Navigation bar and select **New Page**. You can immediately choose the workspace in which the page will be created.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/A-quick-way-to-create-a-page.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20920%20544'%3E%3C/svg%3E)
 
 -   Click on the desired folder and press +. Next, select **New page**
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/select-New-page.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20905%20512'%3E%3C/svg%3E)
 
 -   Go to **All Pages** or to any folder and click on the **New Page** button.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/select-New-page-1-1024x391.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20391'%3E%3C/svg%3E)
 
 ## Search through the template gallery for inspiration [#](#b2073301619_10)
 
@@ -38,11 +38,11 @@ We have ready-made templates for different categories. Try them and see for your
 -   Click on **Templates**.
 -   Select the template you like and click **Use template**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Use-template-1024x524.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20524'%3E%3C/svg%3E)
 
 ## Drop files, resize and move blocks [#](#b2570588294_0)
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Drop-files-resize-and-move-blocks-1024x544.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 ## Access block options [#](#b3662530494_443)
 
@@ -50,7 +50,7 @@ It’s very simple and quic to work with blocks. Just select the menu, and an op
 
 -   Click on the three dots menu
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Access-block-options-1024x526.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20526'%3E%3C/svg%3E)
 
 ## Convert Blocks [#](#b2119842762_1497)
 
@@ -61,7 +61,7 @@ To do this:
 -   Click on the three dots menu
 -   Choose **Convert to**
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Convert-Blocks-1024x497.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20497'%3E%3C/svg%3E)
 
 ## More items [#](#b633710630_545)
 
@@ -83,7 +83,7 @@ You can easily add embeds from popular sites. You can also use Google Sheets to 
 -   Click the arrow and select **Embed/Integrations** or use **cmd/ctrl** + **⌥/alt + m**
 -   Insert or print the URL
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Embed.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201011%20659'%3E%3C/svg%3E)
 
 **[Read more about Embed](https://thefusebase.com/guides/embedding-sharing/embed-insert-google-drive-files/)**
 
@@ -91,18 +91,18 @@ You can easily add embeds from popular sites. You can also use Google Sheets to 
 
 -   Select the table icon or use **cmd/ctrl** + **⌥/alt + t**
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/tables.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20932%20544'%3E%3C/svg%3E)
 
 -   Pull the corner to resize the table
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/table.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20942%20550'%3E%3C/svg%3E)
 
 ## Insert objects into your table [#](#b633710630_1702)
 
 -   Click on the column menu and select **Column type**
 -   Select a cell and use the **Cell type** menu
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/objects-into-your-table.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20924%20441'%3E%3C/svg%3E)
 
 ## Set styles to your text [#](#9-toc-title)
 
@@ -111,7 +111,7 @@ Use different styles to format and change the appearance of your text.
 -   Select text
 -   Select **bold/italic/highlight**
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/style-and-text-1024x253.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20253'%3E%3C/svg%3E)
 
 [**Read more about tables**](https://thefusebase.com/features/databases/)
 

@@ -2,7 +2,7 @@
 title: "File Uploader for Portal"
 url: "https://thefusebase.com/guides/client-portal/file-upload-in-portals/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:53.203Z"
+lastScraped: "2026-09-12T05:17:19.525Z"
 ---
 
 # File Uploader for Portal
@@ -17,25 +17,25 @@ Your clients can upload files such as documents or designs and more. Just add th
 
 2.  If you want to provide a custom name or description for the uploader, click on **Name** or **Description** and enter the desired text.
 
-![Description](https://thefusebase.com/wp-content/uploads/2023/07/Description.png)
+![Description](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20938%20338'%3E%3C/svg%3E)
 
-![Name](https://thefusebase.com/wp-content/uploads/2023/07/Name.png)
+![Name](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20853%20305'%3E%3C/svg%3E)
 
 3.  If you still need to add the page to the portal, you can do so through the **Add to portal** option or the Customizer.
 
-![Add to portal](https://thefusebase.com/wp-content/uploads/2023/07/Add-to-portal-1024x501.png)
+![Add to portal](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20501'%3E%3C/svg%3E)
 
 ## How to Upload Files [#](#1-toc-title)
 
 Once you have added the file uploader, your portal visitors (those with access) can add files. To do this, they need to click on **Upload** or drag and drop the file into the upload area.
 
-![How to Upload Files](https://thefusebase.com/wp-content/uploads/2023/07/How-to-Upload-Files-1024x523.png)
+![How to Upload Files](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20523'%3E%3C/svg%3E)
 
-![Drop the file](https://thefusebase.com/wp-content/uploads/2023/07/drop-the-file-1024x423.png)
+![Drop the file](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20423'%3E%3C/svg%3E)
 
 You will see the added file in the web client as well.
 
-![Added file in the web client](https://thefusebase.com/wp-content/uploads/2023/07/added-file-in-the-web-client.png)
+![Added file in the web client](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20979%20479'%3E%3C/svg%3E)
 
 ## How to Restrict Download [#](#2-toc-title)
 
@@ -43,7 +43,7 @@ Note, all portal visitors can view the uploaded files. However, you can restrict
 
 You can do this through the uploader menu. Select the **Downloading** section and put the tick off the **Public page** box.
 
-![Downloading](https://thefusebase.com/wp-content/uploads/2023/07/Downloading.png)
+![Downloading](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20848%20457'%3E%3C/svg%3E)
 
 You can also restrict the download of specific files only.
 
@@ -51,4 +51,4 @@ You can also restrict the download of specific files only.
 
 If you want to disable file uploads temporarily, do it through the uploader menu. Select the **Uploading** section and put the tick off the **Enable in public page** box.
 
-![Uploading](https://thefusebase.com/wp-content/uploads/2023/07/Uploading.png)
+![Uploading](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20842%20462'%3E%3C/svg%3E)

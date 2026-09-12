@@ -2,7 +2,7 @@
 title: "Commenting on table cells"
 url: "https://thefusebase.com/guides/page-editor/commenting-on-table-cells/"
 section: "page-editor"
-lastScraped: "2026-02-28T21:28:25.211Z"
+lastScraped: "2026-09-12T05:18:53.122Z"
 ---
 
 # Commenting on table cells
@@ -19,18 +19,18 @@ You can comment on the contents of the table cells and discuss them with other m
 
 2) Write a comment and press Enter or the submit icon.
 
-![](https://thefusebase.com/wp-content/uploads/2023/07/image-7.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20726%20379'%3E%3C/svg%3E)
 
 In the upper left corner of the cell, you will see an icon that shows when there is a comment.
 
-![](https://thefusebase.com/wp-content/uploads/2023/07/image-8.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20700%20240'%3E%3C/svg%3E)
 
 ### Response to сomment [#](#b3889981773_604)
 
 To open a comment on a cell, click the comment icon.
 
-![](https://thefusebase.com/wp-content/uploads/2023/07/image-9.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20710%20362'%3E%3C/svg%3E)
 
 Next, you can read the comments in the thread or write a response.
 
-![](https://thefusebase.com/wp-content/uploads/2023/07/image-10.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20828%20388'%3E%3C/svg%3E)

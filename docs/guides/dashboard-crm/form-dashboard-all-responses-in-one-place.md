@@ -2,7 +2,7 @@
 title: "Form dashboard – all responses in one place"
 url: "https://thefusebase.com/guides/dashboard-crm/form-dashboard-all-responses-in-one-place/"
 section: "dashboard-crm"
-lastScraped: "2026-02-28T21:28:19.504Z"
+lastScraped: "2026-09-12T05:18:48.353Z"
 ---
 
 # Form dashboard – all responses in one place
@@ -17,10 +17,10 @@ Here you will see a list of forms, the portals in which they were created, the n
 
 Click on the desired form. Next, you can choose what to do: view the responses or go to edit the form.
 
-![](https://thefusebase.com/wp-content/uploads/2025/09/image-16-1024x462.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20462'%3E%3C/svg%3E)
 
 Let’s click on Response and look at the form responses. Here you will see: the email of the client who filled out the form, the response date, and the responses to the form.
 
-![](https://thefusebase.com/wp-content/uploads/2025/09/image-17-1024x545.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20545'%3E%3C/svg%3E)
 
 You can also [create additional columns](https://thefusebase.com/guides/settings/custom-fields-in-the-dashboard-building-your-own-crm-in-fusebase/) if you wish, for example for comments, notes, etc.

@@ -2,7 +2,7 @@
 title: "Embed & Insert Google Drive files"
 url: "https://thefusebase.com/guides/embedding-sharing/embed-insert-google-drive-files/"
 section: "embedding-sharing"
-lastScraped: "2026-02-28T21:27:50.521Z"
+lastScraped: "2026-09-12T05:18:25.944Z"
 ---
 
 # Embed & Insert Google Drive files
@@ -20,11 +20,11 @@ Below are some example inserts from Youtube, Google Maps, and Google Spreadsheet
 
 **☝** **Note: to insert and edit you need to set the right permissions. For example, if you want to share a Google Docs file with your teammate, you need to make sure that he/she has access on Google Docs. Optionally, you can share your Doc or Sheet as a Public link, so everyone has access to it.**
 
-![Optionally, you can share your Doc or Sheet as a Public link, so everyone has access to it.](https://app.nimbusweb.me/box/attachment/4465536/tie77b7q6qdbekbas2h1/l9HvBrvHzeFyf6nW/viewer.gif)
+![Optionally, you can share your Doc or Sheet as a Public link, so everyone has access to it.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
-![Optionally, you can share your Doc or Sheet as a Public link, so everyone has access to it.](https://app.nimbusweb.me/box/attachment/4465536/tie77b7q6qdbekbas2h1/UctnFotCsZ5yNdkl/Group%206%20(2).png)
+![Optionally, you can share your Doc or Sheet as a Public link, so everyone has access to it.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
-![Optionally, you can share your Doc or Sheet as a Public link, so everyone has access to it.](https://app.nimbusweb.me/box/attachment/4465536/tie77b7q6qdbekbas2h1/bgRydrOHAif286vl/Group%2012%20(3).png)
+![Optionally, you can share your Doc or Sheet as a Public link, so everyone has access to it.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Resize embeds [#](#b2939520055_10)
 
@@ -32,11 +32,11 @@ The size of the embed can be changed. Just follow these steps.
 
 -   Drag the upper-right corner and **resize** (all proportions will be preserved).
 
-![The size of the embed can be changed. Just follow these steps.](https://app.nimbusweb.me/box/attachment/4465536/tie77b7q6qdbekbas2h1/gojc2d6sAC590H0S/Group%20148.png)
+![The size of the embed can be changed. Just follow these steps.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   For free resizing, hold the **ALT key** and change the size using the bottom-right chip.
 
-![For free resizing, hold the ALT key and change the size using the bottom-right chip.](https://app.nimbusweb.me/box/attachment/4465536/tie77b7q6qdbekbas2h1/cB6vhHcFf7PU3wvO/Group%20147.png)
+![For free resizing, hold the ALT key and change the size using the bottom-right chip.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **☝** **Note: To return the embed to its original position, click the three dots and select Reset size.**
 
@@ -48,19 +48,19 @@ You can also enable full-width mode by clicking on the embed menu and activating
 
 Also you can easily insert a file from Google Drive
 
-![Also you can easily insert a file from Google Drive](https://app.nimbusweb.me/box/attachment/4465536/tie77b7q6qdbekbas2h1/hnX0ywE3DGzk7Ym3/Google_docs%20(1).gif)
+![Also you can easily insert a file from Google Drive](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   Click on the drop down menu and select **Google Drive** OR **cmd/ctrl** \+ **⌥/alt** + **g**
 
-![Click on the drop down menu and select Google Drive OR cmd/ctrl + ⌥/alt + g](https://app.nimbusweb.me/box/attachment/4465536/tie77b7q6qdbekbas2h1/1pvCw49Df3nI8AAY/Group%201%20(16).png)
+![Click on the drop down menu and select Google Drive OR cmd/ctrl + ⌥/alt + g](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   Log in to your account and give permission to FuseBase
 
-![Log in to your account and give permission to Nimbus Note](https://app.nimbusweb.me/box/attachment/4465536/tie77b7q6qdbekbas2h1/03DuHC1EYTfH9LNl/Group%203%20(1).png)
+![Log in to your account and give permission to Nimbus Note](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   Select the file you want to insert and click on **Select**
 
-![Select the file you want to insert and click on Select](https://app.nimbusweb.me/box/attachment/4465536/tie77b7q6qdbekbas2h1/MnaDZ9YuaSF3mDTk/Group%205%20(1).png)
+![Select the file you want to insert and click on Select](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Related Guides [#](#b3974885591_10)
 

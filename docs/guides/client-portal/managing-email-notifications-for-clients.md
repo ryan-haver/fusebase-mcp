@@ -2,7 +2,7 @@
 title: "Managing Email Notifications for Clients"
 url: "https://thefusebase.com/guides/client-portal/managing-email-notifications-for-clients/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:38.468Z"
+lastScraped: "2026-09-12T05:17:05.416Z"
 ---
 
 # Managing Email Notifications for Clients

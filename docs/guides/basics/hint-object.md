@@ -2,7 +2,7 @@
 title: "Hint object"
 url: "https://thefusebase.com/guides/basics/hint-object/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:32.381Z"
+lastScraped: "2026-09-12T05:16:52.638Z"
 ---
 
 # Hint object
@@ -27,11 +27,11 @@ You can use a **Hint object** in the editor. The object is ideal if you need to 
 -   Click on the **menu**.
 -   Select **Border Color**.
 
-![How to add a border?](https://app.nimbusweb.me/box/attachment/5452817/8bwvsm6mp4w5pggfgx3y/VtgqieYnnG2Khtr2/Group%20267.png)
+![How to add a border?](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## How to add a colored line? [#](#b2746284124_182)
 
 -   Click on the **menu**.
 -   Select **Line color.**
 
-![How to add a colored line?](https://app.nimbusweb.me/box/attachment/5452817/8bwvsm6mp4w5pggfgx3y/TF8xAu1bAsDq4VVI/Group%20266.png)
+![How to add a colored line?](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)

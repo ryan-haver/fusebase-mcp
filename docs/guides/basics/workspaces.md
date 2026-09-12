@@ -2,7 +2,7 @@
 title: "Workspaces"
 url: "https://thefusebase.com/guides/basics/workspaces/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:38.204Z"
+lastScraped: "2026-09-12T05:16:56.446Z"
 ---
 
 # Workspaces
@@ -19,33 +19,33 @@ There are no restrictions whatsoever and most importantly – zero confusion at 
 
 To create a workspace, open the left panel and click on the arrow to open the workspace window.
 
-![To create a workspace, open the left panel and click on the arrow to open the workspace window.](https://thefusebase.com/images/newweb31.jpg)
+![To create a workspace, open the left panel and click on the arrow to open the workspace window.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Next, click on New workspace.
 
-![Next, click on New workspace.](https://thefusebase.com/images/newweb32.jpg)
+![Next, click on New workspace.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Type in the name of the new workspace, then press Create.
 
-![Type in the name of the new workspace, then press Create.](https://thefusebase.com/images/newweb33.jpg)
+![Type in the name of the new workspace, then press Create.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## How to switch to another workspace? [#](#b2590211378_490)
 
 Click on the arrow on the left to view the list of projects. Then click on the desired project.
 
-![Click on the arrow on the left to view the list of projects. Then click on the desired project.](https://thefusebase.com/images/newweb34.jpg)
+![Click on the arrow on the left to view the list of projects. Then click on the desired project.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## How to remove a workspace? [#](#b2590211378_537)
 
 Open the project list and click on Manage
 
-![Open the project list and click on Manage](https://thefusebase.com/images/newweb35.jpg)
+![Open the project list and click on Manage](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Next, click on the project menu and select Delete workspace.
 
-![Next, click on the project menu and select Delete workspace.](https://thefusebase.com/images/newweb36.jpg)
+![Next, click on the project menu and select Delete workspace.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
-![Next, click on the project menu and select Delete workspace.](https://thefusebase.com/images/newweb37.jpg)
+![Next, click on the project menu and select Delete workspace.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Important! All workspace data will be deleted – folders, tags and notes. It will be impossible to restore that data!
 
@@ -53,21 +53,21 @@ Important! All workspace data will be deleted – folders, tags and notes. It wi
 
 Tap on the workspace menu and select Manage workspaces. Next, click on the rename button and enter a new name.
 
-![Tap on the workspace menu and select Manage workspaces. Next, click on the rename button and enter a new name.](https://thefusebase.com/images/newweb36.jpg)
+![Tap on the workspace menu and select Manage workspaces. Next, click on the rename button and enter a new name.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
-![Tap on the workspace menu and select Manage workspaces. Next, click on the rename button and enter a new name.](https://thefusebase.com/images/newweb38.jpg)
+![Tap on the workspace menu and select Manage workspaces. Next, click on the rename button and enter a new name.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## How to move a note/folder to another workspace? [#](#b2590211378_997)
 
 1) Right-click on note/folder – Move to other workspace.
 
-![Right-click on note/folder - Move to other workspace](https://thefusebase.com/images/mtw1.jpg)
+![Right-click on note/folder - Move to other workspace](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 2) Select the needed workspace from the list and tap on it.
 
 3) Click on Move and wait for the note to be moved.
 
-![Click on Move and wait for the note to be moved.](https://thefusebase.com/images/mtw2.jpg)
+![Click on Move and wait for the note to be moved.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 When moving or copying notes to another project, the time will update at the moment of moving.
 
@@ -81,11 +81,11 @@ Yes, go to the project.
 
 Open project menu.
 
-![I was added to the project. Can I leave it?](https://app.nimbusweb.me/box/attachment/3630920/t5bxm321ipt7yll6fm4a/ko1m5NJ8hiwiVbR2/image.png)
+![I was added to the project. Can I leave it?](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Press Leave workspace.
 
-![I was added to the project. Can I leave it?](https://app.nimbusweb.me/box/attachment/3630920/t5bxm321ipt7yll6fm4a/hHrPNcjxMXmj4v8P/image.png)
+![I was added to the project. Can I leave it?](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## How do I create more than 5 workspaces? [#](#b2590211378_336)
 

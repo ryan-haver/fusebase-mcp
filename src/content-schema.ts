@@ -434,6 +434,7 @@ export interface FileBlock {
 export interface RemoteFrameBlock {
   type: "remote-frame";
   src: string;
+  allowOverWidth?: boolean;
   caption?: InlineSegment[];
 }
 

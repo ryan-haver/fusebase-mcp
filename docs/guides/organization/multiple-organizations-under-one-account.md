@@ -2,7 +2,7 @@
 title: "Multiple organizations under one account"
 url: "https://thefusebase.com/guides/organization/multiple-organizations-under-one-account/"
 section: "organization"
-lastScraped: "2026-02-28T21:27:08.049Z"
+lastScraped: "2026-09-12T05:17:33.168Z"
 ---
 
 # Multiple organizations under one account
@@ -27,7 +27,7 @@ To create an organization, follow these steps.
 -   Fill the **Сustom domain** (optional).
 -   Then press **Save changes**.
 
-![Organization creation](https://app.nimbusweb.me/box/attachment/4562740/a7kxsqlped6o0tcvkqfw/yXt2AZMziCqr4S6Z/5%20(1)%20(1).gif)
+![Organization creation](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **☝** **Note: If you want to display the web client and public pages on your personal subdomain, you need to do the following.**
 
@@ -35,7 +35,7 @@ To create an organization, follow these steps.
 -   Fill the **Сustom domain**.
 -   Press on **Save changes.**
 
-![If you want to display the web client and public pages on your personal subdomain, you need to do the following.](https://app.nimbusweb.me/box/attachment/4562740/a7kxsqlped6o0tcvkqfw/bt0nbLt7TKe6A8VK/Group%2032%20(2).png)
+![If you want to display the web client and public pages on your personal subdomain, you need to do the following.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 [**Read more about CName**](https://thefusebase.com/guides/branding/custom-subdomains-cname/)
 

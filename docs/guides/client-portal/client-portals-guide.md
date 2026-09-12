@@ -2,7 +2,7 @@
 title: "Client Portals – Quick Guide"
 url: "https://thefusebase.com/guides/client-portal/client-portals-guide/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:44.418Z"
+lastScraped: "2026-09-12T05:17:05.903Z"
 ---
 
 # Client Portals – Quick Guide
@@ -17,7 +17,7 @@ Use FuseBase Portals as a knowledge base and publish all the information your cl
 
 Before reading the guide, you can watch a video where we describe the main features of the portal and how it can benefit your business.
 
-[Embedded content](https://www.youtube.com/embed/CXBtiJoEBFM?feature=oembed)
+[Embedded content](about:blank)
 
 ## Creation [#](#1-toc-title)
 
@@ -27,13 +27,13 @@ Just one click to create the best space for you and your clients 🙂
 
 Please, click + in the sidebar and choose **New Portal**. You will be redirected to Wizard, where you can configure the first settings for your portal. The process will only take a few minutes!
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-51.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202554%201063'%3E%3C/svg%3E)
 
 Since your portal is ready now, let’s make some more changes!
 
 Here is an example of a completed homepage, let’s start with yours.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-52.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202559%201349'%3E%3C/svg%3E)
 
 The Portal is provided with the welcome sections, pages, and widgets as templates for demonstration purposes. It can be edited or deleted later.
 
@@ -48,7 +48,7 @@ In the sidebar, you will find the **Client Portal** section, which includes the 
 
 When you click on a portal page, you can enter its editing mode. For example, click on **Homepage** to edit the main page of your portal.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-53.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202467%201390'%3E%3C/svg%3E)
 
 Next, you will enter the portal page editor, which can be divided into three areas:
 
@@ -136,11 +136,11 @@ These are just a few of the many widgets available in the **customizer**. You ca
 
 Don’t forget to save all your settings! The “Publish” button is right there.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-61-1024x558.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20558'%3E%3C/svg%3E)
 
 Click on the **Publish** button and the window with the latest changes will open. There you can see when the last changes were made and what was changed. Click on **Update** current portal **to save changes**.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-62-1024x646.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20646'%3E%3C/svg%3E)
 
 When the changes are made, you can see the portal by clicking on the **View Porta**l button.
 
@@ -148,7 +148,7 @@ When the changes are made, you can see the portal by clicking on the **View Port
 
 In Settings, you will find various customization options and settings for your portal.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-65-1024x553.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20553'%3E%3C/svg%3E)
 
 ### General [#](#b318094637_2432)
 
@@ -171,7 +171,7 @@ If you select **Anyone outside your organization,** even a person outside your o
 
 If you restrict access to the portal to only certain users, access outside your organization will be restricted too.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-66-1024x572.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20572'%3E%3C/svg%3E)
 
 ### Custom code [#](#13-toc-title)
 
@@ -197,13 +197,13 @@ You can do this by adding the Member Menu to the top bar.
 
 Now, the client can click on the menu and select Log out to sign out of their account.
 
-[Embedded content](https://www.youtube.com/embed/nlQRPILcqVI?feature=oembed)
+[Embedded content](about:blank)
 
 ## How to delete an unnecessary portal? [#](#17-toc-title)
 
 To delete a portal, go to General Settings and click on Delete Portal. You’ll then need to confirm the deletion to complete the process.
 
-![](https://thefusebase.com/wp-content/uploads/2025/05/image-1-1024x554.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20554'%3E%3C/svg%3E)
 
 ## Custom Domain Name with FuseBase Portal [#](#18-toc-title)
 

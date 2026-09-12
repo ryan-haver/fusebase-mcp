@@ -2,7 +2,7 @@
 title: "Adding Intercom chat to public pages using custom scripts"
 url: "https://thefusebase.com/guides/embedding-sharing/adding-intercom-chat-to-public-pages-using-custom-scripts/"
 section: "embedding-sharing"
-lastScraped: "2026-02-28T21:27:44.589Z"
+lastScraped: "2026-09-12T05:18:18.927Z"
 ---
 
 # Adding Intercom chat to public pages using custom scripts
@@ -35,8 +35,8 @@ With the help of custom scripts, you can connect Intercom chat to public pages a
 
 9) Return to the [FuseBase](https://thefusebase.com/) organization console. Add the resulting code to the <body> </body> field and click **Publish**.
 
-![Return to the Nimbus Note organization console. Add the resulting code to the field and click Publish.](https://app.nimbusweb.me/box/attachment/4581243/f8hhmfzc8dg7cbs0i2yh/14lA9yRaf9idnScc/image.png)
+![Return to the Nimbus Note organization console. Add the resulting code to the field and click Publish.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 10) Check whether the chat button appears on the public page.
 
-![ Check whether the chat button appears on the public page.](https://app.nimbusweb.me/box/attachment/4581243/f8hhmfzc8dg7cbs0i2yh/JgpQhG2F7BVO6JZH/image.png)
+![ Check whether the chat button appears on the public page.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)

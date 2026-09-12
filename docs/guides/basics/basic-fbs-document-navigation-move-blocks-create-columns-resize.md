@@ -2,7 +2,7 @@
 title: "Basic FuseBase document navigation. Move blocks, create columns, resize"
 url: "https://thefusebase.com/guides/basics/basic-fbs-document-navigation-move-blocks-create-columns-resize/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:17.751Z"
+lastScraped: "2026-09-12T05:16:49.795Z"
 ---
 
 # Basic FuseBase document navigation. Move blocks, create columns, resize
@@ -11,16 +11,16 @@ lastScraped: "2026-02-28T21:26:17.751Z"
 
 FuseBase documents consist of blocks which you can drag&drop, resize, and copy and paste into other documents.
 
-[Embedded content](https://www.youtube.com/embed/BQwwjvBbVC8?feature=oembed)
+[Embedded content](about:blank)
 
 …
 
 ## Three dots are one of the most important controls to move object and select properties [#](#1-toc-title)
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20678%20273'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/drag-n-drop-1.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20880%20550'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/Untitled-design-2.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201560%20920'%3E%3C/svg%3E)
 
 ## Use double click to create a new line between objects [#](#2-toc-title)

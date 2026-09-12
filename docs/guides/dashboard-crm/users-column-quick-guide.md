@@ -2,7 +2,7 @@
 title: "Users column – Quick guide"
 url: "https://thefusebase.com/guides/dashboard-crm/users-column-quick-guide/"
 section: "dashboard-crm"
-lastScraped: "2026-02-28T21:28:02.421Z"
+lastScraped: "2026-09-12T05:18:36.184Z"
 ---
 
 # Users column – Quick guide
@@ -17,11 +17,11 @@ To add a column, follow these simple steps:
 
 2) Select Users.
 
-![](https://thefusebase.com/wp-content/uploads/2025/12/image-1.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20779%201013'%3E%3C/svg%3E)
 
 3) Enter the column name and click Add.
 
-![](https://thefusebase.com/wp-content/uploads/2025/12/image-2.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20702%20746'%3E%3C/svg%3E)
 
 Next, simply click on the cell and select the required users from the list to add them to the cell.
 
@@ -33,6 +33,6 @@ Click on the cell with the members and select the members you want to add. You c
 
 Yes, absolutely. You need to disable the “Multiple selection” option in the column settings.
 
-![](https://thefusebase.com/wp-content/uploads/2025/12/image-3-1024x695.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20695'%3E%3C/svg%3E)
 
 Yes, of course. You need to disable the “Multiple selection” option in the column settings. This can also be done when creating the column.

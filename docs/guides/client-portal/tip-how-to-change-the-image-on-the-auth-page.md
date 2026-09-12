@@ -2,7 +2,7 @@
 title: "Tip: How to change the image on the Login page"
 url: "https://thefusebase.com/guides/client-portal/tip-how-to-change-the-image-on-the-auth-page/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:41.185Z"
+lastScraped: "2026-09-12T05:17:02.913Z"
 ---
 
 # Tip: How to change the image on the Login page
@@ -28,8 +28,8 @@ If you need a custom image on the login page of the portal, this can be easily d
 </style>
 ```
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-15-1024x696.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20696'%3E%3C/svg%3E)
 
 3) That’s it, you’re all set!
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-16-1024x536.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20536'%3E%3C/svg%3E)

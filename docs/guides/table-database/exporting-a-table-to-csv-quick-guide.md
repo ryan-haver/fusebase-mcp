@@ -2,7 +2,7 @@
 title: "Exporting a Table to CSV – Quick Guide"
 url: "https://thefusebase.com/guides/table-database/exporting-a-table-to-csv-quick-guide/"
 section: "table-database"
-lastScraped: "2026-02-28T21:27:59.471Z"
+lastScraped: "2026-09-12T05:18:30.537Z"
 ---
 
 # Exporting a Table to CSV – Quick Guide

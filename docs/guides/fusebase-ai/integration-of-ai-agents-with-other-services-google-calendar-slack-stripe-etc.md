@@ -2,7 +2,7 @@
 title: "Integration of AI agents with other services (Google Calendar, Slack, Stripe, etc.)"
 url: "https://thefusebase.com/guides/fusebase-ai/integration-of-ai-agents-with-other-services-google-calendar-slack-stripe-etc/"
 section: "fusebase-ai"
-lastScraped: "2026-02-28T21:27:17.162Z"
+lastScraped: "2026-09-12T05:17:37.820Z"
 ---
 
 # Integration of AI agents with other services (Google Calendar, Slack, Stripe, etc.)
@@ -37,19 +37,19 @@ Now let’s connect a ready-made integration to your agent. For example, let’s
 
 1) Go to edit your agent and click on the **Integrations** tab.
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-1-1024x419.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20419'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-2-1024x703.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20703'%3E%3C/svg%3E)
 
 2) Find Google Calendar in the list.
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-3-1024x739.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20739'%3E%3C/svg%3E)
 
 3) Click **Authorize/Connect** and sign in to your Google account (don’t worry – it’s safe, and our service does not access your personal data).
 
 That’s it! Your calendar is now connected to your agent. After connecting, you’ll see the service tools (what it can do) and the connected rules (explained below).
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-4-1024x997.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20997'%3E%3C/svg%3E)
 
 4) Now let’s try out our integration. It’s important to note that there’s no need to modify the prompt — everything will work as is.
 
@@ -57,7 +57,7 @@ Open your agent and try giving it a command, for example: **“Give me a list of
 
 Your agent will understand and carry out the task using the connected calendar.
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-5-1024x753.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20753'%3E%3C/svg%3E)
 
 That’s the simplest use case, but there are many more possibilities. For example, you can:
 
@@ -102,27 +102,27 @@ FuseBase makes it easy to manage rules. First, you create a custom set of rules,
 
 1) To do this, go to the Integrations section and click on Connected rules next to the integration you want to manage.
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-6-1024x849.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20849'%3E%3C/svg%3E)
 
 2) Next, click on Manage rules next to Organization rules. (Templates are predefined rule sets created by the FuseBase team, which you can also use).
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-7-1024x721.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20721'%3E%3C/svg%3E)
 
 3) Click on Create new rule. Next, enter a name for your rule set and define the actual rules.
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-8-838x1024.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20838%201024'%3E%3C/svg%3E)
 
 4) Then, save the rule set.
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/Без-названия.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201083%201013'%3E%3C/svg%3E)
 
 4) After that, click on Connected rules next to the integration you want to configure, and select the rule set you created. You can apply the same rule set to multiple integrations.
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-9-1024x979.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20979'%3E%3C/svg%3E)
 
 You can also edit existing rules. To do this, go to Manage rules and find the one you want to update. Then click Edit and modify the rule — for example, by adding new conditions.
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-10-801x1024.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20801%201024'%3E%3C/svg%3E)
 
 Important: Any changes you make will automatically apply to all agents where the integration using this rule is active.
 
@@ -143,36 +143,36 @@ It’s important to note that we cannot guarantee 100% stability of third-party 
 
 3) Log in or create a new account –
 
-![](https://thefusebase.com/wp-content/uploads/2025/05/image-21-1024x549.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20549'%3E%3C/svg%3E)
 
 4) Then go to [https://mcp.composio.dev/dashboard/apps](https://mcp.composio.dev/dashboard/apps)
 
 5) Find the app you need. For example, I want to quickly create tasks in Todoist through an agent. To do this, I find Todoist in the list of apps and click on “Activate”.
 
-![](https://thefusebase.com/wp-content/uploads/2025/05/image-22-1024x603.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20603'%3E%3C/svg%3E)
 
 6) Next, grant Composio permission to access your Todoist. Don’t worry, it’s absolutely safe.
 
 7) Then, click on Create server and enter its name.
 
-![](https://thefusebase.com/wp-content/uploads/2025/05/image-23-1024x593.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20593'%3E%3C/svg%3E)
 
 8) Next, specify which actions the agent is allowed to perform. For example, you can allow task creation but restrict task deletion. After making your selection, click on Create server.
 
-![](https://thefusebase.com/wp-content/uploads/2025/05/image-24-1024x921.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20921'%3E%3C/svg%3E)
 
 9) Next, you will see a link to the MCP server that you need to copy.
 
-![](https://thefusebase.com/wp-content/uploads/2025/05/image-25-1024x669.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20669'%3E%3C/svg%3E)
 
 10) Next, you need to add the server link to your agent. To do this, open the settings of the agent you want, and go to the Integrations section.
 
 Paste the MCP link and click Add.
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-11-1024x492.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20492'%3E%3C/svg%3E)
 
 That’s it — your agent just got better with an additional integration. Now you can create tasks in Todoist or, for example, update them directly from the chat window.
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-12-1024x751.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20751'%3E%3C/svg%3E)
 
 Connecting integrations from other services works the same way. If you need any help with the integration, feel free to contact our support team at: [https://thefusebase.com/support/](https://thefusebase.com/support/)

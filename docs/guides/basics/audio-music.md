@@ -2,7 +2,7 @@
 title: "Audio & Music"
 url: "https://thefusebase.com/guides/basics/audio-music/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:32.270Z"
+lastScraped: "2026-09-12T05:16:52.603Z"
 ---
 
 # Audio & Music
@@ -35,11 +35,11 @@ In the menu you can pick from a variety of functions.
 
 All audio files can be played directly in the page through the built-in audio player, which supports all popular formats: MP3, M4A, CAF, AMR, and so on.
 
-![All audio files can be played directly in the page through the built-in audio player, which supports all popular formats: MP3, M4A, CAF, AMR, and so on.](https://app.nimbusweb.me/box/attachment/4484309/2o3eqq0w0vin9iy35012/dJtJpreHKPYnLHET/conf_2_1888%201836.gif)
+![All audio files can be played directly in the page through the built-in audio player, which supports all popular formats: MP3, M4A, CAF, AMR, and so on.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **☝** **Note: You can change the color scheme for your audio player by clicking on the player block menu and selecting the desired color in the Player’s color item.**
 
-![You can change the color scheme for your audio player by clicking on the player block menu and selecting the desired color in the Player’s color item.](https://app.nimbusweb.me/box/attachment/4484309/2o3eqq0w0vin9iy35012/dvK0tjSgcNnLsrMp/image.png)
+![You can change the color scheme for your audio player by clicking on the player block menu and selecting the desired color in the Player’s color item.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 #### Lifehack [#](#b4264147487_363)
 
@@ -47,7 +47,7 @@ During audio playback, you can click on different parts of the recording to star
 
 You can also change the volume – increase, decrease or completely mute the sound.
 
-![You can also change the volume - increase, decrease or completely mute the sound.](https://app.nimbusweb.me/box/attachment/4484309/2o3eqq0w0vin9iy35012/TqbCI0K2CbeXHkAE/Group%20164.png)
+![You can also change the volume - increase, decrease or completely mute the sound.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### Menu in the editor [#](#b1289385811_1311)
 
@@ -55,17 +55,17 @@ Click on the three dots next to an audio to open the menu for the audio in the e
 
 #### Download [#](#b2909433308_0)
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/image-1-3.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20718%20472'%3E%3C/svg%3E)
 
 Download audio files to your computer – for this, select **Download**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Image-2-2-1024x603.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20603'%3E%3C/svg%3E)
 
 #### Open in new tab [#](#b2909433308_28)
 
 To open an audio in a new tab, click on the three dots menu and select **Open in new tab**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Image-3-1-2-1024x604.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20604'%3E%3C/svg%3E)
 
 #### Copy link to file [#](#b2909433308_62)
 
@@ -75,7 +75,7 @@ Copy the link to an audio file by selecting the three dots menu and pressing **C
 
 To rename an audio file, select the three dots menu and click **Rename**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Image-4-2-1024x598.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20598'%3E%3C/svg%3E)
 
 #### Replace [#](#b2909433308_115)
 
@@ -85,13 +85,13 @@ Replace an audio file with any other file by selecting **Replace**.
 
 To delete the audio file, select **Delete**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/delete2-1-1024x603.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20603'%3E%3C/svg%3E)
 
 ### Add a caption [#](#b1430984300_10)
 
 You can add descriptions to audio files by clicking under the file.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/caption-1024x666.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20666'%3E%3C/svg%3E)
 
 ## Adding audio files to tables [#](#b1289385811_2154)
 

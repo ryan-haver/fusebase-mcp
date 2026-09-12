@@ -1,12 +1,12 @@
 ---
 title: "FuseBase Guides Index"
-lastGenerated: "2026-02-28T21:28:27.048Z"
+lastGenerated: "2026-09-12T05:19:02.317Z"
 ---
 
 # FuseBase Guides
 
 > Auto-generated index of all FuseBase guide pages.
-> Total: **231** guides across **17** sections.
+> Total: **277** guides across **19** sections.
 
 ## android-ios (10)
 
@@ -40,7 +40,7 @@ lastGenerated: "2026-02-28T21:28:27.048Z"
 - [Webhook Trigger – Guide](automations-and-integrations/webhook-trigger-guide.md)
 - [What’s the Difference Between Agents and Automation?](automations-and-integrations/whats-the-difference-between-agents-and-automation.md)
 
-## basics (36)
+## basics (38)
 
 - [@-mentions: link people, dates, folders, pages and workspaces](basics/mentions-link-people-dates-folders-pages-and-workspaces.md)
 - [Audio & Music](basics/audio-music.md)
@@ -51,6 +51,7 @@ lastGenerated: "2026-02-28T21:28:27.048Z"
 - [Chat in FuseBase](basics/chat-in-fusebase.md)
 - [Comments inside the pages](basics/comments-inside-the-pages.md)
 - [Dropdown List](basics/dropdown-list.md)
+- [Favorites – Quick Guide](basics/favorites-quick-guide.md)
 - [File Uploader](basics/file-uploader.md)
 - [Files and attachments](basics/files-and-attachments.md)
 - [Folders and subfolders](basics/folders-and-subfolders.md)
@@ -71,6 +72,7 @@ lastGenerated: "2026-02-28T21:28:27.048Z"
 - [Progress Bar Object](basics/progress-bar-object.md)
 - [Recording video and audio directly from a page](basics/recording-video-and-audio-directly-from-a-page.md)
 - [Search and extract text from images (OCR)](basics/search-and-extract-text-from-images-ocr.md)
+- [Sorting of pages and folders in Internal Space](basics/sorting-of-pages-and-folders-in-internal-space.md)
 - [Tags – Quick Guide](basics/tags-quick-guide.md)
 - [Task Board Guide](basics/task-board-guide.md)
 - [Task dashboard – manage all tasks from one place](basics/task-dashboard-manage-all-tasks-from-one-place.md)
@@ -79,7 +81,7 @@ lastGenerated: "2026-02-28T21:28:27.048Z"
 - [Workspace management | Transfer content between workspaces](basics/workspace-management-transfer-content-between-workspaces.md)
 - [Workspaces](basics/workspaces.md)
 
-## branding (11)
+## branding (12)
 
 - [Adding CTA on public pages using Convertflow](branding/adding-cta-on-public-pages-using-convertflow.md)
 - [Adding Google Analytics to public pages using custom scripts](branding/adding-google-analytics-to-public-pages-using-custom-scripts.md)
@@ -90,15 +92,17 @@ lastGenerated: "2026-02-28T21:28:27.048Z"
 - [Custom SMTP](branding/custom-smtp.md)
 - [Custom Subdomains (CNAME)](branding/custom-subdomains-cname.md)
 - [Getting started with Branding](branding/getting-started-with-branding.md)
+- [How can I hide specific sections in the web client?](branding/how-can-i-hide-specific-sections-in-the-web-client.md)
 - [Organization logo](branding/organization-logo.md)
 - [White label for organization](branding/white-label-for-organization.md)
 
-## client-portal (38)
+## client-portal (42)
 
 - [Access Management in the Portal – Quick Guide](client-portal/access-management-in-the-portal-quick-guide.md)
 - [Add Chat to the Portal and Start Communicating with Clients](client-portal/add-chat-to-the-portal-and-start-communicating-with-clients.md)
 - [Adding a Page to the Portal from the Internal Space](client-portal/adding-pages-to-the-portal-from-the-web-client.md)
 - [Adding AI Agents to FuseBase Portals](client-portal/adding-ai-agents-to-fusebase-portals.md)
+- [Adding AI Apps and Features to FuseBase Portals](client-portal/adding-ai-apps-and-features-to-fusebase-portals.md)
 - [Adding support for fonts from Google Fonts to portal](client-portal/adding-support-for-fonts-from-google-fonts-to-porta.md)
 - [Client Portals – Quick Guide](client-portal/client-portals-guide.md)
 - [Collaborate With Clients Using FuseBase Portals](client-portal/collaborate-with-clients-using-fusebase-portals.md)
@@ -112,6 +116,7 @@ lastGenerated: "2026-02-28T21:28:27.048Z"
 - [File Uploader for Portal](client-portal/file-upload-in-portals.md)
 - [Folder Permissions: Tips & Tricks for Portal Management](client-portal/granular-permissions.md)
 - [Forms – creation and completion of forms on the portal](client-portal/forms-creation-and-completion-of-forms-on-the-portal.md)
+- [Get Notified When a Client Visits Your Portal](client-portal/get-notified-when-a-client-visits-your-portal.md)
 - [Hero screen and Topbar – Quick guide](client-portal/hero-screen-and-topbar-quick-guide.md)
 - [How Do I Manage Access to Portal Customizer?](client-portal/access.md)
 - [How to Invite a Customer to The Portal via Client Role](client-portal/inviting-via-client-role.md)
@@ -126,6 +131,8 @@ lastGenerated: "2026-02-28T21:28:27.048Z"
 - [Magic Links](client-portal/magic-links.md)
 - [Management of Visibіlity status for portal pages](client-portal/management-of-visib%d1%96lity-status-for-portal-pages.md)
 - [Managing Email Notifications for Clients](client-portal/managing-email-notifications-for-clients.md)
+- [Managing Fusebase Portals with AI Agents: Quick Guide](client-portal/managing-fusebase-portals-with-ai-agents-quick-guide.md)
+- [Member menu – allows members to manage their profile](client-portal/member-menu-allows-members-to-manage-their-profile.md)
 - [Notification/Updates Panel – Quick Guide](client-portal/notification-updates-panel-quick-guide.md)
 - [Portal Analytics – Guide](client-portal/portal-analytics-guide.md)
 - [Processes in the Portal – Quick Guide](client-portal/processes-in-the-portal-quick-guide.md)
@@ -134,12 +141,14 @@ lastGenerated: "2026-02-28T21:28:27.048Z"
 - [Variables in the portal – adding the client’s name to the Hero and other portal blocks.](client-portal/variables-in-the-portal-adding-the-clients-name-to-the-hero-and-other-portal-blocks.md)
 - [Welcome Message & Search Management via Hero Section](client-portal/hero-section.md)
 
-## dashboard-crm (11)
+## dashboard-crm (13)
 
 - [AI Trackers for Meetings – Quick Guide](dashboard-crm/ai-trackers-for-meetings-quick-guide.md)
 - [Column groups – simplifying data display in detailed view](dashboard-crm/column-groups-simplifying-data-display-in-detailed-view.md)
+- [Companies Dashboard in FuseBase CRM](dashboard-crm/companies-dashboard-in-fusebase-crm.md)
 - [Custom views – building a dashboard for ourselves](dashboard-crm/custom-views-building-a-dashboard-for-ourselves.md)
 - [Dashboard Overview: Managing Workspaces, Portals, and Clients](dashboard-crm/dashboard-overview-managing-workspaces-portals-and-clients.md)
+- [Deals Dashboard in FuseBase CRM](dashboard-crm/deals-dashboard-in-fusebase-crm.md)
 - [Embed Fusebase databases and dashboards into portals](dashboard-crm/embed-fusebase-databases-and-dashboards-into-portals.md)
 - [Form dashboard – all responses in one place](dashboard-crm/form-dashboard-all-responses-in-one-place.md)
 - [How to add a database to a Fusebase page](dashboard-crm/how-to-add-a-database-to-a-fusebase-page.md)
@@ -176,22 +185,64 @@ lastGenerated: "2026-02-28T21:28:27.048Z"
 - [Teachers | Embedding public pages](embedding-sharing/teachers-embedding-public-pages.md)
 - [Zillow embed](embedding-sharing/zillow-embed.md)
 
-## fusebase-ai (14)
+## fusebase-ai (16)
 
 - [AI Agents – Quick Guide](fusebase-ai/ai-agents-quick-guide.md)
 - [AI Agents in Editor – Quick Guide](fusebase-ai/ai-agents-in-editor-quick-guide.md)
 - [AI Assistant – Quick Guide](fusebase-ai/ai-assistant-quick-guide.md)
 - [AI-Powered Writing in FuseBase Editor](fusebase-ai/generating-new-content.md)
 - [Categories and Favorites for AI Agents](fusebase-ai/categories-and-favorites-for-ai-agents.md)
+- [Connect external AI Agents to Fusebase with MCP](fusebase-ai/connect-external-ai-agents-to-fusebase-with-mcp.md)
 - [Expanding AI Agent functionality via MCP](fusebase-ai/expanding-ai-agent-functionality-via-mcp.md)
 - [FuseBase AI – Effective Practices and Uses](fusebase-ai/fusebase-ai-effective-practices-and-uses.md)
 - [Fusebase AI Assistant – Browser Extension](fusebase-ai/fusebase-ai-assistant-browser-extension.md)
 - [FuseBase Apps – Quick Guide](fusebase-ai/fusebase-apps-quick-guide.md)
+- [Fusebase MCP – create and manage databases through an agent](fusebase-ai/fusebase-mcp-create-and-manage-databases-through-an-agent.md)
 - [Integration of AI agents with other services (Google Calendar, Slack, Stripe, etc.)](fusebase-ai/integration-of-ai-agents-with-other-services-google-calendar-slack-stripe-etc.md)
 - [Public AI agents – integrate agents into your website](fusebase-ai/public-ai-agents-integrate-agents-into-your-website.md)
 - [Transcribe and AI Assistant for Video – Guide](fusebase-ai/transcribe-and-ai-assistant-for-video-guide.md)
 - [WebPage Context – create AI agent using page content](fusebase-ai/webpage-context-create-ai-agent-using-page-content.md)
-- [What’s the difference between Agents, Assistants, and GenAI in the editor?](fusebase-ai/whats-the-difference-between-agents-assistants-and-genai-in-the-editor.md)
+- [What’s the difference between AI Apps, Agents, Assistants, GenAI in the editor?](fusebase-ai/whats-the-difference-between-agents-assistants-and-genai-in-the-editor.md)
+
+## fusebase-vibe-code (25)
+
+- [Add Browser, OCR, Search, and More to Your Fusebase App](fusebase-vibe-code/add-browser-ocr-search-and-more-to-your-fusebase-app.md)
+- [App Data Storage: Quick Guide](fusebase-vibe-code/app-data-storage-quick-guide.md)
+- [Apps That Work Together: Quick Guide](fusebase-vibe-code/apps-that-work-together-quick-guide.md)
+- [Apps with Backend Support – Quick Guide](fusebase-vibe-code/apps-with-backend-support-quick-guide.md)
+- [Create Apps with the Fusebase CLI: Setup Guide](fusebase-vibe-code/create-apps-with-the-fusebase-cli-setup-guide.md)
+- [Cron Jobs in FuseBase Apps: Quick Guide](fusebase-vibe-code/cron-jobs-in-fusebase-apps-quick-guide.md)
+- [Custom Domains for AI Apps – Quick Guide](fusebase-vibe-code/custom-domains-for-ai-apps-quick-guide.md)
+- [FuseBase AI apps – Troubleshooter](fusebase-vibe-code/fusebase-ai-apps-troubleshooter.md)
+- [FuseBase AI Products – Best Practices & FAQ](fusebase-vibe-code/fusebase-ai-apps-best-practices-faq.md)
+- [FuseBase Apps – Quick Guide](fusebase-vibe-code/fusebase-apps-quick-guide.md)
+- [FuseBase CLI – Useful Commands](fusebase-vibe-code/fusebase-cli-useful-commands.md)
+- [Fusebase CLI and Working with Notes/Documents](fusebase-vibe-code/fusebase-cli-and-working-with-notes-documents.md)
+- [FuseBase CLI Updating – Recommendations](fusebase-vibe-code/fusebase-cli-updating-recommendations.md)
+- [How do I connect Fusebase MCP for Antigravity?](fusebase-vibe-code/how-do-i-connect-fusebase-mcp-for-antigravity.md)
+- [How to connect FuseBase to Claude Code](fusebase-vibe-code/how-to-connect-fusebase-to-claude-code.md)
+- [Integration of Fusebase CLI with Other Services (Notion, Asana, etc.)](fusebase-vibe-code/integration-of-fusebase-cli-with-other-services-notion-asana-etc.md)
+- [Local Development vs Production Testing in FuseBase](fusebase-vibe-code/local-development-vs-production-testing-in-fusebase.md)
+- [Managed Apps – what are they and why are they needed](fusebase-vibe-code/managed-apps-what-are-they-and-why-are-they-needed.md)
+- [Managing member groups in FuseBase CLI](fusebase-vibe-code/managing-member-groups-in-fusebase-cli.md)
+- [Managing Members and Clients of an Organization via Fusebase CLI](fusebase-vibe-code/managing-members-and-clients-of-an-organization-via-fusebase-cli.md)
+- [Sending Emails from Apps: Quick Guide](fusebase-vibe-code/sending-emails-from-apps-quick-guide.md)
+- [Stripe Integration in Apps: Quick Guide](fusebase-vibe-code/stripe-integration-in-apps-quick-guide.md)
+- [Webhooks in FuseBase Apps: Quick Guide](fusebase-vibe-code/webhooks-in-fusebase-apps-quick-guide.md)
+- [Working with Files in Apps: Quick Guide](fusebase-vibe-code/working-with-files-in-apps-quick-guide.md)
+- [Working with Portals in the CLI: Quick Guide](fusebase-vibe-code/working-with-portals-in-the-cli-quick-guide.md)
+
+## fusebase-work (9)
+
+- [Agents in FuseBase Work](fusebase-work/agents-in-fusebase-work.md)
+- [Calling Fusebase Work Agents from External Apps: Quick Guide](fusebase-work/calling-fusebase-work-agents-from-external-apps-quick-guide.md)
+- [Firecrawl Service in Fusebase Work: Quick Guide](fusebase-work/firecrawl-service-in-fusebase-work-quick-guide.md)
+- [FuseBase Work – AI control center for the organization](fusebase-work/fusebase-work-ai-control-center-ffor-the-organization.md)
+- [How to connect Asana to FuseBase Work (example of a third-party MCP integration)](fusebase-work/how-to-connect-asana-to-fusebase-work-example-of-a-third-party-mcp-integration.md)
+- [Integration of agents/adapters with other services via MCP](fusebase-work/integration-of-agents-adapters-with-other-services-via-mcp.md)
+- [n8n Service in Fusebase Work: Quick Guide](fusebase-work/n8n-service-in-fusebase-work-quick-guide.md)
+- [Services in Fusebase Work: Quick Guide](fusebase-work/services-in-fusebase-work-quick-guide.md)
+- [Using Fusebase Apps as Connectors in Fusebase Work: Quick Guide](fusebase-work/using-fusebase-apps-as-connectors-in-fusebase-work-quick-guide.md)
 
 ## getting-started (8)
 
@@ -274,8 +325,9 @@ lastGenerated: "2026-02-28T21:28:27.048Z"
 - [Subscription actions – Upgrade and Downgrade](settings/subscription-actions-upgrade-and-downgrade.md)
 - [Switching between the old and new client](settings/switching-between-the-old-and-new-client.md)
 
-## table-database (6)
+## table-database (7)
 
+- [Connect AI Agents to Fusebase Dashboards with MCP](table-database/connect-ai-agents-to-fusebase-dashboards-with-mcp.md)
 - [Custom Databases – Quick Guide](table-database/custom-databases-quick-guide.md)
 - [Duplicating database and table](table-database/duplicating-database-and-table.md)
 - [Exporting a Table to CSV – Quick Guide](table-database/exporting-a-table-to-csv-quick-guide.md)

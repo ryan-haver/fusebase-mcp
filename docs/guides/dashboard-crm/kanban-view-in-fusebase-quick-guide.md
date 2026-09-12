@@ -2,7 +2,7 @@
 title: "Kanban view in Fusebase  – Quick Guide"
 url: "https://thefusebase.com/guides/dashboard-crm/kanban-view-in-fusebase-quick-guide/"
 section: "dashboard-crm"
-lastScraped: "2026-02-28T21:28:02.109Z"
+lastScraped: "2026-09-12T05:18:36.151Z"
 ---
 
 # Kanban view in Fusebase  – Quick Guide

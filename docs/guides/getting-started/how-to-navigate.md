@@ -2,7 +2,7 @@
 title: "How to navigate"
 url: "https://thefusebase.com/guides/getting-started/how-to-navigate/"
 section: "getting-started"
-lastScraped: "2026-02-28T21:26:15.030Z"
+lastScraped: "2026-09-12T05:16:40.820Z"
 ---
 
 # How to navigate
@@ -21,18 +21,18 @@ If you have several workspaces been invited to a friend’s/colleague’s worksp
 
 The sidebar displays lists the folders and pages in the current workspace. Clicking on a folder expands its structure and shows the subfolders and pages that are in that folder:
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Sidebar-and-Folders-list.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20949%20644'%3E%3C/svg%3E)
 
 ## All Pages [#](#2-toc-title)
 
 If you want to see all the pages that are in the workspace navigate to **All Pages**:
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Frame-2147207153-5-1024x476.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20476'%3E%3C/svg%3E)
 
 ## Folders – list of all folders in workspace [#](#3-toc-title)
 
 Clicking on **Folders** will display a list of all root folders in the workspace:
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Folders-list-of-all-folders-in-workspace-1024x438.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20438'%3E%3C/svg%3E)
 
 Clicking on a folder will reveal its contents (subfolders and pages).

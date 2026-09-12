@@ -2,7 +2,7 @@
 title: "Magic Links"
 url: "https://thefusebase.com/guides/client-portal/magic-links/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:27:02.401Z"
+lastScraped: "2026-09-12T05:17:28.820Z"
 ---
 
 # Magic Links
@@ -19,7 +19,7 @@ You can send an invite to the portal directly from the portal customizer via the
 
 After successfully sending the invite, your client will receive an email with a link for quick access to the portal.
 
-![](https://thefusebase.com/wp-content/uploads/2023/05/image-60-1024x432.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20432'%3E%3C/svg%3E)
 
 When you click on **Access the portal**:
 
@@ -33,19 +33,19 @@ It is important to note that the Magic Link is not permanent and is only active 
 
 If a user without an account opens a closed portal, he sees the following message.
 
-![](https://thefusebase.com/wp-content/uploads/2023/05/image-61-1024x546.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20546'%3E%3C/svg%3E)
 
 If desired, the user can enter his email into the input and click **Send access link**.
 
-![](https://thefusebase.com/wp-content/uploads/2023/05/image-62-1024x883.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20883'%3E%3C/svg%3E)
 
 If the user already has access to the portal, he will see the appropriate message and a link for quick access to the portal will be sent to his email.
 
-![](https://thefusebase.com/wp-content/uploads/2023/05/image-63.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20953%20927'%3E%3C/svg%3E)
 
 If the email does not have access to the portal, there will be an error message.
 
-![](https://thefusebase.com/wp-content/uploads/2023/05/image-64-1024x917.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20917'%3E%3C/svg%3E)
 
 Next, the email of the owner of the organization will receive a message that the new user has requested access to the portal and the owner can manually give access to the portal.
 
@@ -55,7 +55,7 @@ If you urgently need to disable the Magic Link for a specific client, you can do
 
 Navigate to the appropriate workspace and find the desired client in the client list. Then, in the menu, select Deactivate magic link for portal –
 
-![](https://thefusebase.com/wp-content/uploads/2023/05/image-8.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20602%20443'%3E%3C/svg%3E)
 
 After that, the link will become inactive and the user will not be able to use it to access the portal.
 
@@ -69,27 +69,27 @@ You can add additional security to your **Magic link.** You can set a special ke
 2.  Go to the desired workspace with a portal with the Magic link activated.
 3.  Click on the arrow next to the **Magic link without key.**
 
-![Magic link without key. Image powered with FuseBase](https://thefusebase.com/wp-content/uploads/2023/09/magic-link-without-key.png)
+![Magic link without key. Image powered with FuseBase](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20448%20303'%3E%3C/svg%3E)
 
 4.  Select **Magic link with key.**
 
-![Select Magic link with key. Image powered with FuseBase](https://thefusebase.com/wp-content/uploads/2023/09/magic-link-with-key.png)
+![Select Magic link with key. Image powered with FuseBase](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20463%20218'%3E%3C/svg%3E)
 
 5.  Enter the desired key and click **Save changes**.
 
-![Enter the desired key and click on Save changes. Image powered by FuseBase](https://thefusebase.com/wp-content/uploads/2023/09/click-on-save-changes.png)
+![Enter the desired key and click on Save changes. Image powered by FuseBase](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20453%20279'%3E%3C/svg%3E)
 
 ### How to change the key [#](#5-toc-title)
 
 To change the key, open the project settings again and enter the new value. Don’t forget to save it afterward.
 
-![](https://thefusebase.com/wp-content/uploads/2023/09/how-to-save.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20454%20258'%3E%3C/svg%3E)
 
 ### How to disable the key [#](#6-toc-title)
 
 To disable the key, click on the arrow again, select **Magic link without key** and **Save changes.**
 
-![How to disable the key. Image powered by FuseBase](https://thefusebase.com/wp-content/uploads/2023/09/How-to-disable-the-key.png)
+![How to disable the key. Image powered by FuseBase](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20440%20261'%3E%3C/svg%3E)
 
 ### Authorization via email/password [#](#7-toc-title)
 
@@ -98,7 +98,7 @@ You can also allow your visitors to authenticate to the portal by entering their
 2) Go to the workspace with the desired portal.  
 3) Enable the **Login with email and password** option:
 
-![](https://thefusebase.com/wp-content/uploads/2024/04/image-5.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20903%20405'%3E%3C/svg%3E)
 
 ## Unified Link for Multi-Portals [#](#8-toc-title)
 
@@ -108,10 +108,10 @@ For example, if you have 10 clients and you’ve created 10 portals for them, yo
 
 2) In the organization settings, activate the switcher “Enable unified portal link.”
 
-![](https://contact-nimbusweb-co.nimbusweb.me/box/attachment/11017742/8bhu0ktnp1zy997ciggx/2mCxM56w7lmcS2TD/image.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 3) Copy the link
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-23.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20548%20599'%3E%3C/svg%3E)
 
 You can place this link on your website or include it in your email campaigns. When clients click on the link, they will be redirected to their respective portal.

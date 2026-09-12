@@ -2,7 +2,7 @@
 title: "Nimbus Clipper for Firefox"
 url: "https://thefusebase.com/guides/web-clipper/nimbus-clipper-for-firefox/"
 section: "web-clipper"
-lastScraped: "2026-02-28T21:28:05.134Z"
+lastScraped: "2026-09-12T05:18:39.794Z"
 ---
 
 # Nimbus Clipper for Firefox
@@ -28,7 +28,7 @@ The **Article** button will clear any unnecessary elements from the page and dis
 3) After you select the fragment of the web page that you want to clip, the preview window showing your Nimbus note will appear. Specify (1) the name of your note, (2) the folder you want to save it to and (3) its tags in this window. Next, click the Save button to upload the data to Nimbus and create the note there.  
 You also can edit future notes before sending them to Nimbus. For example, if the text includes any unwanted ads, images or links, you can delete them in the edit field or add more text.
 
-![After you select the fragment of the web page that you want to clip, the preview window showing your Nimbus note will appear. ](http://nimbus.everhelper.me/images/previewfragment1.jpg)
+![After you select the fragment of the web page that you want to clip, the preview window showing your Nimbus note will appear. ](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 4) After the note is saved, you will be able to get its direct URL by clicking on **get public link**.  
 Here are answers to some frequently asked questions:
@@ -53,11 +53,11 @@ Open your e-mail service (currently Gmail and Yandex are supported) and press th
 
 1) In the clipper menu you need to select item Save to Nimbus without Share.
 
-![ In the clipper menu you need to select item Save to Nimbus without Share.](http://nimbus.everhelper.me/images/savetoshare.jpg)
+![ In the clipper menu you need to select item Save to Nimbus without Share.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 2) In Settings, enable quick clip button and select Article from the drop-down menu.
 
-![In Settings, enable quick clip button and select Article from the drop-down menu.](http://nimbus.everhelper.me/images/settings555.jpg)
+![In Settings, enable quick clip button and select Article from the drop-down menu.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 3) Then all you need to do is click once on the clipper button to save the article and send it to Nimbus Note.
 
@@ -69,7 +69,7 @@ There are cases in which [Clipper](https://thefusebase.com/clipper/) is unable t
 
 Yes, you can. You just need to select the required option in the app menu.
 
-![Can I send stuff directly to Nimbus Note avoiding the preview window?](http://nimbus.everhelper.me/images/savetoshare555.jpg)
+![Can I send stuff directly to Nimbus Note avoiding the preview window?](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Preview clip – displays preview window.  
 Save to Nimbus – does not display the preview window, but displays share window in [Nimbus Note](https://thefusebase.com/note/).  

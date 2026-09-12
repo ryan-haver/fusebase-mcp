@@ -2,7 +2,7 @@
 title: "Integration with Firefiles – Retrieving a Transcript"
 url: "https://thefusebase.com/guides/automations-and-integrations/integration-with-firefiles-retrieving-a-transcript/"
 section: "automations-and-integrations"
-lastScraped: "2026-02-28T21:27:35.327Z"
+lastScraped: "2026-09-12T05:18:14.800Z"
 ---
 
 # Integration with Firefiles – Retrieving a Transcript
@@ -26,14 +26,14 @@ Then, add two items in the **Headers**:
 a) `Content-Type` – `application/json`  
 b) `Authorization` – `Bearer YOUR_FIREFILES_API_KEY` (You can find your API key in the Firefiles settings: [https://app.fireflies.ai/settings](https://app.fireflies.ai/settings))
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-25.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20839%201021'%3E%3C/svg%3E)
 
 For **Body Type**, select **JSON** and use the code from this link:  
 [https://fusebase.nimbusweb.me/share/11716691/kzq6yf8yi0ux1mutekrp](https://fusebase.nimbusweb.me/share/11716691/kzq6yf8yi0ux1mutekrp)
 
 In the `transcriptId` field, you’ll need to insert the **Meeting ID**, which you can get from the **Webhook trigger**.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-26-1024x557.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20557'%3E%3C/svg%3E)
 
 3) Next, we’ve received the transcript, but it’s in JSON format, and we need a version that’s easy to read. To achieve this, we’ll leverage AI technologies. Create a new action – AI Assistant.
 
@@ -45,18 +45,18 @@ In **@Transcript**, select the transcript data retrieved from the **HTTP Request
 
 This will give the assistant all the necessary data—timestamps, speakers, and phrases—for proper formatting.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-27-1024x703.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20703'%3E%3C/svg%3E)
 
 4) Next, we need to create a page with the transcript content. To do this, add the Create Page in Internal Space action and select the desired workspace and folder where the page should be placed.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-28-1024x650.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20650'%3E%3C/svg%3E)
 
 For Page Name, use the meeting name retrieved from the Send HTTP Request action. For Page Content, select the result from the AI Assistant (the formatted transcript).
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-29-1024x714.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20714'%3E%3C/svg%3E)
 
 If needed, you can also add the audio recording of the meeting directly to the page. You can retrieve the audio file link from the Send HTTP Request action and insert it into the page alongside the transcript.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-30-1024x670.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20670'%3E%3C/svg%3E)
 
 You can leave the other settings as they are. Next, publish the automation, and you’re ready to test the result!

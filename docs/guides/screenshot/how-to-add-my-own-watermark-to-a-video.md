@@ -2,7 +2,7 @@
 title: "How to add my own watermark to a video?"
 url: "https://thefusebase.com/guides/screenshot/how-to-add-my-own-watermark-to-a-video/"
 section: "screenshot"
-lastScraped: "2026-02-28T21:27:56.196Z"
+lastScraped: "2026-09-12T05:18:29.104Z"
 ---
 
 # How to add my own watermark to a video?
@@ -30,6 +30,6 @@ To get started, you can watch this video showing basic Watermark features.
 
 4) Specify the watermark location on the video.
 
-![Specify the watermark location on the video.](https://thefusebase.com/images/wateren5.jpg)
+![Specify the watermark location on the video.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Now watermarks will be added to all of your videos automatically.

@@ -2,7 +2,7 @@
 title: "Create the Client Portal"
 url: "https://thefusebase.com/guides/client-portal/creation/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:59.313Z"
+lastScraped: "2026-09-12T05:17:26.010Z"
 ---
 
 # Create the Client Portal
@@ -29,15 +29,15 @@ It’s a starting point, where you can choose a Portal name, subdomain, and them
 
 -   Enter the Name and Subdomain of the Portal👇
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/image-1-1024x489.jpg)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20489'%3E%3C/svg%3E)
 
 -   Choose what you will use a client portal for 👇
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/image-2-1024x490.jpg)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20490'%3E%3C/svg%3E)
 
 -   Choose the theme for your Portal👇
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/image-3-1024x485.jpg)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20485'%3E%3C/svg%3E)
 
 🚩On the portal you’ll have a meeting pages as a showcase, with some sections – you can delete them and add yours in the settings.
 

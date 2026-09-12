@@ -2,7 +2,7 @@
 title: "Move blocks, pages and folders using drag-n-drop"
 url: "https://thefusebase.com/guides/basics/move-blocks-pages-and-folders-using-drag-n-drop/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:29.316Z"
+lastScraped: "2026-09-12T05:16:52.012Z"
 ---
 
 # Move blocks, pages and folders using drag-n-drop
@@ -24,4 +24,4 @@ You can also move any folder (except the default one) to another folder. This wi
 -   In the folders list, hover over the folder you want to move.
 -   Hold down the left mouse button and drag the folder to the other desired folder.
 
-[Embedded content](https://www.youtube.com/embed/K7yFh03LWEE?feature=oembed)
+[Embedded content](about:blank)

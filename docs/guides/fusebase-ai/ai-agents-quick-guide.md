@@ -2,7 +2,7 @@
 title: "AI Agents – Quick Guide"
 url: "https://thefusebase.com/guides/fusebase-ai/ai-agents-quick-guide/"
 section: "fusebase-ai"
-lastScraped: "2026-02-28T21:27:17.099Z"
+lastScraped: "2026-09-12T05:17:40.352Z"
 ---
 
 # AI Agents – Quick Guide
@@ -22,7 +22,7 @@ It’s important to note that the apps are tightly integrated into the Fusebase 
 
 Before reading the guide, you can watch a video where we outline the main features of agents and how to set them up for your needs.
 
-[Embedded content](https://www.youtube.com/embed/pbiaBBKn6CU?feature=oembed)
+[Embedded content](about:blank)
 
 ## Creating Your First AI Agent [#](#0-toc-title)
 
@@ -36,7 +36,7 @@ It’s important to note that apps can be used not only by you, but also by:
 
 1) Go to the Agents section and click “Add new.”
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-44-1024x540.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20540'%3E%3C/svg%3E)
 
 2) In the window that appears, you’ll see the settings for your new agent. In the Title field, enter the name of the agent.
 
@@ -44,7 +44,7 @@ In the Description, briefly explain what your app does. This helps other members
 
 3) Next, it is necessary to create a mini form through which users can add text for translation and specify the desired language.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-13.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201945%201345'%3E%3C/svg%3E)
 
 In addition to text fields, you can also allow users to upload a file. For example, when using the app, a user can upload a document and have it translated. We support various file formats — from images to documents.
 
@@ -58,11 +58,11 @@ When writing your prompt, don’t forget to select the necessary fields from the
 
 It is also possible to immediately add several additional conditions. For example, you can ask not to add your own comments, maintain a neutral tone, and not add extra formatting to the text.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-2.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201347%201140'%3E%3C/svg%3E)
 
 5) Next, click Publish changes to save and publish your app, making it available to users in your organization.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-3.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201221%201365'%3E%3C/svg%3E)
 
 Now let’s try out our app. Click Start, enter the text you want to translate, and let’s try translating it into French.
 
@@ -86,7 +86,7 @@ Let’s try creating an AI app for Customer Success that can answer questions ba
 
 2) Next, add a field where your team members will enter their questions.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-4.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20925%20937'%3E%3C/svg%3E)
 
 3) Now you need to define the prompt, specifying what the agent should do — namely, answer the questions entered in the field. Don’t forget to specify that the questions should be taken from the **Your question** field. You can also add a set of rules — for example, instruct the assistant not to make up answers if it’s unsure of the correct response.
 
@@ -94,13 +94,13 @@ Prompt example:
 
 **I’m customer suport agent and i received the following question for user: @Your Question** **Please help me answer the question, based on our relevant product documentation. If you can’t find a specific answer, direct me to our help center instead. If you can’t find the answer, ask clarifying questions. If those don’t help, say that you couldn’t find the answer in the database. I forbid you from making up answers if you’re not confident in their accuracy.**
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-5.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201279%201357'%3E%3C/svg%3E)
 
 Next, you need to go to Sources and select the folders or pages that the assistant will use to generate answers.
 
 It’s important to note that you can also reference specific folders or pages from Sources directly in the prompt if needed. In the case of the assistant, this isn’t necessary — but, for example, you might want to point to a specific page (to use it as a template) or a particular folder. To do this, simply type @ and select the relevant item from the list.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/add-mention.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201028%20948'%3E%3C/svg%3E)
 
 Now let’s publish the changes and launch our app. Let’s test it with a simple question that’s often asked in our support.
 
@@ -118,7 +118,7 @@ You can read more about the functionality in this article – [https://thefuseba
 
 Our agents can also perform web searches to retrieve relevant information. To do this, you can use the **Web Search** option.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-14.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201948%201329'%3E%3C/svg%3E)
 
 For example, let’s say you need an agent that searches for the latest news about your competitors. You simply create an agent and provide a prompt like this:
 
@@ -144,7 +144,7 @@ For example, the agent can summarize articles from the current page or help resp
 
 To include content from the open page in the prompt, just press @ and select Webpage content.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-15.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20957%20936'%3E%3C/svg%3E)
 
 Example prompt: **Analyze and summarize content from @Webpage content**
 
@@ -164,19 +164,19 @@ Currently, our agents can work with:
 
 You can create a new page in Fusebase from the agent’s response. Moreover, you can even save the response to an existing page, thereby enriching it with new information. You can do this by clicking the corresponding icon below the agent’s response –
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-28.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201840%201112'%3E%3C/svg%3E)
 
 If you want to create a new page with the agent’s response, click on the desired folder and press Create page –
 
-![](https://thefusebase.com/wp-content/uploads/2025/01/save-to-fusebase.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201306%201376'%3E%3C/svg%3E)
 
 If you want to enrich an existing page, click on the desired one and press Add to page –
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-33.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201365%201367'%3E%3C/svg%3E)
 
 You can also speed up saving responses by enabling the Save choice switch. In this case, the agent remembers your selection, and you can save to a page or create a new one with a single click.
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-34.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201357%201366'%3E%3C/svg%3E)
 
 ## **Agent Access Management** [#](#6-toc-title)
 
@@ -184,7 +184,7 @@ By default, agents are available to all organization members, but you can manage
 
 To do this, go to the agent settings in the Visibility tab.
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-30-1024x744.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20744'%3E%3C/svg%3E)
 
 Then, choose the appropriate option:
 
@@ -192,6 +192,6 @@ Only for me – the agent will be visible only to you
 For all members and clients – all members and clients of the organization will have access to the agent  
 For specific members – select specific members who will have access to the agent.
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-32-1024x870.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20870'%3E%3C/svg%3E)
 
 After selecting, click Publish to save the changes.

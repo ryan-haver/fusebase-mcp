@@ -2,7 +2,7 @@
 title: "Custom Subdomains (CNAME)"
 url: "https://thefusebase.com/guides/branding/custom-subdomains-cname/"
 section: "branding"
-lastScraped: "2026-02-28T21:27:25.811Z"
+lastScraped: "2026-09-12T05:18:06.103Z"
 ---
 
 # Custom Subdomains (CNAME)
@@ -19,15 +19,17 @@ You can also add your own personalized [branding](https://thefusebase.com/guides
 
 As the look may differ based on your domain registrar, adding a subdomain to your [Fusebase](https://thefusebase.com/note/) account **usually** requires the following steps.
 
-1\. Go to the business console at [https://teams.nimbusweb.me/](https://teams.nimbusweb.me/) and open your organization’s settings page.
+1\. Click on the settings icon and select Custom Domain.
 
-2\. In the **Custom domain (optional)** input field, enter your desired subdomain (make sure to include the subdomain together with your domain), for example: `org.example.com`, and save the changes.
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20542'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/image-36-1024x658.png)
+2\. In the **Enter your custom domain** input field, enter your desired subdomain (make sure to include the subdomain together with your domain), for example: `org.example.com`, and save the changes.
+
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20643'%3E%3C/svg%3E)
 
 3\. Copy the URL of your current subdomain on nimbusweb.me. This will be needed for adding the CNAME.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/image-37-1024x559.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20651'%3E%3C/svg%3E)
 
 4\. Log in to your domain registrar.
 
@@ -39,7 +41,11 @@ For example. Your website is example.com and you want FuseBase to be on your sub
 
 Please note: in very rare cases in HOST filed you need to put org.example.com instead of just subdomain “org” . You console will point it out for you.
 
-![Adding a subdomain to your Nimbus Note account](https://app.nimbusweb.me/box/attachment/4488155/w5kcd39m0no48erur41e/rsPNt57WeGVppX1E/preview.png)
+![Adding a subdomain to your Nimbus Note account](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+
+7\. After you have added the CNAME record, click Verify DNS and wait until it becomes active.
+
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20654'%3E%3C/svg%3E)
 
 ## Check Domain Propagation Status [#](#b1472408971_11844)
 
@@ -51,11 +57,11 @@ In case you have NS-servers set in your registrar, then you should add CNAME rec
 
 1) Open domain control panel in DirectAdmin and click DNS Management.
 
-![How to add CNAME via DirectAdmin](https://app.nimbusweb.me/box/attachment/4488155/w5kcd39m0no48erur41e/EmJ6HJRMpoLCLJUf/image.png)
+![How to add CNAME via DirectAdmin](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 2) Input necessary data into CNAME fields. The left field is for subdomain names. For instance, if you have pages.yourdomain.com, then you should enter “pages” as the name. In the True values field, you should add the link to your subdomain in FuseBase—for example, your-company.nimbusweb.me. (with a dot at the end). Then press the Add button and wait for DNS records to be updated (which usually takes around 1-2 hours).
 
-![How to add CNAME via DirectAdmin](https://app.nimbusweb.me/box/attachment/4488155/w5kcd39m0no48erur41e/aHgrcpFJ7pMUU3Rz/image.png)
+![How to add CNAME via DirectAdmin](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## How to add CNAME via Cpanel [#](#b3821783491_677)
 
@@ -67,23 +73,23 @@ In case you have NS-servers set in your registrar, then you should add CNAME rec
 
 4) Choose CNAME and click Add Record.
 
-![How to add CNAME via Cpanel](https://app.nimbusweb.me/box/attachment/4488155/w5kcd39m0no48erur41e/4BoVUOc3Kp65R4aB/%D0%B8%D0%B7%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5.png)
+![How to add CNAME via Cpanel](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 5) Fill in the Name field with the same URL you used in the Custom domain field.
 
-![How to add CNAME via Cpanel](https://app.nimbusweb.me/box/attachment/4488155/w5kcd39m0no48erur41e/5gfl0PskrzRCpKXm/%D0%B8%D0%B7%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20661'%3E%3C/svg%3E)
 
 It’s necessary to put a dot at the end. For example nimbus.mycompany.com.
 
 In the CNAME field, fill the URL of your subdomain with nimbusweb.
 
-![How to add CNAME via Cpanel](https://app.nimbusweb.me/box/attachment/4488155/w5kcd39m0no48erur41e/NdF7RZyVm1OLBBaw/%D0%B8%D0%B7%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20649'%3E%3C/svg%3E)
 
 For example mycompany.nimbusweb.me
 
 6) Then click Add CNAME Record –
 
-![How to add CNAME via Cpanel](https://app.nimbusweb.me/box/attachment/4488155/w5kcd39m0no48erur41e/TnmPuLhIwI6pJGoq/%D0%B8%D0%B7%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5.png)
+![How to add CNAME via Cpanel](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## More Links [#](#b1472408971_11906)
 
@@ -121,6 +127,6 @@ For example mycompany.nimbusweb.me
 
 If you use Cloudflare to manage domains, remember to turn off proxying when you add a CNAME record.
 
-![](https://contact-nimbusweb-co.nimbusweb.me/box/attachment/8880643/05sr0fzvfnrmhtxgp7s7/As64EwdWmj2PkXVL/4PMQjD9l4Q.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 If proxying is not disabled, it can negatively affect the client’s performance.

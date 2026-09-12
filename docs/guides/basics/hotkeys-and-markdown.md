@@ -2,7 +2,7 @@
 title: "Hotkeys and Markdown"
 url: "https://thefusebase.com/guides/basics/hotkeys-and-markdown/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:23.364Z"
+lastScraped: "2026-09-12T05:16:50.285Z"
 ---
 
 # Hotkeys and Markdown
@@ -30,7 +30,7 @@ Easily change headings, lists, fonts or objects to make your document more dynam
 -   Add emoji – **:**
 -   Open the object menu – **/** (forward slash)
 
-![Easily change headings, lists, fonts or objects to make your document more dynamic.](https://app.nimbusweb.me/box/attachment/4475433/xc9nssvh37y94fu36k7q/SQtfkqr52WGaJJxJ/1_creating_checkbox_Trim_1%20(3).gif)
+![Easily change headings, lists, fonts or objects to make your document more dynamic.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### Quick access to the object menu [#](#b758700758_632)
 
@@ -116,8 +116,8 @@ With the help of these hotkeys you can create various objects. They can only be 
 -   Type **“** (regular quotes) and a space to create a quote
 -   Type **“\`** (back quote) and a space to create a block of code
 
-![With the help of these hotkeys you can create various objects. They can only be used at the beginning of a line.](https://app.nimbusweb.me/box/attachment/4475433/xc9nssvh37y94fu36k7q/oiMhSxkQpilu5c6E/block%20of%20code_Trim%202.gif)
+![With the help of these hotkeys you can create various objects. They can only be used at the beginning of a line.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 If you want to disable the markdown, go to Settings – Editor and turn off the Enable Markdown toggle.
 
-![If you want to disable the markdown, go to Settings - Editor and turn off the Enable Markdown toggle.](https://app.nimbusweb.me/box/attachment/4475433/xc9nssvh37y94fu36k7q/6YguvjqYlrvuJ5Xn/960w_2358_off_markdown_2.gif)
+![If you want to disable the markdown, go to Settings - Editor and turn off the Enable Markdown toggle.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)

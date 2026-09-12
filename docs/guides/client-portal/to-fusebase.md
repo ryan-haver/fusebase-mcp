@@ -2,7 +2,7 @@
 title: "Switching from the Customiser"
 url: "https://thefusebase.com/guides/client-portal/to-fusebase/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:55.811Z"
+lastScraped: "2026-09-12T05:17:19.667Z"
 ---
 
 # Switching from the Customiser
@@ -20,14 +20,14 @@ Here you can
 -   Open a page created in the Portal Editor in the **Customiser** (click on the page).
 -   Add a new page or folder by clicking on the **plus** or **Add item**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/09/plus-or-Add-item-1024x418.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20418'%3E%3C/svg%3E)
 
 -   Go to the Customiser by clicking the **Visual Editor**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/09/Visual-Editor-1024x646.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20646'%3E%3C/svg%3E)
 
 ## Go to the FuseBase workspace from the Portal Customiser [#](#b576038340_1391)
 
 When working in the **Portal Customiser**, you can always return to the **FuseBase workspace** by clicking the **Back button** in the top bar of the **Customiser**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/09/Portal-Customiser-1024x400.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20400'%3E%3C/svg%3E)

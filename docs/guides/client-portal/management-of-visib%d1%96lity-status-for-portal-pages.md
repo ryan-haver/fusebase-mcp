@@ -2,14 +2,14 @@
 title: "Management of Visibіlity status for portal pages"
 url: "https://thefusebase.com/guides/client-portal/management-of-visib%d1%96lity-status-for-portal-pages/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:56.313Z"
+lastScraped: "2026-09-12T05:17:22.787Z"
 ---
 
 # Management of Visibіlity status for portal pages
 
 The Fusebase portal has multiple pages with various information. You can navigate them by using either the **sidebar** or the **topbar**.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/visibility-status-1-1024x479.jpg)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20479'%3E%3C/svg%3E)
 
 Sometimes you may want to hide some old pages, for example, if they’re no longer essential or if you’re changing their details and need to temporarily remove them from the site. For these situations, pages have two visibility settings:
 
@@ -24,23 +24,23 @@ Generally, all new pages are Visible by default, but this can be changed.
 
 2.  Select the page you wish to change from the **Edit** tab, for example, the Sidebar. Move the mouse over the tab and click the **Edit** icon.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/visibility-status-2-1024x502.jpg)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20502'%3E%3C/svg%3E)
 
 3.  Click on the **Menu** of the selected page:
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/visibility-status-3.jpg)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20596%20564'%3E%3C/svg%3E)
 
 4.  Toggle the **Visibility Switcher** to the desired state:
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/visibility-status-4.jpg)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20610%20525'%3E%3C/svg%3E)
 
 🚩 Note that a hidden page will look different.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/visibility-status-5.jpg)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20602%20525'%3E%3C/svg%3E)
 
 5.  Save your changes by clicking **Publish**:
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/visibility-status-6-1024x454.jpg)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20454'%3E%3C/svg%3E)
 
 ## How do I change the visibility status via the sidebar in the web version? [#](#b2415120592_1652)
 
@@ -48,11 +48,11 @@ Generally, all new pages are Visible by default, but this can be changed.
 
 2.  Select the page you wish to edit in the portal area and click on the **Menu**:
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/visibility-status-7.jpg)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20685%20561'%3E%3C/svg%3E)
 
 3.  Toggle the **Visibility Switcher** to the desired state:
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/visibility-status-8.jpg)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20684%20472'%3E%3C/svg%3E)
 
 🚩 If you change the status using the web version, you don’t need to click Publish
 
@@ -62,14 +62,14 @@ To change the visibility status using the top bar of the web version, follow the
 
 1.  Open the required portal page in the Web Version (click on the page):
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/visibility-status-9-1024x386.jpg)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20386'%3E%3C/svg%3E)
 
 2.  Click **Added to Portal**:
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/visibility-status-10-1024x368.jpg)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20368'%3E%3C/svg%3E)
 
 3.  Toggle the **Visibility Switcher** to the desired state:
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/visibility-status-11-1024x362.jpg)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20362'%3E%3C/svg%3E)
 
 🚩If you change the status using the web version, you don’t need to click **Publish**

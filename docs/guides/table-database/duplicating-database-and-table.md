@@ -2,7 +2,7 @@
 title: "Duplicating database and table"
 url: "https://thefusebase.com/guides/table-database/duplicating-database-and-table/"
 section: "table-database"
-lastScraped: "2026-02-28T21:27:59.276Z"
+lastScraped: "2026-09-12T05:18:33.780Z"
 ---
 
 # Duplicating database and table
@@ -19,6 +19,6 @@ To duplicate a table, click on the Duplicate option in the table menu.
 
 If you need a full duplicate, including all data rows, activate the Duplicate rows switch. If you only need the columns, leave it inactive.
 
-![](https://thefusebase.com/wp-content/uploads/2026/01/image-41-1024x659.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20659'%3E%3C/svg%3E)
 
 Then click Duplicate and wait for the duplication process to complete.

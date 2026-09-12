@@ -2,7 +2,7 @@
 title: "Automating Video Transcription (Summary Generation + Email Delivery)"
 url: "https://thefusebase.com/guides/automations-and-integrations/automating-video-transcription-summary-generation-email-delivery/"
 section: "automations-and-integrations"
-lastScraped: "2026-02-28T21:27:38.661Z"
+lastScraped: "2026-09-12T05:18:11.547Z"
 ---
 
 # Automating Video Transcription (Summary Generation + Email Delivery)
@@ -21,15 +21,15 @@ To start, we need to add the **File Upload** trigger.
 
 3) Select the file upload location that the trigger should respond to. This can be either a portal or a workspace. In our case, we select **workspace** and then choose the desired one from the list.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-14-1024x632.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20632'%3E%3C/svg%3E)
 
 4) Next, you can select more specific parameters, such as the page where the trigger will respond, the file type, or even the user. For example, you can configure the trigger to respond only to image uploads and only from a specific member.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-15-1024x745.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20745'%3E%3C/svg%3E)
 
 5) Click the “Load data” button to load sample data. This is important for the following steps.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-16-1024x746.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20746'%3E%3C/svg%3E)
 
 ## Adding the Transcribe Action [#](#1-toc-title)
 
@@ -39,11 +39,11 @@ Next, you need to add the **Transcribe** action to extract text from the video.
 
 2) In the “Action” section, select Fusebase -> Transcribe from the dropdown list.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-17-1024x722.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20722'%3E%3C/svg%3E)
 
 3) In the **File URL** field, we need to select the file that will be transcribed. Choose **File Upload** and click on **FileUrl**.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-18-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 4) In the “Response format” section, select “Plain text” from the dropdown list.
 
@@ -57,19 +57,19 @@ Next, we need to generate a summary of the transcript. To do this, use the **ASK
 
 2) In the “Action” section, select Fusebase -> Ask Fusebase AI from the dropdown list.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-19-1024x697.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20697'%3E%3C/svg%3E)
 
 3) In the “AI Prompt” section, select “Summarize” from the dropdown list.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-20-1024x725.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20725'%3E%3C/svg%3E)
 
 4) In the **Context** field, you need to pass the content of the transcript. To do this, select the **Result** parameter from the **Transcribe** step.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-21-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 5) Select **HTML** in the **Response format**. This is necessary for proper formatting in the email.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-22-1024x747.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20747'%3E%3C/svg%3E)
 
 6) Click the “Test step” button to load sample data. This is important for the following steps.
 
@@ -79,24 +79,24 @@ Next, let’s set up the email to send the summary to the author who uploaded th
 
 1) In the “Action” section, select “Send an Email” from the dropdown list.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-23-1024x721.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20721'%3E%3C/svg%3E)
 
 2) In the “Recipient” section, select “User email from the trigger or action” from the dropdown list. In the **User email** field, select the file uploader from the first step, **File Upload**. This will ensure the email is sent to the author who uploaded the file.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-24-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 3) In the “Email Subject” section, type “Video transcription” (or something else).
 
 4) In the **Body** of the email, we add the result of the **Ask Fusebase AI** action. This will include the generated summary of the transcript.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-25-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 5) In the **CTA** (Call to Action), you can add a button to the email. For example, you can link it to the page with the video. This allows the recipient to easily access the uploaded video directly from the email.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-29-1024x544.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
 
 Click the “Publish” button to publish the automation flow.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-28-1024x732.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20732'%3E%3C/svg%3E)
 
 Next, we can test our flow. To do this, simply upload a video to the selected workspace. This will trigger the automation, and you can verify that the transcription, summary, and email processes are working as expected.

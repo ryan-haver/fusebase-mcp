@@ -2,7 +2,7 @@
 title: "Tag automation: Quick Guide"
 url: "https://thefusebase.com/guides/automations-and-integrations/tag-automation-quick-guide/"
 section: "automations-and-integrations"
-lastScraped: "2026-02-28T21:27:31.687Z"
+lastScraped: "2026-09-12T05:18:07.518Z"
 ---
 
 # Tag automation: Quick Guide
@@ -35,7 +35,7 @@ In our case, we’ll try a simple option – create summaries of the pages and s
 
 2) As the trigger, use a manual run. But you can also set it to run on a schedule via the scheduler.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-2-1024x517.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20517'%3E%3C/svg%3E)
 
 3) Next, in actions select **Fusebase → Get all pages by tag**. Choose the workspace and the tag or tags from which you want to get the list of pages. If you select 2+ tags, you can also choose an operator:
 
@@ -43,23 +43,23 @@ In our case, we’ll try a simple option – create summaries of the pages and s
 
 **AND** – shows pages that have all the selected tags
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-3-1024x686.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20686'%3E%3C/svg%3E)
 
 Don’t forget to click Test Step to get the data for the next step –
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-4-1024x634.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20634'%3E%3C/svg%3E)
 
 4) If you have many pages with these tags, you need the assistant to go through each page for correct analysis. To do this, add a **Loop** action.
 
 In **Items** for the Loop, specify **Pages** from the **Get all pages by tag** action.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-5-1024x545.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20545'%3E%3C/svg%3E)
 
 Don’t forget to click Test Step to get the data for the next step.
 
 5) Click on + in the Loop and select AI Assistant there.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-6-1024x674.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20674'%3E%3C/svg%3E)
 
 Select the required workspace and write the prompt. In our case, the prompt should be something like:
 
@@ -67,16 +67,16 @@ Select the required workspace and write the prompt. In our case, the prompt shou
 
 Instead of the asterisk, specify the globalid from the Loop –
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-7-1024x691.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20691'%3E%3C/svg%3E)
 
 This will allow you to pass the page ID to the assistant, and based on it the assistant will understand which page needs to be analyzed.
 
 6) Next, you need to add the information from the assistant to a page. You can create the page within the flow using the **Create Page** action (for example, before the Loop) or use an existing one. In our case, we already have a page, and then within the Loop we add a new **Update page** action.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-8-1024x610.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20610'%3E%3C/svg%3E)
 
 Specify the page where the summaries will be added. In the **Content** parameter, specify the AI assistant’s response from the previous action.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-9-1024x730.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20730'%3E%3C/svg%3E)
 
 Everything is ready, and you can now publish your flow and run it.

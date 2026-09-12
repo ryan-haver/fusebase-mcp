@@ -2,7 +2,7 @@
 title: "Personal | Protect Embeds via password"
 url: "https://thefusebase.com/guides/embedding-sharing/personal-protect-embeds-via-password/"
 section: "embedding-sharing"
-lastScraped: "2026-02-28T21:27:41.611Z"
+lastScraped: "2026-09-12T05:18:18.355Z"
 ---
 
 # Personal | Protect Embeds via password

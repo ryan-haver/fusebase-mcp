@@ -2,7 +2,7 @@
 title: "Embed Miro"
 url: "https://thefusebase.com/guides/embedding-sharing/embed-miro/"
 section: "embedding-sharing"
-lastScraped: "2026-02-28T21:27:47.833Z"
+lastScraped: "2026-09-12T05:18:19.730Z"
 ---
 
 # Embed Miro
@@ -35,18 +35,18 @@ lastScraped: "2026-02-28T21:27:47.833Z"
 -   Paste the link into the page by using **Cmd/Ctrl**+**V**, or by right-clicking and selecting **Paste**.
 -   Select **Embed**.
 
-![Adding Miro embed to Nimbus Note](https://app.nimbusweb.me/box/attachment/5004037/bm25wapvb55t3o9qcllc/GHcZnnWo0FnoZndv/miro7.gif)
+![Adding Miro embed to Nimbus Note](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### Resize Embeds [#](#b702295368_44)
 
 -   Drag the upper-right corner and resize (all proportions will be preserved).
 
-![Drag the upper-right corner and resize (all proportions will be preserved).](https://app.nimbusweb.me/box/attachment/5004037/bm25wapvb55t3o9qcllc/I582pNpJsfrTT0Fn/Group%20129.png)
+![Drag the upper-right corner and resize (all proportions will be preserved).](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   For free resizing, hold the ALT key and change the size using the bottom-right chip.
 
-![For free resizing, hold the ALT key and change the size using the bottom-right chip.](https://app.nimbusweb.me/box/attachment/5004037/bm25wapvb55t3o9qcllc/B7hGEVFEP00sDLO9/Group%20128.png)
+![For free resizing, hold the ALT key and change the size using the bottom-right chip.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **Note: To return the embed to its original position, use the hotkey Ctrl + Z, or click the three dots and select Undo.**
 
-![To return the embed to its original position, use the hotkey Ctrl + Z, or click the three dots and select Undo.](https://app.nimbusweb.me/box/attachment/5004037/bm25wapvb55t3o9qcllc/BaUrhTh56mBkmr2Y/Group%20127.png)
+![To return the embed to its original position, use the hotkey Ctrl + Z, or click the three dots and select Undo.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)

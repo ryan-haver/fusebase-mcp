@@ -2,7 +2,7 @@
 title: "Embed Google Maps"
 url: "https://thefusebase.com/guides/embedding-sharing/embed-google-maps/"
 section: "embedding-sharing"
-lastScraped: "2026-02-28T21:27:50.582Z"
+lastScraped: "2026-09-12T05:18:25.396Z"
 ---
 
 # Embed Google Maps
@@ -32,21 +32,21 @@ First, you need to build a route in Google Maps:
 -   Open the [Google Maps](https://www.google.com/maps) page
 -   Select the first location and click **Directions**.
 
-![Select the first location and click Directions.](https://app.nimbusweb.me/box/attachment/4615087/irlguo3pa5g7et5pa0i3/dFEJSCY6CYOpmbqu/Group%2012%20(6).png)
+![Select the first location and click Directions.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   Enter the second location and click **Details**.
 
-![Enter the second location and click Details.](https://app.nimbusweb.me/box/attachment/4615087/irlguo3pa5g7et5pa0i3/7MHPSWkjYBSeo1RA/Group%2013%20(5).png)
+![Enter the second location and click Details.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   Click the **Share** icon.
 
-![Click the Share icon.](https://app.nimbusweb.me/box/attachment/4615087/irlguo3pa5g7et5pa0i3/yTIamfDcHfxt9WUK/Group%2014%20(4).png)
+![Click the Share icon.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   Go to the **Embed a map** tab in the popup.
 -   **Copy** the html code.
 
 ![Go to the Embed a map tab in the popup.
-](https://app.nimbusweb.me/box/attachment/4615087/irlguo3pa5g7et5pa0i3/D5pt9GQr0m82DKBK/Group%2015%20(4).png)
+](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Adding Embedded Google Maps to FuseBase [#](#b579081867_795)
 
@@ -55,8 +55,8 @@ Next go to [FuseBase](https://thefusebase.com/).
 -   Open the page you need.
 -   Click on the arrow and select **Embed** or **cmd/ctrl** \+ **⌥/alt** + **m**.
 
-![Adding Embedded Google Maps to FuseBase](https://thefusebase.com/wp-content/uploads/2022/08/Group-16-4.png)
+![Adding Embedded Google Maps to FuseBase](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20858%20544'%3E%3C/svg%3E)
 
 -   Paste the previously copied code.
 
-![Adding Embedded Google Maps to FuseBase](https://thefusebase.com/wp-content/uploads/2022/08/Group-17-5-1024x621.png)
+![Adding Embedded Google Maps to FuseBase](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20621'%3E%3C/svg%3E)

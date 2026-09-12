@@ -2,7 +2,7 @@
 title: "FuseBase Automation – Quick Guide"
 url: "https://thefusebase.com/guides/automations-and-integrations/fusebase-automation-quick-guide/"
 section: "automations-and-integrations"
-lastScraped: "2026-02-28T21:26:11.985Z"
+lastScraped: "2026-09-12T05:16:37.702Z"
 ---
 
 # FuseBase Automation – Quick Guide
@@ -24,7 +24,7 @@ To access the automation module, click on the corresponding icon in the organiza
 
 Upon first opening, you will land on the main page of the module:
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-1.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201600%20756'%3E%3C/svg%3E)
 
 Let’s walk through the main elements of the automation module:
 
@@ -40,15 +40,15 @@ Here, you will find a list of all triggered runs and their statuses. Each trigge
 
 Here, you will find a list of services you want to integrate with FuseBase:
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-2-1024x473.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20473'%3E%3C/svg%3E)
 
 To add a new service, click on “New Connections” and select the desired service from the list:
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-3.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201124%20563'%3E%3C/svg%3E)
 
 Next, you need to connect your account. Don’t worry—you won’t need to enter your email/password; usually, a special Client ID or API Token, which is easy to find in the account settings, will suffice:
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-4.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20809%20568'%3E%3C/svg%3E)
 
 **Usage**
 
@@ -66,63 +66,63 @@ Let’s create our first flow. Assume it will look like this:
 
 2) Add Monday and Slack to Connections:
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-5.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201125%20568'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-6.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20691%20536'%3E%3C/svg%3E)
 
 3) Go to Flows and select Build Flow:
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-7.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201535%20704'%3E%3C/svg%3E)
 
 4) First, select the trigger that will initiate the entire flow. In our case, it’s adding a client in Monday. Select Monday as the trigger:
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-8.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201175%20594'%3E%3C/svg%3E)
 
 Next, specify your account and the necessary table:
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-9.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201180%20726'%3E%3C/svg%3E)
 
 5) Then, click on Test Trigger. This is necessary to obtain data for actions:
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-11.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201173%20722'%3E%3C/svg%3E)
 
 6) Next, create an action. In our case, this is inviting the client to the Fusebase portal. Click on + and select Fusebase:
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-12.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201163%20639'%3E%3C/svg%3E)
 
 To invite the client, we need an email. We take it from the trigger (this is why we did the Test Trigger):
 
-![](https://contact-nimbusweb-co.nimbusweb.me/box/attachment/11023531/2omisotayc9pz7zbpvi6/cKhCt5pgQOuxNOkE/image.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 In the Monday table, we created a special column for the email. This is what we will specify:
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-13.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20793%20592'%3E%3C/svg%3E)
 
 Next, specify the client’s name (also taken from Monday) and the portal to which the client will be invited:
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-14.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201224%20623'%3E%3C/svg%3E)
 
 8) Next, we want to send a message in Slack. Click on + and select Slack:
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-15.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201205%20705'%3E%3C/svg%3E)
 
 9) Then, choose the appropriate channel and message (we chose “Client (client’s email) invited to portal (portal URL)”):
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-16.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201177%20745'%3E%3C/svg%3E)
 
 10) Next, click on Publish to save our flow:
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-17.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201202%20737'%3E%3C/svg%3E)
 
 11) After publication, our flow is displayed in the list:
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-18.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201202%20737'%3E%3C/svg%3E)
 
 12) To run the flow, the trigger must be activated. In our case, this is adding a client to the Monday table. You can check the flow’s operation through Runs, where you will find a list of all triggered automation runs, both successful and unsuccessful.
 
 ## Current list of triggers and actions for FuseBase automation [#](#2-toc-title)
 
-Here you will find a complete list of all automations supported by the service – [https://roadmap-fusebase.nimbusweb.me/automation-service-list](https://roadmap-fusebase.nimbusweb.me/automation-service-list). The list is constantly being updated.
+Here you will find a complete list of all automations supported by the service – [https://roadmap-fusebase.thefusebase.com/automation-service-list](https://roadmap-fusebase.thefusebase.com/automation-service-list). The list is constantly being updated.
 
 ## When attempting to connect to Google Drive, an error appears: “This app is blocked.” How can I resolve this issue? [#](#3-toc-title)
 
@@ -132,22 +132,22 @@ This issue typically occurs for Google Workspace users. To resolve it, you need 
 
 2) Click on “Configure new app.”
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-84-1024x512.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20512'%3E%3C/svg%3E)
 
 3) Enter the following Client ID into the input field: **904699785772-pkl5gottrorpshnisthjg13ssn9jvob4.apps.googleusercontent.com**
 
 Click on Fusebase –
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-89-1024x539.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20539'%3E%3C/svg%3E)
 
 4) Next, select All users and choose Continue –
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-86-1024x545.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20545'%3E%3C/svg%3E)
 
 5) Next, click on Trusted and then press Continue.
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-87-1024x648.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20648'%3E%3C/svg%3E)
 
 6) Next, click on Finish to complete the setup. After 5-10 minutes, try connecting to Google Drive again.
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-88-1024x602.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20602'%3E%3C/svg%3E)

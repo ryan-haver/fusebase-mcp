@@ -2,7 +2,7 @@
 title: "Importing into a table from CSV – Quick Guide"
 url: "https://thefusebase.com/guides/table-database/importing-into-a-table-from-csv-quick-guide/"
 section: "table-database"
-lastScraped: "2026-02-28T21:27:59.182Z"
+lastScraped: "2026-09-12T05:18:33.721Z"
 ---
 
 # Importing into a table from CSV – Quick Guide
@@ -23,16 +23,16 @@ You can import into either a new table or an existing one. Let’s try importing
 
 4) Next, you need to specify the import parameters. In the Delimiter field, enter the column separator used in your import file. This is usually a comma, but other options are possible.
 
-![](https://thefusebase.com/wp-content/uploads/2026/01/image-69-683x1024.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20683%201024'%3E%3C/svg%3E)
 
 You will also need to select the column types in the Mapping list. On the left, you will see a list of imported columns, and on the right, you can specify their types.
 
-![](https://thefusebase.com/wp-content/uploads/2026/01/image-70-703x1024.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20703%201024'%3E%3C/svg%3E)
 
 Next, click Import to start the process.
 
 If you need to import into an existing table, open the desired table and select Import from its menu.
 
-![](https://thefusebase.com/wp-content/uploads/2026/01/image-71-1024x557.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20557'%3E%3C/svg%3E)
 
 Next, choose the CSV file and review how the table looks in the preview. Please note that when importing into an existing table, we do not replace existing columns but create new ones.

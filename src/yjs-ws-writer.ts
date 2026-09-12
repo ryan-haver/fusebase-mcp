@@ -841,7 +841,7 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
         m.set("embed-type", null);
         m.set("html", null);
         m.set("signature", "");
-        m.set("allowOverWidth", false);
+        m.set("allowOverWidth", block.allowOverWidth ?? false);
 
         const capId = genBlockId();
         const cap = new Y.Map();
@@ -1374,3 +1374,21 @@ export async function readContentViaWebSocket(
     });
   });
 }
+
+/**
+ * Append blocks to an existing FuseBase page without overwriting previous content.
+ */
+export async function appendContentViaWebSocket(
+  host: string,
+  workspaceId: string,
+  noteId: string,
+  cookie: string,
+  blocks: ContentBlock[],
+  options?: { timeout?: number },
+): Promise<{ success: boolean; error?: string }> {
+  return writeContentViaWebSocket(host, workspaceId, noteId, cookie, blocks, {
+    replace: false,
+    timeout: options?.timeout ?? 20000,
+  });
+}
+

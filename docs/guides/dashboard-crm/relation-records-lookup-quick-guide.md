@@ -2,7 +2,7 @@
 title: "Relation Records & Lookup – Quick Guide"
 url: "https://thefusebase.com/guides/dashboard-crm/relation-records-lookup-quick-guide/"
 section: "dashboard-crm"
-lastScraped: "2026-02-28T21:28:05.211Z"
+lastScraped: "2026-09-12T05:18:36.670Z"
 ---
 
 # Relation Records & Lookup – Quick Guide
@@ -52,39 +52,39 @@ Everyday examples:
 
 1) Click to create a new column.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-10-1024x402.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20402'%3E%3C/svg%3E)
 
 2) Select Relation.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-11-835x1024.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20835%201024'%3E%3C/svg%3E)
 
 3) Next, you need to choose the database or dashboard whose rows you will link to.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-12-725x1024.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20725%201024'%3E%3C/svg%3E)
 
 4) Also, you need to choose the table and the view.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-13.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20657%201013'%3E%3C/svg%3E)
 
 5) Next, select the column that will be used as the basis in Relations. You can choose any column, but since the link name to the record will be taken from this column’s data, we recommend using text columns. For example, if you are linking a table with projects, you can use the project name column, and for a table with products – the product name.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-14-1024x820.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20820'%3E%3C/svg%3E)
 
 Within a single relation, you can also add several more columns from the same table to display the information they contain. For example, you can add not only the product name from another table, but also its properties right away, such as price, weight, color, etc. This is an optional step.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-15.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20883%20845'%3E%3C/svg%3E)
 
 6) After the column is added, click the cell in the desired row, and then you need to choose the row or rows to which the link will be added. If there are many rows, you can immediately filter them by the conditions you need.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-16-1024x479.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20479'%3E%3C/svg%3E)
 
 7) Next, click Add and links to the rows will be added to the cell. We take the text for the link from the first column of the table (the one with the row). Therefore, we recommend using text columns as the first columns of the table.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-17-1024x671.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20671'%3E%3C/svg%3E)
 
 8) Next, just click the card of the linked row to open its detailed view. From the detailed view, you can go to the table with this row.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-18-1024x457.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20457'%3E%3C/svg%3E)
 
 9) If you also selected Lookup columns, then data from them will also be displayed. If the data in the source table is updated, it will also be updated in the current table.
 
@@ -98,11 +98,11 @@ To add a new Lookup column, do the following:
 
 1) Click Create column.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-19-1024x526.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20526'%3E%3C/svg%3E)
 
 2) Select Lookup.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-20-616x1024.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20616%201024'%3E%3C/svg%3E)
 
 3) Specify the column name.
 
@@ -110,15 +110,15 @@ To add a new Lookup column, do the following:
 
 If the relation already exists, select **Existing relation** and choose the relation column from the list. Then select the column from the source table that you want to display.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-21-966x1024.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20966%201024'%3E%3C/svg%3E)
 
 If there is no relation yet or you want to create a new one, you just need to click **New relation**, then create a new relation and select the column or columns whose data you want to display.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-22.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20953%20916'%3E%3C/svg%3E)
 
 6) That’s it — now the column displays data from the source table (if this data has been added).
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-23-1024x570.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20570'%3E%3C/svg%3E)
 
 ## Project management use case – using Relations and Lookup in practice [#](#4-toc-title)
 
@@ -130,11 +130,11 @@ Now let’s try the columns in practice. We have a project management database w
 
 Each has its own set of columns. The tables are not connected to each other in any way.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-24-1024x446.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20446'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-25-1024x487.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20487'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-26-1024x432.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20432'%3E%3C/svg%3E)
 
 Now let’s try to link them. First, we need to add the ability to specify the person responsible for the task, so we attach a relation with the **Name** column from the **People** table.
 

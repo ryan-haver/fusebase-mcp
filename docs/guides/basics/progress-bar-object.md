@@ -2,7 +2,7 @@
 title: "Progress Bar Object"
 url: "https://thefusebase.com/guides/basics/progress-bar-object/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:35.608Z"
+lastScraped: "2026-09-12T05:16:59.067Z"
 ---
 
 # Progress Bar Object
@@ -17,14 +17,14 @@ You can add a progress bar through the menu of objects. You can add an object to
 
 By default, the progress bar is at zero.
 
-![](https://thefusebase.com/wp-content/uploads/2023/03/image-19.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20253%20151'%3E%3C/svg%3E)
 
 But you can move the value of progress in one direction or another.
 
-![](https://thefusebase.com/wp-content/uploads/2023/03/preview.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20493%20185'%3E%3C/svg%3E)
 
 ## How to Remove the Progress Bar [#](#1-toc-title)
 
 You can delete progress the same way as any other object – through the block menu.
 
-![](https://thefusebase.com/wp-content/uploads/2023/03/image-21.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20848%20387'%3E%3C/svg%3E)

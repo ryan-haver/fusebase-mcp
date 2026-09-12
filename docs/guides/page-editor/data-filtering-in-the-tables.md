@@ -2,7 +2,7 @@
 title: "Data filtering in the Tables (FuseBase Documents)"
 url: "https://thefusebase.com/guides/page-editor/data-filtering-in-the-tables/"
 section: "page-editor"
-lastScraped: "2026-02-28T21:28:25.107Z"
+lastScraped: "2026-09-12T05:18:52.989Z"
 ---
 
 # Data filtering in the Tables (FuseBase Documents)
@@ -13,11 +13,11 @@ There are two ways to enable filtering.
 
 1) Activation through the table menu – Filter:
 
-![Activation through the table menu - Filter](https://thefusebase.com/wp-content/uploads/2023/02/Data_filtering_1.png)
+![Activation through the table menu - Filter](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20868%20508'%3E%3C/svg%3E)
 
 2) Or click on the menu of the column you want to filter and select Filter by this field:
 
-![Click on the menu of the column you want to filter by and select Filter by this field:](https://thefusebase.com/wp-content/uploads/2023/02/Data_filtering_2.png)
+![Click on the menu of the column you want to filter by and select Filter by this field:](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20719%20428'%3E%3C/svg%3E)
 
 Next, you will see the filtering bar. Here, you can:
 
@@ -25,50 +25,50 @@ Next, you will see the filtering bar. Here, you can:
 -   choose the filter condition (2);
 -   specify the filtering value (3).
 
-![Next, you will see the filtering bar, where you can:](https://thefusebase.com/wp-content/uploads/2023/02/Data_filtering_3.png)
+![Next, you will see the filtering bar, where you can:](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20745%20207'%3E%3C/svg%3E)
 
 After filtering is activated, you will see a filtering icon next to the column name. Clicking on it will open the filtering bar.
 
-![After filtering is activated, you will see a filtering icon next to the column name, and clicking on it will open the filtering bar.](https://thefusebase.com/wp-content/uploads/2023/02/Data_filtering_4.png)
+![After filtering is activated, you will see a filtering icon next to the column name, and clicking on it will open the filtering bar.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20639%20224'%3E%3C/svg%3E)
 
 ## How do I enable multi-column filtering? [#](#1-toc-title)
 
 You can also utilize multiple filters. To do this, open the filter bar, and click Add condition. Then enter the filter values.
 
-![You can also use multiple filters. To do this, open the filter bar and click Add condition, then enter the filter values.](https://thefusebase.com/wp-content/uploads/2023/02/Data_filtering_5.png)
+![You can also use multiple filters. To do this, open the filter bar and click Add condition, then enter the filter values.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20740%20248'%3E%3C/svg%3E)
 
 ## OR/AND operators [#](#2-toc-title)
 
 If you use multiple filtering, you can use OR / AND operators to make filtering more accurate.
 
-![If you use multiple filtering, you can use OR and AND operators to make filtering work more accurately.](https://thefusebase.com/wp-content/uploads/2023/02/Data_filtering_6.png)
+![If you use multiple filtering, you can use OR and AND operators to make filtering work more accurately.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20734%20245'%3E%3C/svg%3E)
 
 If the OR filter is selected, the table only shows rows that match ALL filters simultaneously. For example, here is a table:
 
-![If the OR filter is selected, the table shows only those rows that match ALL filters simultaneously. For example, there is a table:](https://thefusebase.com/wp-content/uploads/2023/02/Data_filtering_7.png)
+![If the OR filter is selected, the table shows only those rows that match ALL filters simultaneously. For example, there is a table:](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20639%20206'%3E%3C/svg%3E)
 
 Filters are used to display lines with the Name and the label Done. It ended up displaying all 3 lines:
 
-![I created filters to display lines that have the Name and the label Done. It ended up displaying all 3 lines:](https://thefusebase.com/wp-content/uploads/2023/02/Data_filtering_8.png)
+![I created filters to display lines that have the Name and the label Done. It ended up displaying all 3 lines:](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20742%20236'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2023/02/Data_filtering_9-1.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20618%20200'%3E%3C/svg%3E)
 
   
 If the filter AND was chosen instead, only rows that have a match for all the selected filters should show up. In our case, one row:
 
-![If I choose the filter AND, only rows that have a match for all the selected filters should show up. In our case, one row is:](https://thefusebase.com/wp-content/uploads/2023/02/Data_filtering_10.png)
+![If I choose the filter AND, only rows that have a match for all the selected filters should show up. In our case, one row is:](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20724%20233'%3E%3C/svg%3E)
 
-![If I choose the filter AND, only rows that have a match for all the selected filters should show up. In our case, one row is:](https://thefusebase.com/wp-content/uploads/2023/02/Data_filtering_11.png)
+![If I choose the filter AND, only rows that have a match for all the selected filters should show up. In our case, one row is:](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20637%20129'%3E%3C/svg%3E)
 
 ## How do I remove the filter? [#](#3-toc-title)
 
 You can remove a filter by clicking on the trash can icon next to the filter.
 
-![You can remove a particular filter by clicking on the trash can icon next to the filter.](https://thefusebase.com/wp-content/uploads/2023/02/Data_filtering_12.png)
+![You can remove a particular filter by clicking on the trash can icon next to the filter.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20814%20243'%3E%3C/svg%3E)
 
 You can also remove all filters by clicking Clear all.
 
-![Also, you can remove all filters by clicking Clear all.](https://thefusebase.com/wp-content/uploads/2023/02/Data_filtering_13.png)
+![Also, you can remove all filters by clicking Clear all.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20722%20232'%3E%3C/svg%3E)
 
 ## Columns and filter types [#](#4-toc-title)
 

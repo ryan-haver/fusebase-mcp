@@ -2,7 +2,7 @@
 title: "Why don’t I hear sound after converting into MP4?"
 url: "https://thefusebase.com/guides/screenshot/why-dont-i-hear-sound-after-converting-into-mp4/"
 section: "screenshot"
-lastScraped: "2026-02-28T21:27:59.215Z"
+lastScraped: "2026-09-12T05:18:33.179Z"
 ---
 
 # Why don’t I hear sound after converting into MP4?

@@ -2,7 +2,7 @@
 title: "Dashboard Overview: Managing Workspaces, Portals, and Clients"
 url: "https://thefusebase.com/guides/dashboard-crm/dashboard-overview-managing-workspaces-portals-and-clients/"
 section: "dashboard-crm"
-lastScraped: "2026-02-28T21:26:11.957Z"
+lastScraped: "2026-09-12T05:16:40.206Z"
 ---
 
 # Dashboard Overview: Managing Workspaces, Portals, and Clients
@@ -31,15 +31,15 @@ Currently, there are 3 main dashboards available:
 
 Each dashboard has its own set of columns. For example, in the Workspace dashboard, you can view workspace members, available portals, and more.
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-14-1024x554.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20554'%3E%3C/svg%3E)
 
 You also have access to quick actions. For instance, if a workspace doesn’t have a portal, you can create one directly from the dashboard or invite a new client to a portal.
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-16-1024x559.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20559'%3E%3C/svg%3E)
 
 Each entity (workspace, portal, or client) also has various options available through the menu. For example, you can access workspace settings, send an invite to a specific portal, or edit a client’s name.
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-17-1024x559.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20559'%3E%3C/svg%3E)
 
 **Custom fields – building your own CRM in Fusebase**
 

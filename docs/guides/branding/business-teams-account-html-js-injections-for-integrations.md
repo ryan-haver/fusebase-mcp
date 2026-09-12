@@ -2,7 +2,7 @@
 title: "Business/Teams account | HTML / JS injections for integrations"
 url: "https://thefusebase.com/guides/branding/business-teams-account-html-js-injections-for-integrations/"
 section: "branding"
-lastScraped: "2026-02-28T21:27:25.628Z"
+lastScraped: "2026-09-12T05:17:59.464Z"
 ---
 
 # Business/Teams account | HTML / JS injections for integrations
@@ -19,7 +19,7 @@ Bring your Team/Business Organization to the next level using JS/HTML code injec
 
 **☝** **Note:** This functionality is available only for organizations in their own domain ([CNAME](https://thefusebase.com/guides/branding/custom-subdomains-cname/)).
 
-[Embedded content](https://www.youtube.com/embed/a5tgdatsCOo?feature=oembed)
+[Embedded content](about:blank)
 
 **☝** **Note:** All members who have access to the business panel (Owner / Manager) will be able to add code.
 
@@ -32,11 +32,11 @@ To add a script you need to do the following.
 -   Click the three dots menu for the workspace.
 -   Select **Custom HTML / JS.**
 
-![Add script](https://app.nimbusweb.me/box/attachment/4581192/rskzf6z5h8e5gkgi7ou6/WJZFklhK64G7cyHN/Group%2020%20(3).png)
+![Add script](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   The script management page will open. To add a script, click **Add HTML / JS**.
 
-![The script management page will open. To add a script, click Add HTML / JS.](https://app.nimbusweb.me/box/attachment/4581192/rskzf6z5h8e5gkgi7ou6/xSkUkhE5W8pYkbfC/Group%2021%20(4).png)
+![The script management page will open. To add a script, click Add HTML / JS.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   Next, the page for adding code will open:
     -   **Name** – the name of the script.
@@ -46,7 +46,7 @@ To add a script you need to do the following.
     -   Use the checkboxes to select where to add the code: **public links** or the **web client**.
     -   Press **Publish**.
 
-![To add a script you need to do the following.](https://app.nimbusweb.me/box/attachment/4581192/rskzf6z5h8e5gkgi7ou6/RydCkgMhGVqAUBmb/Group%2027%20(3).png)
+![To add a script you need to do the following.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **☝ Note: If you do not select a checkbox, then the script will not be added anywhere.**
 
@@ -58,7 +58,7 @@ To add a script you need to do the following.
     -   Author
     -   Date of change
 
-![Script management page](https://app.nimbusweb.me/box/attachment/4581192/rskzf6z5h8e5gkgi7ou6/MfSJefthu6WP0xDd/Group%2022%20(4).png)
+![Script management page](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### Script menu [#](#b2926637137_210)
 
@@ -68,7 +68,7 @@ Click on the three dots menu and you will be able to:
 -   Deactivate script
 -   Delete
 
-![Script menu](https://app.nimbusweb.me/box/attachment/4581192/rskzf6z5h8e5gkgi7ou6/P26O1foQbWfkmsn8/Group%2023%20(3).png)
+![Script menu](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Examples: [#](#b150649246_348)
 
@@ -76,17 +76,17 @@ Click on the three dots menu and you will be able to:
 
 ### Intercom [#](#b1132025176_302)
 
-[Embedded content](https://www.youtube.com/embed/RKv8GjoE4CQ?feature=oembed)
+[Embedded content](about:blank)
 
 [**You can read more here**](https://thefusebase.com/guides/embedding-sharing/adding-intercom-chat-to-public-pages-using-custom-scripts/)
 
 ### Zoho chat [#](#b1132025176_527)
 
-[Embedded content](https://www.youtube.com/embed/0hx5eADUfco?feature=oembed)
+[Embedded content](about:blank)
 
 ### Call to action services (GetSiteControl) [#](#b1132025176_363)
 
-[Embedded content](https://www.youtube.com/embed/_Gbvvag5YJ0?feature=oembed)
+[Embedded content](about:blank)
 
 [**Read more about Google Fonts**](https://thefusebase.com/guides/embedding-sharing/adding-support-for-fonts-from-google-fonts-to-public-links/)
 

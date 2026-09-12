@@ -157,6 +157,54 @@ export function loadEncryptedCookie(profile?: string): {
 }
 
 /**
+ * Scan data directory and list all configured agent authentication profiles.
+ */
+export function listConfiguredProfiles(): Array<{
+  profile: string;
+  filename: string;
+  savedAt?: string;
+  ageHours?: number;
+  cookieCount?: number;
+}> {
+  if (!fs.existsSync(DATA_DIR)) return [];
+  const files = fs.readdirSync(DATA_DIR);
+  const profiles: Array<{
+    profile: string;
+    filename: string;
+    savedAt?: string;
+    ageHours?: number;
+    cookieCount?: number;
+  }> = [];
+
+  for (const file of files) {
+    if (file === "cookie.enc") {
+      const data = loadEncryptedCookie();
+      const ageHours = data?.savedAt ? Math.round((Date.now() - new Date(data.savedAt).getTime()) / 3600000) : undefined;
+      profiles.push({
+        profile: "default",
+        filename: file,
+        savedAt: data?.savedAt,
+        ageHours,
+        cookieCount: data?.meta?.cookieCount,
+      });
+    } else if (file.startsWith("cookie_") && file.endsWith(".enc")) {
+      const profileName = file.slice(7, -4);
+      const data = loadEncryptedCookie(profileName);
+      const ageHours = data?.savedAt ? Math.round((Date.now() - new Date(data.savedAt).getTime()) / 3600000) : undefined;
+      profiles.push({
+        profile: profileName,
+        filename: file,
+        savedAt: data?.savedAt,
+        ageHours,
+        cookieCount: data?.meta?.cookieCount,
+      });
+    }
+  }
+
+  return profiles;
+}
+
+/**
  * Check whether the stored encrypted cookie is likely still fresh.
  * Returns true if the file exists and no cookies have expired.
  */

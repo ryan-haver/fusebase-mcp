@@ -2,7 +2,7 @@
 title: "Search and extract text from images (OCR)"
 url: "https://thefusebase.com/guides/basics/search-and-extract-text-from-images-ocr/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:35.448Z"
+lastScraped: "2026-09-12T05:16:55.729Z"
 ---
 
 # Search and extract text from images (OCR)

@@ -2,7 +2,7 @@
 title: "Database automation – A guide to creating workflows"
 url: "https://thefusebase.com/guides/automations-and-integrations/database-automation-a-guide-to-creating-workflows/"
 section: "automations-and-integrations"
-lastScraped: "2026-02-28T21:27:31.788Z"
+lastScraped: "2026-09-12T05:18:07.466Z"
 ---
 
 # Database automation – A guide to creating workflows
@@ -19,7 +19,7 @@ Let’s take a look at which triggers and actions are available for database aut
 
 Triggers for databases are available in Fusebase Databases.
 
-![](https://thefusebase.com/wp-content/uploads/2025/12/image-12-1024x710.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20710'%3E%3C/svg%3E)
 
 ## The New database and New table triggers [#](#1-toc-title)
 
@@ -31,7 +31,7 @@ The flow is triggered when a new row is added to the database.
 
 To activate the trigger, you need to select the database and the table for which the trigger will respond to the creation of a new row.
 
-![](https://thefusebase.com/wp-content/uploads/2025/12/image-13-1024x692.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20692'%3E%3C/svg%3E)
 
 The output also includes the contents of the row cells (the trigger runs with a 3–5 minute delay so it can return the full row contents, not just its name).
 
@@ -43,27 +43,27 @@ The flow is triggered when a row in the database is updated. The flow can run wh
 
 For instance, you create an approval flow where an email notification should be sent to the client only when the status in the **Review Status** column changes. You create a flow with **Row updated** as the trigger and set it to react to the **Review Status** column. When you change the status, the client receives a notification.
 
-![](https://thefusebase.com/wp-content/uploads/2025/12/image-18-1024x739.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20739'%3E%3C/svg%3E)
 
 ## When row matches conditions [#](#4-toc-title)
 
 The trigger is activated if the data in the selected column matches the values you set. For example, you can start a flow when the value in the Status column changes from “In Progress” to “Done,” or when a deal amount exceeds $10,000.
 
-![](https://thefusebase.com/wp-content/uploads/2025/12/image-14-1024x686.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20686'%3E%3C/svg%3E)
 
 All you need to do is specify the condition or conditions under which the flow should be triggered. You can also select the AND or OR operator. With AND, all specified conditions must be met for the flow to activate; with OR, any one of the conditions is sufficient.
 
-![](https://thefusebase.com/wp-content/uploads/2025/12/image-15-1024x713.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20713'%3E%3C/svg%3E)
 
 # Actions [#](#5-toc-title)
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-27-1024x689.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20689'%3E%3C/svg%3E)
 
 ## **Create new database** [#](#6-toc-title)
 
 Creates a database and a table in it. All you need is to specify the database name, its description, and the table name. You can specify this manually or take it from another database or table.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-28-1024x687.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20687'%3E%3C/svg%3E)
 
 ## **Create new table in new or existing database** [#](#7-toc-title)
 
@@ -71,7 +71,7 @@ Creates a new table in an existing or new database (which can be created in anot
 
 You need to select the database in which the table will be created or use its ID from another action or trigger.
 
-![](https://thefusebase.com/wp-content/uploads/2025/11/image-29-1024x685.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20685'%3E%3C/svg%3E)
 
 You can also immediately select the columns that will be added to the table. Just click **New Item** to create a new column, then specify its name and select the column type.
 

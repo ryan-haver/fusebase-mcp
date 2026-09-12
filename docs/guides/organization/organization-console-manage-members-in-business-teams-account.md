@@ -2,7 +2,7 @@
 title: "Organization Console | Manage members in Business/Teams account"
 url: "https://thefusebase.com/guides/organization/organization-console-manage-members-in-business-teams-account/"
 section: "organization"
-lastScraped: "2026-02-28T21:27:05.524Z"
+lastScraped: "2026-09-12T05:17:29.577Z"
 ---
 
 # Organization Console | Manage members in Business/Teams account
@@ -19,7 +19,7 @@ FuseBase Business/Teams accounts have a higher level of management which can be 
 
 **☝Note: A member can be a part of an organization, but not be a part of a workspace.**
 
-![Nimbus Business/Teams accounts have a higher level of management which can be run in the Organization Console. ](https://app.nimbusweb.me/box/attachment/4516842/y3meroodx7crcb0b4pgq/CbT26xKs0nGQOG2Q/Group%205%20(8).png)
+![Nimbus Business/Teams accounts have a higher level of management which can be run in the Organization Console. ](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Types of permissions in workspaces [#](#b1153386969_548)
 
@@ -27,11 +27,11 @@ FuseBase Business/Teams accounts have a higher level of management which can be 
 -   **Can create and edit** – users will be able to do full-fledged work on pages – read, edit, and even delete pages. Folders and tags management will also be available.
 -   **Read only** – user’s pages will be available only for reading.
 
-![Types of permissions in workspaces](https://app.nimbusweb.me/box/attachment/4516842/y3meroodx7crcb0b4pgq/LVuEWZI9bxhMJaev/Group%2026%20(3).png)
+![Types of permissions in workspaces](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Add members in the organization [#](#b1153386969_2293)
 
-![Add members in the organization](https://app.nimbusweb.me/box/attachment/4516842/y3meroodx7crcb0b4pgq/iT2r2nrLG6zYnOSU/without.gif)
+![Add members in the organization](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 To add a member to the organization, follow these steps.
 
@@ -47,11 +47,11 @@ To add a member to the organization, follow these steps.
 
 **☝Note: An invite is sent only the first time a member is added to the workspace. In the future, the member will be automatically added to the workspace.**
 
-![An invite is sent only the first time a member is added to the workspace. In the future, the member will be automatically added to the workspace.](https://app.nimbusweb.me/box/attachment/4516842/y3meroodx7crcb0b4pgq/KwgWUdkwadlenzSI/Group%202%20(17).png)
+![An invite is sent only the first time a member is added to the workspace. In the future, the member will be automatically added to the workspace.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Add members in the workspace [#](#b1153386969_3036)
 
-![Add members in the workspace](https://app.nimbusweb.me/box/attachment/4516842/y3meroodx7crcb0b4pgq/Ex8tJK7SFdiDLoU7/2%20(2)%20(1).gif)
+![Add members in the workspace](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 To add a member directly to the workspace, you need to:
 
@@ -66,11 +66,11 @@ To add a member directly to the workspace, you need to:
 
 **☝** **Note: After adding a member to the workspace, you can always change their permissions.**
 
-![Add members in the workspace](https://app.nimbusweb.me/box/attachment/4516842/y3meroodx7crcb0b4pgq/ASBqe5fsMeVC7ROL/Group%2026%20(3).png)
+![Add members in the workspace](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **☝** **Note: You can also add a member to the workspace from existing members.**
 
-![You can also add a member to the workspace from existing members.](https://app.nimbusweb.me/box/attachment/4516842/y3meroodx7crcb0b4pgq/FdsgQTmL8Ly6cpko/Group%2028%20(3).png)
+![You can also add a member to the workspace from existing members.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### Remove from workspace [#](#b1043902842_258)
 
@@ -79,7 +79,7 @@ To remove a member from the workspace, you need to:
 -   Click on the three dots menu.
 -   Select **Remove from workspace**.
 
-![After being removed from the workspace, the user is NOT removed from the organization.](https://app.nimbusweb.me/box/attachment/4516842/y3meroodx7crcb0b4pgq/ztpZhBG51SSP6cqx/Group%2033%20(1).png)
+![After being removed from the workspace, the user is NOT removed from the organization.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **☝** **Note: After being removed from the workspace, the user is NOT removed from the organization.**
 
@@ -89,7 +89,7 @@ In the Members section, you can add members to your organization and manage them
 
 ### Edit user profile [#](#b445381658_133)
 
-![Edit user profile](https://app.nimbusweb.me/box/attachment/4516842/y3meroodx7crcb0b4pgq/t0JrIA14z6z0XGXu/1%20(2).gif)
+![Edit user profile](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 To manage you need to go to the Members section.
 
@@ -102,17 +102,17 @@ To manage you need to go to the Members section.
     -   Username
 -   To change the profile photo, hover over the avatar and click **Upload**
 
-![To manage you need to go to the Members section.](https://app.nimbusweb.me/box/attachment/4516842/y3meroodx7crcb0b4pgq/nObtloHAdyL18ax0/Group%2016%20(3).png)
+![To manage you need to go to the Members section.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### Reset password [#](#b1149658899_114)
 
 If you click on **Reset password**, the reset link will be sent to the member.
 
-![If you click on Reset password, the reset link will be sent to the member.](https://app.nimbusweb.me/box/attachment/4516842/y3meroodx7crcb0b4pgq/VqEi2ecKskp9JH4N/Group%2019%20(3).png)
+![If you click on Reset password, the reset link will be sent to the member.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Option 1
 
-![If you click on Reset password, the reset link will be sent to the member.](https://app.nimbusweb.me/box/attachment/4516842/y3meroodx7crcb0b4pgq/f6qNC5dGyM4cF7GV/Group%2020%20(2).png)
+![If you click on Reset password, the reset link will be sent to the member.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Option 2
 
@@ -124,14 +124,14 @@ To remove a member from the organization, you need to:
 -   Click on the three dots menu and select **Delete from organizatio**n.
 -   Also you can click on the member and select **Delete from organization**.
 
-![Delete from organization](https://app.nimbusweb.me/box/attachment/4516842/y3meroodx7crcb0b4pgq/eE0NL301D97ARqAF/Group%2018%20(3).png)
+![Delete from organization](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Option 1
 
-![Delete from organization](https://app.nimbusweb.me/box/attachment/4516842/y3meroodx7crcb0b4pgq/NyTIJSSxnPK0nUyG/Group%2017%20(3).png)
+![Delete from organization](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Option 2
 
 **☝** **Note: After being removed from the organization, the user is removed from all workspaces.**
 
-![After being removed from the organization, the user is removed from all workspaces.](https://app.nimbusweb.me/box/attachment/4516842/y3meroodx7crcb0b4pgq/V2irN1iZp7o90OAy/templ_1.gif)
+![After being removed from the organization, the user is removed from all workspaces.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)

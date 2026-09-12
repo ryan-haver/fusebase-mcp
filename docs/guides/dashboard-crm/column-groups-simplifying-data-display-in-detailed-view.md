@@ -2,7 +2,7 @@
 title: "Column groups – simplifying data display in detailed view"
 url: "https://thefusebase.com/guides/dashboard-crm/column-groups-simplifying-data-display-in-detailed-view/"
 section: "dashboard-crm"
-lastScraped: "2026-02-28T21:28:02.361Z"
+lastScraped: "2026-09-12T05:18:39.255Z"
 ---
 
 # Column groups – simplifying data display in detailed view
@@ -21,7 +21,7 @@ To create a group, you need to do a few simple steps:
 
 3) Then specify the group name and which columns should be included in it.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-65-1024x841.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20841'%3E%3C/svg%3E)
 
 4) After that, you can use drag and drop to change the group’s position and add other columns to it if needed.
 
@@ -29,4 +29,4 @@ To create a group, you need to do a few simple steps:
 
 You can swap groups and their contents, as well as modify them. If desired, you can delete a group. It’s important to note that the columns themselves will not be deleted in this case.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-66-1024x589.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20589'%3E%3C/svg%3E)

@@ -2,7 +2,7 @@
 title: "Drawing tools for video"
 url: "https://thefusebase.com/guides/screenshot/drawing-tools-for-video/"
 section: "screenshot"
-lastScraped: "2026-02-28T21:27:56.167Z"
+lastScraped: "2026-09-12T05:18:29.993Z"
 ---
 
 # Drawing tools for video
@@ -33,13 +33,13 @@ This is what you can find among Drawing Tools at the moment:
 
 You can also erase whatever is not needed or quickly get rid of all drawn shapes at once.
 
-![You can also erase whatever is not needed or quickly get rid of all drawn shapes at once.](https://nimbus.everhelper.me/images/dr2.jpg)
+![You can also erase whatever is not needed or quickly get rid of all drawn shapes at once.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## I drew the shapes I needed and now need to erase them all to carry on recording… [#](#b3361281814_2336)
 
 Just press on Clear All and the shapes you drew will disappear.
 
-![I drew the shapes I needed and now need to erase them all to carry on recording…](https://nimbus.everhelper.me/images/drc1.jpg)
+![I drew the shapes I needed and now need to erase them all to carry on recording…](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Can I use drawing tools without the drawing panel? [#](#b3361281814_2951)
 
@@ -64,4 +64,4 @@ Hide/Show panel – Alt+V
 
 If links do not work during video recording, this is because you are using the Draw tool. During drawing, links are disabled. To use links, you need to switch to cursor mode by clicking on the cursor icon in the drawing panel.
 
-![During drawing, links are disabled. To use links, you need to switch to cursor mode by clicking on the cursor icon in the drawing panel.](https://app.nimbusweb.me/box/attachment/3746364/3yx7vib874hmr48df8u1/Sc7ShJhL1suLcAgy/image.png)
+![During drawing, links are disabled. To use links, you need to switch to cursor mode by clicking on the cursor icon in the drawing panel.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)

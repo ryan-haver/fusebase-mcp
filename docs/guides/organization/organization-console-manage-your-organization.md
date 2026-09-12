@@ -2,7 +2,7 @@
 title: "Organization Console | Manage your Organization"
 url: "https://thefusebase.com/guides/organization/organization-console-manage-your-organization/"
 section: "organization"
-lastScraped: "2026-02-28T21:27:05.621Z"
+lastScraped: "2026-09-12T05:17:29.490Z"
 ---
 
 # Organization Console | Manage your Organization
@@ -13,7 +13,7 @@ The Organization console is a place where you can manage your organizations (bot
 
 In **Settings**, you can view or change information such as the name of the organization.
 
-![In Settings, you can view or change information such as the name of the organization.](https://app.nimbusweb.me/box/attachment/4512459/z4elt8b2ralm5q3p9qb6/sLndmfoLqYi20rek/Group%202%20(21).png)
+![In Settings, you can view or change information such as the name of the organization.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### Custom domain (CNAME) [#](#b976206262_670)
 
@@ -28,7 +28,7 @@ To add a custom domain, you need to go to the settings.
 
 Then, when you go to the organization in the web client, you and your members will use the domain you have set.
 
-![Then, when you go to the organization in the web client, you and your members will use the domain you have set.](https://app.nimbusweb.me/box/attachment/4512459/z4elt8b2ralm5q3p9qb6/CnXieGlpskPnTJtY/Group%2032%20(1).png)
+![Then, when you go to the organization in the web client, you and your members will use the domain you have set.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 [**Read more about CNAME**](https://thefusebase.com/guides/branding/custom-subdomains-cname/)
 
@@ -43,11 +43,11 @@ In the **Statistics** section you can see:
 -   count of workspaces / folders / pages
 -   useful links.
 
-![Statistics](https://app.nimbusweb.me/box/attachment/4512459/z4elt8b2ralm5q3p9qb6/jwEzbO7Ad0WyWA2x/Group%203%20(14).png)
+![Statistics](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   Also, you can always return to your pages from the console. To do this, click on **Back to FuseBase**.
 
-![Also, you can always return to your pages from the console. To do this, click on Back to Nimbus Note.](https://app.nimbusweb.me/box/attachment/4512459/z4elt8b2ralm5q3p9qb6/UmgI4xvD6p6oTdNQ/2%20(6).gif)
+![Also, you can always return to your pages from the console. To do this, click on Back to Nimbus Note.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Members [#](#b2327141891_330)
 
@@ -60,7 +60,7 @@ To manage members you need to go to the **Members** section.
 -   To manage and edit, select **Manage**.
 -   Then click on the member.
 
-![To manage members you need to go to the Members section.](https://app.nimbusweb.me/box/attachment/4512459/z4elt8b2ralm5q3p9qb6/9PXrggFwyB1o0J71/Group%2028%20(2).png)
+![To manage members you need to go to the Members section.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### Invite new members [#](#b2346220198_332)
 
@@ -82,7 +82,7 @@ In the Workspaces section, you can create a new workspace, manage existing works
 
 ### Manage workspaces [#](#b2346220198_368)
 
-![Manage workspaces](https://app.nimbusweb.me/box/attachment/4512459/z4elt8b2ralm5q3p9qb6/wNOkE0VGzvy9v9pY/Group%2029%20(2).png)
+![Manage workspaces](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 To manage workspaces you need to go to the **Manage** section.
 
@@ -95,17 +95,17 @@ To manage workspaces you need to go to the **Manage** section.
     -   Rename – you will be able to change the workspace name.
     -   Delete – you will be able to delete the workspace.
 
-![To manage workspaces you need to go to the Manage section.](https://app.nimbusweb.me/box/attachment/4512459/z4elt8b2ralm5q3p9qb6/XV6uCXVD5WeTeNZS/2%20(2)%20(1)%20(1).gif)
+![To manage workspaces you need to go to the Manage section.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   You can also change the workspace logo if you click on the workspace and select the three dots menu.
 
 -   Or just click on the workspace logo.
 
-![You can also change the workspace logo if you click on the workspace and select the three dots menu.](https://app.nimbusweb.me/box/attachment/4512459/z4elt8b2ralm5q3p9qb6/oyxOQU16JS7CF9fD/Group%2030%20(2).png)
+![You can also change the workspace logo if you click on the workspace and select the three dots menu.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Option 1
 
-![](https://app.nimbusweb.me/box/attachment/4512459/z4elt8b2ralm5q3p9qb6/p541eswuykKADIau/Group%2031%20(1).png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Option 2
 
@@ -113,7 +113,7 @@ Option 2
 
 -   Click on **Create a workspace**.
 
-![Create a workspace](https://app.nimbusweb.me/box/attachment/4512459/z4elt8b2ralm5q3p9qb6/OlM8Vr69c0vM04YP/4%20(3).gif)
+![Create a workspace](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **☝ Note: Free plan users can have only one workspace, Premium users – up to three, and Business users – an unlimited count of workspaces.**
 
@@ -121,13 +121,13 @@ Option 2
 
 -   In the **Billing** section you will have access to information about the subscription and billing history. Also here you can update your plan.
 
-![In the Billing section you will have access to information about the subscription and billing history.](https://app.nimbusweb.me/box/attachment/4512459/z4elt8b2ralm5q3p9qb6/cnJiVLstFuK8DdlG/Group%2012%20(5).png)
+![In the Billing section you will have access to information about the subscription and billing history.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **☝** **The Billing section is available only to Owner.**
 
 -   Read FAQ – by clicking you can learn more about billing.
 
-![Read FAQ - by clicking you can learn more about billing.](https://app.nimbusweb.me/box/attachment/4512459/z4elt8b2ralm5q3p9qb6/dVvuc6yJXg9CgeWT/Group%2013%20(4).png)
+![Read FAQ - by clicking you can learn more about billing.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Creating a multi-organization [#](#b1591146953_34)
 
@@ -143,11 +143,11 @@ To create an organization, follow these steps.
 
 **☝** **Note: You can create an unlimited amount of organizations.**
 
-![Creating a multi-organization](https://app.nimbusweb.me/box/attachment/4512459/z4elt8b2ralm5q3p9qb6/iVDSTPdfQotAZKYL/5%20(1).gif)
+![Creating a multi-organization](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### Organization logo [#](#b2127524701_1)
 
-![Organization logo](https://app.nimbusweb.me/box/attachment/4512459/z4elt8b2ralm5q3p9qb6/SuWhFn86fALkgqAV/1%20(4).gif)
+![Organization logo](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 To set an organization logo you need to:
 

@@ -2,7 +2,7 @@
 title: "Embed Calendly"
 url: "https://thefusebase.com/guides/embedding-sharing/embed-calendly/"
 section: "embedding-sharing"
-lastScraped: "2026-02-28T21:27:44.695Z"
+lastScraped: "2026-09-12T05:18:19.019Z"
 ---
 
 # Embed Calendly
@@ -28,20 +28,20 @@ lastScraped: "2026-02-28T21:27:44.695Z"
 -   Open [FuseBase](https://thefusebase.com/).
 -   Click on the arrow and select **Embed** or **cmd/ctrl** + **⌥/alt** + **m**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/09/Group-239-1024x607.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20607'%3E%3C/svg%3E)
 
 -   Add the code using **Cmd/Ctrl**+**V**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/09/Group-242-1024x687.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20687'%3E%3C/svg%3E)
 
 ### Resize Embeds [#](#b1861605483_291)
 
 -   Drag the upper-right corner and **resize** (all proportions will be preserved).
 
-![](https://thefusebase.com/wp-content/uploads/2022/09/Group-240-1024x687.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20687'%3E%3C/svg%3E)
 
 -   For free resizing, hold the **ALT key** and start resizing using the bottom-right chip.
 
-![](https://thefusebase.com/wp-content/uploads/2022/09/Group-243-1-1024x687.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20687'%3E%3C/svg%3E)
 
 **Note: To return the embed to its original position, use the hotkey Ctrl + Z, or click on the three dots and select Undo.**

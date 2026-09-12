@@ -2,7 +2,7 @@
 title: "Import documents from Confluence"
 url: "https://thefusebase.com/guides/import-fusebase/import-documents-from-confluence/"
 section: "import-fusebase"
-lastScraped: "2026-02-28T21:28:13.710Z"
+lastScraped: "2026-09-12T05:18:41.174Z"
 ---
 
 # Import documents from Confluence

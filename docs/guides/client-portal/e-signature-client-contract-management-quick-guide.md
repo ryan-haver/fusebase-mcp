@@ -2,7 +2,7 @@
 title: "E-Signature – Client Contract Management – Quick Guide"
 url: "https://thefusebase.com/guides/client-portal/e-signature-client-contract-management-quick-guide/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:44.507Z"
+lastScraped: "2026-09-12T05:17:05.956Z"
 ---
 
 # E-Signature – Client Contract Management – Quick Guide
@@ -19,7 +19,7 @@ Click **Upload** and upload the necessary PDF document.
 
 Then, click the **Add eSign** button.
 
-![](https://thefusebase.com/wp-content/uploads/2025/01/image-49.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202369%201016'%3E%3C/svg%3E)
 
 Next, you need to add a signature field to the document. You can also add the date that the signer must enter, text blocks, the signer’s initials, etc.
 
@@ -31,7 +31,7 @@ To do this, click the **+** and select **Add second party**. Then, choose the pl
 
 After the document is prepared for signature, you can send it to the signers. You can do this immediately after adding the signature field, or later by clicking the **Draft** button.
 
-![](https://thefusebase.com/wp-content/uploads/2025/01/image-50.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202561%201398'%3E%3C/svg%3E)
 
 Next, select the members you want to send the contract to for signature. You can only choose from the members who have access to the portal with the document.
 
@@ -44,7 +44,7 @@ There are two ways to sign the document:
 1.  Click the link in the email that will be sent to all signers.
 2.  Sign through the file manager. If a member needs to sign the document, the **Sign** option will be active next to the relevant document.
 
-![](https://thefusebase.com/wp-content/uploads/2025/01/image-51.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202523%201317'%3E%3C/svg%3E)
 
 After the client opens the document for signing, they need to click **Sign** to begin the process. If only a signature is required, it can be entered immediately in the corresponding field. If a date, initials, etc. are also required, you will need to complete all the steps.
 
@@ -54,7 +54,7 @@ After the process is complete, you can download the document if it has been sign
 
 In the file manager, next to the document name, you can find a status column.
 
-![](https://thefusebase.com/wp-content/uploads/2025/01/image-52.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202485%201025'%3E%3C/svg%3E)
 
 Below are the descriptions:
 

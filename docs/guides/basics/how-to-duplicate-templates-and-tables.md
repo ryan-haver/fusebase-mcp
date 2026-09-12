@@ -2,7 +2,7 @@
 title: "How to duplicate templates and tables"
 url: "https://thefusebase.com/guides/basics/how-to-duplicate-templates-and-tables/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:29.377Z"
+lastScraped: "2026-09-12T05:16:52.071Z"
 ---
 
 # How to duplicate templates and tables

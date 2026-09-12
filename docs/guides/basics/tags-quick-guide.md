@@ -2,7 +2,7 @@
 title: "Tags – Quick Guide"
 url: "https://thefusebase.com/guides/basics/tags-quick-guide/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:26.257Z"
+lastScraped: "2026-09-12T05:16:51.931Z"
 ---
 
 # Tags – Quick Guide

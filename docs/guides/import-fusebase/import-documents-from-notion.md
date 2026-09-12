@@ -2,7 +2,7 @@
 title: "Import documents from Notion"
 url: "https://thefusebase.com/guides/import-fusebase/import-documents-from-notion/"
 section: "import-fusebase"
-lastScraped: "2026-02-28T21:28:13.252Z"
+lastScraped: "2026-09-12T05:18:44.346Z"
 ---
 
 # Import documents from Notion
@@ -30,7 +30,7 @@ lastScraped: "2026-02-28T21:28:13.252Z"
 
 ![Import pages to Nimbus](https://app.nimbusweb.me/box/attachment/5533621/io4i2i41hnzugshwcx9a/1VyGZLakpwpJ1NL9/Group%20212%20(1).png)
 
-![Import pages to Nimbus](https://app.nimbusweb.me/box/attachment/5533621/io4i2i41hnzugshwcx9a/pQdDAkOpGZiNyvyx/Group%20209%20(2).png)
+![Import pages to Nimbus](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   Select the exported **HTML file**.
 -   Wait for the import to finish.

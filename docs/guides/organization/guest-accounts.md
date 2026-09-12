@@ -2,7 +2,7 @@
 title: "Guest accounts"
 url: "https://thefusebase.com/guides/organization/guest-accounts/"
 section: "organization"
-lastScraped: "2026-02-28T21:27:10.989Z"
+lastScraped: "2026-09-12T05:17:36.252Z"
 ---
 
 # Guest accounts
@@ -27,17 +27,17 @@ You need to:
 -   Choose permissions (edit or read-only);
 -   Next, click on Send invitations.
 
-![Adding a guest through the Add to Organization dialog](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/uQXpYL5nAGzTgqxp/image.png)
+![Adding a guest through the Add to Organization dialog](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **Adding a guest through the Add to Project dialog**
 
 Open the list of projects and in the menu of the desired project, select Invite members –
 
-![Adding a guest through the Add to Project dialog](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/Qz0eiSpBPSaqJKOX/image.png)
+![Adding a guest through the Add to Project dialog](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Go to New by email –
 
-![Go to New by email ](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/rboCr4yhBQPAQpVq/image.png)
+![Go to New by email ](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 You need to:
 
@@ -46,11 +46,11 @@ You need to:
 -   Choose permissions (edit or read-only);
 -   Next, click on Send invitations.
 
-![Adding a guest through the Add to Project dialog](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/L1FSDthp6PnwuEE5/image.png)
+![Adding a guest through the Add to Project dialog](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 After accepting the invite, the guest will appear in the list of participants in the organization and the project. Guest accounts are highlighted on the list and are easy to find.
 
-![Guest accounts are highlighted on the list and are easy to find.](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/wFKgadOpgxCwMU0q/image.png)
+![Guest accounts are highlighted on the list and are easy to find.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Expiration (time limit for staying in the organization) of guest accounts [#](#b1268871241_2031)
 
@@ -58,11 +58,11 @@ By default, the guest’s stay in the organization is unlimited, but if desired,
 
 To do this, we go to the list of participants and click on the name of the desired participant.
 
-![To do this, we go to the list of participants and click on the name of the desired participant.](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/nfs5xcuq63arvMAo/image.png)
+![To do this, we go to the list of participants and click on the name of the desired participant.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 In the menu that appears, we find the item Expiration, where you can change the expiration time.
 
-![In the menu that appears, we find the item Expiration, where you can change the expiration time.](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/GfYXAm70myjRfPJ8/image.png)
+![In the menu that appears, we find the item Expiration, where you can change the expiration time.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Today there are the following periods for expiration:
 
@@ -81,7 +81,7 @@ If desired, you can change the expiration date—from a week to a day, or from a
 
 The guest can be converted into a regular member of the organization with all opportunities (participation in various projects, etc.). This can be done through the menu participant.
 
-![The guest can be converted into a regular member of the organization with all opportunities](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/5dlK0w7L6Vk2u0Pp/image.png)
+![The guest can be converted into a regular member of the organization with all opportunities](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Important: You can turn a guest into a regular member, but you cannot turn an organization member into a guest.
 
@@ -91,7 +91,7 @@ Open the list of members.
 
 Click on the name of the guest you want. Finding a guest on the list is very easy – they stand out in the list of participants.
 
-![Finding a guest on the list is very easy - they stand out in the list of participants.](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/h9ih4cdESgRonDh5/image.png)
+![Finding a guest on the list is very easy - they stand out in the list of participants.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 In the menu that appears, you can:
 
@@ -100,7 +100,7 @@ In the menu that appears, you can:
 -   Convert guest to regular members;
 -   Remove guest from the organization.
 
-![Finding a guest on the list is very easy - they stand out in the list of participants.](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/sWqNHbLEPy8wgv5h/image.png)
+![Finding a guest on the list is very easy - they stand out in the list of participants.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Guest Deleting [#](#b1268871241_6007)
 
@@ -116,7 +116,7 @@ In the menu that appears, find the guest in the Members list.
 
 Click on Remove from workspace.
 
-![Delete from workspace](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/yPHvKiTNJxOr8M91/image.png)
+![Delete from workspace](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 The guest will be deleted from the workspace, but will remain in the organization. It will be possible to add them to another workspace.
 
@@ -128,6 +128,6 @@ Click on the guest name.
 
 In the window that appears, click on Delete and confirm the action.
 
-![Deleting from organization](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/s91WuFFG45lOZyup/image.png)
+![Deleting from organization](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 The guest has been removed from the workspace and the organization.

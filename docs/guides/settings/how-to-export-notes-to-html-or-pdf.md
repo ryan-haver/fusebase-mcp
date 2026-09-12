@@ -2,7 +2,7 @@
 title: "How to Export Notes to HTML or PDF?"
 url: "https://thefusebase.com/guides/settings/how-to-export-notes-to-html-or-pdf/"
 section: "settings"
-lastScraped: "2026-02-28T21:27:28.836Z"
+lastScraped: "2026-09-12T05:18:07.544Z"
 ---
 
 # How to Export Notes to HTML or PDF?
@@ -21,7 +21,7 @@ You can export pages in HTML and PDF formats.
 
 3) Click on the desired format. If you pick PDF, it will conserve text + pictures. If you choose HTML, the archive will be saved, where in addition to the HTML file, you will also find note designs, images and files (if they remain in the note).
 
-![](https://thefusebase.com/wp-content/uploads/2024/04/image-2-1024x493.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20493'%3E%3C/svg%3E)
 
 4) Save the file!
 

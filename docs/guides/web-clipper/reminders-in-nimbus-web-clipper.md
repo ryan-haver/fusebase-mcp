@@ -2,7 +2,7 @@
 title: "Reminders in Nimbus Web Clipper"
 url: "https://thefusebase.com/guides/web-clipper/reminders-in-nimbus-web-clipper/"
 section: "web-clipper"
-lastScraped: "2026-02-28T21:28:04.855Z"
+lastScraped: "2026-09-12T05:18:36.769Z"
 ---
 
 # Reminders in Nimbus Web Clipper

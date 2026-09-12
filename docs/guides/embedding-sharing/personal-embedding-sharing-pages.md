@@ -2,7 +2,7 @@
 title: "Personal | Embedding sharing pages"
 url: "https://thefusebase.com/guides/embedding-sharing/personal-embedding-sharing-pages/"
 section: "embedding-sharing"
-lastScraped: "2026-02-28T21:27:50.834Z"
+lastScraped: "2026-09-12T05:18:23.039Z"
 ---
 
 # Personal | Embedding sharing pages
@@ -25,17 +25,17 @@ Open a public page/folder and copy the embed to your site.
 -   Click on **<>** and copy the code.
 
 ![Open the shared page / folder and press on the Share icon.
-](https://app.nimbusweb.me/box/attachment/4467760/c5knzrmwn3liuuo7v5iy/iTYqckQieR539tF5/4.gif)
+](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   Also, you can right-click on the page and select **Get a shared link**.
 -   Then switch to **Embed code**.
 
 ![Also, you can right-click on the page and select Get a shared link.
-](https://thefusebase.com/wp-content/uploads/2022/08/image-27-1.png)
+](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201017%20765'%3E%3C/svg%3E)
 
 If you are a business user, you can either enable or disable showing the branding in the embed.
 
-![Business version provides more options for embedding and branding.](https://thefusebase.com/wp-content/uploads/2022/08/image-28-1-1024x776.png)
+![Business version provides more options for embedding and branding.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20776'%3E%3C/svg%3E)
 
 **☝** **Note: Business version provides more options for embedding and branding. You can read more here:**
 
@@ -47,21 +47,21 @@ If you are a business user, you can either enable or disable showing the brandin
 
 -   You can change the size of the embed, and set the height and width.
 
-![You can change the size of the embed, and set the height and width.](https://thefusebase.com/wp-content/uploads/2022/08/image-29-1-1024x769.png)
+![You can change the size of the embed, and set the height and width.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20769'%3E%3C/svg%3E)
 
 -   You can also allow / forbid printing the embed.
 
-![You can also allow / forbid printing the embed.](https://thefusebase.com/wp-content/uploads/2022/08/image-30-1.png)
+![You can also allow / forbid printing the embed.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20956%20769'%3E%3C/svg%3E)
 
 ## Access to embeds by password [#](#b3950188152_1450)
 
 Safety first! If the page / folder is protected with a password, then when you open the site with an embed, the content will be hidden and you will need to enter the password.
 
-![Access to embeds by password](https://app.nimbusweb.me/box/attachment/4467760/c5knzrmwn3liuuo7v5iy/7XAzifsYIORXAXWo/pass_new_1.gif)
+![Access to embeds by password](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   When creating a public page, you will have access to the password protection field where you can specify the password you need, that is, when you open your site with an embed you will need to enter the password.
 
-![When creating a public page, you will have access to the password protection field where you can specify the password you need, that is, when you open your site with an embed you will need to enter the password.](https://thefusebase.com/wp-content/uploads/2022/08/image-31-1.png)
+![When creating a public page, you will have access to the password protection field where you can specify the password you need, that is, when you open your site with an embed you will need to enter the password.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20984%20775'%3E%3C/svg%3E)
 
 ## Popular Use cases [#](#b3950188152_1896)
 

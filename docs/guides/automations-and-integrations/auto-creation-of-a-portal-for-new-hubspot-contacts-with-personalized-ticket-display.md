@@ -2,7 +2,7 @@
 title: "Auto-Creation of a Portal for New HubSpot Contacts with Personalized Ticket Display"
 url: "https://thefusebase.com/guides/automations-and-integrations/auto-creation-of-a-portal-for-new-hubspot-contacts-with-personalized-ticket-display/"
 section: "automations-and-integrations"
-lastScraped: "2026-02-28T21:27:35.218Z"
+lastScraped: "2026-09-12T05:18:11.493Z"
 ---
 
 # Auto-Creation of a Portal for New HubSpot Contacts with Personalized Ticket Display
@@ -27,24 +27,24 @@ Click Load Data to retrieve test data.
 
 5) Next, you need to create a portal with a ticket block. Create a new action: **FuseBase -> Create new portal**. Select the **source portal** with the **HubSpot block** as the template.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-22.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201900%201036'%3E%3C/svg%3E)
 
 6) In the **HubSpot parameter**, choose **Company ID** from the trigger. This parameter is responsible for filtering the data in the block by the required company.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-23.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201959%201330'%3E%3C/svg%3E)
 
 7) After creating the portal, we need to **invite the client** to it. To do this, add the action: **FuseBase -> Invite client to portal**.
 
 8) In the **Email** parameter, select the **contact’s email** from the trigger.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-24.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201707%20906'%3E%3C/svg%3E)
 
 9) In the **Portal** parameter, choose the **portal created in the previous action**.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-25.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201250%20808'%3E%3C/svg%3E)
 
 10) Next, click **Publish** to activate the flow.
 
-![](https://thefusebase.com/wp-content/uploads/2025/02/image-26.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201865%201343'%3E%3C/svg%3E)
 
 Everything is ready! Now, for each new contact in **HubSpot**, a **new portal** will be created with a block that displays **tickets filtered by the client’s company**.

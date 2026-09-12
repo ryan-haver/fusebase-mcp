@@ -2,7 +2,7 @@
 title: "Create & manage members groups"
 url: "https://thefusebase.com/guides/organization/create-manage-members-groups/"
 section: "organization"
-lastScraped: "2026-02-28T21:27:02.466Z"
+lastScraped: "2026-09-12T05:17:26.045Z"
 ---
 
 # Create & manage members groups
@@ -23,21 +23,21 @@ Let’s create the first group:
 
 2) Open the Groups tab and click on Create group.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-17-1024x471.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20471'%3E%3C/svg%3E)
 
 3) Specify which workspaces the group should belong to and what permissions its members will have in the workspace (this can also be adjusted later).
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-18-1024x409.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20409'%3E%3C/svg%3E)
 
 ## Adding members to a group [#](#1-toc-title)
 
 Great! The group is created, and now we can invite members to it. To do this, click on the group’s name and select Add member.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-19-1024x449.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20449'%3E%3C/svg%3E)
 
 Next, check the boxes next to the members you want to add to the group.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-20-1024x454.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20454'%3E%3C/svg%3E)
 
 ## What permissions can be set for a group [#](#2-toc-title)
 
@@ -45,7 +45,7 @@ When adding a group to a workspace, you can assign permissions to it. The main p
 
 In addition, there is a special permission called Denied, which is used only for groups. It blocks access to a workspace for members who belong to that group.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-21-1024x489.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20489'%3E%3C/svg%3E)
 
 For example, if a member named John Doe already belongs to the Test workspace, and then we add John to a group that has the Denied permission for the Test workspace, John will be automatically removed from the workspace. Moreover, he cannot be re-added to the workspace as long as he remains in a group with the Denied permission for that workspace.
 
@@ -53,14 +53,14 @@ For example, if a member named John Doe already belongs to the Test workspace, a
 
 Open the list of groups and click on the one you need.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-22-1024x469.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20469'%3E%3C/svg%3E)
 
 From there, you can edit it. For example, you can remove members from the group or add new ones.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-23-1024x509.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20509'%3E%3C/svg%3E)
 
 If you want to add the group to a workspace or change its permissions for a workspace, click Edit.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-24-1024x507.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20507'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-26-1024x529.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20529'%3E%3C/svg%3E)

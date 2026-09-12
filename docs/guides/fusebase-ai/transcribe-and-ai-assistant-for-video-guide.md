@@ -2,7 +2,7 @@
 title: "Transcribe and AI Assistant for Video – Guide"
 url: "https://thefusebase.com/guides/fusebase-ai/transcribe-and-ai-assistant-for-video-guide/"
 section: "fusebase-ai"
-lastScraped: "2026-02-28T21:27:19.892Z"
+lastScraped: "2026-09-12T05:17:40.919Z"
 ---
 
 # Transcribe and AI Assistant for Video – Guide
@@ -23,11 +23,11 @@ In FuseBase, you can not only view the text from a video but also interact with 
 
 3) Wait for the transcription process to complete (this may take up to 2 minutes depending on the size of the video).
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/Frame-2147207152-8-1024x431.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20431'%3E%3C/svg%3E)
 
 4) You will then see the transcribed text.
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/Frame-2147207152-9-1024x431.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20431'%3E%3C/svg%3E)
 
 ## How to Edit Speaker Names [#](#1-toc-title)
 
@@ -35,11 +35,11 @@ By default, each speaker in the video is assigned a random name. You can manuall
 
 1) Hover over the speaker’s name and click on the pencil icon.
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-27.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20463%20559'%3E%3C/svg%3E)
 
 2) Click on the icon and enter the desired name. Press ‘Enter’ to save.
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-28.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20466%20544'%3E%3C/svg%3E)
 
 ## How to Edit or Delete Transcribed Text [#](#2-toc-title)
 
@@ -47,11 +47,11 @@ If you think the text was not recognized correctly, you can make corrections.
 
 1) Hover over the text card and click on the pencil icon.
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-29.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20468%20492'%3E%3C/svg%3E)
 
 2) Enter the correct text and press ‘Enter.’
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-30.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20472%20557'%3E%3C/svg%3E)
 
 You can also delete an unnecessary card by clicking on the delete icon.
 
@@ -59,7 +59,7 @@ You can also delete an unnecessary card by clicking on the delete icon.
 
 You can copy the transcribed text or download it in text format by clicking on the corresponding icon in the top panel of the transcription.
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-31.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20472%20612'%3E%3C/svg%3E)
 
 ## AI Assistant for Video [#](#4-toc-title)
 
@@ -73,17 +73,17 @@ Getting a transcript from a video is undoubtedly useful, but if the video is lon
 
 To interact with our assistant, go to the ‘ASK AI’ tab.
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-32.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20438%20604'%3E%3C/svg%3E)
 
 Here you can choose from the suggested commands or ask for specific details yourself.
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-33.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20454%20604'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-34.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20475%20593'%3E%3C/svg%3E)
 
 Then, press Enter or click Send.
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/Frame-2147207152-11-1024x422.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20422'%3E%3C/svg%3E)
 
 You can continue the conversation with the assistant in chat mode. It’s important to note that we save your thread, so you can continue the conversation even after reopening the chat.
 
@@ -95,4 +95,4 @@ If you wish, you can:
 
 This can be done through the corresponding options that appear when you hover over the response card.
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-36.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20472%20600'%3E%3C/svg%3E)

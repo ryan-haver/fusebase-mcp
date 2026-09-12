@@ -2,7 +2,7 @@
 title: "Folders and subfolders"
 url: "https://thefusebase.com/guides/basics/folders-and-subfolders/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:38.503Z"
+lastScraped: "2026-09-12T05:16:56.513Z"
 ---
 
 # Folders and subfolders
@@ -19,11 +19,11 @@ There are several ways to create a folder:
 
 -   Hover your cursor over “Folders” and click on the plus icon (+). Then, specify the folder name and click on “Save.”
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/UYcy4dyYiM.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201489%20665'%3E%3C/svg%3E)
 
 -   Click on the “+” in the navbar and select “New folder.” Then, choose the desired workspace and specify the folder name.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/image-26.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201564%20638'%3E%3C/svg%3E)
 
 ## Creating a subfolder [#](#1-toc-title)
 
@@ -31,11 +31,11 @@ There are several ways to create a subfolder:
 
 -   Click on the folder you need, then click on “New subfolder.” Next, specify the subfolder’s name and click on “Save.”
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/Ri4qMzqSmo.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201494%20655'%3E%3C/svg%3E)
 
 -   Hover your cursor over the desired folder and click on the plus sign (+). Then, select “Subfolder.”
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/VVcnzwFE11.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201507%20638'%3E%3C/svg%3E)
 
 ## Renaming and deleting a folder / subfolder [#](#b4030548853_556)
 
@@ -43,7 +43,7 @@ To rename a folder/subfolder:
 
 Hover your cursor over the desired folder, select “Rename” from the menu, then specify the new name and click on “Save.”
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/XDh4sU5RBJ.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201495%20669'%3E%3C/svg%3E)
 
 To delete a folder/subfolder:
 
@@ -51,11 +51,11 @@ Hover your cursor over the desired folder, select “Delete” from the menu.
 
 Folders that you delete will be moved to Trash. Deleted folders will be kept in the trash until you empty it.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/delete.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201487%20635'%3E%3C/svg%3E)
 
 You can always restore deleted folders from the trash. Simply right-click on the page/folder and choose Restore.
 
-![You can always restore deleted folders from the trash. Simply right-click on the page/folder and choose Restore.](https://app.nimbusweb.me/box/attachment/4930168/kmei8c1d4hur5mtrsx8e/cm1wBqLkb4d482PH/image.png)
+![You can always restore deleted folders from the trash. Simply right-click on the page/folder and choose Restore.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Get/remove a public link on folder [#](#b4030548853_949)
 
@@ -63,13 +63,13 @@ To get a public link for a folder/subfolder, do the following:
 
 Hover your cursor over the desired folder, select “Share” from the menu, then create a public link that will be copied to the clipboard.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/lwRixL8Slw.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201509%20670'%3E%3C/svg%3E)
 
 To remove the public link from folder/subfolder, follow these steps:
 
 Hover your cursor over the desired folder, select “Rename” from the menu –
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/image-27.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201467%20643'%3E%3C/svg%3E)
 
 ## Collapse folders, move pages & folders [#](#b4030548853_1798)
 
@@ -77,11 +77,11 @@ You can always create an unlimited number of folders and subfolders, and move th
 
 -   Click on the arrow icon to show all subfolders.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/5aXWookHXD.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201501%20674'%3E%3C/svg%3E)
 
 -   Select a folder and drag it to another folder.
 
-![Collapse folders, move pages & folders](https://app.nimbusweb.me/box/attachment/4930168/kmei8c1d4hur5mtrsx8e/lNACARlhSeDFVePp/4.gif)
+![Collapse folders, move pages & folders](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ☝ **Note: You can turn any folder into a subfolder except the default folder My Pages.**
 
@@ -90,11 +90,11 @@ To move pages to another folder through drag and drop, you need to do the follow
 -   Click on **CTRL** and hold down the button while selecting desired pages.
 -   Move them to another folder.
 
-![To move pages to another folder through drag and drop, you need to do the following.](https://app.nimbusweb.me/box/attachment/4930168/kmei8c1d4hur5mtrsx8e/UpddYNGnAatxBO6J/5.gif)
+![To move pages to another folder through drag and drop, you need to do the following.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 To move pages to another folder through the menu, follow these steps.
 
 -   Click on **CTRL** and hold down the button while selecting desired pages.
 -   Select **Change folder**.
 
-![To move pages to another folder through the menu, follow these steps.](https://app.nimbusweb.me/box/attachment/4930168/kmei8c1d4hur5mtrsx8e/udmIGpxVtyJOmJIs/Group%20113.png)
+![To move pages to another folder through the menu, follow these steps.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)

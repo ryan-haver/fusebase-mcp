@@ -2,7 +2,7 @@
 title: "JS integrations in the client portal"
 url: "https://thefusebase.com/guides/client-portal/js-integrations-in-the-client-portal/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:56.035Z"
+lastScraped: "2026-09-12T05:17:22.236Z"
 ---
 
 # JS integrations in the client portal
@@ -22,12 +22,12 @@ JS integrations allow you to connect third-party scripts and applications to the
 
 -   Go to Custom Code
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/Go-to-Custom-Code-1024x331.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20331'%3E%3C/svg%3E)
 
 -   Enter the required code (which can be copied from another service first).
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/Enter-the-required-code-1024x452.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20452'%3E%3C/svg%3E)
 
 -   Publish your changes
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/publish-your-changes-1024x277.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20277'%3E%3C/svg%3E)

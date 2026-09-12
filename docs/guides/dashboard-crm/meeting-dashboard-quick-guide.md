@@ -2,7 +2,7 @@
 title: "Meeting Dashboard – Quick Guide"
 url: "https://thefusebase.com/guides/dashboard-crm/meeting-dashboard-quick-guide/"
 section: "dashboard-crm"
-lastScraped: "2026-02-28T21:28:19.303Z"
+lastScraped: "2026-09-12T05:18:47.847Z"
 ---
 
 # Meeting Dashboard – Quick Guide
@@ -23,7 +23,7 @@ The meeting dashboard is a table with various columns. Let’s review the main o
 
 **Participants** – here you can list the meeting participants by email or name.
 
-![](https://thefusebase.com/wp-content/uploads/2026/01/image-26-1024x420.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20420'%3E%3C/svg%3E)
 
 **Link to meeting** – here you can provide a link to the meeting (Zoom, Google Meet, etc.).
 
@@ -33,7 +33,7 @@ The meeting dashboard is a table with various columns. Let’s review the main o
 
 **Meeting transcript** – the transcribed text from the meeting.
 
-![](https://thefusebase.com/wp-content/uploads/2026/01/image-27-1024x490.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20490'%3E%3C/svg%3E)
 
 **Meeting Status** – here you can specify the meeting status, for example, if the meeting is finished, you can set the status to Completed, etc.
 
@@ -43,7 +43,7 @@ The meeting dashboard is a table with various columns. Let’s review the main o
 
 **Tracker** – here you will see the trackers that were triggered during this meeting. You can find more information about trackers [here](https://thefusebase.com/guides/dashboard-crm/ai-trackers-for-meetings-quick-guide/).
 
-![](https://thefusebase.com/wp-content/uploads/2026/01/image-28-1024x458.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20458'%3E%3C/svg%3E)
 
 ## Adding a New Meeting [#](#0-toc-title)
 
@@ -55,11 +55,11 @@ You can add a new meeting in several ways:
 
 Let’s try adding the meeting manually. To do this, click on Add meeting.
 
-![](https://thefusebase.com/wp-content/uploads/2026/01/image-23-1024x464.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20464'%3E%3C/svg%3E)
 
 In the pop-up window that appears, you will need to enter all the necessary information: the meeting title, list of participants, date, and so on.
 
-![](https://thefusebase.com/wp-content/uploads/2026/01/image-24-1024x574.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20574'%3E%3C/svg%3E)
 
 If the meeting has already taken place, you can immediately upload a video file or a transcript. If you only have a video file, the transcript will be generated automatically and added to the corresponding column.
 
@@ -69,4 +69,4 @@ It is important to note that you can edit any meeting details. Simply open the d
 
 Currently, we do not offer native integration with third-party calendars. However, you can utilize our automation features. For example, we provide a Google Calendar integration template that allows you to automatically create new meetings whenever a new event is added to your Google Calendar. You can learn more about automation here: [https://thefusebase.com/guides/automations-and-integrations/fusebase-automation-quick-guide/](https://thefusebase.com/guides/automations-and-integrations/fusebase-automation-quick-guide/)
 
-![](https://thefusebase.com/wp-content/uploads/2026/01/image-75-1024x599.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20599'%3E%3C/svg%3E)

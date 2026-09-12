@@ -2,7 +2,7 @@
 title: "Roles and Permissions in Team Accounts"
 url: "https://thefusebase.com/guides/organization/roles-and-permissions-in-business-team-accounts/"
 section: "organization"
-lastScraped: "2026-02-28T21:27:08.236Z"
+lastScraped: "2026-09-12T05:17:35.636Z"
 ---
 
 # Roles and Permissions in Team Accounts
@@ -22,7 +22,7 @@ You can read more about the differences between roles here – [https://thefuseb
 
 **Note: Members and guests do not have access to organization management. They only have access to the specific workspaces they were added to.**
 
-![Members and Guests do not have access to the organization console. They only have access to the specific workspaces they were added to.](https://app.nimbusweb.me/box/attachment/4521943/gkyh4d2uhnt9tbqo8l2b/kY3HgL2A2U4CqmQY/Group%205%20(8).png)
+![Members and Guests do not have access to the organization console. They only have access to the specific workspaces they were added to.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Types of permissions in workspaces [#](#b3929999533_633)
 
@@ -30,7 +30,7 @@ You can read more about the differences between roles here – [https://thefuseb
 -   **Can create and edit** – users will be able to do full-fledged work on pages – read, edit, and even delete pages. Folders and tags management will also be available.
 -   **Read only** – user’s pages will be available only for reading.
 
-![Types of permissions in workspaces](https://app.nimbusweb.me/box/attachment/4521943/gkyh4d2uhnt9tbqo8l2b/zPmh8OMdAaqEJIHT/Group%2026%20(3).png)
+![Types of permissions in workspaces](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Member Groups [#](#2-toc-title)
 

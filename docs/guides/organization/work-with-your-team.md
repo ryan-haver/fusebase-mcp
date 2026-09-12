@@ -2,7 +2,7 @@
 title: "Work with Your Team"
 url: "https://thefusebase.com/guides/organization/work-with-your-team/"
 section: "organization"
-lastScraped: "2026-02-28T21:27:05.677Z"
+lastScraped: "2026-09-12T05:17:29.546Z"
 ---
 
 # Work with Your Team
@@ -32,11 +32,11 @@ To add comments in FuseBase:
 
 **🔽** See our video: How to Use Comments in FuseBase
 
-[Embedded content](https://www.youtube.com/embed/JaQHtlUI2Yo?feature=oembed)
+[Embedded content](about:blank)
 
 ## How to Mention Members in the Comments [#](#2-toc-title)
 
-[Embedded content](https://www.youtube.com/embed/pL64yX9tGNE?feature=oembed)
+[Embedded content](about:blank)
 
 😎 **FuseBase Team suggests**  
 Try a couple of the small hacks below to make your **commenting** process even easier.
@@ -56,7 +56,7 @@ Focus your team on their sections of work. You can easily set up a system of per
 
 ## How to Manage Access to Folders [#](#4-toc-title)
 
-[Embedded content](https://www.youtube.com/embed/GlX5CZjip9s?feature=oembed)
+[Embedded content](about:blank)
 
 ##  Communicate Where the Work Happens — Chats in FuseBase [#](#5-toc-title)
 
@@ -67,7 +67,7 @@ Create channels for each of your initiatives. While keeping your ideas and feedb
 
 ## How to Chat within Workspaces [#](#6-toc-title)
 
-[Embedded content](https://www.youtube.com/embed/zrEccA5lfqQ?feature=oembed)
+[Embedded content](about:blank)
 
 ##  Connect People, Pages, and Folders using Mentions [#](#7-toc-title)
 
@@ -78,11 +78,11 @@ Add dates via **@-mention** to specify deadlines inside your text and add alerts
 
 ## How to Add a Date and Time [#](#8-toc-title)
 
-[Embedded content](https://www.youtube.com/embed/dEnBexNWfeQ?feature=oembed)
+[Embedded content](about:blank)
 
 ## How to Link Pages Using Mentions [#](#9-toc-title)
 
-[Embedded content](https://www.youtube.com/embed/u9ZNixFOWE8?feature=oembed)
+[Embedded content](about:blank)
 
 ## Related Guides [#](#10-toc-title)
 

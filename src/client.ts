@@ -136,8 +136,9 @@ export class FusebaseClient {
 
     let res = await fetch(url, fetchOpts);
 
-    // Auto-retry on auth failure
-    if ((res.status === 401 || res.status === 403) && this.autoRefresh) {
+    // Auto-retry on auth failure (skip 403 on automation endpoints since 403 there indicates missing privilege, not expired session)
+    const isAutomationForbidden = res.status === 403 && path.includes("/automation/");
+    if ((res.status === 401 || (res.status === 403 && !isAutomationForbidden)) && this.autoRefresh) {
       // Log cookie age before attempting refresh
       try {
         const { loadEncryptedCookie } = await import("./crypto.js");
@@ -306,9 +307,13 @@ export class FusebaseClient {
 
     try {
       // Dynamic import — scripts/ is outside the TS rootDir (src/)
-      // so we resolve the path at runtime
-      const authPath = new URL("../scripts/auth.js", import.meta.url).pathname;
-      const authModule = await import(/* webpackIgnore: true */ authPath);
+      // so we resolve the path at runtime (supporting both compiled JS and tsx TS)
+      let authModule: any;
+      try {
+        authModule = await import(/* webpackIgnore: true */ new URL("../scripts/auth.js", import.meta.url).href);
+      } catch {
+        authModule = await import(/* webpackIgnore: true */ new URL("../scripts/auth.ts", import.meta.url).href);
+      }
       const newCookie = await authModule.refreshCookies({
         host: this.host,
         headless: true, // try headless first (reuse stored session)
@@ -340,8 +345,12 @@ export class FusebaseClient {
    */
   async refreshAuthInteractive(): Promise<boolean> {
     try {
-      const authPath = new URL("../scripts/auth.js", import.meta.url).pathname;
-      const authModule = await import(/* webpackIgnore: true */ authPath);
+      let authModule: any;
+      try {
+        authModule = await import(/* webpackIgnore: true */ new URL("../scripts/auth.js", import.meta.url).href);
+      } catch {
+        authModule = await import(/* webpackIgnore: true */ new URL("../scripts/auth.ts", import.meta.url).href);
+      }
       const newCookie = await authModule.refreshCookies({
         host: this.host,
         headless: false,
@@ -999,6 +1008,27 @@ export class FusebaseClient {
       throw new Error(`Page content read failed: ${result.error}`);
     }
     return result.html || "";
+  }
+
+  /** Append markdown or blocks to an existing page without overwriting previous content */
+  async appendPageContent(
+    workspaceId: string,
+    noteId: string,
+    content: { markdown?: string; blocks?: unknown[] },
+  ): Promise<{ success: boolean; error?: string }> {
+    const { appendContentViaWebSocket } = await import("./yjs-ws-writer.js");
+    const { markdownToSchema } = await import("./markdown-parser.js");
+
+    let blocks: any[];
+    if (content.markdown) {
+      blocks = markdownToSchema(content.markdown);
+    } else if (content.blocks) {
+      blocks = content.blocks;
+    } else {
+      throw new Error("Either 'markdown' or 'blocks' must be provided.");
+    }
+
+    return appendContentViaWebSocket(this.host, workspaceId, noteId, this.cookie, blocks);
   }
 
   /** Get database/table view data */
@@ -2876,6 +2906,36 @@ export class FusebaseClient {
     return this.request<FusebaseOrgFeature[]>(
       `/v1/organizations/${this.orgId}/features`,
     );
+  }
+
+  // ─── Automations (ActivePieces) ────────────────────────────────
+
+  /** List user automation projects */
+  async listAutomationProjects(): Promise<unknown> {
+    return this.request<unknown>("/automation/api/v1/users/projects");
+  }
+
+  /** List automation flows for a project */
+  async listAutomationFlows(projectId?: string): Promise<unknown> {
+    const qs = projectId ? `?projectId=${projectId}` : "";
+    return this.request<unknown>(`/automation/api/v1/flows${qs}`);
+  }
+
+  /** Get details of a specific automation flow */
+  async getAutomationFlow(flowId: string): Promise<unknown> {
+    return this.request<unknown>(`/automation/api/v1/flows/${flowId}`);
+  }
+
+  /** List recent automation flow runs */
+  async listFlowRuns(projectId?: string, limit = 20): Promise<unknown> {
+    const params = new URLSearchParams({ limit: String(limit) });
+    if (projectId) params.set("projectId", projectId);
+    return this.request<unknown>(`/automation/api/v1/flow-runs?${params.toString()}`);
+  }
+
+  /** List available automation pieces/connectors */
+  async listAutomationPieces(): Promise<unknown> {
+    return this.request<unknown>("/automation/api/v1/pieces");
   }
 
   // ─── Helpers ──────────────────────────────────────────────────

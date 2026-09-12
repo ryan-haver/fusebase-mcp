@@ -2,7 +2,7 @@
 title: "Embed Google forms into FuseBase"
 url: "https://thefusebase.com/guides/embedding-sharing/embed-google-forms-into-nimbus-note/"
 section: "embedding-sharing"
-lastScraped: "2026-02-28T21:27:53.282Z"
+lastScraped: "2026-09-12T05:18:26.653Z"
 ---
 
 # Embed Google forms into FuseBase
@@ -20,6 +20,6 @@ For example, if you have a form in Google Forms that you want to fill out, do th
 -   Click on the arrow and select **Embed** or **cmd/ctrl** \+ **⌥/alt** \+ **m**.
 -   Paste or type the URL.
 
-![Embed Google forms](https://app.nimbusweb.me/box/attachment/4568753/8mw7f4dzkeizttyna4mi/axuNZCrNULDMuoBR/google%20(1).gif)
+![Embed Google forms](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 [**Read more about Embedding & Inserting Google Drive files**](https://thefusebase.com/guides/embedding-sharing/embed-insert-google-drive-files/)

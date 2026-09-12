@@ -2,7 +2,7 @@
 title: "Files and attachments"
 url: "https://thefusebase.com/guides/basics/files-and-attachments/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:26.119Z"
+lastScraped: "2026-09-12T05:16:51.155Z"
 ---
 
 # Files and attachments
@@ -40,19 +40,19 @@ To collapse or expand a block, just click inside it after adding a file.
 
 To rename, download, or replace a file, click on the three dots in the file block.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/File-menu-1024x611.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20611'%3E%3C/svg%3E)
 
 #### Download [#](#b3253456612_2026)
 
 Download files to your computer.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/download-2-1024x614.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20614'%3E%3C/svg%3E)
 
 #### Open in new tab [#](#b3253456612_2135)
 
 Open files in a new tab.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/open-in-new-tab-2-1024x600.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20600'%3E%3C/svg%3E)
 
 #### Copy link to file [#](#b3253456612_2287)
 
@@ -62,7 +62,7 @@ Copy the file link and paste it anywhere you want.
 
 Change the name of your files by clicking on the file menu and selecting **Rename**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Rename-1-1024x608.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20608'%3E%3C/svg%3E)
 
 #### Replace [#](#b3253456612_2797)
 
@@ -72,14 +72,14 @@ You can replace a selected file by choosing another one from your computer.
 
 To delete a file, press on the file menu and choose **Delete**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Delete-3-1024x610.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20610'%3E%3C/svg%3E)
 
 #### Displaying Multi-Page PDF [#](#b1269046750_34)
 
 You can add PDF files to your pages, including multi-page files.  
 By default, PDF file displays only one page from the document in the body of the page, but you can enable displaying all pages at once. You can do this through the file menu – **View As**.
 
-![You can add PDF files to your pages, including multi-page files.](https://app.nimbusweb.me/box/attachment/4475947/3m2lt9ip0lhqbmy0hx78/hEJt8sIMmM6Qyaz6/Group%20177.png)
+![You can add PDF files to your pages, including multi-page files.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 #### Expand in full window [#](#b3253456612_3011)
 
@@ -107,13 +107,13 @@ Image-to-text recognition is a powerful feature that enables searching for text 
 
 Print function is available for PDF files. Go to the menu and select **Print**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Print-1024x617.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20617'%3E%3C/svg%3E)
 
 ### Add caption [#](#b2007174006_0)
 
 To add a description to pictures or videos, just click on the three dots menu and select **Add caption**.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/add-caption-1-1024x618.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20618'%3E%3C/svg%3E)
 
 ## Google Doc editing [#](#b1243138007_2980)
 
@@ -131,7 +131,7 @@ Google Docs files can be directly inserted into and edited on FuseBase.
 
 Click on the button to add a picture, then upload a picture from your computer (press browse) or specify a link to the picture.
 
-![Click on the button to add a picture, then upload a picture from your computer (press browse) or specify a link to the picture.](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/WJSVP0RUmXrlzDyI/%D0%B8%D0%B7%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5.png)
+![Click on the button to add a picture, then upload a picture from your computer (press browse) or specify a link to the picture.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 #### How to delete a picture? [#](#b1401094329_232)
 
@@ -147,25 +147,25 @@ Yes, you can, by moving the image to another column. To do that, click on the bl
 
 2) Click on the corresponding icon to change the location of the picture.
 
-![Click on the corresponding icon to change the location of the picture.](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/XxQC7WFRBVBtKohj/%D0%B8%D0%B7%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5.png)
+![Click on the corresponding icon to change the location of the picture.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 #### How to add a caption to the picture? [#](#b1401094329_962)
 
 Hover over the picture and click on Add caption. Then go ahead and add the required caption.
 
-![Hover over the picture and click on Add caption. Then go ahead and add the required caption.](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/ij0V3kxowJ4ZAewZ/eden10.jpg)
+![Hover over the picture and click on Add caption. Then go ahead and add the required caption.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 #### How to resize a picture? [#](#b1401094329_1145)
 
 Hover the cursor over the picture and click on the zoom slider. Next, adjust the size keeping the mouse button down.
 
-![Hover the cursor over the picture and click on the zoom slider. Next, adjust the size keeping the mouse button down.](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/sHZxwywJSwNj8HLV/e5uUGN4zRE.gif)
+![Hover the cursor over the picture and click on the zoom slider. Next, adjust the size keeping the mouse button down.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 #### How to view the full width of a picture? [#](#b1401094329_1339)
 
 Click on the picture in the menu and then click on the Display full width icon.
 
-![Click on the picture in the menu and then click on the Display full width icon.](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/b6MxsWH7FlBSgq39/edn51.jpg)
+![Click on the picture in the menu and then click on the Display full width icon.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### Files [#](#b1401094329_1522)
 
@@ -173,9 +173,9 @@ Click on the picture in the menu and then click on the Display full width icon.
 
 Click on the button to add file and select the required file. The file will then start uploading. You can stop the upload by pressing the X button.
 
-![Click on the button to add file and select the required file. The file will then start uploading. You can stop the upload by pressing the X button.](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/NeTwIlwGOOYDhc91/%D0%B8%D0%B7%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5.png)
+![Click on the button to add file and select the required file. The file will then start uploading. You can stop the upload by pressing the X button.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
-![Click on the button to add file and select the required file. The file will then start uploading. You can stop the upload by pressing the X button.](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/m91SO112PCAtRsxP/newr3.jpg)
+![Click on the button to add file and select the required file. The file will then start uploading. You can stop the upload by pressing the X button.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 #### Can I drag & drop a file? [#](#b1401094329_1802)
 
@@ -193,7 +193,7 @@ A file is a regular block that can be deleted like any other. Click on the block
 
 Yes, you can view by clicking on the file panel.
 
-![you can view by clicking on the file panel.](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/K1vszjyYqdQ1NwR0/newr4.jpg)
+![you can view by clicking on the file panel.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### PDF files [#](#b1401094329_2360)
 
@@ -201,19 +201,19 @@ Yes, you can view by clicking on the file panel.
 
 PDF files can be added just like any other file. Press the button to add file and select the required file. The file will then start uploading. You can stop the upload by pressing the X button.
 
-![PDF files can be added just like any other file. Press the button to add file and select the required file.](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/XRGRhUMhSxk2oP7D/%D0%B8%D0%B7%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5.png)
+![PDF files can be added just like any other file. Press the button to add file and select the required file.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 #### I don’t like the contents of the PDF files always on display. Can they be hidden? [#](#b1401094329_2660)
 
 Yes, click on the file menu and select Compact View. Also, it can be minimized by clicking on the file panel.
 
-![ click on the file menu and select Compact View. Also, it can be minimized by clicking on the file panel.](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/B1xpULSn14twYDsH/newr4.jpg)
+![ click on the file menu and select Compact View. Also, it can be minimized by clicking on the file panel.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 #### How to open a PDF file in full screen mode? [#](#b1401094329_2914)
 
 If the PDF file is in Compact mode, click on the file menu and select Expand in full window.
 
-![If the PDF file is in Compact mode, click on the file menu and select Expand in full window.](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/n2OWJndwHGnBUKN5/eden11.jpg)
+![If the PDF file is in Compact mode, click on the file menu and select Expand in full window.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 #### How to search in a PDF file? [#](#b1401094329_3113)
 

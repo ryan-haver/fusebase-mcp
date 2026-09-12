@@ -2,7 +2,7 @@
 title: "Zillow embed"
 url: "https://thefusebase.com/guides/embedding-sharing/zillow-embed/"
 section: "embedding-sharing"
-lastScraped: "2026-02-28T21:27:53.254Z"
+lastScraped: "2026-09-12T05:18:26.064Z"
 ---
 
 # Zillow embed
@@ -33,4 +33,4 @@ In this guide, we’ll show you how to add a search widget into your page from t
 -   **Paste** the Zillow code into the embed.
 -   Excellent! Search form added successfully.
 
-![Paste the Zillow code into the embed.](https://app.nimbusweb.me/box/attachment/5421170/zpt9sdez76s99xhy1usi/BKVSgIpJKCx3uS81/Group%20181%20(1).png)
+![Paste the Zillow code into the embed.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)

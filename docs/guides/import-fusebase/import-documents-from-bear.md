@@ -2,7 +2,7 @@
 title: "Import documents from Bear"
 url: "https://thefusebase.com/guides/import-fusebase/import-documents-from-bear/"
 section: "import-fusebase"
-lastScraped: "2026-02-28T21:28:16.231Z"
+lastScraped: "2026-09-12T05:18:44.404Z"
 ---
 
 # Import documents from Bear

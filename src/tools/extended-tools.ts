@@ -1728,4 +1728,155 @@ export function registerExtendedTools(
       }
     },
   );
+
+  // === Vibe Coding & Apps ===
+
+  server.tool(
+    "create_interactive_app_page",
+    "Create a new FuseBase page embedding a full-width interactive web application, widget, or dashboard (FuseBase Vibe Coding/Apps). Uses a remote-frame block with allowOverWidth=true.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      title: z.string().describe("Page title for the interactive app"),
+      appUrl: z.string().describe("URL of the hosted web application or preview"),
+      description: z.string().optional().describe("Optional introductory markdown text above the embedded app"),
+      folderId: z.string().optional().describe("Parent folder ID (default: root/default)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ workspaceId, title, appUrl, description, folderId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const page = await client.createPage(workspaceId, title, folderId);
+        const blocks: ContentBlock[] = [];
+        if (description) {
+          blocks.push(...markdownToSchema(description));
+        }
+        blocks.push({
+          type: "remote-frame",
+          src: appUrl,
+          allowOverWidth: true,
+        });
+
+        const writeRes = await writeContentViaWebSocket(
+          client["host"],
+          workspaceId,
+          page.globalId,
+          client["cookie"],
+          blocks,
+          { replace: true },
+        );
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(
+                {
+                  id: page.globalId,
+                  title: page.title,
+                  appUrl,
+                  contentWritten: writeRes.success,
+                  error: writeRes.error,
+                  pageUrl: `https://${client["host"]}/space/${workspaceId}/page/${page.globalId}`,
+                },
+                null,
+                2,
+              ),
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  // === Automations (ActivePieces) ===
+
+  server.tool(
+    "list_automation_flows",
+    "List ActivePieces automation workflows configured in the FuseBase organization. Shows workflow IDs, names, status (enabled/disabled), and triggers.",
+    {
+      projectId: z.string().optional().describe("Optional automation project ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ projectId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const flows = await client.listAutomationFlows(projectId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(flows, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_automation_flow",
+    "Get detailed configuration and step definitions of an ActivePieces automation workflow.",
+    {
+      flowId: z.string().describe("Automation Flow ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ flowId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const flow = await client.getAutomationFlow(flowId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(flow, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "list_flow_runs",
+    "List execution history of ActivePieces automation flow runs, including status, execution duration, and trigger timestamps.",
+    {
+      projectId: z.string().optional().describe("Optional automation project ID"),
+      limit: z.number().optional().describe("Max flow runs to return (default: 20)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ projectId, limit, profile }) => {
+      const client = getClient(profile);
+      try {
+        const runs = await client.listFlowRuns(projectId, limit ?? 20);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(runs, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "list_automation_pieces",
+    "List available ActivePieces connectors, actions, and trigger pieces (e.g. piece-fusebase, piece-smtp, piece-webhook, piece-csv).",
+    {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ profile }) => {
+      const client = getClient(profile);
+      try {
+        const pieces = await client.listAutomationPieces();
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(pieces, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
 }

@@ -2,7 +2,7 @@
 title: "How Do I Manage Access to Portal Customizer?"
 url: "https://thefusebase.com/guides/client-portal/access/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:53.121Z"
+lastScraped: "2026-09-12T05:17:16.313Z"
 ---
 
 # How Do I Manage Access to Portal Customizer?

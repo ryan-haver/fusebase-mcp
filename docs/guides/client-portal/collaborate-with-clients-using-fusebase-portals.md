@@ -2,7 +2,7 @@
 title: "Collaborate With Clients Using FuseBase Portals"
 url: "https://thefusebase.com/guides/client-portal/collaborate-with-clients-using-fusebase-portals/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:59.416Z"
+lastScraped: "2026-09-12T05:17:22.816Z"
 ---
 
 # Collaborate With Clients Using FuseBase Portals
@@ -13,7 +13,7 @@ lastScraped: "2026-02-28T21:26:59.416Z"
 
 Client portals in FuseBase are branded, customized hubs to share work and communicate with your clients. Portals consolidate all the resources, feedback, and information clients need in one self-serve destination.
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/960x540_Appsumo_1_gif_1.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20960%20540'%3E%3C/svg%3E)
 
 ## Typical Client Portal Workflow [#](#b1796755775_2626)
 
@@ -23,7 +23,7 @@ Start by creating a new [FuseBase workspace](https://thefusebase.com/guides/orga
 
 ### Build the Home Page [#](#b1796755775_2744)
 
-[Embedded content](https://www.youtube.com/embed/191u57I9k8I?feature=oembed)
+[Embedded content](about:blank)
 
 The Home page is the entry point for your client portal. Build it to quickly orient visitors and highlight key content.
 
@@ -38,7 +38,7 @@ Use FuseBase’s page editor to customize the layout and content. Add text, imag
 
 ### Add Content Pages [#](#4-toc-title)
 
-[Embedded content](https://www.youtube.com/embed/QImQpkt-Eps?feature=oembed)
+[Embedded content](about:blank)
 
 Now construct additional pages within the workspace to share content with your client.
 
@@ -70,7 +70,7 @@ This allows you to present a seamless branded experience for your clients tailor
 
 ### Send Client Access [#](#7-toc-title)
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/Send-Client-Access.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20960%20540'%3E%3C/svg%3E)
 
 Once your portal is ready, simply invite clients via a [magic link](https://thefusebase.com/guides/client-portal/magic-links/). This allows them instant access without needing to create a password. For extra security, enable passcode protection on the portal link as well.
 

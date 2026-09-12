@@ -2,7 +2,7 @@
 title: "Portal Analytics – Guide"
 url: "https://thefusebase.com/guides/client-portal/portal-analytics-guide/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:47.364Z"
+lastScraped: "2026-09-12T05:17:12.394Z"
 ---
 
 # Portal Analytics – Guide
@@ -20,7 +20,7 @@ Portal analytics structurally consists of four main elements:
 -   **Users**: A list of all users who have visited the portal.
 -   **Pages**: A list of all portal pages that visitors have accessed.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-65-1024x535.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20535'%3E%3C/svg%3E)
 
 ## Events [#](#0-toc-title)
 
@@ -32,7 +32,7 @@ In the Events table, you will find:
 -   **The object to which the action was applied** (e.g., a page or a file)
 -   **How long ago the action occurred**
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-66-1024x560.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20560'%3E%3C/svg%3E)
 
 Currently, the portal tracks the following actions:
 
@@ -48,19 +48,19 @@ Currently, the portal tracks the following actions:
 
 You can click on the event name to filter only by it and see which users triggered that event.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-67-1024x564.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20564'%3E%3C/svg%3E)
 
 You can also click on the page name to filter all events that occur only on that page.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-68-1024x549.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20549'%3E%3C/svg%3E)
 
 You can also use the **Event Types** dropdown list to filter by multiple events at once.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-69-1024x564.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20564'%3E%3C/svg%3E)
 
 If you need to remove filters, click on the **X** in the top panel.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-71-1024x476.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20476'%3E%3C/svg%3E)
 
 ## Sessions [#](#1-toc-title)
 
@@ -73,21 +73,21 @@ Here you will find a list of all user sessions that have occurred on the portal.
 -   **When the session started**
 -   **Session duration**
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-72-1024x545.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20545'%3E%3C/svg%3E)
 
 By clicking on the **Session ID**, you can view all events that occurred during the session.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-73-1024x545.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20545'%3E%3C/svg%3E)
 
 To exit the session view, click on **Clear session filter**.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-74-1024x547.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20547'%3E%3C/svg%3E)
 
 ## Users [#](#2-toc-title)
 
 Here you will find a list of all users who have visited the portal. Both registered users and anonymous guests are displayed.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-75-1024x545.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20545'%3E%3C/svg%3E)
 
 By clicking on a user, you can view a list of all events the user has performed on the portal.
 
@@ -95,8 +95,8 @@ By clicking on a user, you can view a list of all events the user has performed 
 
 In this list, you will find all the portal pages where visitors have performed actions.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-76-1024x553.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20553'%3E%3C/svg%3E)
 
 By clicking on the page name, you can see a list of all actions and who performed them.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-77-1024x539.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20539'%3E%3C/svg%3E)

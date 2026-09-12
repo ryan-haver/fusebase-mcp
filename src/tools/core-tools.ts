@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { FusebaseClient } from "../client.js";
 import type { FusebaseMember, FusebaseOrgMember, FusebaseFile, FusebaseLabel } from "../types.js";
-import { loadEncryptedCookie, saveEncryptedCookie, loadCredentialStore } from "../crypto.js";
+import { loadEncryptedCookie, saveEncryptedCookie, loadCredentialStore, listConfiguredProfiles } from "../crypto.js";
 import { markdownToSchema } from "../markdown-parser.js";
 import { schemaToTokens } from "../token-builder.js";
 import type { ContentBlock } from "../content-schema.js";
@@ -17,6 +17,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 interface CoreToolsOptions {
   enableExtendedTools: () => void;
   isExtendedToolsEnabled: () => boolean;
+  setActiveProfile?: (profile?: string) => void;
+  getActiveProfile?: () => string | undefined;
 }
 
 export function registerCoreTools(
@@ -81,6 +83,49 @@ export function registerCoreTools(
           isError: true,
         };
       }
+    },
+  );
+
+  server.tool(
+    "list_agent_profiles",
+    "List all configured agent authentication profiles found in the local data directory, showing profile names, cookie age in hours, and status.",
+    {},
+    async () => {
+      try {
+        const profiles = listConfiguredProfiles();
+        const active = options.getActiveProfile ? options.getActiveProfile() : undefined;
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify({ activeProfile: active || "default", profiles }, null, 2),
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "switch_active_profile",
+    "Switch the active default agent authentication profile for subsequent tool calls in this session.",
+    {
+      profile: z.string().describe("Agent profile name (e.g. 'agent-architect', 'agent-dev', or 'default')"),
+    },
+    async ({ profile }) => {
+      if (options.setActiveProfile) {
+        options.setActiveProfile(profile === "default" ? undefined : profile);
+      }
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Active profile switched to '${profile}'.`,
+          },
+        ],
+      };
     },
   );
 
@@ -621,6 +666,58 @@ export function registerCoreTools(
     },
   );
 
+  server.tool(
+    "append_page_content",
+    "Append new content (markdown or structured blocks) to an existing FuseBase page without overwriting existing content. Uses real-time Y.js WebSocket synchronization. Great for adding meeting notes, research updates, log entries, or checklists.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      pageId: z.string().describe("Page (note) ID to append to"),
+      markdown: z
+        .string()
+        .optional()
+        .describe("Markdown content to append (headings, lists, code, tables, bold, links, etc.)"),
+      blocks: z
+        .array(z.unknown())
+        .optional()
+        .describe("Structured ContentBlock[] array to append"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ workspaceId, pageId, markdown, blocks, profile }) => {
+      const client = getClient(profile);
+      try {
+        if (!markdown && !blocks) {
+          return {
+            content: [{ type: "text" as const, text: "Error: Either 'markdown' or 'blocks' must be provided." }],
+            isError: true,
+          };
+        }
+
+        const result = await client.appendPageContent(workspaceId, pageId, {
+          markdown,
+          blocks,
+        });
+
+        if (!result.success) {
+          return {
+            content: [{ type: "text" as const, text: `Append failed: ${result.error}` }],
+            isError: true,
+          };
+        }
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Successfully appended content to page ${pageId}.`,
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
   // === Tasks (core) ===
 
   server.tool(
@@ -975,7 +1072,7 @@ export function registerCoreTools(
             content: [
               {
                 type: "text" as const,
-                text: "Extended tools are already enabled for this session (91 total tools active).",
+                text: "Extended tools are already enabled for this session (99 total tools active).",
               },
             ],
           };
@@ -985,7 +1082,7 @@ export function registerCoreTools(
           content: [
             {
               type: "text" as const,
-              text: "Extended tools enabled! 68 additional tools are now available (91 total). New tools: get_labels, get_org_usage, get_comment_threads, get_task_description, create_folder, update_page, update_task, delete_task, delete_page, update_page_content, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, fusebase_poll_mentions, fusebase_post_comment, fusebase_reply_comment, fusebase_resolve_thread, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database, add_database_row, delete_database_row, move_kanban_card, list_database_relations, create_dashboard_table, delete_relation, list_all_databases, get_database_detail, update_database, delete_database, get_dashboard_detail, delete_dashboard, update_view, set_view_representation, duplicate_database, create_view, delete_view, export_csv, duplicate_view, import_csv, set_view_grouping, set_column_width, rename_database_column, reorder_database_columns, update_database_cell, get_database_rows, get_database_schema, add_database_column, delete_database_column, add_relation_column, add_lookup_column, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
+              text: "Extended tools enabled! 73 additional tools are now available (99 total). New tools: create_interactive_app_page, list_automation_flows, get_automation_flow, list_flow_runs, list_automation_pieces, get_labels, get_org_usage, get_comment_threads, get_task_description, create_folder, update_page, update_task, delete_task, delete_page, update_page_content, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, fusebase_poll_mentions, fusebase_post_comment, fusebase_reply_comment, fusebase_resolve_thread, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database, add_database_row, delete_database_row, move_kanban_card, list_database_relations, create_dashboard_table, delete_relation, list_all_databases, get_database_detail, update_database, delete_database, get_dashboard_detail, delete_dashboard, update_view, set_view_representation, duplicate_database, create_view, delete_view, export_csv, duplicate_view, import_csv, set_view_grouping, set_column_width, rename_database_column, reorder_database_columns, update_database_cell, get_database_rows, get_database_schema, add_database_column, delete_database_column, add_relation_column, add_lookup_column, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
             },
           ],
         };
@@ -995,8 +1092,8 @@ export function registerCoreTools(
           {
             type: "text" as const,
             text: options.isExtendedToolsEnabled()
-              ? "Current tier: all (91 tools active). To revert to core-only, restart the MCP server."
-              : "Current tier: core (23 tools active). Call set_tool_tier with tier='all' to enable 68 extended tools.",
+              ? "Current tier: all (99 tools active). To revert to core-only, restart the MCP server."
+              : "Current tier: core (26 tools active). Call set_tool_tier with tier='all' to enable 73 extended tools.",
           },
         ],
       };

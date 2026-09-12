@@ -2,7 +2,7 @@
 title: "Adding AI Agents to FuseBase Portals"
 url: "https://thefusebase.com/guides/client-portal/adding-ai-agents-to-fusebase-portals/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:41.156Z"
+lastScraped: "2026-09-12T05:17:02.895Z"
 ---
 
 # Adding AI Agents to FuseBase Portals
@@ -11,7 +11,7 @@ You can add our AI agents to the portal as regular blocks. For example, you can 
 
 Before reading the guide, you can watch a video where we highlight the main features of agents for portals and how they can enhance the customer experience.
 
-[Embedded content](https://www.youtube.com/embed/CXBtiJoEBFM?feature=oembed)
+[Embedded content](about:blank)
 
 ## **Adding an AI Agent** [#](#0-toc-title)
 
@@ -21,34 +21,34 @@ Let’s try adding an agent to your portal:
 
 2) Click on **Add block**.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-8-1024x483.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20483'%3E%3C/svg%3E)
 
 3) Click on **AI Agents**.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-9-1024x473.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20473'%3E%3C/svg%3E)
 
 4) Select the desired agent (you can also create a new one).
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-10-1024x552.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20552'%3E%3C/svg%3E)
 
 5) Customize the appearance of the agent (for example, adjust its width).
 
 6) Don’t forget to save and publish your changes.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-11-1024x519.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20519'%3E%3C/svg%3E)
 
 ## Disable chat with the agent after receiving the result [#](#1-toc-title)
 
 By default, after the agent has completed its task, users can ask follow-up questions via chat. However, you can disable this option for your clients using the Allow user input after result setting. In that case, your clients will be able to see the result of the agent’s work but won’t be able to continue the conversation with the agent via chat.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-12-1024x466.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20466'%3E%3C/svg%3E)
 
 ## Customization of Agent Appearance [#](#2-toc-title)
 
 You can customize the agent’s appearance to match your portal’s style. This can be done through the **Appearance** menu.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-42-1024x425.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20425'%3E%3C/svg%3E)
 
 Here you can choose a background for your agent. It can be either a solid color or a background image. If you choose an image, you can either select a preset option or upload your own image as the agent’s background.
 
-![](https://thefusebase.com/wp-content/uploads/2025/04/image-43-1024x492.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20492'%3E%3C/svg%3E)

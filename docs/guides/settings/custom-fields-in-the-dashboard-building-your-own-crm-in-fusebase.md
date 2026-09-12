@@ -2,7 +2,7 @@
 title: "Custom columns in the dashboard/table – building your own CRM in Fusebase"
 url: "https://thefusebase.com/guides/settings/custom-fields-in-the-dashboard-building-your-own-crm-in-fusebase/"
 section: "settings"
-lastScraped: "2026-02-28T21:26:11.899Z"
+lastScraped: "2026-09-12T05:16:37.778Z"
 ---
 
 # Custom columns in the dashboard/table – building your own CRM in Fusebase
@@ -26,58 +26,58 @@ Each dashboard (workspaces, portals, and clients) has its own set of fields. In 
 
 To manage dashboard fields, click **Edit columns**.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-1024x439.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20439'%3E%3C/svg%3E)
 
 In the window that appears, you will see 2 lists:
 
 -   On the left – a list of all available fields
 -   On the right – a list of fields that are active in the current dashboard
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-1-1024x431.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20431'%3E%3C/svg%3E)
 
 ## Creating a new field [#](#2-toc-title)
 
 Now let’s try creating a new custom field. To do this, click **Add new field** and select the type of field you want to create.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-2-1024x570.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20570'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-4-1024x478.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20478'%3E%3C/svg%3E)
 
 For example, let’s try adding a client’s date of birth. To do this, click on Date field and specify the field parameters. That is, specify the field name and the Date format.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-5-1024x461.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20461'%3E%3C/svg%3E)
 
 After creation, a new column with the field appears in the dashboard.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-6-1024x404.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20404'%3E%3C/svg%3E)
 
 Click on it and enter the required date.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-7-1024x431.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20431'%3E%3C/svg%3E)
 
 Next, for example, you can add the company name. Let’s try to do this using a Custom label.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-9-1024x492.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20492'%3E%3C/svg%3E)
 
 In Custom Label, you can provide the user with a choice of different options. Let’s try entering several company names.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-11-1024x519.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20519'%3E%3C/svg%3E)
 
 After adding the column, click on the cell to select the desired company from the list.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-12-1024x426.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20426'%3E%3C/svg%3E)
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-13-1024x420.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20420'%3E%3C/svg%3E)
 
 ## Editing field settings [#](#3-toc-title)
 
 To edit a field’s settings (for example, change its name or the date format), click Edit columns and then click the arrow next to the desired field.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-14-1024x437.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20437'%3E%3C/svg%3E)
 
 Next, adjust the settings as needed and click Apply.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-15-1024x980.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20980'%3E%3C/svg%3E)
 
 ## Hiding columns [#](#4-toc-title)
 
@@ -93,7 +93,7 @@ For example, if you need each member in the table to have a unique email and wan
 
 You can activate the Unique parameter for both new and existing columns.
 
-![](https://thefusebase.com/wp-content/uploads/2025/08/image-27.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20961%20793'%3E%3C/svg%3E)
 
 When this parameter is active, you won’t be able to add duplicate data in a new row if that value already exists in another row. This can apply to emails, dates, text, numbers, etc. If you attempt to enter duplicate data, you will see a corresponding message.
 

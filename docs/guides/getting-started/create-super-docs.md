@@ -2,7 +2,7 @@
 title: "Create Super Docs"
 url: "https://thefusebase.com/guides/getting-started/create-super-docs/"
 section: "getting-started"
-lastScraped: "2026-02-28T21:26:12.018Z"
+lastScraped: "2026-09-12T05:16:37.753Z"
 ---
 
 # Create Super Docs
@@ -19,7 +19,7 @@ lastScraped: "2026-02-28T21:26:12.018Z"
 💡 **Quick tip**  
 Drag and drop your blocks to change their location within the page. Hover the cursor over the three dots, hold down the left mouse button and **start moving your content.**
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/Discover-Your-Go-To-Option.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20860%20430'%3E%3C/svg%3E)
 
 ###  Add Content from Other Tools — Embedding [#](#1-toc-title)
 
@@ -31,7 +31,7 @@ Drag and drop your blocks to change their location within the page. Hover the cu
 
 ### How to Integrate Third-Party Tools [#](#2-toc-title)
 
-[Embedded content](https://www.youtube.com/embed/2hvW9VA8mJ4?feature=oembed)
+[Embedded content](about:blank)
 
 ### Work with Tables and Databases [#](#3-toc-title)
 
@@ -42,22 +42,22 @@ Drag and drop your blocks to change their location within the page. Hover the cu
 
 ### **How to create tables with different column types** [#](#4-toc-title)
 
-[Embedded content](https://www.youtube.com/embed/JcqWD3K1RaU?feature=oembed)
+[Embedded content](about:blank)
 
 ### **How to Customize Tables** [#](#5-toc-title)
 
-[Embedded content](https://www.youtube.com/embed/AD7xngaiixg?feature=oembed)
+[Embedded content](about:blank)
 
 💡 **Quick tip**  
 Adapt content, set **ratings** and change **progress** to learn more about tables
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/Test-time.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20808%20367'%3E%3C/svg%3E)
 
 ###  Turn Super Docs into a Knowledge Base [#](#6-toc-title)
 
 **When your company wiki and / or project info piles up, we recommend storing it in FuseBase Portals. Portals are perfect for organizing and sharing information internally or with clients. You can also brand portals, set access and editing permissions, and analyze users’ behavior.**
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/Turn-Super-Docs-into-a-Knowledge-Base-1024x672.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20672'%3E%3C/svg%3E)
 
 😎 **FuseBase Team suggests**  
 Check out [what the portal can look like >>](https://acme-demoportal.nimbusweb.me/) You can organize a “single source of truth” with your company’s policies, standard operation procedures (SOPs), and general company info for your team & clients. 

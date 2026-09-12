@@ -2,7 +2,7 @@
 title: "Welcome Message & Search Management via Hero Section"
 url: "https://thefusebase.com/guides/client-portal/hero-section/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:50.055Z"
+lastScraped: "2026-09-12T05:17:16.275Z"
 ---
 
 # Welcome Message & Search Management via Hero Section
@@ -18,7 +18,7 @@ In FuseBase portals you can:
 
 ## Changing the Welcome Message [#](#b2763507920_647)
 
-[Embedded content](https://www.youtube.com/embed/KQl8GdsBVwo?feature=oembed)
+[Embedded content](about:blank)
 
 1) Go to the **Portal Customizer**.
 
@@ -26,15 +26,15 @@ In FuseBase portals you can:
 
 3) **Type in** the text you want
 
-![](https://thefusebase.com/wp-content/uploads/2024/01/Hero-Screen-03-1024x489.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20489'%3E%3C/svg%3E)
 
 4) Save your changes and **Publish** them
 
-![](https://thefusebase.com/wp-content/uploads/2024/01/Hero-Screen-04-1024x450.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20450'%3E%3C/svg%3E)
 
 ## Hiding Welcome Message & Search [#](#b3603103343_16)
 
-[Embedded content](https://www.youtube.com/embed/MowzySYBRUI?feature=oembed)
+[Embedded content](about:blank)
 
 1) Go to the **Portal Customizer**.
 
@@ -42,7 +42,7 @@ In FuseBase portals you can:
 
 3) Click on **No Content**.
 
-![](https://thefusebase.com/wp-content/uploads/2024/01/Hero-Screen-05-1024x499.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20499'%3E%3C/svg%3E)
 
 4) Save and **Publish** your changes.
 

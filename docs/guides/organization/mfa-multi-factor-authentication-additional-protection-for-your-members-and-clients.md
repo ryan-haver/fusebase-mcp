@@ -2,7 +2,7 @@
 title: "MFA (multi-factor authentication) – additional protection for your members and clients"
 url: "https://thefusebase.com/guides/organization/mfa-multi-factor-authentication-additional-protection-for-your-members-and-clients/"
 section: "organization"
-lastScraped: "2026-02-28T21:27:02.654Z"
+lastScraped: "2026-09-12T05:17:25.867Z"
 ---
 
 # MFA (multi-factor authentication) – additional protection for your members and clients
@@ -17,6 +17,6 @@ Activate the Enable MFA switch to turn on protection. After that, protection wil
 
 Now, when trying to log in to the web client or portal (via email/password or Magic Link), an additional code will be requested, which is sent to the email.
 
-![](https://thefusebase.com/wp-content/uploads/2025/09/image-19-1024x531.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20531'%3E%3C/svg%3E)
 
 After entering the code, the member gets into the web client or portal. At any time you can disable the protection in the same Security section.

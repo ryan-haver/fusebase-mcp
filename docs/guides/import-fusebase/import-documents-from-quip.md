@@ -2,7 +2,7 @@
 title: "Import documents from Quip"
 url: "https://thefusebase.com/guides/import-fusebase/import-documents-from-quip/"
 section: "import-fusebase"
-lastScraped: "2026-02-28T21:28:13.629Z"
+lastScraped: "2026-09-12T05:18:47.059Z"
 ---
 
 # Import documents from Quip

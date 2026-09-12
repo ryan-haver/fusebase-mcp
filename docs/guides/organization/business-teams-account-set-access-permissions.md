@@ -2,7 +2,7 @@
 title: "Business/Teams account | Set access permissions"
 url: "https://thefusebase.com/guides/organization/business-teams-account-set-access-permissions/"
 section: "organization"
-lastScraped: "2026-02-28T21:27:05.459Z"
+lastScraped: "2026-09-12T05:17:32.675Z"
 ---
 
 # Business/Teams account | Set access permissions
@@ -20,7 +20,7 @@ A member may have different permission levels in different workspaces. For examp
 
 **Note: Members and Guests do not have access to the organization console. They only have access to the specific workspaces they were added to.**
 
-![Types of accounts in organizations](https://app.nimbusweb.me/box/attachment/4581450/p32mz1kko32i3voozi41/26ao8XQqUmSG9Rpw/Group%205%20(8).png)
+![Types of accounts in organizations](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Types of permissions in workspaces [#](#b1211033000_1093)
 
@@ -28,7 +28,7 @@ A member may have different permission levels in different workspaces. For examp
 -   **Can create and edit** – users will be able to do full-fledged work on pages – read, edit, and even delete pages. Folders and tags management will also be available.
 -   **Read only** – user’s pages will be available only for reading.
 
-![Types of permissions in workspaces](https://app.nimbusweb.me/box/attachment/4581450/p32mz1kko32i3voozi41/mio5xEzJpnYHKuQp/Group%2026%20(3).png)
+![Types of permissions in workspaces](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Member Groups [#](#2-toc-title)
 

@@ -2,7 +2,7 @@
 title: "Manage workspaces in organization"
 url: "https://thefusebase.com/guides/organization/manage-workspaces-in-organization/"
 section: "organization"
-lastScraped: "2026-02-28T21:27:11.140Z"
+lastScraped: "2026-09-12T05:17:36.231Z"
 ---
 
 # Manage workspaces in organization
@@ -31,7 +31,7 @@ In the Workspaces section, you can create a new workspace, manage existing works
 
 ## Manage workspaces [#](#b2216200605_3173)
 
-![Manage workspaces](https://app.nimbusweb.me/box/attachment/4521901/pm28nd55axun1zse545z/L4TV2ZFaHDv3SGQa/Group%2029%20(2).png)
+![Manage workspaces](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 To manage workspaces, you need to go to the **Manage** section.
 
@@ -44,16 +44,16 @@ To manage workspaces, you need to go to the **Manage** section.
 
 [**Read more about Branding Public pages**](https://thefusebase.com/guides/branding/branding-for-public-pages/)
 
-![To manage workspaces, you need to go to the Manage section.](https://app.nimbusweb.me/box/attachment/4521901/pm28nd55axun1zse545z/CSXP2RMp5KmpR48r/2%20(2)%20(1)%20(1).gif)
+![To manage workspaces, you need to go to the Manage section.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   Also, you can change the workspace logo if you click on the workspace and select the three dots menu.
 -   Or you can just click on the workspace logo.
 
-![Also, you can change the workspace logo if you click on the workspace and select the three dots menu.](https://app.nimbusweb.me/box/attachment/4521901/pm28nd55axun1zse545z/pPQ5sAa4ukkJUNlP/Group%2030%20(2).png)
+![Also, you can change the workspace logo if you click on the workspace and select the three dots menu.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Option 1
 
-![Or you can just click on the workspace logo.](https://app.nimbusweb.me/box/attachment/4521901/pm28nd55axun1zse545z/U5A7gO4RwCanDLtm/Group%2031%20(1).png)
+![Or you can just click on the workspace logo.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 Option 2
 
@@ -61,7 +61,7 @@ Option 2
 
 -   To create a new workspace click **Create a workspace**
 
-![To create a new workspace click Create a workspace](https://app.nimbusweb.me/box/attachment/4521901/pm28nd55axun1zse545z/85ASQWvRRIp6fLyw/4%20(2).gif)
+![To create a new workspace click Create a workspace](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ## Invite members in workspace [#](#b2216200605_3203)
 
@@ -69,7 +69,7 @@ Option 2
 
 **Owner and Managers have access to all workspaces and to the organization console.**
 
-![Invite members in workspace](https://app.nimbusweb.me/box/attachment/4521901/pm28nd55axun1zse545z/hzyFwdvD597wTx0T/2%20(2)%20(1)%20(1).gif)
+![Invite members in workspace](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 To add a member directly to the workspace, you need to:
 
@@ -85,11 +85,11 @@ The user will receive an email with an invitation to join. After accepting, the 
 
 **☝** **After adding a member to the workspace, you can always change their permissions.**
 
-![The user will receive an email with an invitation to join. After accepting, the user will become a member of the organization.](https://app.nimbusweb.me/box/attachment/4521901/pm28nd55axun1zse545z/Fd6y1EapAq49btoF/Group%2026%20(3).png)
+![The user will receive an email with an invitation to join. After accepting, the user will become a member of the organization.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 **☝** **You can also add a member to the workspace from existing members.**
 
-![You can also add a member to the workspace from existing members.](https://app.nimbusweb.me/box/attachment/4521901/pm28nd55axun1zse545z/aTOduLqaKiUFqyII/Group%2028%20(3).png)
+![You can also add a member to the workspace from existing members.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 [**Read more about inviting members to organization**](https://thefusebase.com/guides/organization/invite-members/)
 

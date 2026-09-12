@@ -2,7 +2,7 @@
 title: "Subscription actions – Upgrade and Downgrade"
 url: "https://thefusebase.com/guides/settings/subscription-actions-upgrade-and-downgrade/"
 section: "settings"
-lastScraped: "2026-02-28T21:27:28.779Z"
+lastScraped: "2026-09-12T05:18:03.422Z"
 ---
 
 # Subscription actions – Upgrade and Downgrade

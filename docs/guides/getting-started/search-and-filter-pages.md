@@ -2,7 +2,7 @@
 title: "Search pages"
 url: "https://thefusebase.com/guides/getting-started/search-and-filter-pages/"
 section: "getting-started"
-lastScraped: "2026-02-28T21:26:15.094Z"
+lastScraped: "2026-09-12T05:16:43.634Z"
 ---
 
 # Search pages
@@ -18,11 +18,11 @@ You can easily find specific pages by typing phrases in the search bar. Pages wi
 -   Enter the search query (minimum 3 characters) into the input that appears.
 -   The search will trigger automatically and show any results.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Search-pages-1-1024x485.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20485'%3E%3C/svg%3E)
 
 -   Click on the desired page to open it:
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Search-pages-2-1024x511.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20511'%3E%3C/svg%3E)
 
 ## How does searching in documents work? [#](#b1496187067_224)
 
@@ -46,7 +46,7 @@ Sometimes you need to find the information within your page. To save up your tim
 
 -   Open the desired page and press CTRL/CMD + f (or select the corresponding option in the page menu).
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/How-to-search-within-pages-1024x348.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20348'%3E%3C/svg%3E)
 
 -   Enter the word you’d like to find.
 -   Look through the search results with Enter or by clicking on the back-forward arrows.

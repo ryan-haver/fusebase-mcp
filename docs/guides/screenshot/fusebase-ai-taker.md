@@ -2,18 +2,18 @@
 title: "FuseBase AI Note Taker & Meeting recorder"
 url: "https://thefusebase.com/guides/screenshot/fusebase-ai-taker/"
 section: "screenshot"
-lastScraped: "2026-02-28T21:27:56.395Z"
+lastScraped: "2026-09-12T05:18:26.611Z"
 ---
 
 # FuseBase AI Note Taker & Meeting recorder
 
 To start, here is a short video where we showcase the features of the extension.
 
-[Embedded content](https://www.youtube.com/embed/_KY5Oiz1RX8?feature=oembed)
+[Embedded content](about:blank)
 
 [Fusebase AI Pro](https://chromewebstore.google.com/detail/pljdghaomjmmleolekcgcamfpbhekbmc) — an extension that allows you to record a video from a meeting, an audio message, take a screenshot, and quickly share what you’ve made with your colleagues.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-23.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20707%20777'%3E%3C/svg%3E)
 
 In the extension itself, you’ll find several modes:
 
@@ -24,16 +24,16 @@ In the extension itself, you’ll find several modes:
 
 If you wish, you can select a workspace and folders where data will be saved by default. To do this, click on **Manage default folders** –
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-24.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20731%20846'%3E%3C/svg%3E)
 
 Here you can select the folder where audio, video, etc. will be saved. For each type, you can choose a separate folder.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-25.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20871%20717'%3E%3C/svg%3E)
 
 You can choose either an existing folder or create a new one in the workspace.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-26-859x1024.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20859%201024'%3E%3C/svg%3E)
 
 You can also choose how the link will be shared after uploading to Fusebase: as **public** (can be shared immediately) or private (for example, if you want to edit it first).
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-27.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20997%20870'%3E%3C/svg%3E)

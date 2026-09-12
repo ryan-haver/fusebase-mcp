@@ -1,15 +1,19 @@
 ---
-title: "What’s the difference between Agents, Assistants, and GenAI in the editor?"
+title: "What’s the difference between AI Apps, Agents, Assistants, GenAI in the editor?"
 url: "https://thefusebase.com/guides/fusebase-ai/whats-the-difference-between-agents-assistants-and-genai-in-the-editor/"
 section: "fusebase-ai"
-lastScraped: "2026-02-28T21:26:11.610Z"
+lastScraped: "2026-09-12T05:16:37.536Z"
 ---
 
-# What’s the difference between Agents, Assistants, and GenAI in the editor?
+# What’s the difference between AI Apps, Agents, Assistants, GenAI in the editor?
 
 FuseBase offers a rich and powerful set of AI features. However, this variety can also lead to questions about which AI module is best suited for a particular situation. Here, we’ll try to answer that question.
 
-## AI Agents [#](#0-toc-title)
+## AI Apps [#](#0-toc-title)
+
+Applications created through our AI Vibe Code platform – [https://ai-dev.thefusebase.com/](https://ai-dev.thefusebase.com/) – can vary in complexity, ranging from mini-sites to fully functional CRM systems. With these apps, you can both extend FuseBase functionality (for example, by adding features such as proposals, CRM, or time tracking) and develop independent applications.
+
+## AI Agents [#](#1-toc-title)
 
 AI Agents are highly customizable mini-applications that automate and solve a wide range of tasks using AI. They can be tailored for anything – from text generation and translation to document analysis, workflow automation, and integration with external services.
 
@@ -33,7 +37,7 @@ AI Agents are highly customizable mini-applications that automate and solve a wi
 
 More Information: [https://thefusebase.com/guides/fusebase-ai/ai-agents-quick-guide/](https://thefusebase.com/guides/fusebase-ai/ai-agents-quick-guide/)
 
-## **AI Assistant (Workspace Chat)** [#](#1-toc-title)
+## **AI Assistant (Workspace Chat)** [#](#2-toc-title)
 
 An interactive assistant built into FuseBase, designed for engaging with your workspace content using natural language.
 
@@ -56,7 +60,7 @@ An interactive assistant built into FuseBase, designed for engaging with your wo
 
 More Information: [https://thefusebase.com/guides/fusebase-ai/ai-assistant-quick-guide/](https://thefusebase.com/guides/fusebase-ai/ai-assistant-quick-guide/)
 
-## **GenAI (Legacy Content Generation)** [#](#2-toc-title)
+## **GenAI (Legacy Content Generation)** [#](#3-toc-title)
 
 The original AI content generation tool inside the FuseBase editor. Designed for quick content creation, improvement, and summarization. This is legacy functionality, and over time we will replace it with Agents.
 
@@ -68,8 +72,10 @@ The original AI content generation tool inside the FuseBase editor. Designed for
 
 More Information: [https://thefusebase.com/guides/fusebase-ai/generating-new-content/](https://thefusebase.com/guides/fusebase-ai/generating-new-content/)
 
-## Our recommendations [#](#3-toc-title)
+## Our recommendations [#](#4-toc-title)
 
+-   **If you need to extend the functionality of FuseBase or create a completely standalone application:**  
+    Create AI Apps. Customize FuseBase for your specific use cases.
 -   **For routine, automation, integration, and future-proofing:**  
     Use **AI Agents**. They are the most advanced and will keep improving.
 -   **For fast, conversational Q&A and workspace search:**  

@@ -2,7 +2,7 @@
 title: "Adding Mind Maps from MindMeister"
 url: "https://thefusebase.com/guides/embedding-sharing/adding-mind-maps-from-mindmeister/"
 section: "embedding-sharing"
-lastScraped: "2026-02-28T21:27:47.923Z"
+lastScraped: "2026-09-12T05:18:19.699Z"
 ---
 
 # Adding Mind Maps from MindMeister
@@ -34,8 +34,8 @@ In this guide, we will explain how to add Mind Maps to pages using a well-known 
 -   Go to [FuseBase](https://thefusebase.com/) and open the page you want.
 -   Select **Embed** and **paste the code** with MindMeister.
 
-![How to insert an embed code into Nimbus Note](https://app.nimbusweb.me/box/attachment/5421812/2n46cerym6optzokk22m/Tdg1tcqbBxa0eoaI/Group%20189%20(1).png)
+![How to insert an embed code into Nimbus Note](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 -   Everything is ready – Mind Map is added to the page!
 
-![Everything is ready - Mind Map is added to the page!](https://app.nimbusweb.me/box/attachment/5421812/2n46cerym6optzokk22m/Orb6ONv0pdAxRIVO/Group%20190%20(1).png)
+![Everything is ready - Mind Map is added to the page!](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)

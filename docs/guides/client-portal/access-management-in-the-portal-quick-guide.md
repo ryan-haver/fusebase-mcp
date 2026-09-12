@@ -2,7 +2,7 @@
 title: "Access Management in the Portal – Quick Guide"
 url: "https://thefusebase.com/guides/client-portal/access-management-in-the-portal-quick-guide/"
 section: "client-portal"
-lastScraped: "2026-02-28T21:26:41.252Z"
+lastScraped: "2026-09-12T05:17:08.977Z"
 ---
 
 # Access Management in the Portal – Quick Guide
@@ -19,13 +19,13 @@ c) The Invite Clients option, if you want to manually send an invitation to the 
 
 ![](https://thefusebase.com/wp-content/uploads/2025/03/image-21-1024x506.png)
 
-![](https://thefusebase.com/wp-content/uploads/2025/03/image-22-1024x578.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20578'%3E%3C/svg%3E)
 
 ## **Portal Access Levels** [#](#0-toc-title)
 
 You can choose the appropriate access level for your portal through Portal Access.
 
-![](https://thefusebase.com/wp-content/uploads/2025/03/image-23-1024x723.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20723'%3E%3C/svg%3E)
 
 Let’s go over each access level in more detail.
 
@@ -43,7 +43,7 @@ These two options (Email Required with or without verification) are ideal for de
 
 You can manually invite clients at any portal access level. To do this, simply click on Invite client, then enter the client’s email address. They will receive a Magic Link granting them access to the portal. You can read more about how Magic Links work at this [link](https://thefusebase.com/guides/client-portal/magic-links/).
 
-![](https://thefusebase.com/wp-content/uploads/2025/03/image-24-1024x797.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20797'%3E%3C/svg%3E)
 
 ## **Granular Permissions** [#](#2-toc-title)
 

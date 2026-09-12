@@ -2,7 +2,7 @@
 title: "Structure in FuseBase"
 url: "https://thefusebase.com/guides/getting-started/structure-in-fusebase/"
 section: "getting-started"
-lastScraped: "2026-02-28T21:26:17.985Z"
+lastScraped: "2026-09-12T05:16:44.196Z"
 ---
 
 # Structure in FuseBase
@@ -17,7 +17,7 @@ Before you create any pages, it’s worthwhile to think about how you want to st
 
 Work under your projects, create different pages and save everything in your **Personal organization**. Choose the name of your organization according to your needs and start your work.
 
-![Work under your projects, create different pages and save everything in your Personal organization.](https://app.nimbusweb.me/box/attachment/6277651/6gdur2hu1gm0e9thz88d/td8LUpF3Z9gWcfW3/Frame%20158.png)
+![Work under your projects, create different pages and save everything in your Personal organization.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 ### Business organization [#](#b3473690739_497)
 
@@ -29,7 +29,7 @@ If you work as a solopreneur, add your clients to workspaces or share public pag
 
 [**Create your organization**](https://thefusebase.com/auth/?f=login&nod=1&success=https://teams.nimbusweb.me/)
 
-![Nimbus Business organizations, unlike Personal ones, have a higher level of management, which can be accessed in the Organization Console.](https://app.nimbusweb.me/box/attachment/6277651/6gdur2hu1gm0e9thz88d/1pc1wYv1uAqblqw5/structure-big-01.png)
+![Nimbus Business organizations, unlike Personal ones, have a higher level of management, which can be accessed in the Organization Console.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 FuseBase Business organizations, unlike Personal ones, have a higher level of management, which can be accessed in the **Organization Console**. It allows you to:
 
@@ -51,7 +51,7 @@ FuseBase Business organizations, unlike Personal ones, have a higher level of ma
 
 [**Read more about Business console functions**](https://thefusebase.com/guides/organization/organization-console-manage-your-organization/)
 
-![Nimbus Business organizations, unlike Personal ones, have a higher level of management, which can be accessed in the Organization Console.](https://app.nimbusweb.me/box/attachment/6277651/6gdur2hu1gm0e9thz88d/juqInUKYUw8vevIL/preview.gif)
+![Nimbus Business organizations, unlike Personal ones, have a higher level of management, which can be accessed in the Organization Console.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 When you create your **organization**, you can easily switch to any time. Please note that only you can access your **Personal organization**.
 
@@ -61,7 +61,7 @@ After setting up and naming your **Persona**l and **Premium organizations**, you
 
 Create dedicated workspaces—one for each project, team & client or for your personal use. This way, you can separate your personal life from work. You can use your personal workspace fto save only your private information and create folders & subfolders to track your achievements, family activities, personal goals and more.
 
-![Create dedicated workspaces—one for each project, team & client or for your personal use. This way, you can separate your personal life from work. ](https://app.nimbusweb.me/box/attachment/6277651/6gdur2hu1gm0e9thz88d/NgJBLE5sHzogN8GP/sructure.gif)
+![Create dedicated workspaces—one for each project, team & client or for your personal use. This way, you can separate your personal life from work. ](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
 
 It’s a good idea to divide your Business organization by departments, clients or projects for your working goals.
 
@@ -71,7 +71,7 @@ It’s a good idea to divide your Business organization by departments, clients 
 
 FuseBase gives you flexibility—you can create a structure that best suits your purposes and business.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/FuseBase-gives-you-flexibility-1024x385.png)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20385'%3E%3C/svg%3E)
 
 🚩 While working on one project, you can add members to the workspace the project is in. Members will only see the information that is in the workspace, not in the whole organization.
 
@@ -92,7 +92,7 @@ Use FuseBase Portals as a knowledge base and publish all the information your cl
 
 FuseBase allows you to organize your pages into folders and subfolders. Add as many nested subfolder levels as you need.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/Folders-and-subfolders-1024x481.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20481'%3E%3C/svg%3E)
 
 In FuseBase, you can:
 
@@ -103,13 +103,13 @@ In FuseBase, you can:
 
 **[Read more about folders and subfolders](https://thefusebase.com/guides/basics/folders-and-subfolders/)**
 
-> Starting to organize your pages can be hard at first. To find a simple but effective path to digital zen, check out our user’s article. He shares some useful tips on working with the folders & subfolders system in FuseBase. Read the article and learn how to find your way through your mountain of notes **–** [**Read the article**](https://thefusebase.com/blog/getting-organized-with-nimbus-note/)
+> Starting to organize your pages can be hard at first. To find a simple but effective path to digital zen, check out our user’s article. He shares some useful tips on working with the folders & subfolders system in FuseBase.
 
 ## Pages [#](#b2023527723_2219)
 
 Write down your ideas and add different content types, including files, links, audio and video recordings, embeds and more. Easily store all important information in your pages and access it ant ay time.
 
-![](https://thefusebase.com/wp-content/uploads/2022/08/pages-1024x474.gif)
+![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20474'%3E%3C/svg%3E)
 
 [**Read more about pages in FuseBase**](https://thefusebase.com/guides/getting-started/create-a-new-page/)
 

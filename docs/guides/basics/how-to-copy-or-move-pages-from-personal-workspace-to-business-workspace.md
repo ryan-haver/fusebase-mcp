@@ -2,7 +2,7 @@
 title: "How to copy or move pages from personal workspace to business workspace?"
 url: "https://thefusebase.com/guides/basics/how-to-copy-or-move-pages-from-personal-workspace-to-business-workspace/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:17.895Z"
+lastScraped: "2026-09-12T05:16:44.124Z"
 ---
 
 # How to copy or move pages from personal workspace to business workspace?

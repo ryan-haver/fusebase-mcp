@@ -2,7 +2,7 @@
 title: "Button object"
 url: "https://thefusebase.com/guides/basics/button-object/"
 section: "basics"
-lastScraped: "2026-02-28T21:26:29.089Z"
+lastScraped: "2026-09-12T05:16:55.233Z"
 ---
 
 # Button object
@@ -28,20 +28,20 @@ You can choose the appearance of the button:
 
 -   Title – a text on the button.
 
-![Appearance of the button](https://thefusebase.com/wp-content/uploads/2022/08/Image-2-3-1024x606.png)
+![Appearance of the button](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20606'%3E%3C/svg%3E)
 
 -   Unique ID.
 -   Address – clicking the button opens a specified page.
 
-![Appearance of the button](https://thefusebase.com/wp-content/uploads/2022/08/Image-3-1-1024x616.png)
+![Appearance of the button](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20616'%3E%3C/svg%3E)
 
 -   Button form (round or rectangular) – by default, the form is round.
 
-![Appearance of the button](https://thefusebase.com/wp-content/uploads/2022/08/Image-4-3.png)
+![Appearance of the button](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20774%20664'%3E%3C/svg%3E)
 
 -   Button color – by default, the color is blue.
 
-![Appearance of the button](https://thefusebase.com/wp-content/uploads/2022/08/Image-5-1.png)
+![Appearance of the button](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20780%20670'%3E%3C/svg%3E)
 
 ## Actions when selecting button [#](#b501456782_2094)
 
@@ -52,4 +52,4 @@ When you click on the configured button, you can:
 -   Edit – edit a button.
 -   Remove – remove a button.
 
-![Actions when selecting button](https://thefusebase.com/wp-content/uploads/2022/08/Image-6-1-1024x574.png)
+![Actions when selecting button](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20574'%3E%3C/svg%3E)
