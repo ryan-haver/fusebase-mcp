@@ -146,4 +146,68 @@ export function registerResources(
       };
     },
   );
+
+  // ─── 6. FuseBase Work Connectors ───
+  server.resource(
+    "work-connectors",
+    "fusebase://work/connectors",
+    {
+      description: "Catalog of active and available third-party services and AI connectors (Firecrawl, n8n, Asana, Stripe, ActivePieces).",
+      mimeType: "application/json",
+    },
+    async (uri) => {
+      const client = getClient();
+      let pieces: unknown = [];
+      try {
+        pieces = await client.listAutomationPieces();
+      } catch {
+        // Feature flag or auth fallback
+      }
+
+      const connectors = {
+        featuredServices: [
+          { name: "Firecrawl", type: "web-scraping", description: "Crawl and convert web content into structured markdown for FuseBase pages." },
+          { name: "n8n", type: "workflow-automation", description: "Node-based workflow automation integrated with FuseBase webhooks." },
+          { name: "Asana", type: "project-management", description: "Bi-directional sync between Asana tasks and FuseBase databases." },
+          { name: "Notion", type: "content-sync", description: "Import and live synchronization of Notion documents into FuseBase." },
+          { name: "Stripe", type: "payments-billing", description: "Process subscriptions and payments inside FuseBase client portals and apps." },
+        ],
+        automationPieces: pieces,
+      };
+
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(connectors, null, 2),
+          },
+        ],
+      };
+    },
+  );
+
+  // ─── 7. Portal Clients Template ───
+  server.resource(
+    "portal-clients",
+    new ResourceTemplate("fusebase://portals/{portalId}/clients", { list: undefined }),
+    {
+      description: "List of invited clients, access levels, and permissions for a specific portal.",
+      mimeType: "application/json",
+    },
+    async (uri, { portalId }) => {
+      const client = getClient();
+      const pid = Array.isArray(portalId) ? portalId[0] : portalId;
+      const clients = await client.listPortalClients(pid);
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(clients, null, 2),
+          },
+        ],
+      };
+    },
+  );
 }

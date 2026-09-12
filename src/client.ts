@@ -2938,6 +2938,85 @@ export class FusebaseClient {
     return this.request<unknown>("/automation/api/v1/pieces");
   }
 
+  /** Create a new automation flow */
+  async createAutomationFlow(
+    displayName: string,
+    folderId?: string,
+    projectId?: string,
+  ): Promise<unknown> {
+    const body: Record<string, unknown> = { displayName };
+    if (folderId) body.folderId = folderId;
+    if (projectId) body.projectId = projectId;
+    return this.request<unknown>("/automation/api/v1/flows", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  }
+
+  /** Update an existing automation flow */
+  async updateAutomationFlow(
+    flowId: string,
+    operation: {
+      type: "CHANGE_STATUS" | "CHANGE_NAME";
+      status?: "ENABLED" | "DISABLED";
+      displayName?: string;
+    },
+  ): Promise<unknown> {
+    return this.request<unknown>(`/automation/api/v1/flows/${flowId}`, {
+      method: "POST",
+      body: JSON.stringify(operation),
+    });
+  }
+
+  /** Delete an automation flow */
+  async deleteAutomationFlow(flowId: string): Promise<unknown> {
+    return this.request<unknown>(`/automation/api/v1/flows/${flowId}`, {
+      method: "DELETE",
+    });
+  }
+
+  // ─── Portal Clients & Magic Links ────────────────────────────
+
+  /** List invited portal clients and members */
+  async listPortalClients(portalId?: string): Promise<unknown> {
+    const qs = portalId ? `?portalId=${portalId}` : "";
+    return this.request<unknown>(
+      `/v2/api/orgs/${this.orgId}/portalClients${qs}`,
+    ).catch(async () => {
+      // Fallback: query org members filtered by role client
+      const members = await this.getOrgMembers();
+      return members.filter((m: any) => m.role === "client" || m.userRole === "client");
+    });
+  }
+
+  /** Invite a customer with client role to a portal */
+  async invitePortalClient(
+    portalId: string,
+    email: string,
+    name?: string,
+  ): Promise<unknown> {
+    return this.request<unknown>(`/v1/portals/orgs/${this.orgId}/invites`, {
+      method: "POST",
+      body: JSON.stringify({
+        portalId,
+        email,
+        name: name || email.split("@")[0],
+        role: "client",
+      }),
+    });
+  }
+
+  /** Generate or retrieve a 24-hour magic login link for a portal client */
+  async getPortalMagicLink(portalId: string, email: string): Promise<unknown> {
+    return this.request<unknown>(`/v1/portals/orgs/${this.orgId}/magic-link`, {
+      method: "POST",
+      body: JSON.stringify({
+        portalId,
+        email,
+      }),
+    });
+  }
+
   // ─── Helpers ──────────────────────────────────────────────────
 
   /** Generate a random ID matching Fusebase's format (16-char alphanumeric) */

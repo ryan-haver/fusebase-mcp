@@ -129,4 +129,64 @@ Please plan the database architecture:
       };
     },
   );
+
+  // ─── 4. Design Automation Workflow ───
+  server.prompt(
+    "design-automation-workflow",
+    "Design a trigger-and-action automation flow using FuseBase ActivePieces pieces and connectors.",
+    {
+      goal: z.string().describe("Goal of the automation (e.g., 'Notify team when high priority ticket created')"),
+      triggerType: z.string().optional().describe("Trigger type: webhook, schedule, form_submission, or piece event"),
+    },
+    async ({ goal, triggerType }) => {
+      const triggerText = triggerType ? `\n- **Preferred Trigger**: ${triggerType}` : "";
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Please design an ActivePieces automation workflow in FuseBase for the following goal: "${goal}".${triggerText}
+
+Provide:
+1. **Trigger Configuration**: The triggering event, required webhook/data schema, and validation rules.
+2. **Action Steps**: Step-by-step execution path (e.g. piece-fusebase to update database/note, piece-smtp to send email notification, piece-text-helper to transform data).
+3. **Error Handling & Fallbacks**: Edge cases, retry policies, and execution error reporting.
+4. **Tool Deployment Plan**: Recommend the MCP tools ('create_automation_flow', 'update_automation_flow', 'list_automation_pieces') to execute and verify this automation.`,
+            },
+          },
+        ],
+      };
+    },
+  );
+
+  // ─── 5. Build Hosted Web App ───
+  server.prompt(
+    "build-hosted-app",
+    "Plan and architect a full-stack FuseBase Web App for local development and cloud hosting.",
+    {
+      appName: z.string().describe("Name of the web application"),
+      appType: z.string().optional().describe("Type of app (e.g., dashboard, portal widget, CRM viewer, ticketing)"),
+    },
+    async ({ appName, appType }) => {
+      const typeText = appType ? `\n- **Application Type**: ${appType}` : "";
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `I want to build a FuseBase Hosted Web App named "${appName}".${typeText}
+
+Please outline the end-to-end architecture:
+1. **Frontend UI Stack**: Vanilla CSS design system tokens, responsive layout, dark/light themes, and full-width embed compatibility.
+2. **Backend & Data Storage**: FuseBase database API integration, state management, and cron jobs if applicable.
+3. **CLI Lifecycle Commands**: Step-by-step CLI commands ('fusebase init', 'fusebase dev start', 'fusebase deploy') to build and host it.
+4. **FuseBase Embedding**: How to embed the live deployed URL into a FuseBase page using 'create_interactive_app_page' with 'allowOverWidth: true'.`,
+            },
+          },
+        ],
+      };
+    },
+  );
 }

@@ -270,15 +270,15 @@
 | **Files & Attachments** | 3 | 2 | 0 | 0 |
 | **Organization** | 5 | 5 | 0 | 0 |
 | **Workspaces** | 4 | 3 | 0 | 0 |
-| **Portals** | 3 | 1 | 3 | 0 |
+| **Portals** | 5 | 0 | 3 | 0 |
 | **AI & Agents** | 3 | 2 | 0 | 0 |
 | **Databases & Tables** | 13 | 1 | 0 | 0 |
-| **Automation** | 4 | 13 | 0 | 1 |
+| **Automation** | 7 | 10 | 0 | 1 |
 | **Billing & Account** | 0 | 2 | 0 | 0 |
 | **User Preferences** | 0 | 8 | 1 | 0 |
 | **Chat** | 0 | 0 | 0 | 1 |
 | **Auth & Navigation** | 0 | 0 | 3 | 14+ |
-| **TOTAL** | **57** | **47** | **7** | **16+** |
+| **TOTAL** | **62** | **42** | **7** | **16+** |
 
 ### Value Distribution (Implemented tools by daily value)
 

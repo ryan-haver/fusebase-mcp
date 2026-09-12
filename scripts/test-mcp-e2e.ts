@@ -3,13 +3,15 @@
  * Spawns the compiled MCP server (dist/index.js) over stdio,
  * connects using the official @modelcontextprotocol/sdk Client,
  * and tests:
- *   1. Core & extended tool listing + dynamic tier switching
- *   2. Native MCP Resources (list & read URI directly)
- *   3. Native MCP Prompts (list & get structured prompts)
+ *   1. Native MCP Resources (list & read URIs directly including work connectors)
+ *   2. Native MCP Prompts (list & get structured workflow prompts)
+ *   3. Core & extended tool listing + dynamic tier switching (26 -> 109 tools)
  *   4. Agent profile discovery & switching
  *   5. Full page lifecycle (create -> append -> readback -> delete)
- *   6. Vibe Coding app page creation (remote-frame)
- *   7. ActivePieces automation pieces inspection
+ *   6. Vibe Coding app page creation (remote-frame allowOverWidth)
+ *   7. FuseBase Developer CLI status detection
+ *   8. ActivePieces automation flows & pieces inspection
+ *   9. Portal clients listing
  */
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
@@ -44,8 +46,8 @@ async function main() {
   for (const r of resourcesRes.resources) {
     console.log(`  - ${r.uri} (${r.name})`);
   }
-  if (resourcesRes.resources.length === 0) {
-    throw new Error("Expected declared MCP resources, but none found!");
+  if (resourcesRes.resources.length < 3) {
+    throw new Error(`Expected at least 3 declared static MCP resources, found ${resourcesRes.resources.length}!`);
   }
   console.log("✅ Resources listed successfully");
 
@@ -67,13 +69,28 @@ async function main() {
   }
   console.log(`✅ Read 'fusebase://guides/index' passed (${guidesIndexText.length} chars)`);
 
+  console.log("Reading resource 'fusebase://work/connectors'...");
+  const connResource = await client.readResource({ uri: "fusebase://work/connectors" });
+  const connText = connResource.contents[0]?.text || "";
+  const connData = JSON.parse(connText);
+  if (!Array.isArray(connData.featuredServices) || connData.featuredServices.length === 0) {
+    throw new Error("fusebase://work/connectors returned invalid connectors format");
+  }
+  console.log(`✅ Read 'fusebase://work/connectors' passed (${connData.featuredServices.length} featured services)`);
+
   // ─── 2. MCP Prompts ────────────────────────────────────────────
   console.log("\n--- Testing Native MCP Prompts ---");
   const promptsRes = await client.listPrompts();
   console.log(`Prompts declared: ${promptsRes.prompts.length}`);
   const promptNames = promptsRes.prompts.map((p) => p.name);
   console.log("Prompt names:", promptNames);
-  for (const expected of ["create-sop", "summarize-page", "build-kanban-project"]) {
+  for (const expected of [
+    "create-sop",
+    "summarize-page",
+    "build-kanban-project",
+    "design-automation-workflow",
+    "build-hosted-app",
+  ]) {
     if (!promptNames.includes(expected)) {
       throw new Error(`Expected prompt '${expected}' not found!`);
     }
@@ -90,6 +107,17 @@ async function main() {
     throw new Error("Prompt create-sop returned unexpected text");
   }
   console.log("✅ Prompt 'create-sop' passed");
+
+  console.log("Calling prompt 'build-hosted-app'...");
+  const appPrompt = await client.getPrompt({
+    name: "build-hosted-app",
+    arguments: { appName: "Portal Support Widget", appType: "ticketing" },
+  });
+  const appText = (appPrompt.messages[0]?.content as { type: string; text: string })?.text || "";
+  if (!appText.includes("Portal Support Widget") || !appText.includes("ticketing")) {
+    throw new Error("Prompt build-hosted-app returned unexpected text");
+  }
+  console.log("✅ Prompt 'build-hosted-app' passed");
 
   // ─── 3. Tool Listing & Tier Switching ──────────────────────────
   console.log("\n--- Testing Tool Listing (Core Tier) ---");
@@ -121,6 +149,16 @@ async function main() {
   const allNames = new Set(allToolsRes.tools.map((t) => t.name));
   for (const expected of [
     "create_interactive_app_page",
+    "fusebase_cli_status",
+    "fusebase_cli_init",
+    "fusebase_cli_list_apps",
+    "fusebase_cli_deploy",
+    "create_automation_flow",
+    "update_automation_flow",
+    "delete_automation_flow",
+    "list_portal_clients",
+    "invite_portal_client",
+    "create_portal_magic_link",
     "list_automation_flows",
     "list_automation_pieces",
     "delete_page",
@@ -139,7 +177,6 @@ async function main() {
     arguments: {},
   });
   const profilesText = (profilesRes.content as Array<{ type: string; text: string }>)[0]?.text;
-  console.log("list_agent_profiles:", profilesText);
   const profilesData = JSON.parse(profilesText);
   if (!Array.isArray(profilesData.profiles) || profilesData.profiles.length === 0) {
     throw new Error("list_agent_profiles returned empty profiles list");
@@ -244,18 +281,51 @@ async function main() {
   });
   console.log("✅ App test page deleted");
 
-  // ─── 7. ActivePieces Automation Pieces ─────────────────────────
-  console.log("\n--- Testing ActivePieces Automation Pieces ---");
+  // ─── 7. FuseBase Developer CLI Status ──────────────────────────
+  console.log("\n--- Testing FuseBase CLI Status Tool ---");
+  const cliStatusRes = await client.callTool({
+    name: "fusebase_cli_status",
+    arguments: {},
+  });
+  const cliStatusText = (cliStatusRes.content as any)[0]?.text;
+  const cliStatusData = JSON.parse(cliStatusText);
+  console.log("fusebase_cli_status:", cliStatusData);
+  if (typeof cliStatusData.installed !== "boolean" || !cliStatusData.installCommand) {
+    throw new Error("fusebase_cli_status returned invalid schema");
+  }
+  console.log("✅ fusebase_cli_status passed");
+
+  // ─── 8. ActivePieces Automation Tools ─────────────────────────
+  console.log("\n--- Testing ActivePieces Automation Pieces & Mutations ---");
   const piecesRes = await client.callTool({
     name: "list_automation_pieces",
     arguments: {},
   });
   const piecesText = (piecesRes.content as any)[0]?.text;
-  console.log("list_automation_pieces:", piecesText?.slice(0, 150) + "...");
+  console.log("list_automation_pieces:", piecesText?.slice(0, 100) + "...");
   console.log("✅ list_automation_pieces handled safely");
 
+  console.log("Testing create_automation_flow error/privilege handling...");
+  const createFlowRes = await client.callTool({
+    name: "create_automation_flow",
+    arguments: { displayName: "E2E Test Flow" },
+  });
+  const createFlowText = (createFlowRes.content as any)[0]?.text;
+  console.log("create_automation_flow response:", createFlowText?.slice(0, 100) + "...");
+  console.log("✅ create_automation_flow handled safely");
+
+  // ─── 9. Portal Clients ─────────────────────────────────────────
+  console.log("\n--- Testing Portal Clients Tool ---");
+  const portalClientsRes = await client.callTool({
+    name: "list_portal_clients",
+    arguments: {},
+  });
+  const portalClientsText = (portalClientsRes.content as any)[0]?.text;
+  console.log("list_portal_clients response:", portalClientsText?.slice(0, 100) + "...");
+  console.log("✅ list_portal_clients handled safely");
+
   await client.close();
-  console.log("\n🎉 ALL PLATFORM TESTS PASSED (RESOURCES, PROMPTS, APPEND, VIBE APPS, PROFILES)!");
+  console.log("\n🎉 ALL PLATFORM TESTS PASSED (RESOURCES, PROMPTS, APPEND, VIBE APPS, CLI, AUTOMATIONS, PORTALS, PROFILES)!");
 }
 
 main().catch((err) => {

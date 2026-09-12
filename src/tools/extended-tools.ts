@@ -6,6 +6,7 @@ import { markdownToSchema } from "../markdown-parser.js";
 import type { ContentBlock } from "../content-schema.js";
 import { writeContentViaWebSocket } from "../yjs-ws-writer.js";
 import { errorResult } from "./helpers.js";
+import { FusebaseCliManager } from "../cli-manager.js";
 
 export function registerExtendedTools(
   server: McpServer,
@@ -1872,6 +1873,236 @@ export function registerExtendedTools(
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(pieces, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  // === FuseBase CLI & Hosted Apps ===
+
+  server.tool(
+    "fusebase_cli_status",
+    "Check if the official FuseBase developer CLI (`fusebase`) is installed, detect its version, binary path, and authentication state.",
+    {},
+    async () => {
+      try {
+        const status = await FusebaseCliManager.getStatus();
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(status, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_cli_init",
+    "Initialize a new FuseBase hosted app product in the specified directory using the official FuseBase CLI.",
+    {
+      name: z.string().describe("Name of the product/app to create"),
+      orgId: z.string().optional().describe("Organization ID to link the product to"),
+      cwd: z.string().optional().describe("Target directory path (defaults to current working directory)"),
+      forceDirty: z.boolean().optional().describe("Force initialization even if directory is not empty"),
+    },
+    async ({ name, orgId, cwd, forceDirty }) => {
+      try {
+        const args = ["init", "--name", `"${name}"`];
+        if (orgId) args.push("--org", orgId);
+        if (forceDirty) args.push("--force-dirty");
+        const res = await FusebaseCliManager.executeCommand("init", args.slice(1), cwd);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(res, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_cli_list_apps",
+    "List configured FuseBase hosted web applications and their URLs.",
+    {
+      cwd: z.string().optional().describe("Project directory to inspect"),
+    },
+    async ({ cwd }) => {
+      try {
+        const res = await FusebaseCliManager.executeCommand("app", ["list"], cwd);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(res, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_cli_deploy",
+    "Deploy a FuseBase web application to production hosting via the FuseBase CLI.",
+    {
+      cwd: z.string().optional().describe("Project directory to deploy"),
+    },
+    async ({ cwd }) => {
+      try {
+        const res = await FusebaseCliManager.executeCommand("deploy", [], cwd, 60000);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(res, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  // === ActivePieces Flow Mutations ===
+
+  server.tool(
+    "create_automation_flow",
+    "Create a new ActivePieces workflow automation in FuseBase.",
+    {
+      displayName: z.string().describe("Display name for the automation flow"),
+      folderId: z.string().optional().describe("Optional folder ID to organize the flow"),
+      projectId: z.string().optional().describe("Optional project ID (if user has multiple projects)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ displayName, folderId, projectId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const flow = await client.createAutomationFlow(displayName, folderId, projectId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(flow, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "update_automation_flow",
+    "Update an existing ActivePieces workflow automation (rename or toggle status ENABLED/DISABLED).",
+    {
+      flowId: z.string().describe("ID of the flow to update"),
+      type: z.enum(["CHANGE_STATUS", "CHANGE_NAME"]).describe("Update operation type"),
+      status: z.enum(["ENABLED", "DISABLED"]).optional().describe("New status when type is CHANGE_STATUS"),
+      displayName: z.string().optional().describe("New display name when type is CHANGE_NAME"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ flowId, type, status, displayName, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.updateAutomationFlow(flowId, { type, status, displayName });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "delete_automation_flow",
+    "Delete an ActivePieces workflow automation by flow ID.",
+    {
+      flowId: z.string().describe("ID of the flow to delete"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ flowId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.deleteAutomationFlow(flowId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  // === Portal Clients & Magic Links ===
+
+  server.tool(
+    "list_portal_clients",
+    "List invited external clients and members with portal access across the organization or for a specific portal.",
+    {
+      portalId: z.string().optional().describe("Optional portal ID to filter clients"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ portalId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const clients = await client.listPortalClients(portalId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(clients, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "invite_portal_client",
+    "Invite a customer or client into a FuseBase client portal with the Client Role.",
+    {
+      portalId: z.string().describe("Portal ID to invite the client to"),
+      email: z.string().describe("Client's email address"),
+      name: z.string().optional().describe("Client's full name"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ portalId, email, name, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.invitePortalClient(portalId, email, name);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "create_portal_magic_link",
+    "Generate a 24-hour passwordless magic access link for a portal client.",
+    {
+      portalId: z.string().describe("Portal ID"),
+      email: z.string().describe("Client's email address"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ portalId, email, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.getPortalMagicLink(portalId, email);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
           ],
         };
       } catch (error) {
