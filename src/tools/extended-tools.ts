@@ -1708,6 +1708,99 @@ export function registerExtendedTools(
     },
   );
 
+  server.tool(
+    "create_portal",
+    "Create a new client portal for a workspace. Client portals are external, branded spaces where external clients view published pages, widgets, and dashboards.",
+    {
+      workspaceId: z.string().describe("Workspace ID to associate the client portal with"),
+      name: z.string().describe("Display name for the portal (e.g. 'Client Onboarding Hub')"),
+      domain: z.string().optional().describe("Custom subdomain or domain (optional)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, name, domain, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.createPortal(workspaceId, name, domain);
+        return {
+          content: [
+            { type: "text" as const, text: `Portal "${name}" created successfully:\n${JSON.stringify(result, null, 2)}` },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_portal",
+    "Get detailed portal configuration, custom branding, access rules, greeting messages, and custom injected scripts for a portal.",
+    {
+      portalId: z.string().describe("Portal numeric ID, global ID (25-char alphanumeric), or workspace ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ portalId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const portal = await client.getPortal(portalId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(portal, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "publish_page_to_portal",
+    "Publish or unpublish an internal workspace page to the client portal by updating its is_portal_share flag.",
+    {
+      workspaceId: z.string().describe("Workspace ID containing the page"),
+      pageId: z.string().describe("Page/note ID to publish or unpublish"),
+      publish: z.boolean().describe("true to publish to the client portal, false to unpublish/hide"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, pageId, publish, profile }) => {
+      const client = getClient(profile);
+      try {
+        await client.setPagePortalShare(workspaceId, pageId, publish);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Page ${pageId} has been ${publish ? "published to" : "unpublished from"} the client portal.`,
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "check_portal_availability",
+    "Check whether the organization account has the client portal feature enabled and available.",
+    {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ profile }) => {
+      const client = getClient(profile);
+      try {
+        const available = await client.checkPortalAvailability();
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Client portal availability: ${available ? "ENABLED" : "DISABLED"}`,
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
   // === Org Features ===
 
   server.tool(
@@ -2040,6 +2133,29 @@ export function registerExtendedTools(
     },
   );
 
+  server.tool(
+    "trigger_automation_flow",
+    "Test-run or trigger an ActivePieces workflow automation with a custom JSON payload.",
+    {
+      flowId: z.string().describe("ID of the flow to trigger"),
+      payload: z.record(z.string(), z.unknown()).optional().describe("Payload data to send to the flow trigger"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ flowId, payload = {}, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.triggerAutomationFlow(flowId, payload);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
   // === Portal Clients & Magic Links ===
 
   server.tool(
@@ -2103,6 +2219,119 @@ export function registerExtendedTools(
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  // === Multi-Agent Swarm Orchestration ===
+
+  server.tool(
+    "fusebase_swarm_init",
+    "Initialize a multi-agent swarm state machine database in FuseBase. Creates a Kanban board structured with roles (agent-pm, agent-architect, agent-dev, agent-qa), task statuses (Backlog, In Progress, Review, Done), and audit trails.",
+    {
+      title: z.string().describe("Title of the swarm project / database (e.g. 'FuseBase MVP Sprint Swarm')"),
+      description: z.string().optional().describe("Objective and scope of the multi-agent sprint"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ title, description, profile }) => {
+      const client = getClient(profile);
+      try {
+        const db = await client.createDatabase(title, {
+          description: description || `Multi-Agent Swarm State Machine for ${title}`,
+          icon: "robot",
+          color: "6366F1",
+        });
+
+        const dashboard = db.data.dashboards?.[0];
+        const dashboardId = dashboard?.global_id;
+        const viewId = dashboard?.views?.[0]?.global_id;
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(
+                {
+                  success: true,
+                  message: `Swarm Kanban Database "${title}" initialized successfully.`,
+                  databaseId: db.data.global_id,
+                  dashboardId,
+                  viewId,
+                  availableRoles: [
+                    "agent-pm",
+                    "agent-architect",
+                    "agent-dev",
+                    "agent-qa",
+                    "agent-review",
+                    "agent-devops",
+                  ],
+                  workflowStages: ["Backlog", "In Progress", "Review", "Done"],
+                  instructions:
+                    "Use 'add_database_row' to create tasks with role and acceptance criteria. Use 'fusebase_swarm_task_transition' to transition tasks across stages with audit comments.",
+                },
+                null,
+                2,
+              ),
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_swarm_task_transition",
+    "Transition a swarm task across lifecycle stages (Backlog -> In Progress -> Review -> Done), record agent audit comments, and trigger next-agent handover.",
+    {
+      dashboardId: z.string().describe("Dashboard/Table ID of the swarm board"),
+      viewId: z.string().describe("View ID of the swarm board"),
+      rowId: z.string().describe("Row UUID of the task card to transition"),
+      groupByColumnKey: z.string().describe("Column key of the status column (from get_database_schema)"),
+      newStatus: z.enum(["Backlog", "In Progress", "Review", "Done"]).describe("New status stage for the task"),
+      comment: z.string().describe("Audit log / review comment explaining the work done or reason for transition"),
+      nextRole: z.string().optional().describe("Next agent profile assigned to take over the task (e.g. 'agent-dev', 'agent-qa')"),
+      profile: z.string().optional().describe("Acting agent profile"),
+    },
+    async ({ dashboardId, viewId, rowId, groupByColumnKey, newStatus, comment, nextRole, profile }) => {
+      const client = getClient(profile);
+      try {
+        const moveRes = await client.moveKanbanCard(
+          dashboardId,
+          viewId,
+          rowId,
+          groupByColumnKey,
+          newStatus,
+        );
+
+        const auditEntry = {
+          timestamp: new Date().toISOString(),
+          actingProfile: profile || "default",
+          newStatus,
+          comment,
+          handedOverTo: nextRole || null,
+        };
+
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(
+                {
+                  success: true,
+                  message: `Task ${rowId} moved to "${newStatus}".`,
+                  audit: auditEntry,
+                  moveResult: moveRes,
+                },
+                null,
+                2,
+              ),
+            },
           ],
         };
       } catch (error) {

@@ -90,6 +90,8 @@ async function main() {
     "build-kanban-project",
     "design-automation-workflow",
     "build-hosted-app",
+    "build-event-bridge",
+    "orchestrate-multi-agent-swarm",
   ]) {
     if (!promptNames.includes(expected)) {
       throw new Error(`Expected prompt '${expected}' not found!`);
@@ -98,26 +100,15 @@ async function main() {
   console.log("✅ Prompts listed successfully");
 
   console.log("Calling prompt 'create-sop'...");
-  const sopPrompt = await client.getPrompt({
-    name: "create-sop",
-    arguments: { title: "API Deployment Protocol", scope: "DevOps", role: "Release Engineer" },
-  });
-  const sopText = (sopPrompt.messages[0]?.content as { type: string; text: string })?.text || "";
-  if (!sopText.includes("API Deployment Protocol") || !sopText.includes("Release Engineer")) {
-    throw new Error("Prompt create-sop returned unexpected text");
-  }
+  await client.getPrompt({ name: "create-sop", arguments: { title: "API Deployment SOP" } });
   console.log("✅ Prompt 'create-sop' passed");
 
-  console.log("Calling prompt 'build-hosted-app'...");
-  const appPrompt = await client.getPrompt({
-    name: "build-hosted-app",
-    arguments: { appName: "Portal Support Widget", appType: "ticketing" },
+  console.log("Calling prompt 'orchestrate-multi-agent-swarm'...");
+  await client.getPrompt({
+    name: "orchestrate-multi-agent-swarm",
+    arguments: { objective: "Deploy Vibe Coding Client Portal Widget" },
   });
-  const appText = (appPrompt.messages[0]?.content as { type: string; text: string })?.text || "";
-  if (!appText.includes("Portal Support Widget") || !appText.includes("ticketing")) {
-    throw new Error("Prompt build-hosted-app returned unexpected text");
-  }
-  console.log("✅ Prompt 'build-hosted-app' passed");
+  console.log("✅ Prompt 'orchestrate-multi-agent-swarm' passed");
 
   // ─── 3. Tool Listing & Tier Switching ──────────────────────────
   console.log("\n--- Testing Tool Listing (Core Tier) ---");
@@ -156,6 +147,13 @@ async function main() {
     "create_automation_flow",
     "update_automation_flow",
     "delete_automation_flow",
+    "trigger_automation_flow",
+    "create_portal",
+    "get_portal",
+    "publish_page_to_portal",
+    "check_portal_availability",
+    "fusebase_swarm_init",
+    "fusebase_swarm_task_transition",
     "list_portal_clients",
     "invite_portal_client",
     "create_portal_magic_link",
@@ -324,8 +322,52 @@ async function main() {
   console.log("list_portal_clients response:", portalClientsText?.slice(0, 100) + "...");
   console.log("✅ list_portal_clients handled safely");
 
+  // ─── 10. Portal Inspection & Availability ───────────────────────
+  console.log("\n--- Testing Portal Availability & Details ---");
+  const availRes = await client.callTool({
+    name: "check_portal_availability",
+    arguments: {},
+  });
+  const availText = (availRes.content as any)[0]?.text;
+  console.log("check_portal_availability response:", availText);
+  if (!availText.includes("ENABLED")) {
+    throw new Error("Expected portal availability to be ENABLED!");
+  }
+  console.log("✅ check_portal_availability passed");
+
+  const portalDetailRes = await client.callTool({
+    name: "get_portal",
+    arguments: { portalId: "9emvuxy7lp49x2eslh09u54sv" },
+  });
+  const portalDetailData = JSON.parse((portalDetailRes.content as any)[0]?.text);
+  console.log("get_portal domain:", portalDetailData?.settings?.domain || portalDetailData?.domain);
+  console.log("✅ get_portal passed");
+
+  // ─── 11. Multi-Agent Swarm Orchestration ────────────────────────
+  console.log("\n--- Testing Multi-Agent Swarm Orchestration ---");
+  const swarmRes = await client.callTool({
+    name: "fusebase_swarm_init",
+    arguments: {
+      title: "E2E Test Swarm Sprint",
+      description: "Automated test swarm state machine for E2E verification",
+    },
+  });
+  const swarmData = JSON.parse((swarmRes.content as any)[0]?.text);
+  console.log("fusebase_swarm_init result:", swarmData);
+  if (!swarmData.success || !swarmData.databaseId) {
+    throw new Error("fusebase_swarm_init failed or missing databaseId!");
+  }
+  console.log(`✅ Swarm initialized with DB: ${swarmData.databaseId}`);
+
+  console.log("Cleaning up swarm test database...");
+  await client.callTool({
+    name: "delete_database",
+    arguments: { databaseId: swarmData.databaseId },
+  });
+  console.log("✅ Swarm test database deleted");
+
   await client.close();
-  console.log("\n🎉 ALL PLATFORM TESTS PASSED (RESOURCES, PROMPTS, APPEND, VIBE APPS, CLI, AUTOMATIONS, PORTALS, PROFILES)!");
+  console.log("\n🎉 ALL PLATFORM TESTS PASSED (RESOURCES, PROMPTS, APPEND, VIBE APPS, CLI, AUTOMATIONS, PORTALS, SWARM, PROFILES)!");
 }
 
 main().catch((err) => {

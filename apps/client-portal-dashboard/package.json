@@ -1,0 +1,30 @@
+{
+  "name": "client-hub-dashboard",
+  "version": "1.0.0",
+  "description": "",
+  "fusebaseCli": {
+    "managedDependencies": [
+      "@fusebase/dashboard-service-sdk",
+      "@fusebase/fusebase-gate-sdk"
+    ]
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "node .claude/hooks/run-typecheck-apps.js"
+  },
+  "dependencies": {
+    "@fusebase/dashboard-service-sdk": "^v1.33.4-sdk.0",
+    "@fusebase/fusebase-gate-sdk": "^v2.7.2-sdk.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@eslint/json": "^1.2.0",
+    "@types/node": "^25.0.8",
+    "eslint": "^9.15.0",
+    "globals": "^15.12.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.15.0"
+  }
+}

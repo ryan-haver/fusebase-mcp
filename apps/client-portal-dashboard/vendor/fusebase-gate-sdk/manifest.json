@@ -1,0 +1,143 @@
+{
+  "domains": {
+    "access": [
+      "getMe",
+      "getMyOrgAccess"
+    ],
+    "app-apis": [
+      "callAppApi",
+      "getAppApiOperation",
+      "listAppApiOperations",
+      "searchAppApiOperations",
+      "verifyConsumerAppApiContracts",
+      "verifyProviderAppApiContracts"
+    ],
+    "app-magic-links": [
+      "activateAppMagicLink",
+      "createAppMagicLink",
+      "requestAppMagicLink"
+    ],
+    "billing": [
+      "cancelStripeSubscription",
+      "createStripeProduct",
+      "deleteStripeProduct",
+      "findStripeProduct",
+      "getStripeOauth",
+      "getStripePaymentLink",
+      "getStripePaymentState",
+      "updateStripeMode",
+      "updateStripeProduct"
+    ],
+    "emails": [
+      "sendOrgEmail"
+    ],
+    "files": [
+      "completeMultipartFileUpload",
+      "deleteFile",
+      "startMultipartFileUpload"
+    ],
+    "fusebase-auth": [
+      "checkFusebasePasswordRestoreKey",
+      "completeFusebaseAuthChallenge",
+      "loginFusebaseUser",
+      "logoutFusebaseUser",
+      "registerFusebaseOrgMember",
+      "registerFusebaseUser",
+      "requestFusebasePasswordRestore",
+      "resetFusebasePassword"
+    ],
+    "health": [
+      "getHealth"
+    ],
+    "isolated-stores": [
+      "adoptIsolatedStoreSqlMigrationBaseline",
+      "applyIsolatedStoreSqlMigrations",
+      "attachIsolatedStoreSourceScope",
+      "batchInsertIsolatedStoreSqlRows",
+      "countIsolatedStoreSqlRows",
+      "countIsolatedStoreSqlRowsRlsBypass",
+      "createIsolatedStore",
+      "createIsolatedStoreCheckpoint",
+      "deleteIsolatedStore",
+      "deleteIsolatedStoreSqlRows",
+      "deleteIsolatedStoreStage",
+      "describeIsolatedStoreSqlTable",
+      "downloadIsolatedStoreRevisionSnapshot",
+      "executeIsolatedStoreSql",
+      "getIsolatedStore",
+      "getIsolatedStoreSqlMigrationStatus",
+      "getIsolatedStoreSqlRlsStatus",
+      "getIsolatedStoreSqlStats",
+      "getOrCreateIsolatedStore",
+      "importIsolatedStoreSqlRows",
+      "initIsolatedStoreStage",
+      "insertIsolatedStoreSqlRow",
+      "listIsolatedStoreRevisions",
+      "listIsolatedStores",
+      "listIsolatedStoreSqlTables",
+      "listIsolatedStoreStages",
+      "queryIsolatedStoreSql",
+      "repairIsolatedStoreSqlMigrationJournalChecksums",
+      "restoreIsolatedStoreRevision",
+      "selectIsolatedStoreSqlRows",
+      "selectIsolatedStoreSqlRowsRlsBypass",
+      "updateIsolatedStoreSqlRows"
+    ],
+    "notes": [
+      "addWorkspaceNoteAttachment",
+      "createWorkspaceNote",
+      "createWorkspaceNoteFolder",
+      "getWorkspaceNote",
+      "listWorkspaceNoteFolders",
+      "listWorkspaceNotes"
+    ],
+    "org-groups": [
+      "addGroupToWorkspace",
+      "addMembersToOrgGroup",
+      "countWorkspaceGroups",
+      "createOrgGroup",
+      "deleteOrgGroup",
+      "deleteWorkspaceGroup",
+      "getOrgGroup",
+      "listOrgGroupMembers",
+      "listOrgGroups",
+      "listOrgGroupWorkspaces",
+      "listOrgWorkspaceGroups",
+      "listUserOrgGroups",
+      "listWorkspaceGroups",
+      "removeOrgGroupMember",
+      "updateOrgGroup",
+      "updateWorkspaceGroup"
+    ],
+    "org-users": [
+      "addOrgUser",
+      "listOrgUsers"
+    ],
+    "orgs": [
+      "getOrgUrl"
+    ],
+    "portals": [
+      "createPortal",
+      "duplicatePortal",
+      "getPortal",
+      "inviteToPortal",
+      "listPortalContent",
+      "listPortals"
+    ],
+    "system": [
+      "listPermissionCatalog",
+      "resolveOperationPermissions"
+    ],
+    "tokens": [
+      "createToken",
+      "getToken",
+      "listTokens",
+      "revokeToken",
+      "updateToken"
+    ],
+    "workspaces": [
+      "createWorkspace",
+      "listWorkspaces"
+    ]
+  }
+}

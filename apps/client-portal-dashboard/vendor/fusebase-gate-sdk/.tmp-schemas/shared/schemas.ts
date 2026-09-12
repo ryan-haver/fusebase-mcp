@@ -1,0 +1,20 @@
+import type { AliasContract, ApiErrorCodeContract, FilterConfigContract, GetHealthResponseContract, GlobalIdsToReplaceMapContract, PaginatedResponseContract, ScopeContract, ScopeOrgContract, StandardApiResponseContract } from "./common";
+import type { OrgRoleContract, PermissionContract, RootEntityContract, ScopeTypeContract } from "./enums";
+import type { GetHealth200ResponseContract } from "./health";
+export declare const SharedSchemas: {
+    readonly AliasContract: import("../../registry/ref").SchemaRefWithType<AliasContract>;
+    readonly ApiErrorCodeContract: import("../../registry/ref").SchemaRefWithType<ApiErrorCodeContract>;
+    readonly FilterConfigContract: import("../../registry/ref").SchemaRefWithType<FilterConfigContract>;
+    readonly GetHealth200ResponseContract: import("../../registry/ref").SchemaRefWithType<GetHealth200ResponseContract>;
+    readonly GetHealthResponseContract: import("../../registry/ref").SchemaRefWithType<GetHealthResponseContract>;
+    readonly GlobalIdsToReplaceMapContract: import("../../registry/ref").SchemaRefWithType<GlobalIdsToReplaceMapContract>;
+    readonly OrgRoleContract: import("../../registry/ref").SchemaRefWithType<OrgRoleContract>;
+    readonly PaginatedResponseContract: import("../../registry/ref").SchemaRefWithType<PaginatedResponseContract>;
+    readonly PermissionContract: import("../../registry/ref").SchemaRefWithType<PermissionContract>;
+    readonly RootEntityContract: import("../../registry/ref").SchemaRefWithType<RootEntityContract>;
+    readonly ScopeContract: import("../../registry/ref").SchemaRefWithType<ScopeContract>;
+    readonly ScopeOrgContract: import("../../registry/ref").SchemaRefWithType<ScopeOrgContract>;
+    readonly ScopeTypeContract: import("../../registry/ref").SchemaRefWithType<ScopeTypeContract>;
+    readonly ScopeTypeOrgContract: import("../../registry/ref").SchemaRefWithType<"org">;
+    readonly StandardApiResponseContract: import("../../registry/ref").SchemaRefWithType<StandardApiResponseContract>;
+};

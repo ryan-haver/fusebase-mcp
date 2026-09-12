@@ -1,0 +1,41 @@
+import type { AliasContract } from "./common";
+import type { RootEntityContract, ScopeTypeContract, ScopeTypeOrgContract } from "./enums";
+export type scopeTypeOrgInQueryRequired = ScopeTypeOrgContract;
+export type scopeIdInQueryRequired = string;
+export type copyViewsInQueryRequired = boolean;
+export type copyDataInQueryRequired = boolean;
+export type copyRelationsInQueryRequired = boolean;
+export type createDefaultRowsInQuery = boolean;
+export type rootEntitiesInQueryOptional = RootEntityContract[];
+export type nameInQueryOptional = string;
+export type aliasInQueryOptional = AliasContract;
+export type scopeTypeInQueryRequired = ScopeTypeContract;
+export type dashboardIdInPathRequired = string;
+export type viewIdInPathRequired = string;
+export type cacheStrategyInQueryOptional = "use" | "bypass" | "reset";
+export type sectionTypeInQueryOptional = string;
+export type sectionKeyInQueryOptional = string;
+export type sourceDashboardIdInQueryRequired = string;
+export type sourceIndexInQueryRequired = string;
+export type rootEntityInQueryOptional = RootEntityContract;
+export type viewIdInQueryOptional = string;
+export type aliasInQueryRequired = AliasContract;
+export type databaseIdInQueryRequired = string;
+export interface mappingInQueryRequiredContract {
+    columns?: {
+        index: number;
+        type: string;
+        edit_type: string;
+    }[];
+}
+export type viewIdInQueryRequired = string;
+export type sectionTypeInQueryRequired = string;
+export type sectionKeyInQueryRequired = string;
+export type copyTablesInQueryRequired = boolean;
+export type pageInQueryOptional = number;
+export type limitInQueryOptional = number;
+export type targetDashboardIdInQueryRequired = string;
+export type relationId = string;
+export type includeRows = boolean;
+export type templateIdInPathRequired = string;
+export type orgIdInPathRequired = string;

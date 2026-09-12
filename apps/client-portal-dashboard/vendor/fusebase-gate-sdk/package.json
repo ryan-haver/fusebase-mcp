@@ -1,0 +1,17 @@
+{
+  "name": "@internal/fusebase-gate-sdk",
+  "version": "2.2.21-sdk.14",
+  "description": "TypeScript SDK for Fusebase Gate APIs - Generated from contract introspection",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "release-notes"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.0"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "bundleVersion": 2,
+  "alias": "client-portal",
+  "engine": "postgres",
+  "storeType": "sql",
+  "_checksumNote": "Checksums are SHA-256 of canonical SQL bytes: CRLF normalized to LF and trailing whitespace trimmed.",
+  "migrations": [
+    {
+      "version": 1,
+      "name": "init",
+      "file": "0001_init.sql",
+      "checksum": "43f7f393c2f57c3bddbffb57e534b3eab08e49f0cf85884890dceea439c64f49"
+    },
+    {
+      "version": 2,
+      "name": "rls",
+      "file": "0002_rls.sql",
+      "checksum": "aac1446c4733dcf467d860638dd059d2f2c4ed21be55e6c2e40434a8153ff922"
+    }
+  ]
+}

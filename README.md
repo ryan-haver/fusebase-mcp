@@ -6,15 +6,16 @@ An [MCP](https://modelcontextprotocol.io/) server that lets AI assistants manage
 
 ## ✨ Features
 
-- **109 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, and multi-agent profiles
-- **Two-tier system** — 26 core tools load by default; 83 extended tools on demand
-- **Native MCP Resources** — `fusebase://workspaces`, `fusebase://guides/index`, `fusebase://work/connectors`, `fusebase://workspaces/{wid}/pages/{nid}`, `fusebase://databases/{did}`, `fusebase://portals/{portalId}/clients`
-- **Native MCP Prompts** — pre-engineered workflow templates (`create-sop`, `summarize-page`, `build-kanban-project`, `design-automation-workflow`, `build-hosted-app`)
-- **Official FuseBase CLI Integration** — inspect CLI status (`fusebase_cli_status`), initialize products (`fusebase_cli_init`), list apps (`fusebase_cli_list_apps`), and deploy to cloud hosting (`fusebase_cli_deploy`)
-- **Granular block mutations** — non-destructive page block appending (`append_page_content`) via Y.js WebSockets
+- **116 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, multi-agent profiles, and swarm orchestration
+- **Two-tier system** — 26 core tools load by default; 90 extended tools on demand
+- **Native MCP Resources (7)** — `fusebase://workspaces`, `fusebase://guides/index`, `fusebase://work/connectors`, `fusebase://workspaces/{wid}/pages/{nid}`, `fusebase://databases/{did}`, `fusebase://portals/{portalId}/clients`
+- **Native MCP Prompts (7)** — pre-engineered workflow templates (`create-sop`, `summarize-page`, `build-kanban-project`, `design-automation-workflow`, `build-hosted-app`, `build-event-bridge`, `orchestrate-multi-agent-swarm`)
+- **Official FuseBase CLI & Hosted Apps** — inspect CLI status (`fusebase_cli_status`), initialize products (`fusebase_cli_init`), list apps (`fusebase_cli_list_apps`), and deploy Vite/React SPA apps to the FuseBase Cloud (`fusebase_cli_deploy`)
+- **Granular block mutations** — non-destructive page block appending (`append_page_content`) via real-time Y.js WebSockets
 - **Vibe Coding & Web Apps** — generate interactive web app pages (`create_interactive_app_page`) with responsive full-width embeds (`allowOverWidth`)
-- **ActivePieces Workflow Automation** — flow inspection, creation, updating, deletion, and connector piece catalog
-- **Portal Client Management & Magic Links** — list portal clients, send Client Role invitations, and generate 24h passwordless access links
+- **ActivePieces Workflow Automation** — flow inspection, creation, updating, deletion, trigger test runs (`trigger_automation_flow`), and connector piece catalog
+- **Client Portal "Hub" Platform** — inspect availability (`check_portal_availability`), create portals (`create_portal`), retrieve full branding/settings (`get_portal`), publish workspace pages to client portals (`publish_page_to_portal`), manage client permissions (`list_portal_clients`, `invite_portal_client`), and generate 24h passwordless magic links (`create_portal_magic_link`)
+- **Multi-Agent Swarm Orchestrator** — initialize shared state machine boards (`fusebase_swarm_init`) and transition tasks across roles with audit history (`fusebase_swarm_task_transition`)
 - **Multi-Agent Profile Management** — list and switch between encrypted credentials seamlessly
 - **Database CRUD** — full kanban/table management: rows, columns, views, relations, CSV import/export
 - **Auto auth retry** — detects 401/403 and refreshes session automatically
@@ -181,6 +182,8 @@ Quick-start workflow prompts available to AI clients:
 - **`build-kanban-project`**: Guides the AI to design a structured project board with customized column flows and starter cards.
 - **`design-automation-workflow`**: Prompts the design of an ActivePieces automation workflow mapping triggers, action steps, and error handling.
 - **`build-hosted-app`**: Architects a full-stack FuseBase Web App covering frontend UI tokens, backend data, CLI commands, and responsive embedding.
+- **`build-event-bridge`**: Designs bidirectional webhook bridges connecting external systems into FuseBase and triggering workflows via `trigger_automation_flow`.
+- **`orchestrate-multi-agent-swarm`**: Decomposes complex initiatives into coordinated multi-agent swarms tracked through FuseBase Kanban boards (`fusebase_swarm_init`, `fusebase_swarm_task_transition`).
 
 ---
 
@@ -191,7 +194,7 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Tier | Tools | Description |
 | --- | --- | --- |
 | **Core** (default) | 26 | Day-to-day: pages, folders, tasks, tags, members, files, guides, profiles |
-| **Extended** | +83 | Admin, CLI apps, automations, portal clients, databases, block mutations |
+| **Extended** | +90 | Admin, CLI apps, automations, portal lifecycle, databases, swarm state machines |
 
 **Enable extended tools:**
 
@@ -229,13 +232,14 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Profiles | `list_agent_profiles` | List all configured encrypted agent credential profiles |
 | Profiles | `switch_active_profile` | Switch active agent session profile dynamically |
 
-### Extended Tools (83)
+### Extended Tools (90)
 
 Enable with `set_tool_tier(tier: "all")`:
 
+- **Client Portal Hub Lifecycle**: `create_portal`, `get_portal`, `publish_page_to_portal`, `check_portal_availability`, `list_portal_clients`, `invite_portal_client`, `create_portal_magic_link`, `list_portals`, `get_portal_pages`
+- **Multi-Agent Swarm Orchestration**: `fusebase_swarm_init`, `fusebase_swarm_task_transition`
 - **CLI & Hosted Apps**: `fusebase_cli_status`, `fusebase_cli_init`, `fusebase_cli_list_apps`, `fusebase_cli_deploy`, `create_interactive_app_page`
-- **Automations (ActivePieces)**: `list_automation_flows`, `get_automation_flow`, `create_automation_flow`, `update_automation_flow`, `delete_automation_flow`, `list_flow_runs`, `list_automation_pieces`
-- **Client Portal Access**: `list_portal_clients`, `invite_portal_client`, `create_portal_magic_link`, `list_portals`, `get_portal_pages`
+- **Automations (ActivePieces)**: `trigger_automation_flow`, `list_automation_flows`, `get_automation_flow`, `create_automation_flow`, `update_automation_flow`, `delete_automation_flow`, `list_flow_runs`, `list_automation_pieces`
 - **Content mutations**: `create_folder`, `update_page`, `delete_page`, `update_page_content`
 - **Tasks (advanced)**: `update_task`, `delete_task`, `get_task_description`, `get_task_count`, `get_task_usage`
 - **Labels & tags**: `get_labels`, `get_note_tags`

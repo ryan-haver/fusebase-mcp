@@ -2901,6 +2901,67 @@ export class FusebaseClient {
     );
   }
 
+  /** Create a new client portal for a workspace */
+  async createPortal(
+    workspaceId: string,
+    name: string,
+    domain?: string,
+  ): Promise<unknown> {
+    return this.request<unknown>(
+      `/v1/portals/orgs/${this.orgId}/portals?workspaceId=${workspaceId}`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          setup: false,
+          settings: {
+            name,
+            ...(domain ? { domain } : {}),
+          },
+        }),
+      },
+    );
+  }
+
+  /** Get detailed portal record by portal ID, global ID, or workspace ID */
+  async getPortal(idOrWorkspaceId: string): Promise<FusebasePortal> {
+    const portals = await this.listPortals();
+    const portal = portals.find(
+      (p) =>
+        String(p.id) === idOrWorkspaceId ||
+        p.globalId === idOrWorkspaceId ||
+        p.workspaceId === idOrWorkspaceId,
+    );
+    if (!portal) {
+      throw new Error(`Portal "${idOrWorkspaceId}" not found in organization.`);
+    }
+    return portal;
+  }
+
+  /** Check if portal feature is available for organization */
+  async checkPortalAvailability(): Promise<boolean> {
+    const res = await this.request<any>(`/v1/portals/orgs/${this.orgId}/available`);
+    return res === true || res === "true" || res?.available === true;
+  }
+
+  /** Publish or unpublish a page to the client portal */
+  async setPagePortalShare(
+    workspaceId: string,
+    pageId: string,
+    isPortalShare: boolean,
+  ): Promise<unknown> {
+    return this.request<unknown>(
+      `/v2/api/workspaces/${workspaceId}/notes/${pageId}/upsert`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          note: {
+            is_portal_share: isPortalShare,
+          },
+        }),
+      },
+    );
+  }
+
   /** Get org feature flags */
   async getOrgFeatures(): Promise<FusebaseOrgFeature[]> {
     return this.request<FusebaseOrgFeature[]>(
@@ -2972,6 +3033,23 @@ export class FusebaseClient {
   async deleteAutomationFlow(flowId: string): Promise<unknown> {
     return this.request<unknown>(`/automation/api/v1/flows/${flowId}`, {
       method: "DELETE",
+    });
+  }
+
+  /** Test-run or trigger an automation flow with a test payload */
+  async triggerAutomationFlow(
+    flowId: string,
+    payload: Record<string, unknown> = {},
+  ): Promise<unknown> {
+    return this.request<unknown>(`/automation/api/v1/flows/${flowId}/runs`, {
+      method: "POST",
+      body: JSON.stringify({ payload }),
+    }).catch(async () => {
+      // Fallback to webhook trigger endpoint
+      return this.request<unknown>(`/automation/api/v1/webhooks/${flowId}`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
     });
   }
 

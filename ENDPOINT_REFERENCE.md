@@ -142,14 +142,20 @@
 | 🔲 | GET | `/v1/workspaces/default/premium` | Default workspace subscription status | ⭐ |
 | 🔲 | GET | `/v1/workspaces/{wid}/import/activeImport` | Active data import job status | ⭐ |
 
-## 10. Portals
+## 10. Portals & Client Hubs
 
 | Status | Method | Endpoint | Tool / Description | Value |
 |---|---|---|---|---|
-| ✅ | GET | `/v1/portals/orgs/{orgId}/portals` | `list_portals` — All client portals in the org | ⭐⭐ |
+| ✅ | GET | `/v1/portals/orgs/{orgId}/portals` | `list_portals` — All client portals in the org | ⭐⭐⭐ |
 | ✅ | GET | `/v2/api/portal-service-proxy/v1/orgs/{orgId}/portals` | `list_portals` (alt) — Portal list alternate path | ⭐⭐ |
 | ✅ | GET | `/v4/api/portal/pages` | `get_portal_pages` — Pages within a specific portal | ⭐⭐ |
-| 🔲 | GET | `/v1/portals/orgs/{orgId}/available` | Portal availability/quota check | ⭐ |
+| ✅ | GET | `/v1/portals/orgs/{orgId}/available` | `check_portal_availability` — Portal availability/quota check | ⭐⭐⭐ |
+| ✅ | POST | `/v1/portals/orgs/{orgId}/portals?workspaceId={wid}` | `create_portal` — Provision new client portal bound to workspace | ⭐⭐⭐⭐ |
+| ✅ | GET | `/v1/portals/{portalId}` | `get_portal` — Get complete branding, access rules, greetings, injected scripts | ⭐⭐⭐⭐ |
+| ✅ | POST | `/v2/api/workspaces/{wid}/notes/{nid}/upsert` | `publish_page_to_portal` — Set page `is_portal_share` flag to publish/unpublish | ⭐⭐⭐⭐⭐ |
+| ✅ | GET | `/v1/portals/orgs/{orgId}/clients` | `list_portal_clients` — External client members across portals | ⭐⭐⭐ |
+| ✅ | POST | `/v1/portals/{portalId}/clients` | `invite_portal_client` — Invite external client with Client Role | ⭐⭐⭐⭐ |
+| ✅ | POST | `/v1/portals/{portalId}/clients/{email}/magic-link` | `create_portal_magic_link` — Generate 24h passwordless login link | ⭐⭐⭐⭐ |
 | ❌ | GET | `/v2/api/portal-service-proxy/v1/contents` | Returns 404 — not viable | — |
 | ❌ | GET | `/v2/api/portal-service-proxy/v1/workspaces/{wid}/portals` | Returns 404 — not viable | — |
 | ❌ | GET | `/v2/api/workspaces/{wid}/portal` | Returns 404 — not viable | — |
@@ -187,12 +193,15 @@
 
 | Status | Method | Endpoint | Tool / Description | Value |
 |---|---|---|---|---|
-| 🔲 | GET | `/automation/api/v1/flows` | List automation workflows (paginated) | ⭐⭐⭐⭐ |
-| 🔲 | POST | `/automation/api/v1/flows` | Create a new automation flow | ⭐⭐⭐⭐ |
-| 🔲 | GET | `/automation/api/v1/flows/{flowId}` | Get a specific automation flow | ⭐⭐⭐ |
-| 🔲 | POST | `/automation/api/v1/flows/{flowId}` | Update a specific automation flow | ⭐⭐⭐ |
+| ✅ | GET | `/automation/api/v1/flows` | `list_automation_flows` — List automation workflows (paginated) | ⭐⭐⭐⭐ |
+| ✅ | POST | `/automation/api/v1/flows` | `create_automation_flow` — Create a new automation flow | ⭐⭐⭐⭐ |
+| ✅ | GET | `/automation/api/v1/flows/{flowId}` | `get_automation_flow` — Get a specific automation flow | ⭐⭐⭐ |
+| ✅ | POST | `/automation/api/v1/flows/{flowId}` | `update_automation_flow` — Update flow status/name/type | ⭐⭐⭐ |
+| ✅ | DELETE | `/automation/api/v1/flows/{flowId}` | `delete_automation_flow` — Delete an automation flow | ⭐⭐⭐ |
+| ✅ | POST | `/automation/api/v1/flows/{flowId}/test` | `trigger_automation_flow` — Trigger/test-run automation flow with payload | ⭐⭐⭐⭐⭐ |
+| ✅ | GET | `/automation/api/v1/flow-runs` | `list_flow_runs` — Execution history of automation runs | ⭐⭐⭐⭐ |
+| ✅ | GET | `/automation/api/v1/pieces` | `list_automation_pieces` — Full automation pieces catalog (16 pieces discovered) | ⭐⭐⭐ |
 | 🔲 | GET | `/automation/api/v1/flows/count` | Count of automation flows | ⭐⭐ |
-| 🔲 | GET | `/automation/api/v1/flow-runs` | Execution history of automation runs | ⭐⭐⭐⭐ |
 | 🔲 | GET | `/automation/api/v1/folders` | Automation folder structure | ⭐⭐ |
 | 🔲 | GET | `/automation/api/v1/app-connections` | External app connections/integrations | ⭐⭐⭐ |
 | 🔲 | GET | `/automation/api/v1/flags` | Automation platform feature flags | ⭐ |
@@ -200,8 +209,7 @@
 | 🔲 | GET | `/automation/api/v1/users/projects` | Automation projects list | ⭐⭐ |
 | 🔲 | POST | `/automation/api/v1/authentication/fusebase-auth` | Automation auth token exchange | ⭐ |
 | 🔲 | GET | `/automation/api/v1/authentication/fusebase-admin-auth` | Automation admin auth check | ⭐ |
-| 🔲 | GET | `/automation/api/v1/pieces` | Full automation pieces catalog | ⭐⭐ |
-| 🔲 | GET | `/automation/api/v1/pieces/@activepieces/piece-{name}` | Specific automation piece details (16 pieces discovered) | ⭐⭐ |
+| 🔲 | GET | `/automation/api/v1/pieces/@activepieces/piece-{name}` | Specific automation piece details | ⭐⭐ |
 | 🔲 | GET | `/automation/api/v1/trigger-events` | Trigger events for a specific flow | ⭐⭐ |
 | 🔗 | GET/POST | `/automation/socket.io/` | WebSocket transport for real-time automation events | ⭐ |
 

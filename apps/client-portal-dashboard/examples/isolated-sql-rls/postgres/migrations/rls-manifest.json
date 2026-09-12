@@ -1,0 +1,38 @@
+{
+  "tables": {
+    "tasks": {
+      "classification": "scoped",
+      "schemaName": "public",
+      "orgColumn": "org_id",
+      "userColumn": "user_id",
+      "scopes": [
+        {
+          "name": "portal",
+          "column": "portal_id",
+          "setting": "app.portal_id"
+        },
+        {
+          "name": "workspace",
+          "column": "workspace_id",
+          "setting": "app.workspace_id"
+        },
+        {
+          "name": "project",
+          "column": "project_id",
+          "setting": "app.project_id"
+        }
+      ]
+    },
+    "audit_events": {
+      "classification": "tenant",
+      "schemaName": "public",
+      "orgColumn": "org_id",
+      "userColumn": "user_id"
+    },
+    "schema_metadata": {
+      "classification": "technical",
+      "schemaName": "public",
+      "reason": "Static internal metadata; not user data."
+    }
+  }
+}

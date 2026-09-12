@@ -1,0 +1,21 @@
+{
+  "orgId": "u268r1",
+  "productId": "3levnl9diecglj2a",
+  "env": "prod",
+  "apps": [
+    {
+      "id": "ptx2az8amwwfrtvb",
+      "subdomain": "client-hub-dash",
+      "name": "Client Hub Dashboard",
+      "path": "apps/dashboard",
+      "dev": {
+        "command": "npm run dev"
+      },
+      "build": {
+        "command": "npm run build",
+        "outputDir": "dist"
+      }
+    }
+  ],
+  "firstAppSub": "client-hub-dash"
+}

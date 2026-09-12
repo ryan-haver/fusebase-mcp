@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+
+# Coverage & caches
+coverage/
+.cache/
+*.tsbuildinfo
+.eslintcache
+
+# Archives
+*.tgz
+
+# MCP config (sensitive: URL and token)
+.cursor/mcp.json
+.vscode/mcp.json
+.mcp.json
+opencode.json
+mcp_example.json
+.codex/config.toml

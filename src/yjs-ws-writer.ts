@@ -1165,10 +1165,22 @@ export async function writeContentViaWebSocket(
 
       if (subType === 0) {
         // Server SyncStep1: server sends its state vector
-        // Our syncStep1 was already sent via URL param, and for a new empty doc
-        // we have no state to send back — skip the SyncStep2 response.
-        // The browser sends a 48-byte response because it has cached doc state.
-        // For programmatic writes, we skip this and go straight to content writes.
+        // Send token auth (type 300) and reply with SyncStep2 (subType 1)
+        // so that the server dispatches its document state (SyncStep2)
+        const [svLen, svStart] = readVarUint(data, subOff);
+        const serverSv = data.slice(svStart, svStart + svLen);
+
+        const jwtBytes = new TextEncoder().encode(jwt);
+        const tokenHeader: number[] = [];
+        writeVarUint(tokenHeader, 300);
+        writeVarUint(tokenHeader, jwtBytes.length);
+        const tokenMsg = new Uint8Array(tokenHeader.length + jwtBytes.length);
+        tokenMsg.set(tokenHeader);
+        tokenMsg.set(jwtBytes, tokenHeader.length);
+        ws.send(Buffer.from(tokenMsg));
+
+        const update = Y.encodeStateAsUpdateV2(ydoc, serverSv);
+        ws.send(Buffer.from(encodeSyncMessage(0x01, update)));
       }
 
       else if (subType === 1) {

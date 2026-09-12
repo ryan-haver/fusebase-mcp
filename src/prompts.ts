@@ -189,4 +189,74 @@ Please outline the end-to-end architecture:
       };
     },
   );
+
+  // ─── 6. Build Event Bridge ───
+  server.prompt(
+    "build-event-bridge",
+    "Design a bi-directional event bridge connecting external services (Stripe, GitHub, Firecrawl, n8n) with FuseBase.",
+    {
+      sourceService: z.string().describe("Source service sending events (e.g. Stripe, GitHub, Firecrawl, Asana, Hubspot)"),
+      targetEntity: z.string().describe("Target FuseBase entity to update (e.g. database, kanban board, workspace page, client portal)"),
+      eventType: z.string().optional().describe("Type of event (e.g. payment_succeeded, pull_request_opened, scrape_completed)"),
+    },
+    async ({ sourceService, targetEntity, eventType }) => {
+      const eventText = eventType ? `\n- **Event Type**: ${eventType}` : "";
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Please design an event-driven integration bridge between **${sourceService}** and FuseBase **${targetEntity}**.${eventText}
+
+Provide:
+1. **Webhook Ingestion**: Webhook payload structure from ${sourceService}, signature verification, and field mapping.
+2. **FuseBase Mutation**: Exact MCP tool calls ('add_database_row', 'update_database_cell', 'append_page_content', or 'trigger_automation_flow') to persist incoming event state.
+3. **Living Audit Log**: Format a timestamped event entry formatted for FuseBase rich text or database row updates.
+4. **Resilience & Idempotency**: Deduplication keys, retry backoff, and failure alerts via ActivePieces or FuseBase Work connectors.`,
+            },
+          },
+        ],
+      };
+    },
+  );
+
+  // ─── 7. Orchestrate Multi-Agent Swarm ───
+  server.prompt(
+    "orchestrate-multi-agent-swarm",
+    "Decompose a complex project into a multi-agent swarm coordinated via a shared FuseBase Kanban state machine.",
+    {
+      objective: z.string().describe("High-level project objective or feature to build"),
+      availableRoles: z.string().optional().describe("Comma-separated list of agent roles (default: agent-pm, agent-architect, agent-dev, agent-qa)"),
+    },
+    async ({ objective, availableRoles }) => {
+      const rolesText = availableRoles
+        ? `\n- **Participating Roles**: ${availableRoles}`
+        : "\n- **Participating Roles**: agent-pm, agent-architect, agent-dev, agent-qa, agent-devops";
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Please decompose the following objective into a coordinated multi-agent swarm plan in FuseBase: "${objective}".${rolesText}
+
+Provide:
+1. **Task Decomposition Matrix**:
+   - Title & Stage (Backlog, In Progress, Review, Done)
+   - Owner Role & Next Role handoff
+   - Input Prerequisites & Output Deliverables
+   - Acceptance Criteria & Verification Commands
+2. **Swarm State Machine Setup**:
+   - How to initialize the board via 'fusebase_swarm_init'
+   - How agents claim and advance tasks using 'fusebase_swarm_task_transition'
+3. **Session Profile Ergonomics**:
+   - Switching active profiles dynamically via 'switch_active_profile'
+   - Documenting handoffs and audit entries in living FuseBase pages.`,
+            },
+          },
+        ],
+      };
+    },
+  );
 }
