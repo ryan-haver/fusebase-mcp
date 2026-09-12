@@ -21,9 +21,9 @@ if (fs.existsSync(envPath)) {
     }
 }
 
-const HOST = process.env.FUSEBASE_HOST || "";
-const WS_ID = process.env.FUSEBASE_WORKSPACE_ID || "45h7lom5ryjak34u";
+const HOST = process.env.FUSEBASE_HOST || "inkabeam.nimbusweb.me";
 const COOKIE = process.env.FUSEBASE_COOKIE || loadEncryptedCookie()?.cookie!;
+const WS_ID = process.env.FUSEBASE_WORKSPACE_ID || "49b306wxd9oa7hyc";
 
 async function main() {
     const blocks: ContentBlock[] = [

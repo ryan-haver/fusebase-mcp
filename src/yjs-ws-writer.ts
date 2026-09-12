@@ -1225,8 +1225,8 @@ export async function writeContentViaWebSocket(
           tokenMsg.set(jwtBytes, tokenHeader.length);
           ws.send(Buffer.from(tokenMsg));
 
-          // Encode diff as V2 to match encv2=true in connection URL
-          const diff = Y.encodeStateAsUpdateV2(ydoc, beforeSv);
+          // Server expects V1 outbound update encoding
+          const diff = Y.encodeStateAsUpdate(ydoc, beforeSv);
           ws.send(Buffer.from(encodeSyncMessage(0x02, diff)));
 
           // Wait for server to process the update before closing
@@ -1336,7 +1336,23 @@ export async function readContentViaWebSocket(
       const [subType, subOff] = readVarUint(data, 1);
 
       if (subType === 0) {
-        // Server SyncStep1 — skip response for read-only
+        // Server SyncStep1 — send token auth and reply with SyncStep2
+        const [svLen, svStart] = readVarUint(data, subOff);
+        const serverSv = data.slice(svStart, svStart + svLen);
+
+        // Send token auth (type 300)
+        const jwtBytes = new TextEncoder().encode(jwt);
+        const tokenHeader: number[] = [];
+        writeVarUint(tokenHeader, 300);
+        writeVarUint(tokenHeader, jwtBytes.length);
+        const tokenMsg = new Uint8Array(tokenHeader.length + jwtBytes.length);
+        tokenMsg.set(tokenHeader);
+        tokenMsg.set(jwtBytes, tokenHeader.length);
+        ws.send(Buffer.from(tokenMsg));
+
+        // Reply with SyncStep2 (subType 1)
+        const update = Y.encodeStateAsUpdateV2(ydoc, serverSv);
+        ws.send(Buffer.from(encodeSyncMessage(0x01, update)));
       } else if (subType === 1) {
         // Server SyncStep2 — apply the full document state
         const [uLen, uStart] = readVarUint(data, subOff);

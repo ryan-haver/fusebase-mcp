@@ -249,6 +249,65 @@ function groupAndJoinBlocks(rendered: RenderedBlock[]): string {
 
 // ─── Y.Doc → HTML ───
 
+function renderBlockWithChildren(
+  blockId: string,
+  blocksMap: Y.Map<unknown>,
+  visited = new Set<string>(),
+): RenderedBlock | null {
+  if (visited.has(blockId)) return null;
+  visited.add(blockId);
+
+  const block = blocksMap.get(blockId);
+  if (!(block instanceof Y.Map)) return null;
+
+  const type = (block.get("type") as string) || "paragraph";
+  const align = (block.get("align") as string) || "left";
+  const color = (block.get("color") as string) || "transparent";
+  const indent = (block.get("indent") as number) || 0;
+
+  // Extract text content from Y.Text characters
+  let content = "";
+  const chars = block.get("characters");
+  if (chars instanceof Y.Text) {
+    const delta = chars.toDelta() as DeltaOp[];
+    content = deltaToHtml(delta);
+  }
+
+  // Render children recursively if present
+  let childHtml = "";
+  const children = block.get("children");
+  if (children instanceof Y.Array) {
+    const childBlocks: RenderedBlock[] = [];
+    for (const childId of children.toArray()) {
+      if (typeof childId === "string") {
+        const childRendered = renderBlockWithChildren(childId, blocksMap, visited);
+        if (childRendered) childBlocks.push(childRendered);
+      }
+    }
+    if (childBlocks.length > 0) {
+      childHtml = groupAndJoinBlocks(childBlocks);
+    }
+  }
+
+  // hLine (divider) has no characters
+  if (type === "hLine" && !content) {
+    return { type, html: "<hr>" };
+  }
+
+  const effectiveContent = content || childHtml;
+
+  // Custom container block output when child blocks are present
+  if (type === "grid" && childHtml) {
+    return { type, html: `<div class="grid-layout">\n${childHtml}\n</div>` };
+  }
+  if (type === "gridCol" && effectiveContent) {
+    return { type, html: `<div class="grid-column">${effectiveContent}</div>` };
+  }
+
+  const html = renderBlock(type, effectiveContent, align, color, indent, block);
+  return { type, html };
+}
+
 /**
  * Convert a synced Y.Doc into semantic HTML.
  *
@@ -275,32 +334,11 @@ export function decodeYDocToHtml(doc: Y.Doc): string {
   if (blockIds.length === 0) blockIds = Array.from(blocksMap.keys());
 
   const rendered: RenderedBlock[] = [];
+  const visited = new Set<string>();
 
   for (const blockId of blockIds) {
-    const block = blocksMap.get(blockId);
-    if (!(block instanceof Y.Map)) continue;
-
-    const type = (block.get("type") as string) || "paragraph";
-    const align = (block.get("align") as string) || "left";
-    const color = (block.get("color") as string) || "transparent";
-    const indent = (block.get("indent") as number) || 0;
-
-    // Extract text content from Y.Text characters
-    let content = "";
-    const chars = block.get("characters");
-    if (chars instanceof Y.Text) {
-      const delta = chars.toDelta() as DeltaOp[];
-      content = deltaToHtml(delta);
-    }
-
-    // hLine (divider) has no characters
-    if (type === "hLine" && !content) {
-      rendered.push({ type, html: "<hr>" });
-      continue;
-    }
-
-    const html = renderBlock(type, content, align, color, indent, block);
-    rendered.push({ type, html });
+    const item = renderBlockWithChildren(blockId, blocksMap as Y.Map<unknown>, visited);
+    if (item) rendered.push(item);
   }
 
   if (rendered.length === 0) return "";
