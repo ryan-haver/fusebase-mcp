@@ -454,6 +454,29 @@ export function registerExtendedTools(
     },
   );
 
+  server.tool(
+    "get_agent_public_profile",
+    "Get the public profile (title, description, avatar URL, workspace binding) for a specific AI agent model by its global ID.",
+    {
+      agentGlobalId: z.string().describe("AI Agent global ID (e.g. 'dqw8qrnynnk5v2bw' from list_agents)"),
+      orgId: z.string().optional().describe("Optional organization ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ agentGlobalId, orgId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const publicProfile = await client.getAgentPublicProfile(agentGlobalId, orgId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(publicProfile, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
   // === Mention Entities ===
 
   server.tool(
@@ -1868,6 +1891,74 @@ export function registerExtendedTools(
     },
   );
 
+  server.tool(
+    "get_portal_theme",
+    "Get client portal UI visual theme, dark/light branding colors, hero greeting banner, search bar settings, and sidebar options.",
+    {
+      workspaceId: z.string().optional().describe("Workspace ID associated with the portal"),
+      portalId: z.string().optional().describe("Portal ID or global ID"),
+      portalDomain: z.string().optional().describe("Custom domain or subdomain of the portal"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ workspaceId, portalId, portalDomain, profile }) => {
+      const client = getClient(profile);
+      try {
+        const theme = await client.getPortalTheme({ workspaceId, portalId, portalDomain });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(theme, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_portal_navigation_menu",
+    "Get the complete hierarchical sidebar navigation tree and page entities published in a workspace's client portal.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ workspaceId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const menu = await client.getPortalNavigationMenu(workspaceId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(menu, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_workspace_portal",
+    "Resolve the primary client portal object bound to a workspace (portal ID, global ID, domain, creation timestamp).",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ workspaceId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const portal = await client.getWorkspacePortal(workspaceId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(portal, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
   // === Org Features ===
 
   server.tool(
@@ -2398,6 +2489,162 @@ export function registerExtendedTools(
                 null,
                 2,
               ),
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_dashboard_templates",
+    "Get managed dashboard and view representation templates (e.g. Kanban, Table) used for database representations.",
+    {
+      orgId: z.string().optional().describe("Optional organization ID (defaults to current org)"),
+      workspaceId: z.string().optional().describe("Optional workspace ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ orgId, workspaceId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const templates = await client.getDashboardTemplates(orgId, workspaceId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(templates, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_member_roles",
+    "List user ID to role mappings across the organization (e.g. member, admin).",
+    {
+      orgId: z.string().optional().describe("Optional organization ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ orgId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const roles = await client.getMemberRoles(orgId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(roles, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_workspace_members_v1",
+    "Get granular v1 workspace member entities including globalId, addedByUserId, and creation/update timestamps.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ workspaceId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const members = await client.getWorkspaceMembersV1(workspaceId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(members, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_tasks_workspace_summary",
+    "Get cross-workspace task overview and summary statistics across all accessible workspaces in the organization.",
+    {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ profile }) => {
+      const client = getClient(profile);
+      try {
+        const summary = await client.getTasksWorkspaceSummary();
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(summary, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_billing_info",
+    "Inspect billing credit balance, active coupon code redemptions (e.g. AppSumo), and redeemed coupon token history.",
+    {
+      orgId: z.string().optional().describe("Optional organization ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ orgId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const billing = await client.getBillingInfo(orgId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(billing, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_user_preferences",
+    "Retrieve user notification options (email and push triggers), web editor state variables, and last-opened workspaces.",
+    {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ profile }) => {
+      const client = getClient(profile);
+      try {
+        const prefs = await client.getUserPreferences();
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(prefs, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "set_sidebar_collapsed",
+    "Toggle or set the FuseBase web editor sidebar collapsed state.",
+    {
+      collapsed: z.boolean().describe("Whether the editor sidebar should be collapsed (true) or expanded (false)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ collapsed, profile }) => {
+      const client = getClient(profile);
+      try {
+        const res = await client.setUserSidebarCollapsed(collapsed);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify({ success: true, collapsed, response: res }, null, 2),
             },
           ],
         };

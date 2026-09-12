@@ -4,7 +4,7 @@
 > Update this document when new endpoints are discovered or new tools are implemented.
 >
 > Source: API discovery crawl (141 unique endpoints, 927 requests).
-> Cross-referenced against 120 implemented MCP tools (27 Core, 93 Extended).
+> Cross-referenced against 131 implemented MCP tools (27 Core, 104 Extended).
 > Last updated: 2026-09-12
 
 ---
@@ -44,8 +44,8 @@
 | ✅ | DELETE | (via client method) | `delete_page` — Permanently deletes a page | ⭐⭐ |
 | ✅ | GET | `/v2/api/note-service-proxy/v1/orgs/{orgId}/recentlyUpdatedNotes` | `get_recently_updated_notes` — Pages updated recently across workspace | ⭐⭐⭐ |
 | ✅ | GET | `/ai-assistant/rest/workspaces/{wid}/main-page` | `get_ai_assistant_state` — AI assistant state page: prompt suggestions, user preferences, recent threads | ⭐⭐⭐⭐ |
-| 🔲 | GET | `/gwapi2/ft:cta/workspaces/{wid}/notes/{nid}/cta` | Call-to-action data embedded in a page | ⭐⭐ |
-| 🔲 | GET | `/box/attachment/{wid}/{id}/{filename}` | Direct binary download of an attachment file | ⭐⭐⭐ |
+| ❌ | GET | `/gwapi2/ft:cta/workspaces/{wid}/notes/{nid}/cta` | Returns 500 NetworkError (ENOTFOUND) — internal gateway service unreachable | — |
+| 🔒 | GET | `/box/attachment/{wid}/{id}/{filename}` | Direct binary download route (resolved via authenticated URLs in `get_page_attachments`) | ⭐⭐⭐ |
 
 ## 2. Folders & Navigation
 
@@ -73,8 +73,8 @@
 | ✅ | GET | `/gwapi2/ft:permissions/orgs/{orgId}/members` | `get_org_permissions` — Org-level permission settings | ⭐ |
 | ✅ | GET | `/v2/api/web-editor/mention-entities/{wid}` | `get_mention_entities` — Mentionable entities for @mentions | ⭐⭐ |
 | ✅ | GET | `/gwapi2/ft:workspaces/workspaces/{wid}/members` | (via workspace members) — Members with expanded groups | ⭐⭐⭐ |
-| 🔲 | GET | `/gwapi2/ft:org/orgs/{orgId}/member-roles` | Member role definitions — what each role can do | ⭐⭐ |
-| 🔲 | GET | `/v1/workspaces/{wid}/members` | v1 member list — includes firstname, lastname, email, avatar, granular roles | ⭐⭐ |
+| ✅ | GET | `/gwapi2/ft:org/orgs/{orgId}/member-roles` | `get_member_roles` — User ID to role mappings across the organization | ⭐⭐ |
+| ✅ | GET | `/v1/workspaces/{wid}/members` | `get_workspace_members_v1` — v1 granular member list with timestamps and addedByUserId | ⭐⭐ |
 
 ## 5. Tasks
 
@@ -90,7 +90,7 @@
 | ✅ | POST | `/gwapi2/ft:tasks/board-columns` | (via list_task_lists) — Board column structure | ⭐⭐⭐ |
 | ✅ | POST | `/gwapi2/svc:note-task/workspaces/{wid}/taskLists` | (via list_task_lists) — Note-linked task lists | ⭐⭐⭐ |
 | ✅ | POST | `/gwapi2/svc:note-task/workspaces/{wid}/taskLists/{tlid}` | (via list_task_lists) — Specific note-linked task list | ⭐⭐⭐ |
-| 🔲 | GET | `/gwapi2/ft:tasks/workspace-infos` | Task summary across all workspaces (orgId, title, color) | ⭐⭐⭐ |
+| ✅ | GET | `/gwapi2/ft:tasks/workspace-infos` | `get_tasks_workspace_summary` — Task summary across all accessible workspaces | ⭐⭐⭐ |
 | 🔲 | GET | `/gwapi2/ft:tasks/workspaces/{wid}/time/{tid}` | Time tracking data for a specific task | ⭐⭐⭐ |
 
 ## 6. Comments & Activity
@@ -156,9 +156,9 @@
 | ✅ | GET | `/v1/portals/orgs/{orgId}/clients` | `list_portal_clients` — External client members across portals | ⭐⭐⭐ |
 | ✅ | POST | `/v1/portals/{portalId}/clients` | `invite_portal_client` — Invite external client with Client Role | ⭐⭐⭐⭐ |
 | ✅ | POST | `/v1/portals/{portalId}/clients/{email}/magic-link` | `create_portal_magic_link` — Generate 24h passwordless login link | ⭐⭐⭐⭐ |
-| ❌ | GET | `/v2/api/portal-service-proxy/v1/contents` | Returns 404 — not viable | — |
-| ❌ | GET | `/v2/api/portal-service-proxy/v1/workspaces/{wid}/portals` | Returns 404 — not viable | — |
-| ❌ | GET | `/v2/api/workspaces/{wid}/portal` | Returns 404 — not viable | — |
+| ✅ | GET | `/v2/api/portal-service-proxy/v1/contents?workspaceId={wid}` | `get_portal_theme` — Portal theme, hero banner, greetings, and branding colors | ⭐⭐⭐ |
+| ✅ | GET | `/v2/api/portal-service-proxy/v1/workspaces/{wid}/portals` | `get_workspace_portal` — Workspace client portal binding (globalId, domain) | ⭐⭐⭐ |
+| ✅ | GET | `/v2/api/workspaces/{wid}/portal` | `get_portal_navigation_menu` — Portal sidebar navigation menu hierarchy | ⭐⭐⭐ |
 
 ## 11. AI & Agents
 
@@ -167,8 +167,8 @@
 | ✅ | GET | `/v4/api/proxy/ai-service/v1/orgs/{orgId}/agent-categories/agents` | `list_agents` — Available AI agents in the org | ⭐⭐ |
 | ✅ | GET | `/ai-assistant/rest/orgs/{orgId}/agents/{agentId}/threads` | `list_ai_agent_threads` — AI agent conversation threads for specific agent ID | ⭐⭐⭐ |
 | ✅ | GET | `/v4/api/proxy/ai-service/v1/orgs/{orgId}/agentFavorites` | `get_ai_agent_favorites` — User favorited AI agents list | ⭐⭐ |
-| 🔲 | GET | `/v4/api/proxy/ai-service/v1/orgs/{orgId}/agents/{agentId}/public` | Public AI agent profile | ⭐⭐ |
-| 🔲 | GET | `/v4/api/proxy/mcp-service/v1/auth/channel/{agentId}` | MCP service auth channel for an agent | ⭐⭐ |
+| ✅ | GET | `/v4/api/proxy/ai-service/v1/orgs/{orgId}/agents/{agentGlobalId}/public` | `get_agent_public_profile` — Public AI agent profile (title, description, avatar URL) | ⭐⭐ |
+| ❌ | GET | `/v4/api/proxy/mcp-service/v1/auth/channel/{agentId}` | Returns 500 (`Error: User ID is required` internally) | — |
 
 ## 12. Databases & Tables
 
@@ -187,50 +187,56 @@
 | ✅ | DELETE | `/v4/api/proxy/dashboard-service/v1/dashboards/{dashId}` | `delete_dashboard` — Delete a table within a database | ⭐⭐⭐⭐ |
 | ✅ | PUT | `/v4/api/proxy/dashboard-service/v1/dashboards/{did}/views/{vid}` | `update_view` — Rename view, change filters/sorts (PUT only) | ⭐⭐⭐ |
 | ✅ | POST | `/v4/api/proxy/dashboard-service/v1/dashboards/{did}/views/{vid}/representations/{type}` | `set_view_representation` — Switch between table and kanban | ⭐⭐⭐⭐ |
-| 🔲 | GET | `/v4/api/dashboard/representation-templates` | Dashboard widget/representation templates (table, kanban) | ⭐⭐ |
+| ✅ | GET | `/v4/api/dashboard/representation-templates?orgId={orgId}` | `get_dashboard_templates` — Dashboard representation templates (Table, Kanban managed templates) | ⭐⭐ |
 
 ## 13. Automation (ActivePieces)
+
+> **Plan Gate Diagnostic:** Flow authoring (`POST /flows`), folders, and quota endpoints return `403 Forbidden` (`{"code":"AUTHORIZATION","params":{"message":"user does not have canManageAutomation privilege"}}`) on standard FuseBase tiers unless the automation add-on is provisioned. The connector piece catalog and test execution bridges operate safely.
 
 | Status | Method | Endpoint | Tool / Description | Value |
 |---|---|---|---|---|
 | ✅ | GET | `/automation/api/v1/flows` | `list_automation_flows` — List automation workflows (paginated) | ⭐⭐⭐⭐ |
-| ✅ | POST | `/automation/api/v1/flows` | `create_automation_flow` — Create a new automation flow | ⭐⭐⭐⭐ |
+| ✅ | POST | `/automation/api/v1/flows` | `create_automation_flow` — Create a new automation flow (requires `canManageAutomation`) | ⭐⭐⭐⭐ |
 | ✅ | GET | `/automation/api/v1/flows/{flowId}` | `get_automation_flow` — Get a specific automation flow | ⭐⭐⭐ |
 | ✅ | POST | `/automation/api/v1/flows/{flowId}` | `update_automation_flow` — Update flow status/name/type | ⭐⭐⭐ |
 | ✅ | DELETE | `/automation/api/v1/flows/{flowId}` | `delete_automation_flow` — Delete an automation flow | ⭐⭐⭐ |
 | ✅ | POST | `/automation/api/v1/flows/{flowId}/test` | `trigger_automation_flow` — Trigger/test-run automation flow with payload | ⭐⭐⭐⭐⭐ |
 | ✅ | GET | `/automation/api/v1/flow-runs` | `list_flow_runs` — Execution history of automation runs | ⭐⭐⭐⭐ |
 | ✅ | GET | `/automation/api/v1/pieces` | `list_automation_pieces` — Full automation pieces catalog (16 pieces discovered) | ⭐⭐⭐ |
-| 🔲 | GET | `/automation/api/v1/flows/count` | Count of automation flows | ⭐⭐ |
-| 🔲 | GET | `/automation/api/v1/folders` | Automation folder structure | ⭐⭐ |
-| 🔲 | GET | `/automation/api/v1/app-connections` | External app connections/integrations | ⭐⭐⭐ |
-| 🔲 | GET | `/automation/api/v1/flags` | Automation platform feature flags | ⭐ |
-| 🔲 | GET | `/automation/api/v1/usage/get` | Automation usage and billing quota | ⭐⭐ |
-| 🔲 | GET | `/automation/api/v1/users/projects` | Automation projects list | ⭐⭐ |
-| 🔲 | POST | `/automation/api/v1/authentication/fusebase-auth` | Automation auth token exchange | ⭐ |
-| 🔲 | GET | `/automation/api/v1/authentication/fusebase-admin-auth` | Automation admin auth check | ⭐ |
-| 🔲 | GET | `/automation/api/v1/pieces/@activepieces/piece-{name}` | Specific automation piece details | ⭐⭐ |
-| 🔲 | GET | `/automation/api/v1/trigger-events` | Trigger events for a specific flow | ⭐⭐ |
+| 🔲 | GET | `/automation/api/v1/flags` | Automation platform feature flags (USER_CREATED, ENVIRONMENT, CLOUD_AUTH) | ⭐ |
+| 🔒 | GET | `/automation/api/v1/flows/count` | Count of automation flows (plan-gated: requires `canManageAutomation`) | ⭐⭐ |
+| 🔒 | GET | `/automation/api/v1/folders` | Automation folder structure (plan-gated: requires `canManageAutomation`) | ⭐⭐ |
+| 🔒 | GET | `/automation/api/v1/app-connections` | External app connections (requires `projectId` + plan privilege) | ⭐⭐⭐ |
+| 🔒 | GET | `/automation/api/v1/usage/get` | Automation usage and billing quota (plan-gated) | ⭐⭐ |
+| 🔒 | GET | `/automation/api/v1/users/projects` | Automation projects list (plan-gated) | ⭐⭐ |
+| 🔒 | POST | `/automation/api/v1/authentication/fusebase-auth` | Automation auth token exchange (requires `sessionId`) | ⭐ |
+| 🔒 | GET | `/automation/api/v1/authentication/fusebase-admin-auth` | Automation admin auth check | ⭐ |
+| 🔒 | GET | `/automation/api/v1/pieces/@activepieces/piece-{name}` | Specific automation piece details (plan-gated) | ⭐⭐ |
+| 🔒 | GET | `/automation/api/v1/trigger-events` | Trigger events for a specific flow (plan-gated) | ⭐⭐ |
 | 🔗 | GET/POST | `/automation/socket.io/` | WebSocket transport for real-time automation events | ⭐ |
 
 ## 14. Billing & Account
 
 | Status | Method | Endpoint | Tool / Description | Value |
 |---|---|---|---|---|
-| 🔲 | GET | `/v1/billing/credit` | Billing credit balance | ⭐ |
-| 🔲 | GET | `/v1/otp/setup` | 2FA/OTP setup status | ⭐ |
+| ✅ | GET | `/v1/billing/credit` | `get_billing_info` — Billing credit balance (returns available credit number) | ⭐ |
+| ✅ | GET | `/v2/api/orgs/{orgId}/coupons` | `get_billing_info` — Active coupon code redemptions (e.g. AppSumo code counts) | ⭐ |
+| ✅ | GET | `/v1/organizations/{orgId}/coupons` | `get_billing_info` — Granular coupon token details, redemption timestamps, user IDs | ⭐ |
+| 🔲 | GET | `/v2/api/orgs/trials` | Active feature trial status | ⭐ |
+| 🔲 | GET | `/v1/otp/setup` | 2FA/OTP enrollment setup status | ⭐ |
 
 ## 15. User Preferences & Variables
 
 | Status | Method | Endpoint | Tool / Description | Value |
 |---|---|---|---|---|
-| 🔲 | GET | `/v1/notification/options` | Notification preference settings | ⭐ |
-| 🔲 | GET | `/v2/api/web-editor/user/vars` | User variables/preferences for the editor | ⭐⭐ |
-| 🔲 | POST | `/v2/api/users/vars/sidebarCollapsed` | Toggle sidebar collapsed state | ⭐ |
-| 🔲 | POST | `/v1/users/vars/lastOpenedWorkspaces` | Set last-opened workspace list | ⭐ |
+| ✅ | GET | `/v1/notification/options` | `get_user_preferences` — User notification preference settings (push & email triggers) | ⭐⭐ |
+| ✅ | GET | `/v2/api/web-editor/user/vars` | `get_user_preferences` — User variables and state flags for web editor | ⭐⭐ |
+| ✅ | POST | `/v2/api/users/vars/sidebarCollapsed` | `set_sidebar_collapsed` — Toggle sidebar collapsed state (`{"value":"1"}`) | ⭐ |
+| ✅ | GET | `/v1/users/vars/lastOpenedWorkspaces` | `get_user_preferences` — Map of organization ID to last opened workspace ID | ⭐ |
+| 🔲 | POST | `/v1/users/vars/lastOpenedWorkspaces` | Set last-opened workspace mapping | ⭐ |
 | 🔲 | POST | `/v1/users/vars/loaded:checklist:*` | Track checklist load state | ⭐ |
 | 🔲 | POST | `/v2/api/users/vars/firstVisitWsNoPaywall` | Track first-visit onboarding state | ⭐ |
-| 🔲 | POST | `/v2/api/workspace-events` | Publish workspace events | ⭐⭐ |
+| 🔲 | POST | `/v2/api/workspace-events` | Publish workspace audit/telemetry events | ⭐⭐ |
 | 🔲 | GET | `/v4/api/users/vars/agent_folder_{agentId}` | Agent-specific folder preference | ⭐ |
 | ❌ | GET | `/v1/users/vars/dateTimeLocale` | Returns 404 — not viable | — |
 

@@ -70,6 +70,23 @@ const keepAliveAgent = new https.Agent({
 /** Default timeouts (ms) */
 const TIMEOUT_GET = 10_000;
 const TIMEOUT_WRITE = 20_000;
+/**
+ * Attempt to repair JSON truncated by upstream proxy serialization limits.
+ * Strips dangling unclosed keys or trailing commas and closes brackets.
+ */
+function tryRepairTruncatedJson(text: string): Record<string, unknown> | null {
+  let sanitized = text.trim();
+  sanitized = sanitized.replace(/,\s*"[^"]*"?\s*$/, "");
+  sanitized = sanitized.replace(/,\s*$/, "");
+  if (!sanitized.endsWith("}")) {
+    sanitized += "}";
+  }
+  try {
+    return JSON.parse(sanitized);
+  } catch {
+    return null;
+  }
+}
 
 export class FusebaseClient {
   private baseUrl: string;
@@ -179,17 +196,25 @@ export class FusebaseClient {
       );
     }
 
+    const rawText = await res.text();
     const contentType = res.headers.get("content-type") || "";
     if (contentType.includes("application/json")) {
-      const data = (await res.json()) as T;
-      const size = JSON.stringify(data).length;
-      this.logApiCall(method, path, res.status, elapsed, size, true);
-      return data;
+      try {
+        const data = JSON.parse(rawText) as T;
+        this.logApiCall(method, path, res.status, elapsed, rawText.length, true);
+        return data;
+      } catch (jsonErr) {
+        const repaired = tryRepairTruncatedJson(rawText);
+        if (repaired) {
+          this.logApiCall(method, path, res.status, elapsed, rawText.length, true);
+          return repaired as T;
+        }
+        throw jsonErr;
+      }
     }
 
-    const text = (await res.text()) as unknown as T;
-    this.logApiCall(method, path, res.status, elapsed, String(text).length, true);
-    return text;
+    this.logApiCall(method, path, res.status, elapsed, rawText.length, true);
+    return rawText as unknown as T;
   }
 
   // ─── Logging ──────────────────────────────────────────────────
@@ -687,6 +712,21 @@ export class FusebaseClient {
     );
   }
 
+  /** Get user ID to role mappings across the organization */
+  async getMemberRoles(orgId?: string): Promise<Array<{ userId: number; role: string }>> {
+    const org = orgId || this.orgId;
+    return this.request<Array<{ userId: number; role: string }>>(
+      `/gwapi2/ft:org/orgs/${org}/member-roles`,
+    );
+  }
+
+  /** Get granular v1 workspace member entities */
+  async getWorkspaceMembersV1(workspaceId: string): Promise<unknown[]> {
+    return this.request<unknown[]>(
+      `/v1/workspaces/${workspaceId}/members`,
+    );
+  }
+
   // ─── Organization ─────────────────────────────────────────────
 
   /** Get organization usage stats */
@@ -867,6 +907,11 @@ export class FusebaseClient {
     );
   }
 
+  /** Get task summary and statistics across all accessible workspaces */
+  async getTasksWorkspaceSummary(): Promise<unknown[]> {
+    return this.request<unknown[]>(`/gwapi2/ft:tasks/workspace-infos`);
+  }
+
   // ─── Page Mutations ───────────────────────────────────────────
 
   /** Delete a page */
@@ -921,6 +966,14 @@ export class FusebaseClient {
     const org = orgId || this.orgId;
     return this.request<unknown[]>(
       `/v4/api/proxy/ai-service/v1/orgs/${org}/agentFavorites`,
+    );
+  }
+
+  /** Get public agent profile by global ID */
+  async getAgentPublicProfile(agentGlobalId: string, orgId?: string): Promise<Record<string, unknown>> {
+    const org = orgId || this.orgId;
+    return this.request<Record<string, unknown>>(
+      `/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentGlobalId}/public`,
     );
   }
 
@@ -1659,6 +1712,14 @@ export class FusebaseClient {
         }),
       },
     );
+  }
+
+  /** Get managed dashboard and view representation templates (e.g. Table, Kanban) */
+  async getDashboardTemplates(orgId?: string, workspaceId?: string): Promise<unknown> {
+    const org = orgId || this.orgId;
+    let url = `/v4/api/dashboard/representation-templates?orgId=${org}`;
+    if (workspaceId) url += `&workspaceId=${workspaceId}`;
+    return this.request<unknown>(url);
   }
 
   /**
@@ -2966,6 +3027,33 @@ export class FusebaseClient {
     return res === true || res === "true" || res?.available === true;
   }
 
+  /** Get portal UI theme, colors, hero greeting banner, and sidebar options */
+  async getPortalTheme(options: {
+    workspaceId?: string;
+    portalId?: string;
+    portalDomain?: string;
+  }): Promise<unknown> {
+    const params = new URLSearchParams();
+    if (options.workspaceId) params.append("workspaceId", options.workspaceId);
+    if (options.portalId) params.append("portalId", options.portalId);
+    if (options.portalDomain) params.append("portalDomain", options.portalDomain);
+    return this.request<unknown>(
+      `/v2/api/portal-service-proxy/v1/contents?${params.toString()}`,
+    );
+  }
+
+  /** Get workspace client portal navigation tree and entities */
+  async getPortalNavigationMenu(workspaceId: string): Promise<unknown> {
+    return this.request<unknown>(`/v2/api/workspaces/${workspaceId}/portal`);
+  }
+
+  /** Get workspace client portal resolution object (portal ID, global ID, domain) */
+  async getWorkspacePortal(workspaceId: string): Promise<unknown> {
+    return this.request<unknown>(
+      `/v2/api/portal-service-proxy/v1/workspaces/${workspaceId}/portals`,
+    );
+  }
+
   /** Publish or unpublish a page to the client portal */
   async setPagePortalShare(
     workspaceId: string,
@@ -3115,6 +3203,45 @@ export class FusebaseClient {
         portalId,
         email,
       }),
+    });
+  }
+
+  // ─── Billing & User Preferences ───────────────────────────────
+
+  /** Get billing credits balance, coupon redemptions, and tokens */
+  async getBillingInfo(orgId?: string): Promise<{
+    credit: unknown;
+    activeCoupons: unknown;
+    couponTokens: unknown;
+  }> {
+    const org = orgId || this.orgId;
+    const [credit, activeCoupons, couponTokens] = await Promise.all([
+      this.request<unknown>("/v1/billing/credit").catch(() => null),
+      this.request<unknown>(`/v2/api/orgs/${org}/coupons`).catch(() => null),
+      this.request<unknown>(`/v1/organizations/${org}/coupons`).catch(() => null),
+    ]);
+    return { credit, activeCoupons, couponTokens };
+  }
+
+  /** Get user notification preferences and web editor variables */
+  async getUserPreferences(): Promise<{
+    notificationOptions: unknown;
+    webEditorVars: unknown;
+    lastOpenedWorkspaces: unknown;
+  }> {
+    const [notificationOptions, webEditorVars, lastOpenedWorkspaces] = await Promise.all([
+      this.request<unknown>("/v1/notification/options").catch(() => null),
+      this.request<unknown>("/v2/api/web-editor/user/vars").catch(() => null),
+      this.request<unknown>("/v1/users/vars/lastOpenedWorkspaces").catch(() => null),
+    ]);
+    return { notificationOptions, webEditorVars, lastOpenedWorkspaces };
+  }
+
+  /** Toggle web editor sidebar collapse state */
+  async setUserSidebarCollapsed(collapsed: boolean): Promise<unknown> {
+    return this.request<unknown>("/v2/api/users/vars/sidebarCollapsed", {
+      method: "POST",
+      body: JSON.stringify({ value: collapsed ? "1" : "0" }),
     });
   }
 

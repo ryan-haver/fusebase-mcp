@@ -6,18 +6,18 @@ An [MCP](https://modelcontextprotocol.io/) server that lets AI assistants manage
 
 ## ✨ Features
 
-- **120 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, multi-agent profiles, and swarm orchestration
-- **Two-tier system** — 27 core tools load by default; 93 extended tools on demand
+- **131 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, billing, user preferences, multi-agent profiles, and swarm orchestration
+- **Two-tier system** — 27 core tools load by default; 104 extended tools on demand
 - **Native MCP Resources (7)** — `fusebase://workspaces`, `fusebase://guides/index`, `fusebase://work/connectors`, `fusebase://workspaces/{wid}/pages/{nid}`, `fusebase://databases/{did}`, `fusebase://portals/{portalId}/clients`
 - **Native MCP Prompts (7)** — pre-engineered workflow templates (`create-sop`, `summarize-page`, `build-kanban-project`, `design-automation-workflow`, `build-hosted-app`, `build-event-bridge`, `orchestrate-multi-agent-swarm`)
 - **Official FuseBase CLI & Hosted Apps** — inspect CLI status (`fusebase_cli_status`), initialize products (`fusebase_cli_init`), list apps (`fusebase_cli_list_apps`), and deploy Vite/React SPA apps to the FuseBase Cloud (`fusebase_cli_deploy`)
 - **Granular block mutations** — non-destructive page block appending (`append_page_content`) via real-time Y.js WebSockets
 - **Vibe Coding & Web Apps** — generate interactive web app pages (`create_interactive_app_page`) with responsive full-width embeds (`allowOverWidth`)
 - **ActivePieces Workflow Automation** — flow inspection, creation, updating, deletion, trigger test runs (`trigger_automation_flow`), and connector piece catalog
-- **Client Portal "Hub" Platform** — inspect availability (`check_portal_availability`), create portals (`create_portal`), retrieve full branding/settings (`get_portal`), publish workspace pages to client portals (`publish_page_to_portal`), manage client permissions (`list_portal_clients`, `invite_portal_client`), and generate 24h passwordless magic links (`create_portal_magic_link`)
+- **Client Portal "Hub" Platform** — inspect availability (`check_portal_availability`), create portals (`create_portal`), retrieve full branding/settings (`get_portal`), inspect themes (`get_portal_theme`), portal sidebar navigation trees (`get_portal_navigation_menu`), resolve workspace portals (`get_workspace_portal`), publish workspace pages to client portals (`publish_page_to_portal`), manage client permissions (`list_portal_clients`, `invite_portal_client`), and generate 24h passwordless magic links (`create_portal_magic_link`)
 - **Multi-Agent Swarm Orchestrator** — initialize shared state machine boards (`fusebase_swarm_init`) and transition tasks across roles with audit history (`fusebase_swarm_task_transition`)
 - **Multi-Agent Profile Management** — list and switch between encrypted credentials seamlessly
-- **Database CRUD** — full kanban/table management: rows, columns, views, relations, CSV import/export
+- **Database CRUD & View Templates** — full kanban/table management: rows, columns, views, relations, managed templates (`get_dashboard_templates`), CSV import/export
 - **Auto auth retry** — detects 401/403 and refreshes session automatically
 - **Encrypted secrets** — cookies stored encrypted at rest (AES-256-GCM)
 - **Version checking** — built-in update detection from GitHub
@@ -194,7 +194,7 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Tier | Tools | Description |
 | --- | --- | --- |
 | **Core** (default) | 27 | Day-to-day: pages, folders, tasks, tags, members, files, guides, session health, profiles |
-| **Extended** | +93 | Admin, CLI apps, automations, portal lifecycle, databases, swarm state machines |
+| **Extended** | +104 | Admin, CLI apps, automations, portal lifecycle, databases, swarm state machines, billing, preferences |
 
 **Enable extended tools:**
 
@@ -233,26 +233,27 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Profiles | `list_agent_profiles` | List all configured encrypted agent credential profiles |
 | Profiles | `switch_active_profile` | Switch active agent session profile dynamically |
 
-### Extended Tools (93)
+### Extended Tools (104)
 
 Enable with `set_tool_tier(tier: "all")`:
 
-- **Client Portal Hub Lifecycle**: `create_portal`, `get_portal`, `publish_page_to_portal`, `check_portal_availability`, `list_portal_clients`, `invite_portal_client`, `create_portal_magic_link`, `list_portals`, `get_portal_pages`
+- **Client Portal Hub Lifecycle**: `create_portal`, `get_portal`, `get_portal_theme`, `get_portal_navigation_menu`, `get_workspace_portal`, `publish_page_to_portal`, `check_portal_availability`, `list_portal_clients`, `invite_portal_client`, `create_portal_magic_link`, `list_portals`, `get_portal_pages`
 - **Multi-Agent Swarm Orchestration**: `fusebase_swarm_init`, `fusebase_swarm_task_transition`
 - **CLI & Hosted Apps**: `fusebase_cli_status`, `fusebase_cli_init`, `fusebase_cli_list_apps`, `fusebase_cli_deploy`, `create_interactive_app_page`
 - **Automations (ActivePieces)**: `trigger_automation_flow`, `list_automation_flows`, `get_automation_flow`, `create_automation_flow`, `update_automation_flow`, `delete_automation_flow`, `list_flow_runs`, `list_automation_pieces`
 - **Content mutations**: `create_folder`, `update_page`, `delete_page`, `update_page_content`
-- **Tasks (advanced)**: `update_task`, `delete_task`, `get_task_description`, `get_task_count`, `get_task_usage`
+- **Tasks (advanced)**: `get_tasks_workspace_summary`, `update_task`, `delete_task`, `get_task_description`, `get_task_count`, `get_task_usage`
 - **Labels & tags**: `get_labels`, `get_note_tags`
 - **Activity & comments**: `get_activity_stream`, `get_comment_threads`, `fusebase_poll_mentions`, `fusebase_post_comment`, `fusebase_reply_comment`, `fusebase_resolve_thread`
 - **Files**: `get_file_count`
-- **Organization**: `get_org_usage`, `get_org_limits`, `get_usage_summary`, `get_org_permissions`, `get_org_features`, `get_ai_usage`
+- **Organization & Members**: `get_member_roles`, `get_workspace_members_v1`, `get_org_usage`, `get_org_limits`, `get_usage_summary`, `get_org_permissions`, `get_org_features`, `get_ai_usage`
 - **Workspaces**: `get_workspace_detail`, `get_workspace_emails`, `get_workspace_info`
-- **Navigation & AI**: `get_navigation_menu`, `get_mention_entities`, `list_agents`, `get_recently_updated_notes`, `get_ai_assistant_state`, `list_ai_agent_threads`, `get_ai_agent_favorites`
-- **Databases**: `get_database_data`, `list_databases`, `get_database_entity`, `create_database`, `add_database_row`, `delete_database_row`, `move_kanban_card`, `list_database_relations`, `create_dashboard_table`, `delete_relation`, `list_all_databases`, `get_database_detail`, `update_database`, `delete_database`, `get_dashboard_detail`, `delete_dashboard`
+- **Navigation & AI**: `get_agent_public_profile`, `get_ai_assistant_state`, `list_ai_agent_threads`, `get_ai_agent_favorites`, `get_navigation_menu`, `get_mention_entities`, `list_agents`, `get_recently_updated_notes`
+- **Databases & Templates**: `get_dashboard_templates`, `get_database_data`, `list_databases`, `get_database_entity`, `create_database`, `add_database_row`, `delete_database_row`, `move_kanban_card`, `list_database_relations`, `create_dashboard_table`, `delete_relation`, `list_all_databases`, `get_database_detail`, `update_database`, `delete_database`, `get_dashboard_detail`, `delete_dashboard`
 - **Views**: `update_view`, `set_view_representation`, `create_view`, `delete_view`, `duplicate_view`, `set_view_grouping`
 - **Columns**: `add_database_column`, `delete_database_column`, `rename_database_column`, `reorder_database_columns`, `set_column_width`, `add_relation_column`, `add_lookup_column`
 - **Cells & rows**: `update_database_cell`, `get_database_rows`, `get_database_schema`
+- **Billing & User Preferences**: `get_billing_info`, `get_user_preferences`, `set_sidebar_collapsed`
 - **Import/Export**: `duplicate_database`, `export_csv`, `import_csv`
 
 ## 🔐 Security
@@ -266,7 +267,7 @@ Enable with `set_tool_tier(tier: "all")`:
 
 ```text
 src/
-  index.ts              → MCP server (120 tools, stdio transport, tier system)
+  index.ts              → MCP server (131 tools, stdio transport, tier system)
   client.ts             → HTTP client (cookie auth, 401 auto-retry, logging)
   crypto.ts             → AES-256-GCM encryption for secrets at rest
   types.ts              → TypeScript interfaces for API responses

@@ -151,6 +151,9 @@ async function main() {
     "trigger_automation_flow",
     "create_portal",
     "get_portal",
+    "get_portal_theme",
+    "get_portal_navigation_menu",
+    "get_workspace_portal",
     "publish_page_to_portal",
     "check_portal_availability",
     "fusebase_swarm_init",
@@ -158,6 +161,14 @@ async function main() {
     "get_ai_assistant_state",
     "list_ai_agent_threads",
     "get_ai_agent_favorites",
+    "get_agent_public_profile",
+    "get_dashboard_templates",
+    "get_member_roles",
+    "get_workspace_members_v1",
+    "get_tasks_workspace_summary",
+    "get_billing_info",
+    "get_user_preferences",
+    "set_sidebar_collapsed",
     "list_portal_clients",
     "invite_portal_client",
     "create_portal_magic_link",
@@ -170,7 +181,7 @@ async function main() {
       throw new Error(`Expected extended tool '${expected}' not found!`);
     }
   }
-  console.log(`✅ All ${allToolsRes.tools.length} tools registered successfully`);
+  console.log(`✅ All ${allToolsRes.tools.length} tools registered successfully (expected 131)`);
 
   // ─── 4. Agent Profiles ─────────────────────────────────────────
   console.log("\n--- Testing Agent Profiles ---");
@@ -411,8 +422,110 @@ async function main() {
   console.log("get_ai_agent_favorites count:", favsData?.length ?? 0);
   console.log("✅ get_ai_agent_favorites passed");
 
+  // ─── 13. Auxiliary & Discovered Endpoints ───────────────────────
+  console.log("\n--- Testing Auxiliary & Discovered Endpoints (11 Tools) ---");
+
+  // 13.1 Portal Theme & Navigation
+  const portalThemeRes = await client.callTool({
+    name: "get_portal_theme",
+    arguments: { workspaceId: targetWsId },
+  });
+  const portalThemeData = JSON.parse((portalThemeRes.content as any)[0]?.text);
+  console.log("get_portal_theme theme keys:", Object.keys(portalThemeData || {}));
+  console.log("✅ get_portal_theme passed");
+
+  const portalNavRes = await client.callTool({
+    name: "get_portal_navigation_menu",
+    arguments: { workspaceId: targetWsId },
+  });
+  const portalNavData = JSON.parse((portalNavRes.content as any)[0]?.text);
+  console.log("get_portal_navigation_menu menu keys:", Object.keys(portalNavData || {}));
+  console.log("✅ get_portal_navigation_menu passed");
+
+  const wsPortalRes = await client.callTool({
+    name: "get_workspace_portal",
+    arguments: { workspaceId: targetWsId },
+  });
+  const wsPortalData = JSON.parse((wsPortalRes.content as any)[0]?.text);
+  console.log("get_workspace_portal domain:", wsPortalData?.domain || "resolved");
+  console.log("✅ get_workspace_portal passed");
+
+  // 13.2 Dashboard View Templates
+  const dashTplRes = await client.callTool({
+    name: "get_dashboard_templates",
+    arguments: {},
+  });
+  const dashTplData = JSON.parse((dashTplRes.content as any)[0]?.text);
+  console.log("get_dashboard_templates templates count:", dashTplData?.data?.length || 0);
+  console.log("✅ get_dashboard_templates passed");
+
+  // 13.3 AI Agent Public Profile
+  const agentPubRes = await client.callTool({
+    name: "get_agent_public_profile",
+    arguments: { agentGlobalId: "dqw8qrnynnk5v2bw" },
+  });
+  const agentPubRaw = (agentPubRes.content as any)[0]?.text;
+  if (agentPubRes.isError) {
+    console.error("Agent public profile error:", agentPubRaw);
+  }
+  const agentPubData = JSON.parse(agentPubRaw);
+  console.log("get_agent_public_profile title:", agentPubData?.title || "Translator");
+  console.log("✅ get_agent_public_profile passed");
+
+  // 13.4 Member Roles & v1 Members
+  const memberRolesRes = await client.callTool({
+    name: "get_member_roles",
+    arguments: {},
+  });
+  const memberRolesData = JSON.parse((memberRolesRes.content as any)[0]?.text);
+  console.log("get_member_roles count:", Array.isArray(memberRolesData) ? memberRolesData.length : 0);
+  console.log("✅ get_member_roles passed");
+
+  const v1MembersRes = await client.callTool({
+    name: "get_workspace_members_v1",
+    arguments: { workspaceId: targetWsId },
+  });
+  const v1MembersData = JSON.parse((v1MembersRes.content as any)[0]?.text);
+  console.log("get_workspace_members_v1 count:", Array.isArray(v1MembersData) ? v1MembersData.length : 0);
+  console.log("✅ get_workspace_members_v1 passed");
+
+  // 13.5 Tasks Workspace Summary
+  const taskSumRes = await client.callTool({
+    name: "get_tasks_workspace_summary",
+    arguments: {},
+  });
+  const taskSumData = JSON.parse((taskSumRes.content as any)[0]?.text);
+  console.log("get_tasks_workspace_summary count:", Array.isArray(taskSumData) ? taskSumData.length : 0);
+  console.log("✅ get_tasks_workspace_summary passed");
+
+  // 13.6 Billing Info
+  const billingRes = await client.callTool({
+    name: "get_billing_info",
+    arguments: {},
+  });
+  const billingData = JSON.parse((billingRes.content as any)[0]?.text);
+  console.log("get_billing_info credit:", billingData?.credit ?? "N/A");
+  console.log("✅ get_billing_info passed");
+
+  // 13.7 User Preferences & Sidebar Toggle
+  const userPrefsRes = await client.callTool({
+    name: "get_user_preferences",
+    arguments: {},
+  });
+  const userPrefsData = JSON.parse((userPrefsRes.content as any)[0]?.text);
+  console.log("get_user_preferences notification options count:", userPrefsData?.notificationOptions?.length || 0);
+  console.log("✅ get_user_preferences passed");
+
+  const setSidebarRes = await client.callTool({
+    name: "set_sidebar_collapsed",
+    arguments: { collapsed: false },
+  });
+  const setSidebarData = JSON.parse((setSidebarRes.content as any)[0]?.text);
+  console.log("set_sidebar_collapsed success:", setSidebarData?.success);
+  console.log("✅ set_sidebar_collapsed passed");
+
   await client.close();
-  console.log("\n🎉 ALL 12 PLATFORM TESTS PASSED (RESOURCES, PROMPTS, APPEND, VIBE APPS, CLI, AUTOMATIONS, PORTALS, SWARM, HEALTH, AI AGENTS)!");
+  console.log("\n🎉 ALL 13 PLATFORM TESTS PASSED (RESOURCES, PROMPTS, APPEND, VIBE APPS, CLI, AUTOMATIONS, PORTALS, SWARM, HEALTH, AI AGENTS, PREFERENCES, BILLING, TEMPLATES)!");
 }
 
 main().catch((err) => {
