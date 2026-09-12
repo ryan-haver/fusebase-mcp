@@ -6,8 +6,8 @@ An [MCP](https://modelcontextprotocol.io/) server that lets AI assistants manage
 
 ## ✨ Features
 
-- **131 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, billing, user preferences, multi-agent profiles, and swarm orchestration
-- **Two-tier system** — 27 core tools load by default; 104 extended tools on demand
+- **136 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, billing, user preferences, multi-agent profiles, and swarm orchestration
+- **Two-tier system** — 27 core tools load by default; 109 extended tools on demand
 - **Native MCP Resources (7)** — `fusebase://workspaces`, `fusebase://guides/index`, `fusebase://work/connectors`, `fusebase://workspaces/{wid}/pages/{nid}`, `fusebase://databases/{did}`, `fusebase://portals/{portalId}/clients`
 - **Native MCP Prompts (7)** — pre-engineered workflow templates (`create-sop`, `summarize-page`, `build-kanban-project`, `design-automation-workflow`, `build-hosted-app`, `build-event-bridge`, `orchestrate-multi-agent-swarm`)
 - **Official FuseBase CLI & Hosted Apps** — inspect CLI status (`fusebase_cli_status`), initialize products (`fusebase_cli_init`), list apps (`fusebase_cli_list_apps`), and deploy Vite/React SPA apps to the FuseBase Cloud (`fusebase_cli_deploy`)
@@ -194,7 +194,7 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Tier | Tools | Description |
 | --- | --- | --- |
 | **Core** (default) | 27 | Day-to-day: pages, folders, tasks, tags, members, files, guides, session health, profiles |
-| **Extended** | +104 | Admin, CLI apps, automations, portal lifecycle, databases, swarm state machines, billing, preferences |
+| **Extended** | +109 | Admin, CLI apps, automations, portal lifecycle, databases, swarm state machines, billing, preferences |
 
 **Enable extended tools:**
 
@@ -218,36 +218,36 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Content | `append_page_content` | Append markdown or structured blocks to an existing page without overwrite |
 | Content | `list_folders` | Folder tree for a workspace |
 | Files | `get_page_attachments` | List attachments on a page |
-| Files | `list_files` | List workspace-wide uploaded files |
-| Files | `upload_file` | Upload a file to a page (base64 content) |
-| Files | `download_attachment` | Download an attachment as base64 |
-| Tags | `get_tags` | Workspace or page tags |
+| Files | `upload_file` | Upload file attachment to a page |
+| Files | `list_files` | List uploaded files |
+| Files | `download_file` | Download file content as base64 |
+| Tags | `get_tags` | List workspace tags |
 | Tags | `update_page_tags` | Set tags on a page |
-| Members | `get_members` | Workspace or org members |
-| Tasks | `search_tasks` | Search tasks (by workspace/page) |
-| Tasks | `list_task_lists` | Task boards and tasks |
-| Tasks | `create_task` | Create a task in a task list |
+| Members | `get_members` | List workspace members |
+| Tasks | `search_tasks` | Search tasks across workspace |
+| Tasks | `list_task_lists` | List kanban boards |
+| Tasks | `create_task` | Create a task |
 | Guides | `search_guides` | Search FuseBase guides by keyword |
 | Guides | `get_guide` | Get full guide content by section/slug |
 | Guides | `list_guide_sections` | Browse all guide sections |
 | Profiles | `list_agent_profiles` | List all configured encrypted agent credential profiles |
 | Profiles | `switch_active_profile` | Switch active agent session profile dynamically |
 
-### Extended Tools (104)
+### Extended Tools (109)
 
 Enable with `set_tool_tier(tier: "all")`:
 
 - **Client Portal Hub Lifecycle**: `create_portal`, `get_portal`, `get_portal_theme`, `get_portal_navigation_menu`, `get_workspace_portal`, `publish_page_to_portal`, `check_portal_availability`, `list_portal_clients`, `invite_portal_client`, `create_portal_magic_link`, `list_portals`, `get_portal_pages`
 - **Multi-Agent Swarm Orchestration**: `fusebase_swarm_init`, `fusebase_swarm_task_transition`
 - **CLI & Hosted Apps**: `fusebase_cli_status`, `fusebase_cli_init`, `fusebase_cli_list_apps`, `fusebase_cli_deploy`, `create_interactive_app_page`
-- **Automations (ActivePieces)**: `trigger_automation_flow`, `list_automation_flows`, `get_automation_flow`, `create_automation_flow`, `update_automation_flow`, `delete_automation_flow`, `list_flow_runs`, `list_automation_pieces`
+- **Automations (ActivePieces)**: `trigger_automation_flow`, `get_automation_flags`, `list_automation_flows`, `get_automation_flow`, `create_automation_flow`, `update_automation_flow`, `delete_automation_flow`, `list_flow_runs`, `list_automation_pieces`
 - **Content mutations**: `create_folder`, `update_page`, `delete_page`, `update_page_content`
-- **Tasks (advanced)**: `get_tasks_workspace_summary`, `update_task`, `delete_task`, `get_task_description`, `get_task_count`, `get_task_usage`
+- **Tasks (advanced)**: `get_tasks_workspace_summary`, `get_task_time_tracking`, `update_task`, `delete_task`, `get_task_description`, `get_task_count`, `get_task_usage`
 - **Labels & tags**: `get_labels`, `get_note_tags`
 - **Activity & comments**: `get_activity_stream`, `get_comment_threads`, `fusebase_poll_mentions`, `fusebase_post_comment`, `fusebase_reply_comment`, `fusebase_resolve_thread`
 - **Files**: `get_file_count`
-- **Organization & Members**: `get_member_roles`, `get_workspace_members_v1`, `get_org_usage`, `get_org_limits`, `get_usage_summary`, `get_org_permissions`, `get_org_features`, `get_ai_usage`
-- **Workspaces**: `get_workspace_detail`, `get_workspace_emails`, `get_workspace_info`
+- **Organization & Members**: `get_member_roles`, `get_workspace_members_v1`, `get_org_trials`, `get_org_usage`, `get_org_limits`, `get_usage_summary`, `get_org_permissions`, `get_org_features`, `get_ai_usage`
+- **Workspaces & Subscription**: `get_workspace_premium_status`, `get_active_import_status`, `get_workspace_detail`, `get_workspace_emails`, `get_workspace_info`
 - **Navigation & AI**: `get_agent_public_profile`, `get_ai_assistant_state`, `list_ai_agent_threads`, `get_ai_agent_favorites`, `get_navigation_menu`, `get_mention_entities`, `list_agents`, `get_recently_updated_notes`
 - **Databases & Templates**: `get_dashboard_templates`, `get_database_data`, `list_databases`, `get_database_entity`, `create_database`, `add_database_row`, `delete_database_row`, `move_kanban_card`, `list_database_relations`, `create_dashboard_table`, `delete_relation`, `list_all_databases`, `get_database_detail`, `update_database`, `delete_database`, `get_dashboard_detail`, `delete_dashboard`
 - **Views**: `update_view`, `set_view_representation`, `create_view`, `delete_view`, `duplicate_view`, `set_view_grouping`
@@ -267,7 +267,7 @@ Enable with `set_tool_tier(tier: "all")`:
 
 ```text
 src/
-  index.ts              → MCP server (131 tools, stdio transport, tier system)
+  index.ts              → MCP server (136 tools, stdio transport, tier system)
   client.ts             → HTTP client (cookie auth, 401 auto-retry, logging)
   crypto.ts             → AES-256-GCM encryption for secrets at rest
   types.ts              → TypeScript interfaces for API responses

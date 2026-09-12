@@ -2653,4 +2653,114 @@ export function registerExtendedTools(
       }
     },
   );
+
+  server.tool(
+    "get_task_time_tracking",
+    "Get time tracking estimates and recorded time history for a specific task in a workspace.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      taskId: z.string().describe("Task ID or global ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ workspaceId, taskId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const timeData = await client.getTaskTimeTracking(workspaceId, taskId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(timeData, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_automation_flags",
+    "Get ActivePieces automation platform system configuration, version, edition (ce/ee), webhook prefix, and feature flags.",
+    {
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ profile }) => {
+      const client = getClient(profile);
+      try {
+        const flags = await client.getAutomationFlags();
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(flags, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_workspace_premium_status",
+    "Inspect workspace subscription tier, status, and plan expiration date.",
+    {
+      workspaceId: z.string().optional().describe("Optional workspace ID (defaults to 'default')"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ workspaceId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const status = await client.getWorkspacePremiumStatus(workspaceId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(status, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_active_import_status",
+    "Check the status and progress of ongoing data migration or import operations into a workspace.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ workspaceId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const importStatus = await client.getActiveImportStatus(workspaceId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(importStatus, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_org_trials",
+    "List active feature trial subscriptions and trial expiration records for the organization.",
+    {
+      orgId: z.string().optional().describe("Optional organization ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ orgId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const trials = await client.getOrgTrials(orgId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(trials, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
 }

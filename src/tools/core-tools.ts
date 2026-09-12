@@ -1148,7 +1148,7 @@ export function registerCoreTools(
             content: [
               {
                 type: "text" as const,
-                text: "Extended tools are already enabled for this session (120 total tools active).",
+                text: "Extended tools are already enabled for this session (136 total tools active).",
               },
             ],
           };
@@ -1158,7 +1158,7 @@ export function registerCoreTools(
           content: [
             {
               type: "text" as const,
-              text: "Extended tools enabled! 104 additional tools are now available (131 total). New tools: get_portal_theme, get_portal_navigation_menu, get_workspace_portal, get_agent_public_profile, get_dashboard_templates, get_member_roles, get_workspace_members_v1, get_tasks_workspace_summary, get_billing_info, get_user_preferences, set_sidebar_collapsed, get_ai_assistant_state, list_ai_agent_threads, get_ai_agent_favorites, fusebase_swarm_init, fusebase_swarm_task_transition, trigger_automation_flow, create_portal, get_portal, publish_page_to_portal, check_portal_availability, fusebase_cli_status, fusebase_cli_init, fusebase_cli_list_apps, fusebase_cli_deploy, create_automation_flow, update_automation_flow, delete_automation_flow, list_portal_clients, invite_portal_client, create_portal_magic_link, create_interactive_app_page, list_automation_flows, get_automation_flow, list_flow_runs, list_automation_pieces, get_labels, get_org_usage, get_comment_threads, get_task_description, create_folder, update_page, update_task, delete_task, delete_page, update_page_content, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, fusebase_poll_mentions, fusebase_post_comment, fusebase_reply_comment, fusebase_resolve_thread, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database, add_database_row, delete_database_row, move_kanban_card, list_database_relations, create_dashboard_table, delete_relation, list_all_databases, get_database_detail, update_database, delete_database, get_dashboard_detail, delete_dashboard, update_view, set_view_representation, duplicate_database, create_view, delete_view, export_csv, duplicate_view, import_csv, set_view_grouping, set_column_width, rename_database_column, reorder_database_columns, update_database_cell, get_database_rows, get_database_schema, add_database_column, delete_database_column, add_relation_column, add_lookup_column, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
+              text: "Extended tools enabled! 109 additional tools are now available (136 total). New tools: get_task_time_tracking, get_automation_flags, get_workspace_premium_status, get_active_import_status, get_org_trials, get_portal_theme, get_portal_navigation_menu, get_workspace_portal, get_agent_public_profile, get_dashboard_templates, get_member_roles, get_workspace_members_v1, get_tasks_workspace_summary, get_billing_info, get_user_preferences, set_sidebar_collapsed, get_ai_assistant_state, list_ai_agent_threads, get_ai_agent_favorites, fusebase_swarm_init, fusebase_swarm_task_transition, trigger_automation_flow, create_portal, get_portal, publish_page_to_portal, check_portal_availability, fusebase_cli_status, fusebase_cli_init, fusebase_cli_list_apps, fusebase_cli_deploy, create_automation_flow, update_automation_flow, delete_automation_flow, list_portal_clients, invite_portal_client, create_portal_magic_link, create_interactive_app_page, list_automation_flows, get_automation_flow, list_flow_runs, list_automation_pieces, get_labels, get_org_usage, get_comment_threads, get_task_description, create_folder, update_page, update_task, delete_task, delete_page, update_page_content, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, fusebase_poll_mentions, fusebase_post_comment, fusebase_reply_comment, fusebase_resolve_thread, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database, add_database_row, delete_database_row, move_kanban_card, list_database_relations, create_dashboard_table, delete_relation, list_all_databases, get_database_detail, update_database, delete_database, get_dashboard_detail, delete_dashboard, update_view, set_view_representation, duplicate_database, create_view, delete_view, export_csv, duplicate_view, import_csv, set_view_grouping, set_column_width, rename_database_column, reorder_database_columns, update_database_cell, get_database_rows, get_database_schema, add_database_column, delete_database_column, add_relation_column, add_lookup_column, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
             },
           ],
         };
@@ -1168,8 +1168,8 @@ export function registerCoreTools(
           {
             type: "text" as const,
             text: options.isExtendedToolsEnabled()
-              ? "Current tier: all (131 tools active). To revert to core-only, restart the MCP server."
-              : "Current tier: core (27 tools active). Call set_tool_tier with tier='all' to enable 104 extended tools.",
+              ? "Current tier: all (136 tools active). To revert to core-only, restart the MCP server."
+              : "Current tier: core (27 tools active). Call set_tool_tier with tier='all' to enable 109 extended tools.",
           },
         ],
       };

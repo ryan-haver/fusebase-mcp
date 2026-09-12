@@ -176,12 +176,20 @@ async function main() {
     "list_automation_pieces",
     "delete_page",
     "create_database",
+    "get_task_time_tracking",
+    "get_automation_flags",
+    "get_workspace_premium_status",
+    "get_active_import_status",
+    "get_org_trials",
   ]) {
     if (!allNames.has(expected)) {
       throw new Error(`Expected extended tool '${expected}' not found!`);
     }
   }
-  console.log(`✅ All ${allToolsRes.tools.length} tools registered successfully (expected 131)`);
+  if (allToolsRes.tools.length !== 136) {
+    throw new Error(`Expected exactly 136 tools, found ${allToolsRes.tools.length}!`);
+  }
+  console.log(`✅ All ${allToolsRes.tools.length} tools registered successfully (expected 136)`);
 
   // ─── 4. Agent Profiles ─────────────────────────────────────────
   console.log("\n--- Testing Agent Profiles ---");
@@ -524,8 +532,59 @@ async function main() {
   console.log("set_sidebar_collapsed success:", setSidebarData?.success);
   console.log("✅ set_sidebar_collapsed passed");
 
+  // ─── 14. Final Exhaustive Endpoint Verification (5 Tools) ───────
+  console.log("\n--- Testing Final Exhaustive Endpoints (5 Tools) ---");
+
+  // 14.1 Task Time Tracking
+  const timeRes = await client.callTool({
+    name: "get_task_time_tracking",
+    arguments: { workspaceId: targetWsId, taskId: "9yc1s7eondz4vjf7e03su13d1" },
+  });
+  const timeData = JSON.parse((timeRes.content as any)[0]?.text);
+  console.log("get_task_time_tracking keys:", Object.keys(timeData || {}));
+  console.log("✅ get_task_time_tracking passed");
+
+  // 14.2 Automation Platform Flags
+  const flagsRes = await client.callTool({
+    name: "get_automation_flags",
+    arguments: {},
+  });
+  const flagsData = JSON.parse((flagsRes.content as any)[0]?.text);
+  console.log("get_automation_flags edition:", flagsData?.EDITION, "version:", flagsData?.CURRENT_VERSION);
+  if (!flagsData?.EDITION) {
+    throw new Error("get_automation_flags missing EDITION");
+  }
+  console.log("✅ get_automation_flags passed");
+
+  // 14.3 Workspace Premium Status
+  const premiumRes = await client.callTool({
+    name: "get_workspace_premium_status",
+    arguments: { workspaceId: targetWsId },
+  });
+  const premiumData = JSON.parse((premiumRes.content as any)[0]?.text);
+  console.log("get_workspace_premium_status keys:", Object.keys(premiumData || {}));
+  console.log("✅ get_workspace_premium_status passed");
+
+  // 14.4 Active Import Status
+  const importRes = await client.callTool({
+    name: "get_active_import_status",
+    arguments: { workspaceId: targetWsId },
+  });
+  const importData = JSON.parse((importRes.content as any)[0]?.text);
+  console.log("get_active_import_status response received:", importData);
+  console.log("✅ get_active_import_status passed");
+
+  // 14.5 Organization Trials
+  const trialsRes = await client.callTool({
+    name: "get_org_trials",
+    arguments: { orgId: "u268r1" },
+  });
+  const trialsData = JSON.parse((trialsRes.content as any)[0]?.text);
+  console.log("get_org_trials count:", Array.isArray(trialsData) ? trialsData.length : 0);
+  console.log("✅ get_org_trials passed");
+
   await client.close();
-  console.log("\n🎉 ALL 13 PLATFORM TESTS PASSED (RESOURCES, PROMPTS, APPEND, VIBE APPS, CLI, AUTOMATIONS, PORTALS, SWARM, HEALTH, AI AGENTS, PREFERENCES, BILLING, TEMPLATES)!");
+  console.log("\n🎉 ALL 14 PLATFORM TESTS PASSED (RESOURCES, PROMPTS, APPEND, VIBE APPS, CLI, AUTOMATIONS, PORTALS, SWARM, HEALTH, AI AGENTS, PREFERENCES, BILLING, TEMPLATES, FINAL EXHAUSTIVE APIS)!");
 }
 
 main().catch((err) => {

@@ -912,6 +912,16 @@ export class FusebaseClient {
     return this.request<unknown[]>(`/gwapi2/ft:tasks/workspace-infos`);
   }
 
+  /** Get task time tracking estimates and tracked time records */
+  async getTaskTimeTracking(
+    workspaceId: string,
+    taskId: string,
+  ): Promise<unknown> {
+    return this.request<unknown>(
+      `/gwapi2/ft:tasks/workspaces/${workspaceId}/time/${taskId}`,
+    );
+  }
+
   // ─── Page Mutations ───────────────────────────────────────────
 
   /** Delete a page */
@@ -3164,6 +3174,11 @@ export class FusebaseClient {
     });
   }
 
+  /** Get ActivePieces automation platform configuration and feature flags */
+  async getAutomationFlags(): Promise<unknown> {
+    return this.request<unknown>("/automation/api/v1/flags");
+  }
+
   // ─── Portal Clients & Magic Links ────────────────────────────
 
   /** List invited portal clients and members */
@@ -3243,6 +3258,22 @@ export class FusebaseClient {
       method: "POST",
       body: JSON.stringify({ value: collapsed ? "1" : "0" }),
     });
+  }
+
+  /** Get workspace premium subscription tier and expiration */
+  async getWorkspacePremiumStatus(workspaceId?: string): Promise<unknown> {
+    const ws = workspaceId || "default";
+    return this.request<unknown>(`/v1/workspaces/${ws}/premium`);
+  }
+
+  /** Get active data import job status in a workspace */
+  async getActiveImportStatus(workspaceId: string): Promise<unknown> {
+    return this.request<unknown>(`/v1/workspaces/${workspaceId}/import/activeImport`);
+  }
+
+  /** Get active feature trial subscriptions for an organization */
+  async getOrgTrials(orgId?: string): Promise<unknown[]> {
+    return this.request<unknown[]>("/v2/api/orgs/trials");
   }
 
   // ─── Helpers ──────────────────────────────────────────────────
