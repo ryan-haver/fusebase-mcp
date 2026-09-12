@@ -14,6 +14,7 @@ data/
 *.sqlite
 
 # Scratch / Analysis Artifacts
+artifacts/
 *.har
 *.log
 *.txt
@@ -26,9 +27,13 @@ ws_reader_output.txt
 har_write_analysis.txt
 table_har_analysis.txt
 
-# Global Agent Toolkit (not project-specific)
-.gemini/
-
-# Dev/debug scripts (local-only)
+# Dev/debug scripts & archives (local-only)
 dev-scripts/
 _archive/
+
+# Vendor & IDE Temporary Files
+**/.tmp-schemas/
+**/.cursor/
+**/.codex/
+**/.vscode/
+**/.idea/
