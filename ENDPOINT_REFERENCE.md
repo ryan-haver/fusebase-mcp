@@ -4,8 +4,8 @@
 > Update this document when new endpoints are discovered or new tools are implemented.
 >
 > Source: API discovery crawl (141 unique endpoints, 927 requests).
-> Cross-referenced against 136 implemented MCP tools (27 Core, 109 Extended).
-> Last updated: 2026-09-12
+> Cross-referenced against 136 implemented MCP tools (33 Core, 103 Extended).
+> Last updated: 2026-09-14
 
 ---
 
@@ -294,14 +294,14 @@
 | **Auth & Navigation** | 0 | **0** | 14 | 3 | 0 |
 | **TOTAL** | **109** | **0 (100% Viable Coverage)** | **32** | **6** | **3** |
 
-> **Coverage Milestone**: Every single viable endpoint identified in the 141-endpoint crawl has been fully wrapped into the 136-tool MCP ecosystem (27 Core, 109 Extended). Zero unmapped viable endpoints remain.
+> **Coverage Milestone**: Every single viable endpoint identified in the 141-endpoint crawl has been fully wrapped into the 136-tool MCP ecosystem (33 Core, 103 Extended). Zero unmapped viable endpoints remain.
 
 ### Implementation Breakdown
 
 | Tool Tier | Total Tools | Description |
 |---|---|---|
-| **Core Tier** | 27 tools | Essential day-to-day workspace, page, block, profile, and session management tools. Lightweight context footprint. |
-| **Extended Tier** | 109 tools | Exhaustive administrative, automation, database, portal, task, time tracking, billing, and AI management tools. Activated dynamically via `set_tool_tier("all")` or `FUSEBASE_TOOLS=all`. |
+| **Core Tier** | 33 tools | Essential day-to-day workspace, page, block, task, folder, profile, and session management tools. Complete self-contained CRUD suite with lightweight context footprint. |
+| **Extended Tier** | 103 tools | Exhaustive administrative, automation, database, portal, task, time tracking, billing, and AI management tools. Activated dynamically via `set_tool_tier("all")` or `FUSEBASE_TOOLS=all`. |
 | **Total Suite** | **136 tools** | Complete coverage of the FuseBase API surface with zero viable endpoints left unmapped. |
 
 ---
