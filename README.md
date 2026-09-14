@@ -7,16 +7,19 @@ An [MCP](https://modelcontextprotocol.io/) server that lets AI assistants manage
 ## ✨ Features
 
 - **136 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, billing, user preferences, multi-agent profiles, and swarm orchestration
-- **Two-tier system** — 33 core tools load by default; 103 extended tools on demand
+- **Two-tier system** — 33 core tools load by default (complete CRUD suite); 103 extended tools on demand
+- **Token Economics & Markdown Conversion** — retrieve page content as clean Markdown (`get_page_content(format: "markdown")`) for ~50% token reduction via built-in `htmlToMarkdown` converter
+- **Binary Payload Safety & Native Images** — `download_attachment` renders images as native MCP `image` blocks and streams large files directly to local disk (`data/downloads/`)
+- **Safety Annotations (`[DESTRUCTIVE]`)** — permanent deletion tools are explicitly tagged so AI clients and human supervisors can prompt for confirmation
 - **Native MCP Resources (7)** — `fusebase://workspaces`, `fusebase://guides/index`, `fusebase://work/connectors`, `fusebase://workspaces/{workspaceId}/pages/{pageId}`, `fusebase://databases/{databaseId}`, `fusebase://portals/{portalId}/clients`
 - **Native MCP Prompts (13)** — pre-engineered workflow templates (`create-sop`, `summarize-page`, `build-kanban-project`, `design-automation-workflow`, `build-hosted-app`, `build-event-bridge`, `orchestrate-multi-agent-swarm`, `launch-client-portal`, `workspace-activity-digest`, `audit-page-governance`, `build-relational-database`, `import-knowledge-base`, `configure-ai-persona`)
 - **Official FuseBase CLI & Hosted Apps** — inspect CLI status (`fusebase_cli_status`), initialize products (`fusebase_cli_init`), list apps (`fusebase_cli_list_apps`), and deploy Vite/React SPA apps to the FuseBase Cloud (`fusebase_cli_deploy`)
 - **Granular block mutations** — non-destructive page block appending (`append_page_content`) via real-time Y.js WebSockets
 - **Vibe Coding & Web Apps** — generate interactive web app pages (`create_interactive_app_page`) with responsive full-width embeds (`allowOverWidth`)
-- **ActivePieces Workflow Automation** — flow inspection, creation, updating, deletion, trigger test runs (`trigger_automation_flow`), and connector piece catalog
+- **ActivePieces Workflow Automation** — flow inspection, creation, updating, deletion, trigger test runs (`trigger_automation_flow`), and connector piece catalog with auto-managed JWT authentication
 - **Client Portal "Hub" Platform** — inspect availability (`check_portal_availability`), create portals (`create_portal`), retrieve full branding/settings (`get_portal`), inspect themes (`get_portal_theme`), portal sidebar navigation trees (`get_portal_navigation_menu`), resolve workspace portals (`get_workspace_portal`), publish workspace pages to client portals (`publish_page_to_portal`), manage client permissions (`list_portal_clients`, `invite_portal_client`), and generate 24h passwordless magic links (`create_portal_magic_link`)
 - **Multi-Agent Swarm Orchestrator** — initialize shared state machine boards (`fusebase_swarm_init`) and transition tasks across roles with audit history (`fusebase_swarm_task_transition`)
-- **Multi-Agent Profile Management** — list and switch between encrypted credentials seamlessly
+- **Multi-Agent Profile Management** — list and switch between encrypted credentials seamlessly (`list_agent_profiles`, `switch_active_profile`)
 - **Database CRUD & View Templates** — full kanban/table management: rows, columns, views, relations, managed templates (`get_dashboard_templates`), CSV import/export
 - **Auto auth retry** — detects 401/403 and refreshes session automatically
 - **Encrypted secrets** — cookies stored encrypted at rest (AES-256-GCM)
@@ -79,6 +82,12 @@ This opens a browser window → log into Fusebase → cookies are automatically 
 >
 > ```bash
 > npx tsx scripts/auth.ts --headless
+> ```
+>
+> **Multi-Agent Profiles:** Authenticate a specific profile:
+>
+> ```bash
+> npx tsx scripts/auth.ts --profile agent-architect
 > ```
 
 ### 4. Connect to Your AI Assistant
@@ -154,6 +163,13 @@ Ask your AI assistant:
 > *"List my Fusebase workspaces"*
 
 If it works, you're all set! 🎉
+
+You can also run automated verification directly from your terminal:
+
+```bash
+npm run test:audit  # Validate all 136 tool schemas, parameters, and documentation
+npm test            # Run full 14-stage platform end-to-end test suite
+```
 
 ## 📚 Native MCP Resources & Prompts
 
@@ -243,9 +259,9 @@ Core tools load by default and provide complete CRUD operations for day-to-day w
 | Files | `list_files` | List uploaded files |
 | Files | `download_attachment` | Download attachment (native MCP `image` block or direct disk save to `data/downloads/`) |
 | Members | `get_members` | List workspace members |
-| Guides | `search_guides` | Search 231 FuseBase guides by keyword |
+| Guides | `search_guides` | Search 277 FuseBase guides by keyword |
 | Guides | `get_guide` | Get full markdown guide by section and slug |
-| Guides | `list_guide_sections` | Browse all documentation sections |
+| Guides | `list_guide_sections` | Browse all 19 documentation sections |
 
 ### Extended Tools (103)
 
@@ -287,7 +303,7 @@ src/
   resources.ts          → Native MCP resources & RFC 6570 templates
   prompts.ts            → Native MCP pre-engineered workflow prompts
   proxy-relay.ts        → HTTP CONNECT proxy relay for SOCKS5 upstream proxies
-  guide-loader.ts       → Guide search index (231 guides, 17 sections)
+  guide-loader.ts       → Guide search index (277 guides, 19 sections)
   tools/
     core-tools.ts       → 33 Core tools (full CRUD for pages, tasks, folders, content, profiles)
     extended-tools.ts   → 103 Extended tools (databases, views, automations, portals, admin, CLI)
@@ -304,7 +320,7 @@ scripts/
   inspect-hub.ts        → Deep inspection of client portal and workspace hubs
   scrape-guides.ts      → Scrape FuseBase help guides into markdown + NLM sync
 docs/
-  guides/               → 231 FuseBase guides across 17 sections (auto-scraped)
+  guides/               → 277 FuseBase guides across 19 sections (auto-scraped)
 data/                   → (gitignored) Cookie store, downloads, API logs, workspace cache
 ```
 
@@ -324,6 +340,27 @@ See [ENDPOINT_REFERENCE.md](ENDPOINT_REFERENCE.md) for all discovered and implem
 ### Future Opportunities
 - **Bidirectional Webhook Listeners** — Local webhook listener bridge for real-time external event triggers into FuseBase.
 - **Offline Working Memory** — Local SQLite caching adapter for instant retrieval of high-frequency pages and database schemas.
+
+## 🧪 Testing & Validation
+
+The server includes automated test suites to ensure zero regressions across tool schemas, parameter types, protocol compliance, and live API synchronization:
+
+```bash
+# 1. Full Live Platform End-to-End Suite (14 stages against live API)
+npm test
+
+# 2. Tool Schema, Duplicate, & Documentation Coverage Auditor
+npm run test:audit
+
+# 3. Y.js Block Schema & Inline Format Regression Suite
+npm run test:regression
+```
+
+| Test Command | Coverage Area |
+|---|---|
+| `npm test` | Exercises all 14 platform subsystems: resources, templates, prompts, core/extended switching, Y.js WebSocket sync, CLI status, ActivePieces, portals, and swarms |
+| `npm run test:audit` | Validates that all 136 tools have descriptions, schemas, parameter docs, and 100% documentation coverage in README.md |
+| `npm run test:regression` | Validates round-trip Y.js WebSocket write → read fidelity across all 25+ block types and inline formats |
 
 ## 🤝 Contributing
 

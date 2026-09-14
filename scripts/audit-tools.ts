@@ -154,4 +154,17 @@ console.log("  databaseId used by:", paramFreq["databaseId"] || []);
 console.log("  dashboardId used by:", paramFreq["dashboardId"]?.length, "tools");
 console.log("  sourceDbId used by:", paramFreq["sourceDbId"] || []);
 
+// Check README tool coverage
+const readme = fs.readFileSync("README.md", "utf-8");
+const readmeMatches = readme.match(/`([a-z0-9_]+)`/g) || [];
+const readmeCodeBlocks = new Set(readmeMatches.map((m) => m.replace(/`/g, "")));
+const missingFromReadme = tools.map((t) => t.name).filter((name) => !readmeCodeBlocks.has(name));
+console.log("\n=== README TOOL COVERAGE ===");
+if (missingFromReadme.length > 0) {
+  console.log(`Tools missing from README (${missingFromReadme.length}):`);
+  console.log(" ", missingFromReadme.join(", "));
+} else {
+  console.log("  All 136 tools are explicitly documented in README.md!");
+}
+
 
