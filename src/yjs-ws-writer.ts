@@ -1383,7 +1383,7 @@ export async function readContentViaWebSocket(
         settleTimer = setTimeout(() => {
           const html = decodeYDocToHtml(ydoc);
           done({ success: true, html, doc: ydoc });
-        }, 150);
+        }, 350);
       } else if (subType === 2) {
         const [uLen, uStart] = readVarUint(data, subOff);
         const updateData = data.slice(uStart, uStart + uLen);
@@ -1397,7 +1397,7 @@ export async function readContentViaWebSocket(
           settleTimer = setTimeout(() => {
             const html = decodeYDocToHtml(ydoc);
             done({ success: true, html, doc: ydoc });
-          }, 150);
+          }, 350);
         }
       }
     });

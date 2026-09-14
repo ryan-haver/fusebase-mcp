@@ -259,11 +259,12 @@ export function registerExtendedTools(
     "get_navigation_menu",
     "Get the full sidebar navigation tree showing all pages, folders, and their hierarchy across workspaces. Includes parent-child relationships, icons, and timestamps. Best way to get a complete structural overview of all content.",
     {
+      workspaceId: z.string().optional().describe("Workspace ID (defaults to primary workspace)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ profile }) => {
+    }, async ({ workspaceId, profile }) => {
       const client = getClient(profile);
       try {
-        const menu = await client.getNavigationMenu();
+        const menu = await client.getNavigationMenu(workspaceId);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(menu, null, 2) },
@@ -526,13 +527,14 @@ export function registerExtendedTools(
 
   server.tool(
     "get_file_count",
-    "Get the total count of files stored across all workspaces in the organization. Lightweight check for storage auditing — use list_files for detailed file listings.",
+    "Get the total count of files stored across all workspaces in the organization, or in a specific workspace. Lightweight check for storage auditing — use list_files for detailed file listings.",
     {
+      workspaceId: z.string().optional().describe("Optional workspace ID to filter file count"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ profile }) => {
+    }, async ({ workspaceId, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.getFileCount();
+        const result = await client.getFileCount({ workspaceId });
         return {
           content: [
             {
@@ -718,10 +720,22 @@ export function registerExtendedTools(
     }, async ({ title, description, icon, color, isPublic, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.createDatabase(title, { description, icon, color, isPublic });
+        const result: any = await client.createDatabase(title, { description, icon, color, isPublic });
+        const dbData = result?.data || result;
+        const databaseId = dbData?.global_id || dbData?.id || result?.databaseId;
+        const dashboard = dbData?.dashboards?.[0];
+        const dashboardId = dashboard?.global_id || dashboard?.id || result?.dashboardId;
+        const view = dashboard?.views?.[0];
+        const viewId = view?.global_id || view?.id || result?.viewId;
+        const responseData = {
+          databaseId,
+          dashboardId,
+          viewId,
+          ...result,
+        };
         return {
           content: [
-            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+            { type: "text" as const, text: JSON.stringify(responseData, null, 2) },
           ],
         };
       } catch (error) {
@@ -1102,9 +1116,10 @@ export function registerExtendedTools(
           };
         }
         const result = await client.duplicateDatabase(effectiveId, { copyData });
+        const newDbId = (result as any)?.data?.global_id || (result as any)?.global_id;
         return {
           content: [
-            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+            { type: "text" as const, text: JSON.stringify({ ...result, databaseId: newDbId }, null, 2) },
           ],
         };
       } catch (error) {
@@ -1124,9 +1139,10 @@ export function registerExtendedTools(
       const client = getClient(profile);
       try {
         const result = await client.createView(dashboardId, name);
+        const viewId = (result as any)?.data?.global_id || (result as any)?.global_id;
         return {
           content: [
-            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+            { type: "text" as const, text: JSON.stringify({ ...result, viewId }, null, 2) },
           ],
         };
       } catch (error) {
@@ -1192,9 +1208,10 @@ export function registerExtendedTools(
       const client = getClient(profile);
       try {
         const result = await client.duplicateView(dashboardId, sourceViewId, name);
+        const viewId = (result as any)?.data?.global_id || (result as any)?.global_id;
         return {
           content: [
-            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+            { type: "text" as const, text: JSON.stringify({ ...result, viewId }, null, 2) },
           ],
         };
       } catch (error) {
@@ -1416,10 +1433,11 @@ export function registerExtendedTools(
     async ({ dashboardId, viewId, name, columnType, labels, multiSelect, description, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.addDatabaseColumn(dashboardId, viewId, name, columnType, { labels, multiSelect, description });
+        const result: any = await client.addDatabaseColumn(dashboardId, viewId, name, columnType, { labels, multiSelect, description });
+        const columnKey = result?.column?.key;
         return {
           content: [
-            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+            { type: "text" as const, text: JSON.stringify({ columnKey, key: columnKey, ...result }, null, 2) },
           ],
         };
       } catch (error) {
@@ -1467,10 +1485,11 @@ export function registerExtendedTools(
     async ({ dashboardId, viewId, name, targetDashboardId, targetViewId, relationType, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.addRelationColumn(dashboardId, viewId, name, targetDashboardId, targetViewId, { relationType: relationType as any });
+        const result: any = await client.addRelationColumn(dashboardId, viewId, name, targetDashboardId, targetViewId, { relationType: relationType as any });
+        const columnKey = result?.column?.key;
         return {
           content: [
-            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+            { type: "text" as const, text: JSON.stringify({ columnKey, key: columnKey, ...result }, null, 2) },
           ],
         };
       } catch (error) {
@@ -1493,10 +1512,11 @@ export function registerExtendedTools(
     async ({ dashboardId, viewId, name, relationColumnKey, lookupFieldKey, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.addLookupColumn(dashboardId, viewId, name, relationColumnKey, lookupFieldKey);
+        const result: any = await client.addLookupColumn(dashboardId, viewId, name, relationColumnKey, lookupFieldKey);
+        const columnKey = result?.column?.key;
         return {
           content: [
-            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+            { type: "text" as const, text: JSON.stringify({ columnKey, key: columnKey, ...result }, null, 2) },
           ],
         };
       } catch (error) {

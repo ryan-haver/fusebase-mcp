@@ -15,6 +15,7 @@ data/
 
 # Scratch / Analysis Artifacts
 artifacts/
+scratch/
 *.har
 *.log
 *.txt

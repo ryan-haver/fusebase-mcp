@@ -475,13 +475,13 @@ export class FusebaseClient {
     },
   ): Promise<NotesListResponse> {
     const opts = {
-      rootId: "root",
       offset: 0,
       limit: 100,
       type: "note",
       orderBy: "createdAt",
       orderDir: "ASC",
       ...options,
+      rootId: options?.rootId || "root",
     };
     const filter = encodeURIComponent(
       JSON.stringify({ type: opts.type, is_portal_share: false }),
@@ -540,9 +540,10 @@ export class FusebaseClient {
   async createFolder(
     workspaceId: string,
     title: string,
-    parentId = "default",
+    parentId?: string,
   ): Promise<FusebaseNote> {
     const noteId = this.generateId();
+    const effectiveParentId = !parentId || parentId === "default" || parentId === "root" ? "" : parentId;
     return this.request<FusebaseNote>("/v2/api/web-editor/notes/create", {
       method: "POST",
       body: JSON.stringify({
@@ -551,7 +552,7 @@ export class FusebaseClient {
         note: {
           textVersion: 2,
           title,
-          parentId,
+          parentId: effectiveParentId,
           type: "folder",
           is_portal_share: false,
         },
@@ -946,13 +947,23 @@ export class FusebaseClient {
   /** Create a task in a workspace */
   async createTask(
     workspaceId: string,
-    task: FusebaseCreateTaskPayload,
+    task: FusebaseCreateTaskPayload & { globalId?: string },
   ): Promise<unknown> {
+    const globalId =
+      task.globalId ||
+      Math.random().toString(36).substring(2, 15) +
+        Math.random().toString(36).substring(2, 15);
+    const body = {
+      task: {
+        globalId,
+        ...task,
+      },
+    };
     return this.request<unknown>(
       `/gwapi2/ft%3Atasks/workspaces/${workspaceId}/tasks?addToOrder=false`,
       {
         method: "POST",
-        body: JSON.stringify(task),
+        body: JSON.stringify(body),
       },
     );
   }
@@ -966,8 +977,8 @@ export class FusebaseClient {
     return this.request<unknown>(
       `/gwapi2/ft%3Atasks/workspaces/${workspaceId}/tasks/${taskId}`,
       {
-        method: "PATCH",
-        body: JSON.stringify(updates),
+        method: "POST",
+        body: JSON.stringify({ task: updates }),
       },
     );
   }
@@ -1106,9 +1117,14 @@ export class FusebaseClient {
   // ─── Discovered Endpoints ─────────────────────────────────────
 
   /** Get the full sidebar/navigation menu tree */
-  async getNavigationMenu(): Promise<FusebaseNavMenuItem[]> {
+  async getNavigationMenu(workspaceId?: string): Promise<FusebaseNavMenuItem[]> {
+    let ws = workspaceId;
+    if (!ws) {
+      const workspaces = await this.listWorkspaces().catch(() => []);
+      ws = workspaces[0]?.workspaceId || "45h7lom5ryjak34u";
+    }
     return this.request<FusebaseNavMenuItem[]>(
-      `/gwapi2/ft%3Anotes/menu`,
+      `/gwapi2/ft%3Anotes/menu?workspace=${ws}`,
     );
   }
 
@@ -1154,10 +1170,13 @@ export class FusebaseClient {
     );
   }
 
-  /** Get file count across workspace */
-  async getFileCount(): Promise<{ count: number }> {
+  /** Get file count across workspace or org */
+  async getFileCount(params?: { workspaceId?: string; orgId?: string }): Promise<{ count: number }> {
+    const qs = params?.workspaceId
+      ? `?workspaceId=${params.workspaceId}`
+      : `?orgId=${params?.orgId || this.orgId}`;
     return this.request<{ count: number }>(
-      `/v2/api/bucket-service-proxy/v1/files/count`,
+      `/v2/api/bucket-service-proxy/v1/files/count${qs}`,
     );
   }
 
@@ -2116,6 +2135,10 @@ export class FusebaseClient {
     const blob = new Blob([csvContent], { type: "text/csv" });
     const formData = new FormData();
     formData.append("file", blob, "import.csv");
+    formData.append("database_id", databaseId);
+    formData.append("dashboard_id", dashboardId);
+    formData.append("view_id", viewId);
+    formData.append("delimiter", delimiter);
 
     const postUrl = `${this.baseUrl}${baseEndpoint}?${queryString}`;
     const postRes = await fetch(postUrl, {

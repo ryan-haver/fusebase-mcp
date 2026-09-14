@@ -257,7 +257,7 @@ export function registerCoreTools(
     }, async ({ workspaceId, folderId, parentId, limit, offset, profile }) => {
       const client = getClient(profile);
       try {
-        const effectiveFolderId = folderId || parentId;
+        const effectiveFolderId = folderId || parentId || "root";
         const result = await client.listPages(workspaceId, {
           rootId: effectiveFolderId,
           limit,
@@ -601,13 +601,14 @@ export function registerCoreTools(
         const result = await client.createFolder(
           workspaceId,
           title,
-          parentId || "default",
+          parentId,
         );
+        const id = result.globalId || (result as any).id;
         return {
           content: [
             {
               type: "text" as const,
-              text: JSON.stringify(result, null, 2),
+              text: JSON.stringify({ id, ...result }, null, 2),
             },
           ],
         };
@@ -1188,15 +1189,16 @@ export function registerCoreTools(
     }, async ({ workspaceId, title, taskListId, description, priority, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.createTask(workspaceId, {
+        const result: any = await client.createTask(workspaceId, {
           title,
           taskListId,
           description,
           priority,
         });
+        const taskData = result?.task || result;
         return {
           content: [
-            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+            { type: "text" as const, text: JSON.stringify(taskData, null, 2) },
           ],
         };
       } catch (error) {
@@ -1229,13 +1231,14 @@ export function registerCoreTools(
         if (title !== undefined) updates.title = title;
         if (description !== undefined) updates.description = description;
         if (priority !== undefined) updates.priority = priority;
-        if (completed !== undefined) updates.completed = completed;
-        const result = await client.updateTask(workspaceId, taskId, updates);
+        if (completed !== undefined) updates.done = completed;
+        const result: any = await client.updateTask(workspaceId, taskId, updates);
+        const taskData = result?.task || result;
         return {
           content: [
             {
               type: "text" as const,
-              text: JSON.stringify(result, null, 2),
+              text: JSON.stringify(taskData, null, 2),
             },
           ],
         };

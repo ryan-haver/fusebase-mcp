@@ -46,6 +46,15 @@ const DEFAULT_ENV_FILE = path.resolve(
   ".env",
 );
 
+function getCryptoUrl(): string {
+  const dir = import.meta.dirname ?? ".";
+  const distPath = path.resolve(dir, "..", "dist", "crypto.js");
+  if (fs.existsSync(distPath)) {
+    return new URL("../dist/crypto.js", import.meta.url).href;
+  }
+  return new URL("../src/crypto.js", import.meta.url).href;
+}
+
 // ─── Core ───────────────────────────────────────────────────────
 
 export async function refreshCookies(config: AuthConfig): Promise<string> {
@@ -175,7 +184,7 @@ export async function refreshCookies(config: AuthConfig): Promise<string> {
         }));
 
         // Dynamic import to avoid circular deps (scripts/ → src/)
-        const cryptoUrl = new URL("../src/crypto.js", import.meta.url).href;
+        const cryptoUrl = getCryptoUrl();
         const { saveEncryptedCookie } = await import(cryptoUrl);
         saveEncryptedCookie(
           cookieString,
@@ -214,7 +223,7 @@ export async function refreshCookies(config: AuthConfig): Promise<string> {
  */
 export async function isCookieFresh(profile?: string): Promise<boolean> {
   try {
-    const cryptoUrl = new URL("../src/crypto.js", import.meta.url).href;
+    const cryptoUrl = getCryptoUrl();
     const { isEncryptedCookieFresh } = await import(cryptoUrl);
     return isEncryptedCookieFresh(profile);
   } catch {
@@ -244,7 +253,7 @@ async function main() {
   const profile = getArg("--profile");
 
   // Load credential store — use URL href for ESM compatibility on Windows
-  const cryptoUrl = new URL("../src/crypto.js", import.meta.url).href;
+  const cryptoUrl = getCryptoUrl();
 
   let autoCredentials: { email: string; password: string } | undefined;
   let proxyForBrowser: { server: string; username: string; password: string } | undefined;
