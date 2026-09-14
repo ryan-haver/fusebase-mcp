@@ -59,6 +59,7 @@ async function main() {
   if (!Array.isArray(parsedWorkspaces) || parsedWorkspaces.length === 0) {
     throw new Error("fusebase://workspaces returned invalid content");
   }
+  const targetWsId = parsedWorkspaces[0].workspaceId || "49b306wxd9oa7hyc";
   console.log("✅ Read 'fusebase://workspaces' resource passed");
 
   console.log("Reading resource 'fusebase://guides/index'...");
@@ -103,12 +104,21 @@ async function main() {
     "build-hosted-app",
     "build-event-bridge",
     "orchestrate-multi-agent-swarm",
+    "launch-client-portal",
+    "workspace-activity-digest",
+    "audit-page-governance",
+    "build-relational-database",
+    "import-knowledge-base",
+    "configure-ai-persona",
   ]) {
     if (!promptNames.includes(expected)) {
       throw new Error(`Expected prompt '${expected}' not found!`);
     }
   }
-  console.log("✅ Prompts listed successfully");
+  if (promptsRes.prompts.length !== 13) {
+    throw new Error(`Expected exactly 13 prompts, found ${promptsRes.prompts.length}!`);
+  }
+  console.log("✅ All 13 prompts listed successfully");
 
   console.log("Calling prompt 'create-sop'...");
   await client.getPrompt({ name: "create-sop", arguments: { title: "API Deployment SOP" } });
@@ -120,6 +130,38 @@ async function main() {
     arguments: { objective: "Deploy Vibe Coding Client Portal Widget" },
   });
   console.log("✅ Prompt 'orchestrate-multi-agent-swarm' passed");
+
+  console.log("Calling prompt 'launch-client-portal'...");
+  await client.getPrompt({
+    name: "launch-client-portal",
+    arguments: {
+      portalName: "Acme Client Hub",
+      clientCompany: "Acme Corp",
+      workspaceId: targetWsId,
+    },
+  });
+  console.log("✅ Prompt 'launch-client-portal' passed");
+
+  console.log("Calling prompt 'build-relational-database'...");
+  await client.getPrompt({
+    name: "build-relational-database",
+    arguments: {
+      databaseTitle: "Enterprise CRM",
+      primaryEntity: "Accounts",
+      relatedEntity: "Contacts",
+    },
+  });
+  console.log("✅ Prompt 'build-relational-database' passed");
+
+  console.log("Calling prompt 'configure-ai-persona'...");
+  await client.getPrompt({
+    name: "configure-ai-persona",
+    arguments: {
+      personaName: "Lead Software Architect",
+      specialization: "TypeScript, MCP protocols, and distributed systems",
+    },
+  });
+  console.log("✅ Prompt 'configure-ai-persona' passed");
 
   // ─── 3. Tool Listing & Tier Switching ──────────────────────────
   console.log("\n--- Testing Tool Listing (Core Tier) ---");
@@ -246,7 +288,6 @@ async function main() {
   console.log("✅ check_session_health passed");
 
   // ─── 5. Full Page Lifecycle with Append ─────────────────────────
-  const targetWsId = parsedWorkspaces[0].workspaceId || "49b306wxd9oa7hyc";
   console.log(`\n--- Testing Page Lifecycle in Workspace: ${targetWsId} ---`);
 
   console.log("Creating base page...");

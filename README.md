@@ -9,7 +9,7 @@ An [MCP](https://modelcontextprotocol.io/) server that lets AI assistants manage
 - **136 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, billing, user preferences, multi-agent profiles, and swarm orchestration
 - **Two-tier system** — 33 core tools load by default; 103 extended tools on demand
 - **Native MCP Resources (7)** — `fusebase://workspaces`, `fusebase://guides/index`, `fusebase://work/connectors`, `fusebase://workspaces/{workspaceId}/pages/{pageId}`, `fusebase://databases/{databaseId}`, `fusebase://portals/{portalId}/clients`
-- **Native MCP Prompts (7)** — pre-engineered workflow templates (`create-sop`, `summarize-page`, `build-kanban-project`, `design-automation-workflow`, `build-hosted-app`, `build-event-bridge`, `orchestrate-multi-agent-swarm`)
+- **Native MCP Prompts (13)** — pre-engineered workflow templates (`create-sop`, `summarize-page`, `build-kanban-project`, `design-automation-workflow`, `build-hosted-app`, `build-event-bridge`, `orchestrate-multi-agent-swarm`, `launch-client-portal`, `workspace-activity-digest`, `audit-page-governance`, `build-relational-database`, `import-knowledge-base`, `configure-ai-persona`)
 - **Official FuseBase CLI & Hosted Apps** — inspect CLI status (`fusebase_cli_status`), initialize products (`fusebase_cli_init`), list apps (`fusebase_cli_list_apps`), and deploy Vite/React SPA apps to the FuseBase Cloud (`fusebase_cli_deploy`)
 - **Granular block mutations** — non-destructive page block appending (`append_page_content`) via real-time Y.js WebSockets
 - **Vibe Coding & Web Apps** — generate interactive web app pages (`create_interactive_app_page`) with responsive full-width embeds (`allowOverWidth`)
@@ -173,17 +173,23 @@ Clients can attach FuseBase data directly into their context window:
 | `fusebase://databases/{databaseId}` | Template | Complete JSON schema and views for a database (also supports legacy `{did}`) |
 | `fusebase://portals/{portalId}/clients` | Template | List of invited external clients and permissions for a portal |
 
-### Pre-Engineered Prompts
+### Pre-Engineered Prompts (13)
 
 Quick-start workflow prompts available to AI clients:
 
 - **`create-sop`**: Guides the assistant in generating a rigorous Standard Operating Procedure document with scope, prerequisites, step-by-step procedures, and verification checklists.
-- **`summarize-page`**: Prompts the model to synthesize a specific page into an executive summary, key decisions, and prioritized action items.
-- **`build-kanban-project`**: Guides the AI to design a structured project board with customized column flows and starter cards.
-- **`design-automation-workflow`**: Prompts the design of an ActivePieces automation workflow mapping triggers, action steps, and error handling.
+- **`summarize-page`**: Fetches living page content via `getPageContent` and synthesizes an executive summary, key decisions, prioritized action items, and open questions.
+- **`build-kanban-project`**: Guides the AI to design a structured project board with customized column flows, custom field recommendations, and starter cards.
+- **`design-automation-workflow`**: Prompts the design of an ActivePieces automation workflow mapping triggers, action steps, retry policies, and error handling.
 - **`build-hosted-app`**: Architects a full-stack FuseBase Web App covering frontend UI tokens, backend data, CLI commands, and responsive embedding.
-- **`build-event-bridge`**: Designs bidirectional webhook bridges connecting external systems into FuseBase and triggering workflows via `trigger_automation_flow`.
+- **`build-event-bridge`**: Designs bidirectional webhook bridges connecting external systems (Stripe, GitHub, n8n) into FuseBase and triggering workflows via `trigger_automation_flow`.
 - **`orchestrate-multi-agent-swarm`**: Decomposes complex initiatives into coordinated multi-agent swarms tracked through FuseBase Kanban boards (`fusebase_swarm_init`, `fusebase_swarm_task_transition`).
+- **`launch-client-portal`**: Plans and provisions an external branded Client Portal with custom theme, sidebar navigation hierarchy, page publication matrix, and passwordless magic link invitations (`invite_portal_client`, `create_portal_magic_link`).
+- **`workspace-activity-digest`**: Ingests recent workspace activity, updated pages, and task completion metrics to produce an executive velocity pulse and blocker digest.
+- **`audit-page-governance`**: Fetches page content and audits heading hierarchy (H1-H3), incomplete action items (`- [ ]`), stale dates, and tags, providing a concrete revision plan.
+- **`build-relational-database`**: Architects a multi-table relational schema with bidirectional relations (`add_relation_column`), lookup rollups (`add_lookup_column`), and specialized Kanban/Grid views.
+- **`import-knowledge-base`**: Plans structured migrations of Notion workspaces, Confluence spaces, or CSV datasets into FuseBase folders, markdown pages, and databases.
+- **`configure-ai-persona`**: Designs specialized AI assistant personas with tailored charters, quick-action suggestion chips, and starter conversation threads.
 
 ---
 

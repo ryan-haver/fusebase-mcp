@@ -259,4 +259,309 @@ Provide:
       };
     },
   );
+
+  // ─── 8. Launch Client Portal ───
+  server.prompt(
+    "launch-client-portal",
+    "Architect and deploy a branded external Client Portal in FuseBase with navigation, pages, and client invitations.",
+    {
+      portalName: z.string().describe("Name/title of the client portal"),
+      clientCompany: z.string().describe("Client company name or account domain"),
+      workspaceId: z.string().describe("Workspace ID containing source pages to publish"),
+      customDomain: z.string().optional().describe("Optional custom domain (e.g. portal.client.com)"),
+    },
+    async ({ portalName, clientCompany, workspaceId, customDomain }) => {
+      const client = getClient();
+      let workspacePages: Array<{ id: string; title: string }> = [];
+      try {
+        const pages = await client.listPages(workspaceId, { limit: 15 });
+        if (Array.isArray(pages)) {
+          workspacePages = pages.map((p: any) => ({ id: p.id, title: p.title || "Untitled" }));
+        }
+      } catch {
+        // non-blocking
+      }
+
+      const pagesContext = workspacePages.length > 0
+        ? `\nAvailable workspace pages candidate for publication:\n${workspacePages.map((p) => `- "${p.title}" (ID: ${p.id})`).join("\n")}`
+        : "";
+      const domainText = customDomain ? `\n- **Custom Domain**: ${customDomain}` : "";
+
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Please plan and architect a complete external Client Portal in FuseBase for: "${portalName}" (Client: ${clientCompany}).
+- **Source Workspace**: ${workspaceId}${domainText}${pagesContext}
+
+Provide:
+1. **Portal Branding & Structure**:
+   - Subdomain naming recommendation and theme customization ('get_portal_theme')
+   - Navigation menu taxonomy (sidebar tree, top navigation, footer links via 'get_portal_navigation_menu')
+2. **Page Publication Matrix**:
+   - Recommend which pages to publish using 'publish_page_to_portal' (e.g., Welcome Hub, Project Roadmap, Deliverables, Invoices/Contracts)
+   - Layout recommendations for client-facing content (embedding full-width app widgets or view-only reports)
+3. **Client Access & Magic Link Onboarding**:
+   - Access control configuration and client invitations ('invite_portal_client')
+   - How to generate 24h passwordless client access links via 'create_portal_magic_link'
+4. **Step-by-Step Deployment Runbook**:
+   - Sequence of exact MCP tool calls ('create_portal', 'publish_page_to_portal', 'invite_portal_client', 'create_portal_magic_link') to launch the portal.`,
+            },
+          },
+        ],
+      };
+    },
+  );
+
+  // ─── 9. Workspace Activity Digest ───
+  server.prompt(
+    "workspace-activity-digest",
+    "Generate a comprehensive executive activity digest of recent changes, completed tasks, and active discussions in a workspace.",
+    {
+      workspaceId: z.string().describe("Workspace ID to analyze"),
+      timeWindow: z.string().optional().describe("Reporting timeframe (e.g. 'Last 7 days', 'Today', 'Sprint 3')"),
+    },
+    async ({ workspaceId, timeWindow }) => {
+      const client = getClient();
+      let activitySnippet = "";
+      let taskSummarySnippet = "";
+      let recentPagesSnippet = "";
+
+      try {
+        const [activity, taskSummary, recentPages] = await Promise.allSettled([
+          client.getActivityStream(workspaceId),
+          client.getTasksWorkspaceSummary(),
+          client.getRecentPages(workspaceId, 10),
+        ]);
+
+        if (activity.status === "fulfilled" && activity.value) {
+          activitySnippet = `\nRecent Activity Stream Entries:\n${JSON.stringify(activity.value, null, 2).slice(0, 1500)}`;
+        }
+        if (taskSummary.status === "fulfilled" && taskSummary.value) {
+          taskSummarySnippet = `\nTask Summary:\n${JSON.stringify(taskSummary.value, null, 2).slice(0, 1000)}`;
+        }
+        if (recentPages.status === "fulfilled" && Array.isArray(recentPages.value)) {
+          recentPagesSnippet = `\nRecently Updated Pages:\n${recentPages.value.map((p: any) => `- "${p.title}" (${p.id})`).join("\n")}`;
+        }
+      } catch {
+        // non-blocking
+      }
+
+      const windowText = timeWindow ? ` (${timeWindow})` : "";
+
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Please generate an Executive Activity Digest for FuseBase Workspace '${workspaceId}'${windowText}.
+${recentPagesSnippet}${taskSummarySnippet}${activitySnippet}
+
+Please synthesize:
+1. **Executive Pulse & Velocity**: High-level summary of what the team accomplished during this period.
+2. **Key Content Updates**: Significant changes made to living pages and project notes.
+3. **Task & Milestone Progress**: Completed deliverables, ongoing items, and time tracking breakdown.
+4. **Discussion & Mention Highlights**: Active threads or blocker mentions requiring stakeholder attention.
+5. **Priorities for Next Cycle**: 3-5 high-leverage focus areas based on recent momentum.`,
+            },
+          },
+        ],
+      };
+    },
+  );
+
+  // ─── 10. Audit Page Governance ───
+  server.prompt(
+    "audit-page-governance",
+    "Audit an existing FuseBase page for formatting quality, heading hierarchy, stale action items, broken links, and tag alignment.",
+    {
+      workspaceId: z.string().describe("Workspace ID containing the page"),
+      pageId: z.string().describe("Page ID to audit"),
+    },
+    async ({ workspaceId, pageId }) => {
+      const client = getClient();
+      let pageContent = "";
+      let workspaceTags: string[] = [];
+
+      try {
+        const [content, tags] = await Promise.allSettled([
+          client.getPageContent(workspaceId, pageId),
+          client.getTags(workspaceId),
+        ]);
+
+        if (content.status === "fulfilled") {
+          pageContent = content.value;
+        }
+        if (tags.status === "fulfilled" && Array.isArray(tags.value)) {
+          workspaceTags = tags.value.map((t: any) => t.title || t.name || String(t));
+        }
+      } catch (err) {
+        pageContent = `(Failed to fetch page: ${err instanceof Error ? err.message : err})`;
+      }
+
+      const tagsContext = workspaceTags.length > 0
+        ? `\nAvailable Workspace Tags:\n${workspaceTags.join(", ")}`
+        : "";
+
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Please perform a thorough Page Governance & Quality Audit on FuseBase page '${pageId}' in workspace '${workspaceId}'.
+${tagsContext}
+
+Page Content:
+---
+${pageContent.slice(0, 6000)}
+---
+
+Evaluate and provide:
+1. **Typography & Structure Score (1-10)**: Assess heading hierarchy (H1 -> H2 -> H3), paragraph density, and use of callouts/blockquotes.
+2. **Action Item & Freshness Check**: Identify incomplete task checkboxes (\`- [ ]\`), unassigned deliverables, or stale date references.
+3. **Tagging & Metadata Alignment**: Recommend relevant tags to attach using 'update_page_tags'.
+4. **Broken Link & Attachment Diagnostics**: Flag any vague external links or missing references.
+5. **Concrete Revision Plan**: Provide specific markdown edits or block additions to execute via 'append_page_content' or 'update_page_content' to elevate the document to publication grade.`,
+            },
+          },
+        ],
+      };
+    },
+  );
+
+  // ─── 11. Build Relational Database ───
+  server.prompt(
+    "build-relational-database",
+    "Architect a multi-table relational schema with bidirectional relations, lookup rollups, and specialized views in FuseBase.",
+    {
+      databaseTitle: z.string().describe("Title of the database/system (e.g. 'CRM & Client Pipeline', 'Game Mechanics Engine')"),
+      primaryEntity: z.string().describe("Name of the primary entity/table (e.g. 'Accounts', 'Characters', 'Projects')"),
+      relatedEntity: z.string().describe("Name of the linked entity/table (e.g. 'Contacts', 'Spells', 'Tasks')"),
+      relationType: z.string().optional().describe("Relation cardinality: 'one-to-many' or 'many-to-many' (default: 'one-to-many')"),
+    },
+    async ({ databaseTitle, primaryEntity, relatedEntity, relationType }) => {
+      const cardinality = relationType || "one-to-many";
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Please design a multi-table relational database architecture in FuseBase for: "${databaseTitle}".
+- **Primary Entity**: ${primaryEntity}
+- **Related Entity**: ${relatedEntity}
+- **Cardinality**: ${cardinality}
+
+Provide:
+1. **Schema Design**:
+   - Column types for **${primaryEntity}** (Title, Select, Member, Date, Number, etc.)
+   - Column types for **${relatedEntity}**
+2. **Relational Link & Lookups**:
+   - Foreign relation definition connecting ${primaryEntity} to ${relatedEntity} ('add_relation_column')
+   - Calculated / lookup rollup columns to expose across tables ('add_lookup_column')
+3. **Multi-View Representation Architecture**:
+   - Default Grid / Table view for raw data entry
+   - Kanban board view grouped by status single-select column ('set_view_representation', 'set_view_grouping')
+   - Calendar or Timeline view for deadline tracking
+4. **Deployment Tool Call Sequence**:
+   - Sequence of tool calls ('create_database', 'create_dashboard_table', 'add_database_column', 'add_relation_column', 'add_lookup_column', 'add_database_row') with concrete arguments to provision the entire relational system.`,
+            },
+          },
+        ],
+      };
+    },
+  );
+
+  // ─── 12. Import Knowledge Base ───
+  server.prompt(
+    "import-knowledge-base",
+    "Plan and execute a structured migration of docs, Notion workspaces, Confluence spaces, or CSV datasets into FuseBase.",
+    {
+      sourceType: z.string().describe("Source system (e.g. 'Notion Export', 'Confluence Space', 'Markdown Directory', 'CSV Datasets')"),
+      targetWorkspaceId: z.string().describe("Target FuseBase workspace ID to receive imported content"),
+      structureSummary: z.string().describe("Summary of documents, hierarchy, or dataset schema to import"),
+    },
+    async ({ sourceType, targetWorkspaceId, structureSummary }) => {
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Please plan an automated migration into FuseBase Workspace '${targetWorkspaceId}' from source: "${sourceType}".
+
+Source Overview:
+${structureSummary}
+
+Provide:
+1. **Folder & Page Taxonomy**:
+   - Map source hierarchy into FuseBase folders ('create_folder') and parent-child page trees ('create_page' with 'folderId'/'parentId').
+2. **Block Format Translation**:
+   - Translation rules for converting source-specific widgets (callouts, toggles, code blocks, quote blocks) into FuseBase-compatible Markdown.
+3. **Tabular Data & CSV Ingestion**:
+   - How to ingest spreadsheet/database exports into FuseBase databases via 'import_csv' or 'create_database'.
+4. **Execution Runbook & Validation**:
+   - Batching strategy to avoid rate limits (200ms throttle).
+   - Post-migration validation checklist using 'get_page_content' and 'search_tasks' to ensure 100% data fidelity.`,
+            },
+          },
+        ],
+      };
+    },
+  );
+
+  // ─── 13. Configure AI Persona ───
+  server.prompt(
+    "configure-ai-persona",
+    "Design specialized AI assistant personas, system prompts, and interactive prompt suggestion chips for FuseBase.",
+    {
+      personaName: z.string().describe("Name of the persona (e.g., 'Staff Architect', 'Legal Compliance Reviewer', 'Product Manager')"),
+      specialization: z.string().describe("Domain expertise, tone of voice, operational boundaries, and formatting preferences"),
+      targetAudience: z.string().optional().describe("Primary audience (e.g., 'Engineering Team', 'External Clients', 'Executive Board')"),
+      workspaceId: z.string().optional().describe("Optional workspace ID to inspect existing AI assistant state"),
+    },
+    async ({ personaName, specialization, targetAudience, workspaceId }) => {
+      const client = getClient();
+      let assistantStateSnippet = "";
+      if (workspaceId) {
+        try {
+          const state = await client.getAiAssistantState(workspaceId);
+          if (state) {
+            assistantStateSnippet = `\nCurrent AI Assistant Configuration:\n${JSON.stringify(state, null, 2).slice(0, 1000)}`;
+          }
+        } catch {
+          // non-blocking
+        }
+      }
+
+      const audienceText = targetAudience ? `\n- **Target Audience**: ${targetAudience}` : "";
+
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Please design a specialized AI Agent Persona in FuseBase for: "${personaName}".
+- **Specialization & Guardrails**: ${specialization}${audienceText}${assistantStateSnippet}
+
+Provide:
+1. **System Prompt / Persona Charter**:
+   - Core identity, communication style, technical depth, and strict negative constraints.
+2. **Interactive Prompt Suggestion Chips**:
+   - 4-5 quick-action prompts tailored for this persona's daily workflow (formatted for FuseBase assistant suggestion state).
+3. **Starter Seed Threads**:
+   - 2-3 high-impact conversation starters to initialize via 'list_ai_agent_threads'.
+4. **Autonomous Tool Matrix**:
+   - Specific FuseBase MCP tools this persona is authorized to call autonomously (e.g. read-only auditing vs mutating pages/tasks).`,
+            },
+          },
+        ],
+      };
+    },
+  );
 }
