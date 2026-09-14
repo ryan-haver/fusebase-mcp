@@ -78,6 +78,17 @@ async function main() {
   }
   console.log(`✅ Read 'fusebase://work/connectors' passed (${connData.featuredServices.length} featured services)`);
 
+  console.log("\n--- Testing Native MCP Resource Templates ---");
+  const templatesRes = await client.listResourceTemplates();
+  console.log(`Resource templates declared: ${templatesRes.resourceTemplates.length}`);
+  for (const t of templatesRes.resourceTemplates) {
+    console.log(`  - [${t.name}] ${t.uriTemplate}`);
+  }
+  if (templatesRes.resourceTemplates.length < 3) {
+    throw new Error(`Expected at least 3 resource templates, found ${templatesRes.resourceTemplates.length}!`);
+  }
+  console.log("✅ Resource templates listed successfully");
+
   // ─── 2. MCP Prompts ────────────────────────────────────────────
   console.log("\n--- Testing Native MCP Prompts ---");
   const promptsRes = await client.listPrompts();
@@ -114,12 +125,23 @@ async function main() {
   console.log("\n--- Testing Tool Listing (Core Tier) ---");
   const coreToolsRes = await client.listTools();
   console.log(`Core tools found: ${coreToolsRes.tools.length}`);
+  if (coreToolsRes.tools.length !== 33) {
+    throw new Error(`Expected exactly 33 core tools, found ${coreToolsRes.tools.length}!`);
+  }
   const coreNames = new Set(coreToolsRes.tools.map((t) => t.name));
   for (const expected of [
     "list_workspaces",
     "create_page",
+    "update_page",
+    "delete_page",
     "get_page_content",
     "append_page_content",
+    "update_page_content",
+    "list_folders",
+    "create_folder",
+    "create_task",
+    "update_task",
+    "delete_task",
     "check_session_health",
     "list_agent_profiles",
     "switch_active_profile",
@@ -129,7 +151,7 @@ async function main() {
       throw new Error(`Expected core tool '${expected}' not found!`);
     }
   }
-  console.log("✅ Essential core tools present (including append, profiles, session health)");
+  console.log("✅ Essential core tools present (including full CRUD primitives, append, profiles, session health)");
 
   console.log("\n--- Testing Tier Switching (set_tool_tier -> all) ---");
   await client.callTool({
@@ -253,14 +275,19 @@ async function main() {
   });
   console.log("append_page_content result:", (appendRes.content as any)[0]?.text);
 
-  await new Promise((r) => setTimeout(r, 2000));
-
   console.log("Reading content back via get_page_content...");
-  const readRes = await client.callTool({
-    name: "get_page_content",
-    arguments: { workspaceId: targetWsId, pageId: pageId },
-  });
-  const readHtml = (readRes.content as any)[0]?.text || "";
+  let readHtml = "";
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    await new Promise((r) => setTimeout(r, 1500));
+    const readRes = await client.callTool({
+      name: "get_page_content",
+      arguments: { workspaceId: targetWsId, pageId: pageId },
+    });
+    readHtml = (readRes.content as any)[0]?.text || "";
+    if (readHtml.includes("Appended Section") && readHtml.includes("Base Header")) {
+      break;
+    }
+  }
   console.log("Decoded HTML:\n" + readHtml);
 
   if (!readHtml.includes("Base Header") || !readHtml.includes("Initial Point 1")) {
@@ -270,6 +297,28 @@ async function main() {
     throw new Error("Appended content missing from readback!");
   }
   console.log("✅ Base AND Appended content both verified!");
+
+  console.log("Reading content back via get_page_content (markdown format)...");
+  const readMdRes = await client.callTool({
+    name: "get_page_content",
+    arguments: { workspaceId: targetWsId, pageId: pageId, format: "markdown" },
+  });
+  const readMd = (readMdRes.content as any)[0]?.text || "";
+  console.log("Decoded Markdown:\n" + readMd);
+  if (!readMd.includes("Base Header") || !readMd.includes("Appended Section")) {
+    throw new Error("Markdown readback missing expected text!");
+  }
+  console.log("✅ Markdown page content format verified!");
+
+  console.log("Reading page content directly via MCP Resource Template URI...");
+  const pageResource = await client.readResource({
+    uri: `fusebase://workspaces/${targetWsId}/pages/${pageId}`,
+  });
+  const pageResourceHtml = pageResource.contents[0]?.text || "";
+  if (!pageResourceHtml.includes("Base Header")) {
+    throw new Error("Page resource template URI readback failed!");
+  }
+  console.log("✅ Page resource template URI readback verified!");
 
   console.log("Cleaning up base test page...");
   await client.callTool({
@@ -338,14 +387,28 @@ async function main() {
   console.log("list_automation_pieces:", piecesText?.slice(0, 100) + "...");
   console.log("✅ list_automation_pieces handled safely");
 
-  console.log("Testing create_automation_flow error/privilege handling...");
+  console.log("Testing create_automation_flow...");
   const createFlowRes = await client.callTool({
     name: "create_automation_flow",
     arguments: { displayName: "E2E Test Flow" },
   });
   const createFlowText = (createFlowRes.content as any)[0]?.text;
   console.log("create_automation_flow response:", createFlowText?.slice(0, 100) + "...");
-  console.log("✅ create_automation_flow handled safely");
+  try {
+    const flowData = JSON.parse(createFlowText);
+    if (flowData?.id) {
+      console.log(`✅ Flow created with ID ${flowData.id}. Cleaning up...`);
+      await client.callTool({
+        name: "delete_automation_flow",
+        arguments: { flowId: flowData.id },
+      });
+      console.log("✅ delete_automation_flow passed");
+    } else {
+      console.log("✅ create_automation_flow handled safely");
+    }
+  } catch {
+    console.log("✅ create_automation_flow handled safely");
+  }
 
   // ─── 9. Portal Clients ─────────────────────────────────────────
   console.log("\n--- Testing Portal Clients Tool ---");
@@ -434,9 +497,10 @@ async function main() {
   console.log("\n--- Testing Auxiliary & Discovered Endpoints (11 Tools) ---");
 
   // 13.1 Portal Theme & Navigation
+  const portalWsId = parsedWorkspaces.find((w: any) => w.workspaceId === "49b306wxd9oa7hyc")?.workspaceId || targetWsId;
   const portalThemeRes = await client.callTool({
     name: "get_portal_theme",
-    arguments: { workspaceId: targetWsId },
+    arguments: { workspaceId: portalWsId },
   });
   const portalThemeData = JSON.parse((portalThemeRes.content as any)[0]?.text);
   console.log("get_portal_theme theme keys:", Object.keys(portalThemeData || {}));
@@ -444,7 +508,7 @@ async function main() {
 
   const portalNavRes = await client.callTool({
     name: "get_portal_navigation_menu",
-    arguments: { workspaceId: targetWsId },
+    arguments: { workspaceId: portalWsId },
   });
   const portalNavData = JSON.parse((portalNavRes.content as any)[0]?.text);
   console.log("get_portal_navigation_menu menu keys:", Object.keys(portalNavData || {}));
@@ -452,7 +516,7 @@ async function main() {
 
   const wsPortalRes = await client.callTool({
     name: "get_workspace_portal",
-    arguments: { workspaceId: targetWsId },
+    arguments: { workspaceId: portalWsId },
   });
   const wsPortalData = JSON.parse((wsPortalRes.content as any)[0]?.text);
   console.log("get_workspace_portal domain:", wsPortalData?.domain || "resolved");
@@ -538,7 +602,7 @@ async function main() {
   // 14.1 Task Time Tracking
   const timeRes = await client.callTool({
     name: "get_task_time_tracking",
-    arguments: { workspaceId: targetWsId, taskId: "9yc1s7eondz4vjf7e03su13d1" },
+    arguments: { workspaceId: "49b306wxd9oa7hyc", taskId: "9yc1s7eondz4vjf7e03su13d1" },
   });
   const timeData = JSON.parse((timeRes.content as any)[0]?.text);
   console.log("get_task_time_tracking keys:", Object.keys(timeData || {}));

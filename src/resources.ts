@@ -97,12 +97,38 @@ export function registerResources(
     },
   );
 
-  // ─── 4. Page Content Template ───
+  // ─── 4. Page Content Template (Standard RFC 6570) ───
   server.resource(
     "page-content",
-    new ResourceTemplate("fusebase://workspaces/{wid}/pages/{nid}", { list: undefined }),
+    new ResourceTemplate("fusebase://workspaces/{workspaceId}/pages/{pageId}", { list: undefined }),
     {
       description: "Decoded HTML content of a FuseBase document/page synced from Y.js.",
+      mimeType: "text/html",
+    },
+    async (uri, { workspaceId, pageId }) => {
+      const client = getClient();
+      const wid = Array.isArray(workspaceId) ? workspaceId[0] : workspaceId;
+      const nid = Array.isArray(pageId) ? pageId[0] : pageId;
+
+      const html = await client.getPageContent(wid, nid);
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "text/html",
+            text: html,
+          },
+        ],
+      };
+    },
+  );
+
+  // Legacy alias for page content template
+  server.resource(
+    "page-content-legacy",
+    new ResourceTemplate("fusebase://workspaces/{wid}/pages/{nid}", { list: undefined }),
+    {
+      description: "Decoded HTML content of a FuseBase document/page (legacy alias).",
       mimeType: "text/html",
     },
     async (uri, { wid, nid }) => {
@@ -123,12 +149,36 @@ export function registerResources(
     },
   );
 
-  // ─── 5. Database Detail Template ───
+  // ─── 5. Database Detail Template (Standard RFC 6570) ───
   server.resource(
     "database-detail",
-    new ResourceTemplate("fusebase://databases/{did}", { list: undefined }),
+    new ResourceTemplate("fusebase://databases/{databaseId}", { list: undefined }),
     {
       description: "Database metadata, dashboards, view definitions, and schema details.",
+      mimeType: "application/json",
+    },
+    async (uri, { databaseId }) => {
+      const client = getClient();
+      const dbId = Array.isArray(databaseId) ? databaseId[0] : databaseId;
+      const detail = await client.getDatabaseDetail(dbId);
+      return {
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(detail, null, 2),
+          },
+        ],
+      };
+    },
+  );
+
+  // Legacy alias for database detail template
+  server.resource(
+    "database-detail-legacy",
+    new ResourceTemplate("fusebase://databases/{did}", { list: undefined }),
+    {
+      description: "Database metadata, dashboards, view definitions, and schema details (legacy alias).",
       mimeType: "application/json",
     },
     async (uri, { did }) => {

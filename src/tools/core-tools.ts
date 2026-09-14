@@ -7,7 +7,7 @@ import { markdownToSchema } from "../markdown-parser.js";
 import { schemaToTokens } from "../token-builder.js";
 import type { ContentBlock } from "../content-schema.js";
 import { writeContentViaWebSocket } from "../yjs-ws-writer.js";
-import { errorResult, guessMime } from "./helpers.js";
+import { errorResult, guessMime, htmlToMarkdown } from "./helpers.js";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
@@ -78,10 +78,7 @@ export function registerCoreTools(
         if (msg.includes("Timeout") || msg.includes("timeout")) {
           hint = " Hint: The proxy may be unreachable — try: npx tsx scripts/auth.ts --no-proxy";
         }
-        return {
-          content: [{ type: "text" as const, text: `Auth refresh failed: ${msg}${hint}` }],
-          isError: true,
-        };
+        return errorResult(`${msg}${hint}`);
       }
     },
   );
@@ -115,17 +112,21 @@ export function registerCoreTools(
       profile: z.string().describe("Agent profile name (e.g. 'agent-architect', 'agent-dev', or 'default')"),
     },
     async ({ profile }) => {
-      if (options.setActiveProfile) {
-        options.setActiveProfile(profile === "default" ? undefined : profile);
+      try {
+        if (options.setActiveProfile) {
+          options.setActiveProfile(profile === "default" ? undefined : profile);
+        }
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Active profile switched to '${profile}'.`,
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
       }
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: `Active profile switched to '${profile}'.`,
-          },
-        ],
-      };
     },
   );
 
@@ -201,6 +202,7 @@ export function registerCoreTools(
             ),
           },
         ],
+        isError: !isValid,
       };
     },
   );
@@ -241,17 +243,23 @@ export function registerCoreTools(
         .string()
         .optional()
         .describe("Folder ID to filter by (default: root)"),
+      parentId: z
+        .string()
+        .optional()
+        .describe("Parent folder ID to filter by (alias for folderId)"),
       limit: z
         .number()
         .optional()
+        .default(100)
         .describe("Max pages to return (default: 100)"),
-      offset: z.number().optional().describe("Pagination offset (default: 0)"),
+      offset: z.number().optional().default(0).describe("Pagination offset (default: 0)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, folderId, limit, offset, profile }) => {
+    }, async ({ workspaceId, folderId, parentId, limit, offset, profile }) => {
       const client = getClient(profile);
       try {
+        const effectiveFolderId = folderId || parentId;
         const result = await client.listPages(workspaceId, {
-          rootId: folderId,
+          rootId: effectiveFolderId,
           limit,
           offset,
         });
@@ -355,6 +363,10 @@ export function registerCoreTools(
         .string()
         .optional()
         .describe("Parent folder ID (default: root/default)"),
+      parentId: z
+        .string()
+        .optional()
+        .describe("Parent folder ID (alias for folderId)"),
       markdown: z
         .string()
         .optional()
@@ -364,10 +376,11 @@ export function registerCoreTools(
         .optional()
         .describe("Structured ContentBlock[] array for initial page content. Supports all block types: paragraph, heading, list, code, blockquote, divider, toggle, hint, collapsible-heading, image, file, bookmark, remote-frame, outline, button, step, step-aggregator, table, and grid."),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, title, folderId, markdown, blocks, profile }) => {
+    }, async ({ workspaceId, title, folderId, parentId, markdown, blocks, profile }) => {
       const client = getClient(profile);
       try {
-        const page = await client.createPage(workspaceId, title, folderId);
+        const effectiveFolderId = folderId || parentId;
+        const page = await client.createPage(workspaceId, title, effectiveFolderId);
         const result: Record<string, unknown> = {
           id: page.globalId,
           title: page.title,
@@ -414,6 +427,75 @@ export function registerCoreTools(
     },
   );
 
+  server.tool(
+    "update_page",
+    "Update a page or folder's properties — rename it, move it to a different folder, or both. Uses the upsert endpoint so partial updates are safe.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      pageId: z.string().describe("Page or folder ID to update"),
+      title: z
+        .string()
+        .optional()
+        .describe("New title/name for the page or folder"),
+      parentId: z
+        .string()
+        .optional()
+        .describe("New parent folder ID to move the page into"),
+      folderId: z
+        .string()
+        .optional()
+        .describe("New parent folder ID to move the page into (alias for parentId)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, pageId, title, parentId, folderId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const effectiveParentId = parentId || folderId;
+        const updates: { title?: string; parentId?: string } = {};
+        if (title) updates.title = title;
+        if (effectiveParentId) updates.parentId = effectiveParentId;
+        await client.upsertPage(workspaceId, pageId, updates);
+        const actions = [];
+        if (title) actions.push(`renamed to "${title}"`);
+        if (effectiveParentId) actions.push(`moved to folder ${effectiveParentId}`);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Page ${pageId} updated: ${actions.join(", ")}.`,
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "delete_page",
+    "[DESTRUCTIVE] Delete a page permanently from a workspace. This action is irreversible — the page and its content will be lost. Use get_page first to verify you have the correct page before deleting.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      pageId: z.string().describe("Page (note) ID to delete"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, pageId, profile }) => {
+      const client = getClient(profile);
+      try {
+        await client.deletePage(workspaceId, pageId);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Page ${pageId} deleted successfully.`,
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
   // === Folders ===
 
   server.tool(
@@ -441,6 +523,39 @@ export function registerCoreTools(
                 null,
                 2,
               ),
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "create_folder",
+    "Create a new folder in a Fusebase workspace for organizing pages. Can be created at the root or nested inside an existing parent folder.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      title: z.string().describe("Folder name"),
+      parentId: z
+        .string()
+        .optional()
+        .describe("Parent folder ID for nesting (default: workspace root)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, title, parentId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.createFolder(
+          workspaceId,
+          title,
+          parentId || "default",
+        );
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(result, null, 2),
             },
           ],
         };
@@ -571,16 +686,67 @@ export function registerCoreTools(
 
   server.tool(
     "download_attachment",
-    "Download a file attachment from a FuseBase page. Returns the file content as base64-encoded data with MIME type and size. Use get_page_attachments to find attachment IDs first.",
+    "Download a file attachment from a FuseBase page. Supports native MCP image rendering, local file downloading to disk (saving LLM context), or base64 data. Use get_page_attachments to find attachment IDs first.",
     {
       workspaceId: z.string().describe("Workspace ID"),
       attachmentId: z.string().describe("Attachment ID (from get_page_attachments)"),
       filename: z.string().describe("Original filename of the attachment"),
+      saveToDisk: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe("If true, writes the file to local disk and returns the local file path instead of large base64 text"),
+      outputPath: z.string().optional().describe("Optional destination file path if saveToDisk is true"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, attachmentId, filename, profile }) => {
+    }, async ({ workspaceId, attachmentId, filename, saveToDisk, outputPath, profile }) => {
       const client = getClient(profile);
       try {
         const result = await client.downloadAttachment(workspaceId, attachmentId, filename);
+
+        // Safe local disk saving to prevent context blowup
+        if (saveToDisk || outputPath) {
+          const downloadDir = outputPath ? path.dirname(outputPath) : path.resolve(__dirname, "..", "..", "data", "downloads");
+          if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir, { recursive: true });
+          const targetFile = outputPath || path.join(downloadDir, filename);
+          fs.writeFileSync(targetFile, Buffer.from(result.base64, "base64"));
+          return {
+            content: [{
+              type: "text" as const,
+              text: JSON.stringify({
+                success: true,
+                savedPath: targetFile,
+                filename,
+                mime: result.mime,
+                size: result.size,
+              }, null, 2),
+            }],
+          };
+        }
+
+        // Native MCP image block for image attachments
+        const isImage = ["image/png", "image/jpeg", "image/gif", "image/webp"].includes(result.mime);
+        if (isImage) {
+          return {
+            content: [
+              {
+                type: "image" as const,
+                data: result.base64,
+                mimeType: result.mime,
+              },
+              {
+                type: "text" as const,
+                text: JSON.stringify({
+                  success: true,
+                  filename,
+                  mime: result.mime,
+                  size: result.size,
+                  note: "Image displayed natively via MCP image content block.",
+                }, null, 2),
+              },
+            ],
+          };
+        }
+
         return {
           content: [{
             type: "text" as const,
@@ -722,18 +888,35 @@ export function registerCoreTools(
 
   server.tool(
     "get_page_content",
-    "Get the HTML content of a page decoded from its Y.js document via WebSocket sync. Returns semantic HTML with headings, paragraphs, inline formats (bold, italic, code, links, strikethrough, underline), lists, blockquotes, code blocks, toggles, hints, collapsible headings, images, bookmarks, outlines, buttons, steps, tables, and grids. Complements update_page_content for the full read/write cycle.",
+    "Get the content of a page decoded from its Y.js document via WebSocket sync. By default returns semantic HTML. Set format='markdown' for clean, compact markdown that uses ~50% fewer tokens.",
     {
       workspaceId: z.string().describe("Workspace ID"),
       pageId: z.string().describe("Page (note) ID"),
+      format: z
+        .enum(["html", "markdown"])
+        .optional()
+        .default("html")
+        .describe("Output format: 'html' (default) or 'markdown' for token efficiency"),
+      maxLength: z
+        .number()
+        .optional()
+        .describe("Optional max character length to prevent LLM context blowup on large pages"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, pageId, profile }) => {
+    }, async ({ workspaceId, pageId, format, maxLength, profile }) => {
       const client = getClient(profile);
       try {
         const html = await client.getPageContent(workspaceId, pageId);
+        let text = html;
+        if (format === "markdown") {
+          text = htmlToMarkdown(html);
+        }
+        if (maxLength && text.length > maxLength) {
+          const omitted = text.length - maxLength;
+          text = text.slice(0, maxLength) + `\n\n... [Content truncated: ${omitted} additional characters omitted. Use maxLength or read specific sections].`;
+        }
         return {
           content: [
-            { type: "text" as const, text: html },
+            { type: "text" as const, text },
           ],
         };
       } catch (error) {
@@ -788,6 +971,82 @@ export function registerCoreTools(
             },
           ],
         };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "update_page_content",
+    "Write or replace content on a page using the native Y.js WebSocket protocol. Accepts markdown (recommended) or structured content blocks. Supports: headings (H1/H2/H3), paragraphs, bold, italic, strikethrough, underline, inline code, links, highlight, bullet/numbered/checkbox lists, dividers, blockquotes, code blocks (with language), toggles, hints/callouts, collapsible headings, images, files, bookmarks, remote frames, outlines, buttons, steps, tables, and grid layouts.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      pageId: z.string().describe("Page (note) ID"),
+      markdown: z
+        .string()
+        .optional()
+        .describe("Markdown string to write. Auto-converted to Fusebase format. Supports # headings, **bold**, *italic*, ~~strikethrough~~, `code`, [links](url), - lists, 1. numbered, ---, > blockquotes, ```code```. For advanced blocks (toggle, hint, image, table), use the 'blocks' parameter instead."),
+      blocks: z
+        .array(z.unknown())
+        .optional()
+        .describe("Structured ContentBlock[] array for programmatic control. Supports all block types: paragraph, heading, list, code, blockquote, divider, toggle, hint, collapsible-heading, image, file, bookmark, remote-frame, outline, button, step, step-aggregator, table, and grid."),
+      replace: z
+        .boolean()
+        .optional()
+        .default(true)
+        .describe("Replace existing content (default: true). Set to false to append."),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, pageId, markdown, blocks, replace, profile }) => {
+      const client = getClient(profile);
+      try {
+        let contentBlocks: ContentBlock[];
+
+        if (markdown) {
+          contentBlocks = markdownToSchema(markdown);
+        } else if (blocks) {
+          contentBlocks = blocks as ContentBlock[];
+        } else {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: "Error: Provide either 'markdown' or 'blocks'",
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        const result = await writeContentViaWebSocket(
+          client["host"],
+          workspaceId,
+          pageId,
+          client["cookie"],
+          contentBlocks,
+          { replace: replace !== false, timeout: 20000 },
+        );
+
+        if (result.success) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Content written successfully via Y.js WebSocket (${contentBlocks.length} blocks).`,
+              },
+            ],
+          };
+        } else {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Write failed: ${result.error}`,
+              },
+            ],
+            isError: true,
+          };
+        }
       } catch (error) {
         return errorResult(error);
       }
@@ -886,6 +1145,71 @@ export function registerCoreTools(
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "update_task",
+    "Update a task's properties — change status, priority, title, description, assignees, or due date. Uses PATCH semantics so only specified fields are changed.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      taskId: z.string().describe("Task ID to update"),
+      title: z.string().optional().describe("New task title"),
+      description: z.string().optional().describe("New task description"),
+      priority: z
+        .string()
+        .optional()
+        .describe("New priority (e.g. 'high', 'medium', 'low')"),
+      completed: z
+        .boolean()
+        .optional()
+        .describe("Set to true to mark task as complete"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, taskId, title, description, priority, completed, profile }) => {
+      const client = getClient(profile);
+      try {
+        const updates: Record<string, unknown> = {};
+        if (title !== undefined) updates.title = title;
+        if (description !== undefined) updates.description = description;
+        if (priority !== undefined) updates.priority = priority;
+        if (completed !== undefined) updates.completed = completed;
+        const result = await client.updateTask(workspaceId, taskId, updates);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "delete_task",
+    "[DESTRUCTIVE] Delete a task permanently from a workspace. This action is irreversible.",
+    {
+      workspaceId: z.string().describe("Workspace ID"),
+      taskId: z.string().describe("Task ID to delete"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, taskId, profile }) => {
+      const client = getClient(profile);
+      try {
+        await client.deleteTask(workspaceId, taskId);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Task ${taskId} deleted successfully.`,
+            },
           ],
         };
       } catch (error) {
@@ -1134,7 +1458,7 @@ export function registerCoreTools(
 
   server.tool(
     "set_tool_tier",
-    "Enable extended Fusebase tools for this session. By default only core tools (23) are loaded for performance. Call this with tier 'all' to dynamically register 68 additional tools for admin, analytics, content mutations, file upload, database CRUD, column management, and niche operations.",
+    "Enable extended Fusebase tools for this session. By default only core tools (33) are loaded for performance. Call this with tier 'all' to dynamically register 103 additional tools (136 total) for admin, analytics, database CRUD, portals, ActivePieces automations, and CLI operations.",
     {
       tier: z
         .enum(["all", "core"])
@@ -1158,7 +1482,7 @@ export function registerCoreTools(
           content: [
             {
               type: "text" as const,
-              text: "Extended tools enabled! 109 additional tools are now available (136 total). New tools: get_task_time_tracking, get_automation_flags, get_workspace_premium_status, get_active_import_status, get_org_trials, get_portal_theme, get_portal_navigation_menu, get_workspace_portal, get_agent_public_profile, get_dashboard_templates, get_member_roles, get_workspace_members_v1, get_tasks_workspace_summary, get_billing_info, get_user_preferences, set_sidebar_collapsed, get_ai_assistant_state, list_ai_agent_threads, get_ai_agent_favorites, fusebase_swarm_init, fusebase_swarm_task_transition, trigger_automation_flow, create_portal, get_portal, publish_page_to_portal, check_portal_availability, fusebase_cli_status, fusebase_cli_init, fusebase_cli_list_apps, fusebase_cli_deploy, create_automation_flow, update_automation_flow, delete_automation_flow, list_portal_clients, invite_portal_client, create_portal_magic_link, create_interactive_app_page, list_automation_flows, get_automation_flow, list_flow_runs, list_automation_pieces, get_labels, get_org_usage, get_comment_threads, get_task_description, create_folder, update_page, update_task, delete_task, delete_page, update_page_content, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, fusebase_poll_mentions, fusebase_post_comment, fusebase_reply_comment, fusebase_resolve_thread, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database, add_database_row, delete_database_row, move_kanban_card, list_database_relations, create_dashboard_table, delete_relation, list_all_databases, get_database_detail, update_database, delete_database, get_dashboard_detail, delete_dashboard, update_view, set_view_representation, duplicate_database, create_view, delete_view, export_csv, duplicate_view, import_csv, set_view_grouping, set_column_width, rename_database_column, reorder_database_columns, update_database_cell, get_database_rows, get_database_schema, add_database_column, delete_database_column, add_relation_column, add_lookup_column, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
+              text: "Extended tools enabled! 103 additional tools are now available (136 total). New tools: get_task_time_tracking, get_automation_flags, get_workspace_premium_status, get_active_import_status, get_org_trials, get_portal_theme, get_portal_navigation_menu, get_workspace_portal, get_agent_public_profile, get_dashboard_templates, get_member_roles, get_workspace_members_v1, get_tasks_workspace_summary, get_billing_info, get_user_preferences, set_sidebar_collapsed, get_ai_assistant_state, list_ai_agent_threads, get_ai_agent_favorites, fusebase_swarm_init, fusebase_swarm_task_transition, trigger_automation_flow, create_portal, get_portal, publish_page_to_portal, check_portal_availability, fusebase_cli_status, fusebase_cli_init, fusebase_cli_list_apps, fusebase_cli_deploy, create_automation_flow, update_automation_flow, delete_automation_flow, list_portal_clients, invite_portal_client, create_portal_magic_link, create_interactive_app_page, list_automation_flows, get_automation_flow, list_flow_runs, list_automation_pieces, get_labels, get_org_usage, get_comment_threads, get_task_description, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, fusebase_poll_mentions, fusebase_post_comment, fusebase_reply_comment, fusebase_resolve_thread, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database, add_database_row, delete_database_row, move_kanban_card, list_database_relations, create_dashboard_table, delete_relation, list_all_databases, get_database_detail, update_database, delete_database, get_dashboard_detail, delete_dashboard, update_view, set_view_representation, duplicate_database, create_view, delete_view, export_csv, duplicate_view, import_csv, set_view_grouping, set_column_width, rename_database_column, reorder_database_columns, update_database_cell, get_database_rows, get_database_schema, add_database_column, delete_database_column, add_relation_column, add_lookup_column, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
             },
           ],
         };
@@ -1169,7 +1493,7 @@ export function registerCoreTools(
             type: "text" as const,
             text: options.isExtendedToolsEnabled()
               ? "Current tier: all (136 tools active). To revert to core-only, restart the MCP server."
-              : "Current tier: core (27 tools active). Call set_tool_tier with tier='all' to enable 109 extended tools.",
+              : "Current tier: core (33 tools active). Call set_tool_tier with tier='all' to enable 103 extended tools.",
           },
         ],
       };

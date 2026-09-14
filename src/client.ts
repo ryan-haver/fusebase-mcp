@@ -99,6 +99,8 @@ export class FusebaseClient {
   private lastRequestTime: number = 0;
   private static readonly MIN_REQUEST_INTERVAL_MS = 200;
   private proxyDispatcher?: ProxyAgent;
+  private automationToken?: string;
+  private automationProjectId?: string;
 
   constructor(config: FusebaseConfig) {
     this.host = config.host;
@@ -113,6 +115,36 @@ export class FusebaseClient {
       this.proxyDispatcher = new ProxyAgent(config.proxyRelayUrl);
       console.error(`[client] Using proxy relay: ${config.proxyRelayUrl}`);
     }
+  }
+
+  /** Ensure ActivePieces automation auth token and projectId are resolved */
+  async ensureAutomationAuth(): Promise<{ token: string; projectId: string }> {
+    if (this.automationToken && this.automationProjectId) {
+      return { token: this.automationToken, projectId: this.automationProjectId };
+    }
+    const match = this.cookie.match(/eversessionid=([^;]+)/);
+    const sessionId = match ? match[1].trim() : this.sessionId;
+    try {
+      const res = await fetch(`${this.baseUrl}/automation/api/v1/authentication/fusebase-auth`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: this.cookie,
+        },
+        body: JSON.stringify({ sessionId }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { token?: string; projectId?: string };
+        if (data.token) this.automationToken = data.token;
+        if (data.projectId) this.automationProjectId = data.projectId;
+      }
+    } catch {
+      // ignore
+    }
+    return {
+      token: this.automationToken || "",
+      projectId: this.automationProjectId || "",
+    };
   }
 
   private get headers(): Record<string, string> {
@@ -141,12 +173,35 @@ export class FusebaseClient {
     const startTime = Date.now();
     const timeout = method === "GET" ? TIMEOUT_GET : TIMEOUT_WRITE;
 
+    // For automation endpoints, resolve bearer token and projectId
+    if (path.startsWith("/automation/") && !path.includes("/authentication/fusebase-auth")) {
+      if (!this.automationToken) {
+        await this.ensureAutomationAuth();
+      }
+    }
+
+    const reqHeaders: Record<string, string> = {
+      ...this.headers,
+      ...((options.headers as Record<string, string>) || {}),
+    };
+
+    if (method === "DELETE" && !options.body) {
+      delete reqHeaders["content-type"];
+    }
+
+    if (path.startsWith("/automation/") && !path.includes("/authentication/fusebase-auth")) {
+      const match = this.cookie.match(/eversessionid=([^;]+)/);
+      if (match) {
+        reqHeaders["FBS-Session-ID"] = match[1].trim();
+      }
+      if (this.automationToken) {
+        reqHeaders["Authorization"] = `Bearer ${this.automationToken}`;
+      }
+    }
+
     const fetchOpts: RequestInit & { dispatcher?: unknown } = {
       ...options,
-      headers: {
-        ...this.headers,
-        ...((options.headers as Record<string, string>) || {}),
-      },
+      headers: reqHeaders,
       signal: AbortSignal.timeout(timeout),
       ...(this.proxyDispatcher ? { dispatcher: this.proxyDispatcher } : {}),
     };
@@ -3092,14 +3147,11 @@ export class FusebaseClient {
 
   // ─── Automations (ActivePieces) ────────────────────────────────
 
-  /** List user automation projects */
-  async listAutomationProjects(): Promise<unknown> {
-    return this.request<unknown>("/automation/api/v1/users/projects");
-  }
-
-  /** List automation flows for a project */
+  /** List automation flows for a project (auto-resolves projectId) */
   async listAutomationFlows(projectId?: string): Promise<unknown> {
-    const qs = projectId ? `?projectId=${projectId}` : "";
+    const auth = await this.ensureAutomationAuth();
+    const effectiveProjectId = projectId || auth.projectId;
+    const qs = effectiveProjectId ? `?projectId=${effectiveProjectId}` : "";
     return this.request<unknown>(`/automation/api/v1/flows${qs}`);
   }
 
@@ -3110,8 +3162,10 @@ export class FusebaseClient {
 
   /** List recent automation flow runs */
   async listFlowRuns(projectId?: string, limit = 20): Promise<unknown> {
+    const auth = await this.ensureAutomationAuth();
+    const effectiveProjectId = projectId || auth.projectId;
     const params = new URLSearchParams({ limit: String(limit) });
-    if (projectId) params.set("projectId", projectId);
+    if (effectiveProjectId) params.set("projectId", effectiveProjectId);
     return this.request<unknown>(`/automation/api/v1/flow-runs?${params.toString()}`);
   }
 
@@ -3120,22 +3174,23 @@ export class FusebaseClient {
     return this.request<unknown>("/automation/api/v1/pieces");
   }
 
-  /** Create a new automation flow */
+  /** Create a new automation flow (auto-resolves projectId) */
   async createAutomationFlow(
     displayName: string,
     folderId?: string,
     projectId?: string,
   ): Promise<unknown> {
-    const body: Record<string, unknown> = { displayName };
+    const auth = await this.ensureAutomationAuth();
+    const effectiveProjectId = projectId || auth.projectId;
+    const body: Record<string, unknown> = { displayName, projectId: effectiveProjectId };
     if (folderId) body.folderId = folderId;
-    if (projectId) body.projectId = projectId;
     return this.request<unknown>("/automation/api/v1/flows", {
       method: "POST",
       body: JSON.stringify(body),
     });
   }
 
-  /** Update an existing automation flow */
+  /** Update an existing automation flow (ActivePieces request wrapper) */
   async updateAutomationFlow(
     flowId: string,
     operation: {
@@ -3144,9 +3199,15 @@ export class FusebaseClient {
       displayName?: string;
     },
   ): Promise<unknown> {
+    const requestPayload = operation.type === "CHANGE_NAME"
+      ? { displayName: operation.displayName }
+      : { status: operation.status };
     return this.request<unknown>(`/automation/api/v1/flows/${flowId}`, {
       method: "POST",
-      body: JSON.stringify(operation),
+      body: JSON.stringify({
+        type: operation.type,
+        request: requestPayload,
+      }),
     });
   }
 

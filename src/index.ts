@@ -85,10 +85,30 @@ function getClient(profile?: string): FusebaseClient {
   return new FusebaseClient({ host, orgId, cookie, autoRefresh: true, profile: effectiveProfile, proxyRelayUrl: _proxyRelayUrl });
 }
 
-const server = new McpServer({
-  name: "fusebase",
-  version: "1.0.0",
-});
+const server = new McpServer(
+  {
+    name: "fusebase",
+    version: "1.0.0",
+  },
+  {
+    instructions: `FuseBase MCP Server provides programmatic access to the FuseBase collaborative workspace platform.
+
+Entity Hierarchy:
+- Organization (Tenant) -> Workspaces
+- Workspaces -> Folders -> Pages (Notes)
+- Workspaces -> Databases (Tables) -> Views & Records (Rows) / Relations
+
+Tool Tiers:
+- Starts in Core Tier (33 tools) covering full CRUD for pages, folders, content, comments, tasks, attachments, and profile management.
+- Call 'set_tool_tier' with tier="all" to unlock all 136 tools (databases, views, relations, permissions, automations, portals, webhooks).
+
+Content & Sync Guidelines:
+- Pages are collaborative documents backed by Y.js CRDT state. Use 'append_page_content' or 'update_page_content' to edit. Real-time updates propagate via WebSocket.
+- When retrieving page content, 'format: "markdown"' reduces token consumption by ~50% compared to raw HTML.
+- For attachments, 'download_attachment' returns images natively or saves large files to disk via 'saveToDisk: true'.
+- Destructive actions (deleting pages, databases, rows, relations, columns) are marked with [DESTRUCTIVE] and cannot be undone.`,
+  }
+);
 
 // ─── Tool Tier Management & Registration ────────────────────────
 
@@ -115,7 +135,7 @@ registerPrompts(server, getClient);
 if (process.env.FUSEBASE_TOOLS === "all") {
   enableExtendedTools();
 } else {
-  console.error("[fusebase] Running in core mode (27 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 136.");
+  console.error("[fusebase] Running in core mode (33 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 136.");
 }
 
 // ─── Start ──────────────────────────────────────────────────────

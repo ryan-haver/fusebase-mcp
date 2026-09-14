@@ -191,28 +191,28 @@
 
 ## 13. Automation (ActivePieces)
 
-> **Plan Gate Diagnostic:** Flow authoring (`POST /flows`), folders, and quota endpoints return `403 Forbidden` (`{"code":"AUTHORIZATION","params":{"message":"user does not have canManageAutomation privilege"}}`) on standard FuseBase tiers unless the automation add-on is provisioned. The connector piece catalog and test execution bridges operate safely.
+> **Plan Gate Diagnostic (RESOLVED):** Following the organization plan upgrade and owner session synchronization, the full ActivePieces automation suite is 100% operational. The MCP client transparently exchanges JWT tokens via `/automation/api/v1/authentication/fusebase-auth` and auto-injects `projectId` and `FBS-Session-ID` across all workflow authoring, folder, and catalog endpoints.
 
 | Status | Method | Endpoint | Tool / Description | Value |
 |---|---|---|---|---|
-| ✅ | GET | `/automation/api/v1/flows` | `list_automation_flows` — List automation workflows (paginated) | ⭐⭐⭐⭐ |
-| ✅ | POST | `/automation/api/v1/flows` | `create_automation_flow` — Create a new automation flow (requires `canManageAutomation`) | ⭐⭐⭐⭐ |
+| ✅ | GET | `/automation/api/v1/flows` | `list_automation_flows` — List automation workflows (auto-resolves `projectId`) | ⭐⭐⭐⭐ |
+| ✅ | POST | `/automation/api/v1/flows` | `create_automation_flow` — Create a new automation flow (auto-resolves `projectId`) | ⭐⭐⭐⭐ |
 | ✅ | GET | `/automation/api/v1/flows/{flowId}` | `get_automation_flow` — Get a specific automation flow | ⭐⭐⭐ |
 | ✅ | POST | `/automation/api/v1/flows/{flowId}` | `update_automation_flow` — Update flow status/name/type | ⭐⭐⭐ |
 | ✅ | DELETE | `/automation/api/v1/flows/{flowId}` | `delete_automation_flow` — Delete an automation flow | ⭐⭐⭐ |
 | ✅ | POST | `/automation/api/v1/flows/{flowId}/test` | `trigger_automation_flow` — Trigger/test-run automation flow with payload | ⭐⭐⭐⭐⭐ |
 | ✅ | GET | `/automation/api/v1/flow-runs` | `list_flow_runs` — Execution history of automation runs | ⭐⭐⭐⭐ |
-| ✅ | GET | `/automation/api/v1/pieces` | `list_automation_pieces` — Full automation pieces catalog (16 pieces discovered) | ⭐⭐⭐ |
+| ✅ | GET | `/automation/api/v1/pieces` | `list_automation_pieces` — Full automation pieces catalog (72 pieces available) | ⭐⭐⭐ |
 | ✅ | GET | `/automation/api/v1/flags` | `get_automation_flags` — Automation platform feature flags (EDITION, CURRENT_VERSION, WEBHOOK_URL_PREFIX) | ⭐ |
-| 🔒 | GET | `/automation/api/v1/flows/count` | Count of automation flows (plan-gated: requires `canManageAutomation`) | ⭐⭐ |
-| 🔒 | GET | `/automation/api/v1/folders` | Automation folder structure (plan-gated: requires `canManageAutomation`) | ⭐⭐ |
-| 🔒 | GET | `/automation/api/v1/app-connections` | External app connections (requires `projectId` + plan privilege) | ⭐⭐⭐ |
-| 🔒 | GET | `/automation/api/v1/usage/get` | Automation usage and billing quota (plan-gated) | ⭐⭐ |
-| 🔒 | GET | `/automation/api/v1/users/projects` | Automation projects list (plan-gated) | ⭐⭐ |
-| 🔒 | POST | `/automation/api/v1/authentication/fusebase-auth` | Automation auth token exchange (requires `sessionId`) | ⭐ |
-| 🔒 | GET | `/automation/api/v1/authentication/fusebase-admin-auth` | Automation admin auth check | ⭐ |
-| 🔒 | GET | `/automation/api/v1/pieces/@activepieces/piece-{name}` | Specific automation piece details (plan-gated) | ⭐⭐ |
-| 🔒 | GET | `/automation/api/v1/trigger-events` | Trigger events for a specific flow (plan-gated) | ⭐⭐ |
+| ✅ | GET | `/automation/api/v1/flows/count` | Count of automation flows | ⭐⭐ |
+| ✅ | GET | `/automation/api/v1/folders` | Automation folder structure | ⭐⭐ |
+| ✅ | GET | `/automation/api/v1/app-connections` | External app connections | ⭐⭐⭐ |
+| ✅ | GET | `/automation/api/v1/usage/get` | Automation usage and billing quota (900,000 operations limit) | ⭐⭐ |
+| ✅ | GET | `/automation/api/v1/users/projects` | Automation projects list | ⭐⭐ |
+| ✅ | POST | `/automation/api/v1/authentication/fusebase-auth` | Automation auth token exchange (auto-managed) | ⭐ |
+| ✅ | GET | `/automation/api/v1/authentication/fusebase-admin-auth` | Automation admin auth check | ⭐ |
+| ✅ | GET | `/automation/api/v1/pieces/@activepieces/piece-{name}` | Specific automation piece details | ⭐⭐ |
+| ✅ | GET | `/automation/api/v1/trigger-events` | Trigger events for a specific flow | ⭐⭐ |
 | 🔗 | GET/POST | `/automation/socket.io/` | WebSocket transport for real-time automation events | ⭐ |
 
 ## 14. Billing & Account

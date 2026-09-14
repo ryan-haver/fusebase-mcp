@@ -175,8 +175,8 @@ export async function refreshCookies(config: AuthConfig): Promise<string> {
         }));
 
         // Dynamic import to avoid circular deps (scripts/ → src/)
-        const cryptoPath = new URL("../src/crypto.js", import.meta.url).pathname;
-        const { saveEncryptedCookie } = await import(cryptoPath);
+        const cryptoUrl = new URL("../src/crypto.js", import.meta.url).href;
+        const { saveEncryptedCookie } = await import(cryptoUrl);
         saveEncryptedCookie(
           cookieString,
           {
@@ -214,8 +214,8 @@ export async function refreshCookies(config: AuthConfig): Promise<string> {
  */
 export async function isCookieFresh(profile?: string): Promise<boolean> {
   try {
-    const cryptoPath = new URL("../src/crypto.js", import.meta.url).pathname;
-    const { isEncryptedCookieFresh } = await import(cryptoPath);
+    const cryptoUrl = new URL("../src/crypto.js", import.meta.url).href;
+    const { isEncryptedCookieFresh } = await import(cryptoUrl);
     return isEncryptedCookieFresh(profile);
   } catch {
     return false;

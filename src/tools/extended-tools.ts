@@ -118,253 +118,6 @@ export function registerExtendedTools(
     },
   );
 
-  // === Folder Creation ===
-
-  server.tool(
-    "create_folder",
-    "Create a new folder in a FuseBase workspace. Optionally specify a parentId to create a subfolder. Returns the created folder's metadata including its globalId.",
-    {
-      workspaceId: z.string().describe("Workspace ID"),
-      title: z.string().describe("Folder name"),
-      parentId: z
-        .string()
-        .optional()
-        .describe("Parent folder ID for nesting (default: workspace root)"),
-      profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, title, parentId, profile }) => {
-      const client = getClient(profile);
-      try {
-        const result = await client.createFolder(
-          workspaceId,
-          title,
-          parentId || "default",
-        );
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(result, null, 2),
-            },
-          ],
-        };
-      } catch (error) {
-        return errorResult(error);
-      }
-    },
-  );
-
-  // === Page/Folder Updates ===
-
-  server.tool(
-    "update_page",
-    "Update a page or folder's properties — rename it, move it to a different folder, or both. Uses the upsert endpoint so partial updates are safe.",
-    {
-      workspaceId: z.string().describe("Workspace ID"),
-      pageId: z.string().describe("Page or folder ID to update"),
-      title: z
-        .string()
-        .optional()
-        .describe("New title/name for the page or folder"),
-      parentId: z
-        .string()
-        .optional()
-        .describe("New parent folder ID to move the page into"),
-      profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, pageId, title, parentId, profile }) => {
-      const client = getClient(profile);
-      try {
-        const updates: { title?: string; parentId?: string } = {};
-        if (title) updates.title = title;
-        if (parentId) updates.parentId = parentId;
-        await client.upsertPage(workspaceId, pageId, updates);
-        const actions = [];
-        if (title) actions.push(`renamed to "${title}"`);
-        if (parentId) actions.push(`moved to folder ${parentId}`);
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `Page ${pageId} updated: ${actions.join(", ")}.`,
-            },
-          ],
-        };
-      } catch (error) {
-        return errorResult(error);
-      }
-    },
-  );
-
-  // === Task Mutations ===
-
-  server.tool(
-    "update_task",
-    "Update a task's properties — change status, priority, title, description, assignees, or due date. Uses PATCH semantics so only specified fields are changed.",
-    {
-      workspaceId: z.string().describe("Workspace ID"),
-      taskId: z.string().describe("Task ID to update"),
-      title: z.string().optional().describe("New task title"),
-      description: z.string().optional().describe("New task description"),
-      priority: z
-        .string()
-        .optional()
-        .describe("New priority (e.g. 'high', 'medium', 'low')"),
-      completed: z
-        .boolean()
-        .optional()
-        .describe("Set to true to mark task as complete"),
-      profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, taskId, title, description, priority, completed, profile }) => {
-      const client = getClient(profile);
-      try {
-        const updates: Record<string, unknown> = {};
-        if (title !== undefined) updates.title = title;
-        if (description !== undefined) updates.description = description;
-        if (priority !== undefined) updates.priority = priority;
-        if (completed !== undefined) updates.completed = completed;
-        const result = await client.updateTask(workspaceId, taskId, updates);
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(result, null, 2),
-            },
-          ],
-        };
-      } catch (error) {
-        return errorResult(error);
-      }
-    },
-  );
-
-  server.tool(
-    "delete_task",
-    "Delete a task permanently from a workspace. This action is irreversible.",
-    {
-      workspaceId: z.string().describe("Workspace ID"),
-      taskId: z.string().describe("Task ID to delete"),
-      profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, taskId, profile }) => {
-      const client = getClient(profile);
-      try {
-        await client.deleteTask(workspaceId, taskId);
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `Task ${taskId} deleted successfully.`,
-            },
-          ],
-        };
-      } catch (error) {
-        return errorResult(error);
-      }
-    },
-  );
-
-  // === Page Mutations ===
-
-  server.tool(
-    "delete_page",
-    "Delete a page permanently from a workspace. This action is irreversible — the page and its content will be lost. Use get_page first to verify you have the correct page before deleting.",
-    {
-      workspaceId: z.string().describe("Workspace ID"),
-      pageId: z.string().describe("Page (note) ID to delete"),
-      profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, pageId, profile }) => {
-      const client = getClient(profile);
-      try {
-        await client.deletePage(workspaceId, pageId);
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `Page ${pageId} deleted successfully.`,
-            },
-          ],
-        };
-      } catch (error) {
-        return errorResult(error);
-      }
-    },
-  );
-
-  server.tool(
-    "update_page_content",
-    "Write or replace content on a page using the native Y.js WebSocket protocol. Accepts markdown (recommended) or structured content blocks. Supports: headings (H1/H2/H3), paragraphs, bold, italic, strikethrough, underline, inline code, links, highlight, bullet/numbered/checkbox lists, dividers, blockquotes, code blocks (with language), toggles, hints/callouts, collapsible headings, images, files, bookmarks, remote frames, outlines, buttons, steps, tables, and grid layouts.",
-    {
-      workspaceId: z.string().describe("Workspace ID"),
-      pageId: z.string().describe("Page (note) ID"),
-      markdown: z
-        .string()
-        .optional()
-        .describe("Markdown string to write. Auto-converted to Fusebase format. Supports # headings, **bold**, *italic*, ~~strikethrough~~, `code`, [links](url), - lists, 1. numbered, ---, > blockquotes, ```code```. For advanced blocks (toggle, hint, image, table), use the 'blocks' parameter instead."),
-      blocks: z
-        .array(z.unknown())
-        .optional()
-        .describe("Structured ContentBlock[] array for programmatic control. Supports all block types: paragraph, heading, list, code, blockquote, divider, toggle, hint, collapsible-heading, image, file, bookmark, remote-frame, outline, button, step, step-aggregator, table, and grid."),
-      replace: z
-        .boolean()
-        .optional()
-        .describe("Replace existing content (default: true). Set to false to append."),
-      profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, pageId, markdown, blocks, replace, profile }) => {
-      const client = getClient(profile);
-      try {
-        let contentBlocks: ContentBlock[];
-
-        if (markdown) {
-          // Markdown → ContentBlock schema
-          contentBlocks = markdownToSchema(markdown);
-        } else if (blocks) {
-          contentBlocks = blocks as ContentBlock[];
-        } else {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: "Error: Provide either 'markdown' or 'blocks'",
-              },
-            ],
-            isError: true,
-          };
-        }
-
-        // Write via native Y.js WebSocket protocol
-        const result = await writeContentViaWebSocket(
-          client["host"],
-          workspaceId,
-          pageId,
-          client["cookie"],
-          contentBlocks,
-          { replace: replace !== false, timeout: 20000 },
-        );
-
-        if (result.success) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Content written successfully via Y.js WebSocket (${contentBlocks.length} blocks).`,
-              },
-            ],
-          };
-        } else {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Write failed: ${result.error}`,
-              },
-            ],
-            isError: true,
-          };
-        }
-      } catch (error) {
-        return errorResult(error);
-      }
-    },
-  );
-
   // === AI Agents ===
 
   server.tool(
@@ -592,14 +345,22 @@ export function registerExtendedTools(
     "Create a new comment thread on a Fusebase page. The comment is anchored to a specific block (targetId) or to the page itself. Use this to leave feedback, ask questions, or communicate with human collaborators.",
     {
       workspaceId: z.string().describe("Workspace ID"),
-      noteId: z.string().describe("Page (note) ID to comment on"),
+      noteId: z.string().optional().describe("Page (note) ID to comment on"),
+      pageId: z.string().optional().describe("Page (note) ID to comment on (alias for noteId)"),
       text: z.string().describe("Plain text of the comment"),
       targetId: z.string().optional().describe("Block ID to anchor the comment to (e.g. 'b164359351_1'). Omit to comment on the page itself."),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, noteId, text, targetId, profile }) => {
+    }, async ({ workspaceId, noteId, pageId, text, targetId, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.postComment(workspaceId, noteId, text, targetId);
+        const effectiveNoteId = noteId || pageId;
+        if (!effectiveNoteId) {
+          return {
+            content: [{ type: "text" as const, text: "Error: Either 'noteId' or 'pageId' must be provided." }],
+            isError: true,
+          };
+        }
+        const result = await client.postComment(workspaceId, effectiveNoteId, text, targetId);
         return {
           content: [
             { type: "text" as const, text: `Comment posted successfully.\n${JSON.stringify(result, null, 2)}` },
@@ -995,7 +756,7 @@ export function registerExtendedTools(
 
   server.tool(
     "delete_database_row",
-    "Delete a row from a database. Requires the dashboard ID and the row ID. Use get_database_rows to find row IDs.",
+    "[DESTRUCTIVE] Delete a row from a database. Requires the dashboard ID and the row ID. Use get_database_rows to find row IDs.",
     {
       dashboardId: z.string().describe("Dashboard (table) ID"),
       rowId: z.string().describe("Row ID to delete (from get_database_rows)"),
@@ -1064,10 +825,10 @@ export function registerExtendedTools(
 
   server.tool(
     "create_dashboard_table",
-    "Create a new table (tab) within an existing database dashboard. This adds an additional table view alongside the existing one.",
+    "Create a new table (dashboard) within an existing database. Returns the new dashboard UUID and its default view UUID. Use list_all_databases to find the parent database ID.",
     {
-      dashboardId: z.string().describe("Dashboard ID of the existing table"),
-      title: z.string().describe("Name for the new table"),
+      dashboardId: z.string().describe("Parent database UUID (called dashboardId in the API)"),
+      title: z.string().describe("Table title"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     }, async ({ dashboardId, title, profile }) => {
       const client = getClient(profile);
@@ -1086,7 +847,7 @@ export function registerExtendedTools(
 
   server.tool(
     "delete_relation",
-    "Delete a relation by its ID. This removes the link between two database tables. Use list_database_relations to find relation IDs.",
+    "[DESTRUCTIVE] Delete a relation by its ID. This removes the link between two database tables. Use list_database_relations to find relation IDs.",
     {
       relationId: z.string().describe("Relation ID to delete"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
@@ -1129,12 +890,20 @@ export function registerExtendedTools(
     "get_database_detail",
     "Get detailed information about a specific database including all its dashboards (tables) and views. Use the database ID from list_all_databases or create_database.",
     {
-      databaseId: z.string().describe("Database UUID"),
+      databaseId: z.string().optional().describe("Database UUID"),
+      dashboardId: z.string().optional().describe("Database UUID (alias for databaseId)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ databaseId, profile }) => {
+    }, async ({ databaseId, dashboardId, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.getDatabaseDetail(databaseId);
+        const effectiveId = databaseId || dashboardId;
+        if (!effectiveId) {
+          return {
+            content: [{ type: "text" as const, text: "Error: Either 'databaseId' or 'dashboardId' must be provided." }],
+            isError: true,
+          };
+        }
+        const result = await client.getDatabaseDetail(effectiveId);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
@@ -1150,7 +919,8 @@ export function registerExtendedTools(
     "update_database",
     "Update a database's title, description, icon, color, favorite status, or public visibility. Uses PUT (PATCH is not supported by this API).",
     {
-      databaseId: z.string().describe("Database UUID to update"),
+      databaseId: z.string().optional().describe("Database UUID to update"),
+      dashboardId: z.string().optional().describe("Database UUID to update (alias for databaseId)"),
       title: z.string().optional().describe("New database title"),
       description: z.string().optional().describe("New description"),
       icon: z.string().optional().describe("Icon name (e.g. 'default')"),
@@ -1158,10 +928,17 @@ export function registerExtendedTools(
       isPublic: z.boolean().optional().describe("Whether the database is public"),
       favorite: z.boolean().optional().describe("Toggle favorite status"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ databaseId, title, description, icon, color, isPublic, favorite, profile }) => {
+    }, async ({ databaseId, dashboardId, title, description, icon, color, isPublic, favorite, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.updateDatabase(databaseId, { title, description, icon, color, isPublic, favorite });
+        const effectiveId = databaseId || dashboardId;
+        if (!effectiveId) {
+          return {
+            content: [{ type: "text" as const, text: "Error: Either 'databaseId' or 'dashboardId' must be provided." }],
+            isError: true,
+          };
+        }
+        const result = await client.updateDatabase(effectiveId, { title, description, icon, color, isPublic, favorite });
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
@@ -1175,14 +952,22 @@ export function registerExtendedTools(
 
   server.tool(
     "delete_database",
-    "Delete a database and ALL its dashboards (tables), views, and data. This action is irreversible. Returns 204 on success.",
+    "[DESTRUCTIVE] Delete a database and ALL its dashboards (tables), views, and data. This action is irreversible. Returns 204 on success.",
     {
-      databaseId: z.string().describe("Database UUID to delete"),
+      databaseId: z.string().optional().describe("Database UUID to delete"),
+      dashboardId: z.string().optional().describe("Database UUID to delete (alias for databaseId)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ databaseId, profile }) => {
+    }, async ({ databaseId, dashboardId, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.deleteDatabase(databaseId);
+        const effectiveId = databaseId || dashboardId;
+        if (!effectiveId) {
+          return {
+            content: [{ type: "text" as const, text: "Error: Either 'databaseId' or 'dashboardId' must be provided." }],
+            isError: true,
+          };
+        }
+        const result = await client.deleteDatabase(effectiveId);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
@@ -1217,7 +1002,7 @@ export function registerExtendedTools(
 
   server.tool(
     "delete_dashboard",
-    "Delete a dashboard (table) within a database. Removes the table and its data. Use get_database_detail first to see available dashboards.",
+    "[DESTRUCTIVE] Delete a dashboard (table) within a database. Removes the table and its data. Use get_database_detail first to see available dashboards.",
     {
       dashboardId: z.string().describe("Dashboard UUID to delete"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
@@ -1301,13 +1086,22 @@ export function registerExtendedTools(
     "duplicate_database",
     "Duplicate (copy) an entire database, including tables, views, relations, and optionally data. Returns the new database with its UUIDs. Discovered via captured API: POST /databases/copy-from/database.",
     {
-      sourceDbId: z.string().describe("Global ID of the database to duplicate"),
-      copyData: z.boolean().optional().describe("Copy row data too (default true). Set false for structure-only copy."),
+      sourceDbId: z.string().optional().describe("Global ID of the database to duplicate"),
+      databaseId: z.string().optional().describe("Global ID of the database to duplicate (alias for sourceDbId)"),
+      dashboardId: z.string().optional().describe("Global ID of the database to duplicate (alias for sourceDbId)"),
+      copyData: z.boolean().optional().default(true).describe("Copy row data too (default true). Set false for structure-only copy."),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ sourceDbId, copyData, profile }) => {
+    }, async ({ sourceDbId, databaseId, dashboardId, copyData, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.duplicateDatabase(sourceDbId, { copyData });
+        const effectiveId = sourceDbId || databaseId || dashboardId;
+        if (!effectiveId) {
+          return {
+            content: [{ type: "text" as const, text: "Error: Either 'sourceDbId' or 'databaseId' must be provided." }],
+            isError: true,
+          };
+        }
+        const result = await client.duplicateDatabase(effectiveId, { copyData });
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
@@ -1343,7 +1137,7 @@ export function registerExtendedTools(
 
   server.tool(
     "delete_view",
-    "Delete a view from a dashboard. Cannot delete the default (first) view. Use get_dashboard_detail to find view UUIDs.",
+    "[DESTRUCTIVE] Delete a view from a dashboard. Cannot delete the default (first) view. Use get_dashboard_detail to find view UUIDs.",
     {
       dashboardId: z.string().describe("Dashboard UUID"),
       viewId: z.string().describe("View UUID to delete"),
@@ -1636,7 +1430,7 @@ export function registerExtendedTools(
 
   server.tool(
     "delete_database_column",
-    "Delete a column from a database view by its key. Use get_database_schema first to find the column key. This removes the column definition from the schema — existing cell data for that column key will no longer be visible. This action cannot be undone.",
+    "[DESTRUCTIVE] Delete a column from a database view by its key. Use get_database_schema first to find the column key. This removes the column definition from the schema — existing cell data for that column key will no longer be visible. This action cannot be undone.",
     {
       dashboardId: z.string().describe("Dashboard (table) ID"),
       viewId: z.string().describe("View ID"),
@@ -1782,11 +1576,13 @@ export function registerExtendedTools(
     {
       workspaceId: z.string().describe("Workspace ID"),
       noteId: z.string().optional().describe("Page/note ID to filter (optional)"),
+      pageId: z.string().optional().describe("Page/note ID to filter (optional, alias for noteId)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, noteId, profile }) => {
+    }, async ({ workspaceId, noteId, pageId, profile }) => {
       const client = getClient(profile);
       try {
-        const pages = await client.getPortalPages(workspaceId, noteId);
+        const effectiveNoteId = noteId || pageId;
+        const pages = await client.getPortalPages(workspaceId, effectiveNoteId);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(pages, null, 2) },
@@ -2271,7 +2067,7 @@ export function registerExtendedTools(
 
   server.tool(
     "delete_automation_flow",
-    "Delete an ActivePieces workflow automation by flow ID.",
+    "[DESTRUCTIVE] Delete an ActivePieces workflow automation by flow ID.",
     {
       flowId: z.string().describe("ID of the flow to delete"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
