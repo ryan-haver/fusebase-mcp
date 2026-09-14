@@ -496,6 +496,58 @@ export function registerCoreTools(
     },
   );
 
+  server.tool(
+    "move_page",
+    "Move a page to a different folder within the workspace, move it back to workspace root, or migrate it to an entirely different workspace. Specify targetWorkspaceId to migrate across workspaces, and/or folderId (or parentId) to move between folders.",
+    {
+      workspaceId: z.string().describe("Current workspace ID containing the page"),
+      pageId: z.string().describe("Page (note) ID to move"),
+      targetWorkspaceId: z
+        .string()
+        .optional()
+        .describe("Destination workspace ID if moving across workspaces (defaults to current workspace)"),
+      folderId: z
+        .string()
+        .optional()
+        .describe("Destination folder ID, or 'root' to move to root level"),
+      parentId: z
+        .string()
+        .optional()
+        .describe("Destination folder ID (alias for folderId)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    }, async ({ workspaceId, pageId, targetWorkspaceId, folderId, parentId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const effectiveFolder = folderId || parentId;
+        const res = await client.movePage(workspaceId, pageId, {
+          targetWorkspaceId,
+          folderId: effectiveFolder,
+        });
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(
+                {
+                  success: true,
+                  message: `Page ${pageId} moved successfully.`,
+                  pageId,
+                  destinationWorkspaceId: targetWorkspaceId || workspaceId,
+                  destinationFolderId: effectiveFolder || "root",
+                  operationId: res.id,
+                },
+                null,
+                2,
+              ),
+            },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
   // === Folders ===
 
   server.tool(

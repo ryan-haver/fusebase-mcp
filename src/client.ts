@@ -574,6 +574,34 @@ export class FusebaseClient {
     );
   }
 
+  /**
+   * Move a page to a different folder or workspace.
+   * Endpoint: POST /v2/api/workspaces/{workspaceId}/notes/{noteId}/move
+   * Body: { workspaceId: targetWorkspaceId, parentId: folderId || "root" }
+   */
+  async movePage(
+    workspaceId: string,
+    noteId: string,
+    options: {
+      targetWorkspaceId?: string;
+      folderId?: string;
+      parentId?: string;
+    } = {},
+  ): Promise<{ id: string }> {
+    const targetWorkspace = options.targetWorkspaceId || workspaceId;
+    const parent = options.folderId || options.parentId || "root";
+    return this.request<{ id: string }>(
+      `/v2/api/workspaces/${workspaceId}/notes/${noteId}/move`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          workspaceId: targetWorkspace,
+          parentId: parent,
+        }),
+      },
+    );
+  }
+
   // ─── Folders ──────────────────────────────────────────────────
 
   /** List folders in a workspace */
@@ -1008,6 +1036,28 @@ export class FusebaseClient {
   async listAgents(): Promise<FusebaseAgent[]> {
     return this.request<FusebaseAgent[]>(
       `/v4/api/proxy/ai-service/v1/orgs/${this.orgId}/agent-categories/agents?globalId=all`,
+    );
+  }
+
+  /** List all AI agent categories (Sales, Support, Development, etc.) */
+  async listAiAgentCategories(orgId?: string): Promise<Array<{
+    id: number;
+    globalId: string;
+    name: string;
+    description: string;
+    type: string;
+    [key: string]: unknown;
+  }>> {
+    const org = orgId || this.orgId;
+    return this.request<Array<{
+      id: number;
+      globalId: string;
+      name: string;
+      description: string;
+      type: string;
+      [key: string]: unknown;
+    }>>(
+      `/v4/api/proxy/ai-service/v1/orgs/${org}/agent-categories`,
     );
   }
 
@@ -1785,6 +1835,22 @@ export class FusebaseClient {
     let url = `/v4/api/dashboard/representation-templates?orgId=${org}`;
     if (workspaceId) url += `&workspaceId=${workspaceId}`;
     return this.request<unknown>(url);
+  }
+
+  /** Get master database and dashboard entity templates (All workspaces, All portals, All forms, Custom table, All clients) */
+  async getDatabaseEntityTemplates(): Promise<{
+    success: boolean;
+    message: string;
+    data: Array<{
+      global_id: string;
+      name: string;
+      root_entity: string;
+      schema: Record<string, unknown>;
+    }>;
+  }> {
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/templates`,
+    );
   }
 
   /**
@@ -3238,6 +3304,66 @@ export class FusebaseClient {
   /** Get ActivePieces automation platform configuration and feature flags */
   async getAutomationFlags(): Promise<unknown> {
     return this.request<unknown>("/automation/api/v1/flags");
+  }
+
+  /** List automation workflow folders */
+  async listAutomationFolders(): Promise<{
+    data: Array<{
+      id: string;
+      projectId: string;
+      displayName: string;
+      color?: string;
+      created: string;
+      updated: string;
+    }>;
+  }> {
+    await this.ensureAutomationAuth();
+    return this.request("/automation/api/v1/folders");
+  }
+
+  /**
+   * Create an automation workflow folder in ActivePieces.
+   * Endpoint: POST /automation/api/v1/folders
+   */
+  async createAutomationFolder(
+    displayName: string,
+    color: string = "teal",
+  ): Promise<{
+    id: string;
+    projectId: string;
+    displayName: string;
+    color: string;
+    created: string;
+    updated: string;
+  }> {
+    await this.ensureAutomationAuth();
+    return this.request("/automation/api/v1/folders", {
+      method: "POST",
+      body: JSON.stringify({ displayName, color }),
+    });
+  }
+
+  /**
+   * Delete an automation workflow folder in ActivePieces.
+   * Endpoint: DELETE /automation/api/v1/folders/{folderId}
+   */
+  async deleteAutomationFolder(folderId: string): Promise<void> {
+    await this.ensureAutomationAuth();
+    await this.request(`/automation/api/v1/folders/${folderId}`, {
+      method: "DELETE",
+    });
+  }
+
+  /** Get current ActivePieces automation user profile */
+  async getAutomationUser(): Promise<{
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    [key: string]: unknown;
+  }> {
+    await this.ensureAutomationAuth();
+    return this.request("/automation/api/v1/users/me");
   }
 
   // ─── Portal Clients & Magic Links ────────────────────────────

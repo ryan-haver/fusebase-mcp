@@ -1317,7 +1317,12 @@ export async function readContentViaWebSocket(
     });
 
     let resolved = false;
+    let settleTimer: NodeJS.Timeout | null = null;
     const done = (result: { success: boolean; html?: string; doc?: Y.Doc; error?: string }) => {
+      if (settleTimer) {
+        clearTimeout(settleTimer);
+        settleTimer = null;
+      }
       if (!resolved) { resolved = true; clearTimeout(timeoutId); resolve(result); }
       try { ws.close(); } catch { }
     };
@@ -1373,14 +1378,26 @@ export async function readContentViaWebSocket(
           try { Y.applyUpdate(ydoc, updateData); } catch { }
         }
 
-        // Decode and return
-        const html = decodeYDocToHtml(ydoc);
-        done({ success: true, html, doc: ydoc });
+        // Allow trailing incremental updates (subType 2) to settle before returning
+        if (settleTimer) clearTimeout(settleTimer);
+        settleTimer = setTimeout(() => {
+          const html = decodeYDocToHtml(ydoc);
+          done({ success: true, html, doc: ydoc });
+        }, 150);
       } else if (subType === 2) {
         const [uLen, uStart] = readVarUint(data, subOff);
         const updateData = data.slice(uStart, uStart + uLen);
         try { Y.applyUpdateV2(ydoc, updateData); } catch {
           try { Y.applyUpdate(ydoc, updateData); } catch { }
+        }
+
+        // Refresh settle timer if we already received the sync snapshot
+        if (settleTimer) {
+          clearTimeout(settleTimer);
+          settleTimer = setTimeout(() => {
+            const html = decodeYDocToHtml(ydoc);
+            done({ success: true, html, doc: ydoc });
+          }, 150);
         }
       }
     });

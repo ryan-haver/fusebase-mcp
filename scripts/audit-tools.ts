@@ -164,7 +164,7 @@ if (missingFromReadme.length > 0) {
   console.log(`Tools missing from README (${missingFromReadme.length}):`);
   console.log(" ", missingFromReadme.join(", "));
 } else {
-  console.log("  All 136 tools are explicitly documented in README.md!");
+  console.log(`  All ${tools.length} tools are explicitly documented in README.md!`);
 }
 
 

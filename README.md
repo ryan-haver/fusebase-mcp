@@ -167,7 +167,7 @@ If it works, you're all set! 🎉
 You can also run automated verification directly from your terminal:
 
 ```bash
-npm run test:audit  # Validate all 136 tool schemas, parameters, and documentation
+npm run test:audit  # Validate all 143 tool schemas, parameters, and documentation
 npm test            # Run full 14-stage platform end-to-end test suite
 ```
 
@@ -215,17 +215,17 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 
 | Tier | Tools | Description |
 | --- | --- | --- |
-| **Core** (default) | 33 | Day-to-day: full CRUD for pages, folders, content, tasks, tags, attachments, members, guides, session health, profiles |
-| **Extended** | +103 | Admin, CLI apps, automations, portal lifecycle, databases, swarm state machines, billing, preferences |
+| **Core** (default) | 34 | Day-to-day: full CRUD and organization for pages, folders, content, tasks, tags, attachments, members, guides, session health, profiles |
+| **Extended** | +109 | Admin, CLI apps, automations, portal lifecycle, databases, templates, swarm state machines, billing, preferences |
 
 **Enable extended tools:**
 
 - Mid-session: ask your AI to use `set_tool_tier` with `tier: "all"`
 - Always-on: add `FUSEBASE_TOOLS=all` to your `.env`
 
-### Core Tools (33)
+### Core Tools (34)
 
-Core tools load by default and provide complete CRUD operations for day-to-day workspace workflows without requiring extended tier switching:
+Core tools load by default and provide complete CRUD and organization operations for day-to-day workspace workflows without requiring extended tier switching:
 
 | Category | Tool | Description |
 | --- | --- | --- |
@@ -241,6 +241,7 @@ Core tools load by default and provide complete CRUD operations for day-to-day w
 | Content | `get_recent_pages` | Recently accessed pages in workspace |
 | Content | `create_page` | Create a page with optional markdown or block content |
 | Content | `update_page` | Update page title or move between folders |
+| Content | `move_page` | Move a page between folders or migrate across workspaces |
 | Content | `delete_page` | `[DESTRUCTIVE]` Delete a page permanently |
 | Content | `get_page_content` | Retrieve page content as HTML or token-efficient Markdown (`format: "markdown"`) |
 | Content | `append_page_content` | Non-destructive block append via real-time Y.js WebSocket |
@@ -263,22 +264,22 @@ Core tools load by default and provide complete CRUD operations for day-to-day w
 | Guides | `get_guide` | Get full markdown guide by section and slug |
 | Guides | `list_guide_sections` | Browse all 19 documentation sections |
 
-### Extended Tools (103)
+### Extended Tools (109)
 
 Enable with `set_tool_tier(tier: "all")` or set `FUSEBASE_TOOLS=all` in `.env`:
 
 - **Client Portal Hub**: `check_portal_availability`, `create_portal`, `get_portal`, `get_portal_theme`, `get_portal_navigation_menu`, `get_workspace_portal`, `publish_page_to_portal`, `list_portal_clients`, `invite_portal_client`, `create_portal_magic_link`, `list_portals`, `get_portal_pages`
 - **Multi-Agent Swarms**: `fusebase_swarm_init`, `fusebase_swarm_task_transition`
 - **FuseBase CLI & Hosted Apps**: `fusebase_cli_status`, `fusebase_cli_init`, `fusebase_cli_list_apps`, `fusebase_cli_deploy`, `create_interactive_app_page`
-- **ActivePieces Workflow Automations**: `list_automation_flows`, `get_automation_flow`, `create_automation_flow`, `update_automation_flow`, `delete_automation_flow`, `trigger_automation_flow`, `list_flow_runs`, `list_automation_pieces`, `get_automation_flags`
+- **ActivePieces Workflow Automations**: `list_automation_flows`, `get_automation_flow`, `create_automation_flow`, `update_automation_flow`, `delete_automation_flow`, `trigger_automation_flow`, `list_flow_runs`, `list_automation_pieces`, `get_automation_flags`, `list_automation_folders`, `create_automation_folder`, `delete_automation_folder`, `get_automation_user`
 - **Tasks (Metrics & Logs)**: `get_tasks_workspace_summary`, `get_task_time_tracking`, `get_task_description`, `get_task_count`, `get_task_usage`
 - **Labels & Tags**: `get_labels`, `get_note_tags`
 - **Comments & Activity Stream**: `get_activity_stream`, `get_comment_threads`, `fusebase_poll_mentions`, `fusebase_post_comment`, `fusebase_reply_comment`, `fusebase_resolve_thread`
 - **Files & Storage**: `get_file_count`
 - **Organization Administration**: `get_member_roles`, `get_workspace_members_v1`, `get_org_trials`, `get_org_usage`, `get_org_limits`, `get_usage_summary`, `get_org_permissions`, `get_org_features`, `get_ai_usage`
 - **Workspaces & Subscription**: `get_workspace_premium_status`, `get_active_import_status`, `get_workspace_detail`, `get_workspace_emails`, `get_workspace_info`
-- **Navigation & AI Assistant**: `get_agent_public_profile`, `get_ai_assistant_state`, `list_ai_agent_threads`, `get_ai_agent_favorites`, `get_navigation_menu`, `get_mention_entities`, `list_agents`, `get_recently_updated_notes`
-- **Databases & Tables**: `get_dashboard_templates`, `get_database_data`, `list_databases`, `get_database_entity`, `create_database`, `add_database_row`, `delete_database_row`, `move_kanban_card`, `list_database_relations`, `create_dashboard_table`, `delete_relation`, `list_all_databases`, `get_database_detail`, `update_database`, `delete_database`, `get_dashboard_detail`, `delete_dashboard`
+- **Navigation & AI Assistant**: `get_agent_public_profile`, `get_ai_assistant_state`, `list_ai_agent_threads`, `get_ai_agent_favorites`, `get_navigation_menu`, `get_mention_entities`, `list_agents`, `list_ai_agent_categories`, `get_recently_updated_notes`
+- **Databases & Tables**: `get_dashboard_templates`, `get_database_entity_templates`, `get_database_data`, `list_databases`, `get_database_entity`, `create_database`, `add_database_row`, `delete_database_row`, `move_kanban_card`, `list_database_relations`, `create_dashboard_table`, `delete_relation`, `list_all_databases`, `get_database_detail`, `update_database`, `delete_database`, `get_dashboard_detail`, `delete_dashboard`
 - **Views**: `update_view`, `set_view_representation`, `create_view`, `delete_view`, `duplicate_view`, `set_view_grouping`
 - **Columns**: `add_database_column`, `delete_database_column`, `rename_database_column`, `reorder_database_columns`, `set_column_width`, `add_relation_column`, `add_lookup_column`
 - **Cells & Rows**: `update_database_cell`, `get_database_rows`, `get_database_schema`
@@ -296,7 +297,7 @@ Enable with `set_tool_tier(tier: "all")` or set `FUSEBASE_TOOLS=all` in `.env`:
 
 ```text
 src/
-  index.ts              → MCP server (136 tools, stdio transport, tier system, instructions)
+  index.ts              → MCP server (143 tools, stdio transport, tier system, instructions)
   client.ts             → HTTP client (cookie auth, ActivePieces token exchange, 401 auto-retry, logging)
   crypto.ts             → AES-256-GCM encryption for multi-profile secrets at rest
   types.ts              → TypeScript interfaces for API responses
@@ -305,8 +306,8 @@ src/
   proxy-relay.ts        → HTTP CONNECT proxy relay for SOCKS5 upstream proxies
   guide-loader.ts       → Guide search index (277 guides, 19 sections)
   tools/
-    core-tools.ts       → 33 Core tools (full CRUD for pages, tasks, folders, content, profiles)
-    extended-tools.ts   → 103 Extended tools (databases, views, automations, portals, admin, CLI)
+    core-tools.ts       → 34 Core tools (full CRUD and organization for pages, tasks, folders, content, profiles)
+    extended-tools.ts   → 109 Extended tools (databases, views, automations, portals, admin, CLI)
     helpers.ts          → HTML-to-markdown converter, MIME detection, error formatting
   yjs-ws-writer.ts      → Y.js WebSocket writer (write + read via WS sync)
   yjs-html-decoder.ts   → Y.js document → HTML decoder (20+ block types)

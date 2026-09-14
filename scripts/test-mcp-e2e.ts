@@ -167,14 +167,15 @@ async function main() {
   console.log("\n--- Testing Tool Listing (Core Tier) ---");
   const coreToolsRes = await client.listTools();
   console.log(`Core tools found: ${coreToolsRes.tools.length}`);
-  if (coreToolsRes.tools.length !== 33) {
-    throw new Error(`Expected exactly 33 core tools, found ${coreToolsRes.tools.length}!`);
+  if (coreToolsRes.tools.length !== 34) {
+    throw new Error(`Expected exactly 34 core tools, found ${coreToolsRes.tools.length}!`);
   }
   const coreNames = new Set(coreToolsRes.tools.map((t) => t.name));
   for (const expected of [
     "list_workspaces",
     "create_page",
     "update_page",
+    "move_page",
     "delete_page",
     "get_page_content",
     "append_page_content",
@@ -226,7 +227,9 @@ async function main() {
     "list_ai_agent_threads",
     "get_ai_agent_favorites",
     "get_agent_public_profile",
+    "list_ai_agent_categories",
     "get_dashboard_templates",
+    "get_database_entity_templates",
     "get_member_roles",
     "get_workspace_members_v1",
     "get_tasks_workspace_summary",
@@ -238,6 +241,10 @@ async function main() {
     "create_portal_magic_link",
     "list_automation_flows",
     "list_automation_pieces",
+    "list_automation_folders",
+    "create_automation_folder",
+    "delete_automation_folder",
+    "get_automation_user",
     "delete_page",
     "create_database",
     "get_task_time_tracking",
@@ -250,10 +257,10 @@ async function main() {
       throw new Error(`Expected extended tool '${expected}' not found!`);
     }
   }
-  if (allToolsRes.tools.length !== 136) {
-    throw new Error(`Expected exactly 136 tools, found ${allToolsRes.tools.length}!`);
+  if (allToolsRes.tools.length !== 143) {
+    throw new Error(`Expected exactly 143 tools, found ${allToolsRes.tools.length}!`);
   }
-  console.log(`✅ All ${allToolsRes.tools.length} tools registered successfully (expected 136)`);
+  console.log(`✅ All ${allToolsRes.tools.length} tools registered successfully (expected 143)`);
 
   // ─── 4. Agent Profiles ─────────────────────────────────────────
   console.log("\n--- Testing Agent Profiles ---");
@@ -340,11 +347,18 @@ async function main() {
   console.log("✅ Base AND Appended content both verified!");
 
   console.log("Reading content back via get_page_content (markdown format)...");
-  const readMdRes = await client.callTool({
-    name: "get_page_content",
-    arguments: { workspaceId: targetWsId, pageId: pageId, format: "markdown" },
-  });
-  const readMd = (readMdRes.content as any)[0]?.text || "";
+  let readMd = "";
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    await new Promise((r) => setTimeout(r, 1000));
+    const readMdRes = await client.callTool({
+      name: "get_page_content",
+      arguments: { workspaceId: targetWsId, pageId: pageId, format: "markdown" },
+    });
+    readMd = (readMdRes.content as any)[0]?.text || "";
+    if (readMd.includes("Base Header") && readMd.includes("Appended Section")) {
+      break;
+    }
+  }
   console.log("Decoded Markdown:\n" + readMd);
   if (!readMd.includes("Base Header") || !readMd.includes("Appended Section")) {
     throw new Error("Markdown readback missing expected text!");
@@ -359,7 +373,13 @@ async function main() {
   if (!pageResourceHtml.includes("Base Header")) {
     throw new Error("Page resource template URI readback failed!");
   }
-  console.log("✅ Page resource template URI readback verified!");
+  console.log("Testing move_page...");
+  const moveRes = await client.callTool({
+    name: "move_page",
+    arguments: { workspaceId: targetWsId, pageId: pageId, folderId: "root" },
+  });
+  console.log("move_page response:", (moveRes.content as any)[0]?.text);
+  console.log("✅ move_page passed");
 
   console.log("Cleaning up base test page...");
   await client.callTool({
@@ -688,8 +708,83 @@ async function main() {
   console.log("get_org_trials count:", Array.isArray(trialsData) ? trialsData.length : 0);
   console.log("✅ get_org_trials passed");
 
+  // ─── 15. Newly Discovered Endpoints (6 Tools) ─────────────────
+  console.log("\n--- Testing Newly Discovered Endpoints (6 Tools) ---");
+
+  // 15.1 Database Entity Templates
+  const entityTplsRes = await client.callTool({
+    name: "get_database_entity_templates",
+    arguments: {},
+  });
+  const entityTplsData = JSON.parse((entityTplsRes.content as any)[0]?.text);
+  console.log("get_database_entity_templates templates count:", entityTplsData?.data?.length || 0);
+  if (!Array.isArray(entityTplsData?.data)) {
+    throw new Error("get_database_entity_templates returned invalid schema");
+  }
+  console.log("✅ get_database_entity_templates passed");
+
+  // 15.2 AI Agent Categories
+  const aiCatsRes = await client.callTool({
+    name: "list_ai_agent_categories",
+    arguments: { orgId: "u268r1" },
+  });
+  const aiCatsData = JSON.parse((aiCatsRes.content as any)[0]?.text);
+  console.log("list_ai_agent_categories count:", Array.isArray(aiCatsData) ? aiCatsData.length : 0);
+  if (!Array.isArray(aiCatsData)) {
+    throw new Error("list_ai_agent_categories returned invalid schema");
+  }
+  console.log("✅ list_ai_agent_categories passed");
+
+  // 15.3 Automation User
+  const autoUserRes = await client.callTool({
+    name: "get_automation_user",
+    arguments: {},
+  });
+  const autoUserData = JSON.parse((autoUserRes.content as any)[0]?.text);
+  console.log("get_automation_user email:", autoUserData?.email || "resolved");
+  if (!autoUserData?.id) {
+    throw new Error("get_automation_user returned invalid schema");
+  }
+  console.log("✅ get_automation_user passed");
+
+  // 15.4 Automation Folders Lifecycle (List, Create, Delete)
+  const autoFoldersRes = await client.callTool({
+    name: "list_automation_folders",
+    arguments: {},
+  });
+  const autoFoldersData = JSON.parse((autoFoldersRes.content as any)[0]?.text);
+  console.log("list_automation_folders count:", autoFoldersData?.data?.length || 0);
+  if (!Array.isArray(autoFoldersData?.data)) {
+    throw new Error("list_automation_folders returned invalid schema");
+  }
+  console.log("✅ list_automation_folders passed");
+
+  console.log("Creating test automation folder...");
+  const createFolderRes = await client.callTool({
+    name: "create_automation_folder",
+    arguments: { displayName: "E2E Test Automation Folder" },
+  });
+  const createFolderData = JSON.parse((createFolderRes.content as any)[0]?.text);
+  console.log("create_automation_folder result:", createFolderData?.id, createFolderData?.displayName);
+  if (!createFolderData?.id) {
+    throw new Error("create_automation_folder failed to return folder id");
+  }
+  console.log("✅ create_automation_folder passed");
+
+  console.log("Deleting test automation folder...");
+  const deleteFolderRes = await client.callTool({
+    name: "delete_automation_folder",
+    arguments: { folderId: createFolderData.id },
+  });
+  const deleteFolderText = (deleteFolderRes.content as any)[0]?.text || "";
+  console.log("delete_automation_folder result:", deleteFolderText);
+  if (!deleteFolderText.includes("deleted successfully")) {
+    throw new Error("delete_automation_folder failed");
+  }
+  console.log("✅ delete_automation_folder passed");
+
   await client.close();
-  console.log("\n🎉 ALL 14 PLATFORM TESTS PASSED (RESOURCES, PROMPTS, APPEND, VIBE APPS, CLI, AUTOMATIONS, PORTALS, SWARM, HEALTH, AI AGENTS, PREFERENCES, BILLING, TEMPLATES, FINAL EXHAUSTIVE APIS)!");
+  console.log("\n🎉 ALL 15 PLATFORM TESTS PASSED (RESOURCES, PROMPTS, APPEND, VIBE APPS, CLI, AUTOMATIONS, PORTALS, SWARM, HEALTH, AI AGENTS, PREFERENCES, BILLING, TEMPLATES, FINAL EXHAUSTIVE APIS, NEW EXTENDED TOOLS)!");
 }
 
 main().catch((err) => {

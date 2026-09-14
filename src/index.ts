@@ -99,8 +99,8 @@ Entity Hierarchy:
 - Workspaces -> Databases (Tables) -> Views & Records (Rows) / Relations
 
 Tool Tiers:
-- Starts in Core Tier (33 tools) covering full CRUD for pages, folders, content, comments, tasks, attachments, and profile management.
-- Call 'set_tool_tier' with tier="all" to unlock all 136 tools (databases, views, relations, permissions, automations, portals, webhooks).
+- Starts in Core Tier (34 tools) covering full CRUD and organization for pages, folders, content, comments, tasks, attachments, and profile management.
+- Call 'set_tool_tier' with tier="all" to unlock all 143 tools (databases, views, relations, permissions, automations, portals, webhooks).
 
 Content & Sync Guidelines:
 - Pages are collaborative documents backed by Y.js CRDT state. Use 'append_page_content' or 'update_page_content' to edit. Real-time updates propagate via WebSocket.
