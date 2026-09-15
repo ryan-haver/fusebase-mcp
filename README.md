@@ -21,7 +21,7 @@ An enterprise-grade [Model Context Protocol (MCP)](https://modelcontextprotocol.
 - **168 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, FuseBase Work (Firecrawl & n8n), billing, user preferences, multi-agent profiles, and swarm orchestration
 - **Advanced Markdown Ingestion**: Automatic parsing of GFM tables into interactive `TableBlock` objects, markdown images (`![alt](url)`), GitHub callouts (`> [!NOTE]`, `> [!WARNING]`, etc.), HTML underline/highlight, and `<details><summary>` toggles
 - **FuseBase Work, Firecrawl & n8n**: Native tools to invoke any of 32 organization AI agents, crawl/parse web pages via hosted Firecrawl, and trigger n8n automation flows
-- **Two-tier system** — 34 core tools load by default (complete CRUD suite); 131 extended tools on demand
+- **Two-tier system** — 34 core tools load by default (complete CRUD suite); 134 extended tools on demand
 - **Token Economics & Markdown Conversion** — retrieve page content as clean Markdown (`get_page_content(format: "markdown")`) for ~50% token reduction via built-in `htmlToMarkdown` converter
 - **Binary Payload Safety & Native Images** — `download_attachment` renders images as native MCP `image` blocks and streams large files directly to local disk (`data/downloads/`)
 - **Safety Annotations (`[DESTRUCTIVE]`)** — permanent deletion tools are explicitly tagged so AI clients and human supervisors can prompt for confirmation
@@ -280,7 +280,7 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Tier | Tools | Description |
 | --- | --- | --- |
 | **Core** (default) | 34 | Day-to-day: full CRUD and organization for pages, folders, content, tasks, tags, attachments, members, guides, session health, profiles |
-| **Extended** | +131 | Admin, CLI apps, automations, portal lifecycle, databases, relations, batch mutations, isolated SQL stores, templates, swarm state machines, billing, preferences |
+| **Extended** | +134 | Admin, CLI apps, automations, portal lifecycle, databases, relations, batch mutations, isolated SQL stores, templates, swarm state machines, billing, preferences |
 
 **Enable extended tools:**
 
@@ -371,10 +371,10 @@ src/
   resources.ts          → Native MCP resources & RFC 6570 templates
   prompts.ts            → Native MCP pre-engineered workflow prompts
   proxy-relay.ts        → HTTP CONNECT proxy relay for SOCKS5 upstream proxies
-  guide-loader.ts       → Guide search index (277 guides, 19 sections)
+  guide-loader.ts       → Guide search index (278 guides, 19 sections)
   tools/
     core-tools.ts       → 34 Core tools (full CRUD and organization for pages, tasks, folders, content, profiles)
-    extended-tools.ts   → 131 Extended tools (databases, views, relations, batch mutations, SQL stores, automations, portals, admin, CLI)
+    extended-tools.ts   → 134 Extended tools (databases, views, relations, batch mutations, SQL stores, automations, portals, admin, CLI, FuseBase Work)
     helpers.ts          → HTML-to-markdown converter, MIME detection, error formatting
   yjs-ws-writer.ts      → Y.js WebSocket writer (write + read via WS sync)
   yjs-html-decoder.ts   → Y.js document → HTML decoder (20+ block types)
