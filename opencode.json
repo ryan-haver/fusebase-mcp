@@ -1,0 +1,27 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "fusebase": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["c:/scripts/fusebase-mcp/dist/index.js"],
+      "env": {
+        "FUSEBASE_TOOLS": "all"
+      }
+    },
+    "fusebase-gate-direct": {
+      "type": "http",
+      "url": "https://gate-mcp.thefusebase.com/mcp",
+      "headers": {
+        "Authorization": "Bearer {env:FUSEBASE_GATE_TOKEN}"
+      }
+    },
+    "fusebase-dashboards-direct": {
+      "type": "http",
+      "url": "https://dashboards-mcp.thefusebase.com/mcp",
+      "headers": {
+        "Authorization": "Bearer {env:FUSEBASE_DASHBOARDS_TOKEN}"
+      }
+    }
+  }
+}

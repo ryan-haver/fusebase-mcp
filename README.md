@@ -187,21 +187,61 @@ The table below reflects **100% empirical validation results** obtained by runni
 
 ---
 
-### 4. Connect to Your AI Assistant
+### 4. Connect to Your AI Assistant (Claude, Cursor, Antigravity, Codex, OpenCode)
 
-Add to your MCP client config. Examples:
+#### Single-System Credential Architecture
+FuseBase MCP is built for multi-agent environments sharing a single machine. Once you configure credentials on your machine (via `.env`, `npx tsx scripts/auth.ts --token <token>`, or browser login):
+1. **Zero-Config Agent Discovery:** Any coding agent installed on the same system running `node c:/scripts/fusebase-mcp/dist/index.js` automatically reads the local encrypted credentials and connects immediately without needing tokens or cookies hardcoded in the agent's JSON config.
+2. **Multi-Agent Profile Isolation:** When running multi-agent swarms (e.g. PM, Architect, Developer, QA), each agent can use its own distinct encrypted identity simply by setting `"FUSEBASE_PROFILE": "agent-architect"`.
+3. **Explicit Token Pass-Through:** For remote runners or Docker containers, you can pass `FUSEBASE_GATE_TOKEN` and `FUSEBASE_DASHBOARDS_TOKEN` directly in the agent's `env` block.
 
-<details>
-<summary><strong>Gemini CLI</strong> — <code>mcp_config.json</code></summary>
+---
 
+#### Client Configuration Templates
+
+<details open>
+<summary><strong>1. Claude (Claude Desktop & Claude Code)</strong></summary>
+
+**Claude Desktop** (`%APPDATA%\Claude\claude_desktop_config.json` on Windows or `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
 ```json
 {
-  "fusebase": {
-    "command": "node",
-    "args": ["/path/to/fusebase-mcp/dist/index.js"],
-    "env": {
-      "FUSEBASE_HOST": "yourorg.nimbusweb.me",
-      "FUSEBASE_ORG_ID": "your_org_id"
+  "mcpServers": {
+    "fusebase": {
+      "command": "node",
+      "args": ["c:/scripts/fusebase-mcp/dist/index.js"],
+      "env": {
+        "FUSEBASE_TOOLS": "all"
+      }
+    }
+  }
+}
+```
+
+**Claude Code CLI:**
+```bash
+# Add as a local plugin using native .claude-plugin/plugin.json
+claude plugin add c:/scripts/fusebase-mcp
+```
+Or run directly via stdio:
+```bash
+claude mcp add fusebase -- node c:/scripts/fusebase-mcp/dist/index.js
+```
+
+</details>
+
+<details open>
+<summary><strong>2. Cursor IDE</strong> — <code>.cursor/mcp.json</code></summary>
+
+In your workspace root, create or edit `.cursor/mcp.json` (or add via **Cursor Settings > Features > MCP**):
+```json
+{
+  "mcpServers": {
+    "fusebase": {
+      "command": "node",
+      "args": ["c:/scripts/fusebase-mcp/dist/index.js"],
+      "env": {
+        "FUSEBASE_TOOLS": "all"
+      }
     }
   }
 }
@@ -209,18 +249,66 @@ Add to your MCP client config. Examples:
 
 </details>
 
-<details>
-<summary><strong>Claude Desktop</strong> — <code>claude_desktop_config.json</code></summary>
+<details open>
+<summary><strong>3. Google Antigravity IDE</strong> — <code>~/.gemini/antigravity-ide/mcp/</code> or <code>.agent/mcp_config.json</code></summary>
 
+Add to your global Antigravity MCP configuration (`~/.gemini/antigravity-ide/mcp_config.json`) or workspace `.agent/mcp_config.json`:
 ```json
 {
   "mcpServers": {
     "fusebase": {
       "command": "node",
-      "args": ["/path/to/fusebase-mcp/dist/index.js"],
+      "args": ["c:/scripts/fusebase-mcp/dist/index.js"],
       "env": {
-        "FUSEBASE_HOST": "yourorg.nimbusweb.me",
-        "FUSEBASE_ORG_ID": "your_org_id"
+        "FUSEBASE_TOOLS": "all"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+<details open>
+<summary><strong>4. OpenAI Codex</strong> — <code>.codex-plugin/plugin.json</code> or Codex CLI</summary>
+
+This repository includes native `.codex-plugin/plugin.json` for OpenAI Codex agent ecosystems.
+
+Add via Codex CLI:
+```bash
+codex mcp add fusebase --command node --args c:/scripts/fusebase-mcp/dist/index.js
+```
+Or in your Codex configuration:
+```json
+{
+  "mcp": {
+    "fusebase": {
+      "command": "node",
+      "args": ["c:/scripts/fusebase-mcp/dist/index.js"],
+      "env": {
+        "FUSEBASE_TOOLS": "all"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+<details open>
+<summary><strong>5. OpenCode</strong> — <code>opencode.json</code></summary>
+
+OpenCode supports both local stdio execution and direct upstream HTTP Gate connection. Place `opencode.json` in your project root:
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "fusebase": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["c:/scripts/fusebase-mcp/dist/index.js"],
+      "env": {
+        "FUSEBASE_TOOLS": "all"
       }
     }
   }
@@ -230,7 +318,7 @@ Add to your MCP client config. Examples:
 </details>
 
 <details>
-<summary><strong>VS Code Copilot</strong> — <code>settings.json</code></summary>
+<summary><strong>6. VS Code Copilot, Cline & Roo Code</strong> — <code>settings.json</code></summary>
 
 ```json
 {
@@ -238,10 +326,9 @@ Add to your MCP client config. Examples:
     "servers": {
       "fusebase": {
         "command": "node",
-        "args": ["/path/to/fusebase-mcp/dist/index.js"],
+        "args": ["c:/scripts/fusebase-mcp/dist/index.js"],
         "env": {
-          "FUSEBASE_HOST": "yourorg.nimbusweb.me",
-          "FUSEBASE_ORG_ID": "your_org_id"
+          "FUSEBASE_TOOLS": "all"
         }
       }
     }
@@ -251,25 +338,7 @@ Add to your MCP client config. Examples:
 
 </details>
 
-<details>
-<summary><strong>Claude Code Plugin</strong> — <code>.claude-plugin/plugin.json</code></summary>
-
-This repository includes native Claude Code plugin packaging:
-```bash
-claude plugin add c:/scripts/fusebase-mcp
-```
-Or reference `.claude-plugin/plugin.json` directly from your Claude workspace configuration.
-
-</details>
-
-<details>
-<summary><strong>Codex Agent Marketplace</strong> — <code>.codex-plugin/plugin.json</code></summary>
-
-Packaged with `.codex-plugin/plugin.json` for OpenAI Codex agent ecosystems with standard JSON-RPC 2.0 stdio discovery.
-
-</details>
-
-> **Note:** Replace `/path/to/fusebase-mcp` with the actual path where you cloned the repo. On Windows, use double backslashes: `"C:\\path\\to\\fusebase-mcp\\dist\\index.js"`.
+> **Note:** On Windows, paths can use forward slashes (`"c:/scripts/fusebase-mcp/dist/index.js"`) or escaped backslashes (`"C:\\scripts\\fusebase-mcp\\dist\\index.js"`). If credentials are saved in `.env` or `data/tokens.enc`, no auth environment variables are required in the client JSON!
 
 ### 5. Verify
 
