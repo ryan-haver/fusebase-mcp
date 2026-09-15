@@ -4,7 +4,7 @@
 > Update this document when new endpoints are discovered or new tools are implemented.
 >
 > Source: API discovery crawl & comprehensive method probe (182 method/route probes).
-> Cross-referenced against 143 implemented MCP tools (34 Core, 109 Extended).
+> Cross-referenced against 165 implemented MCP tools (34 Core, 131 Extended).
 > Last updated: 2026-09-14
 
 ---
@@ -319,15 +319,15 @@
 | **Auth & Navigation** | 0 | **0** | 14 | 3 | 0 |
 | **TOTAL** | **118** | **0 (100% Viable Coverage)** | **28** | **6** | **3** |
 
-> **Coverage Milestone**: Every single viable endpoint identified in the 182 method/route probes has been fully wrapped into the 143-tool MCP ecosystem (34 Core, 109 Extended). Zero unmapped viable endpoints remain.
+> **Coverage Milestone**: Every single viable endpoint identified in the 182 method/route probes has been fully wrapped into the 165-tool MCP ecosystem (34 Core, 131 Extended). Zero unmapped viable endpoints remain.
 
 ### Implementation Breakdown
 
 | Tool Tier | Total Tools | Description |
 |---|---|---|
 | **Core Tier** | 34 tools | Essential day-to-day workspace, page, block, task, folder, profile, and session management tools. Complete self-contained CRUD and organization suite with lightweight context footprint. |
-| **Extended Tier** | 109 tools | Exhaustive administrative, automation, database, entity template, portal, task, time tracking, billing, and AI management tools. Activated dynamically via `set_tool_tier("all")` or `FUSEBASE_TOOLS=all`. |
-| **Total Suite** | **143 tools** | Complete coverage of the FuseBase API surface with zero viable endpoints left unmapped. |
+| **Extended Tier** | 131 tools | Exhaustive administrative, automation, database, entity template, portal, task, time tracking, billing, CLI lifecycle, hosted web apps, Docker sidecars, secrets, and AI management tools. Activated dynamically via `set_tool_tier("all")` or `FUSEBASE_TOOLS=all`. |
+| **Total Suite** | **165 tools** | Complete coverage of the FuseBase API surface with zero viable endpoints left unmapped. |
 
 ---
 
