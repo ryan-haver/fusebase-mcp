@@ -18,12 +18,30 @@ const rootDir = path.resolve(__dirname, "..");
 const appDir = path.join(rootDir, "apps/client-portal-dashboard");
 const dashboardSpaDir = path.join(appDir, "apps/status-dashboard");
 
+import * as fs from "fs";
+
 async function main() {
   console.log("\n================================================================================");
   console.log("🚀 FUSEBASE MCP: LIVE STATUS DASHBOARD BUILD & DEPLOY PIPELINE");
   console.log("================================================================================\n");
 
-  // Step 1: Sync latest status data
+  // Step 0: Pre-flight domain safety assertion
+  console.log("[0/4] Verifying target application identity & subdomain isolation...");
+  const configPath = path.join(appDir, "fusebase.json");
+  if (!fs.existsSync(configPath)) {
+    throw new Error(`fusebase.json not found in ${appDir}`);
+  }
+  const fuseConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+  const targetSub = fuseConfig.apps?.[0]?.subdomain || fuseConfig.firstAppSub;
+  const targetProdId = fuseConfig.productId;
+
+  if (targetSub !== "fusebase-mcp" || targetProdId !== "3levnl9diecglj2a") {
+    throw new Error(
+      `ABORT: Domain collision guard triggered! Target is '${targetSub}' (productId: ${targetProdId}), ` +
+      `expected strictly 'fusebase-mcp' (productId: '3levnl9diecglj2a'). Refusing to deploy.`
+    );
+  }
+  console.log(`✅ Pre-flight verified: Isolated target domain is strictly 'https://${targetSub}.thefusebase.app/' (Product: ${targetProdId})\n`);
   console.log("[1/4] Syncing latest project status metrics and git commit hash...");
   execSync("npx tsx scripts/generate-status-data.ts", {
     cwd: rootDir,

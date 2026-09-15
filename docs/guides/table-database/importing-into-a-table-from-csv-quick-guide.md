@@ -1,11 +1,37 @@
 ---
 title: "Importing into a table from CSV – Quick Guide"
-url: "https://thefusebase.com/guides/table-database/importing-into-a-table-from-csv-quick-guide/"
+url: "https://thefusebase.com/guides/table-database/importing-into-a-table-from-csv-quick-guide"
 section: "table-database"
-lastScraped: "2026-09-12T05:18:33.721Z"
+lastScraped: "2026-09-15T04:44:52.604Z"
 ---
 
 # Importing into a table from CSV – Quick Guide
+
+[Back to Table & Database](/guides/table-database)
+
+Table & Database
+
+# Importing into a table from CSV – Quick Guide
+
+If you already have tables in other services (Airtable, Notion, Google Sheets, etc.), you can transfer them to Fusebase using the import option. Currently, import from CSV is...
+
+Guide details
+
+Published
+
+January 22, 2026
+
+Read time
+
+2 min read
+
+Category
+
+Table & Database
+
+In this guide
+
+This guide is a short walkthrough.
 
 If you already have tables in other services (Airtable, Notion, Google Sheets, etc.), you can transfer them to Fusebase using the import option. Currently, import from CSV is available, but we also plan to add import from XLS files in the future.
 
@@ -13,26 +39,26 @@ You can import into either a new table or an existing one. Let’s try importing
 
 1) Click on “Create new database” or “Create new table.” Select “Import from CSV.”
 
-![](https://thefusebase.com/wp-content/uploads/2026/01/image-68-1024x382.png)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/01/image-68-1024x382.png)
 
 2) Enter the table name and click Next.
 
-![](https://thefusebase.com/wp-content/uploads/2026/01/image-72-1024x737.png)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/01/image-72-1024x737.png)
 
 3) Next, select the CSV file that you previously exported from another service or from Fusebase.
 
 4) Next, you need to specify the import parameters. In the Delimiter field, enter the column separator used in your import file. This is usually a comma, but other options are possible.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20683%201024'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/01/image-69-683x1024.png)
 
 You will also need to select the column types in the Mapping list. On the left, you will see a list of imported columns, and on the right, you can specify their types.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20703%201024'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/01/image-70-703x1024.png)
 
 Next, click Import to start the process.
 
 If you need to import into an existing table, open the desired table and select Import from its menu.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20557'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/01/image-71-1024x557.png)
 
 Next, choose the CSV file and review how the table looks in the preview. Please note that when importing into an existing table, we do not replace existing columns but create new ones.

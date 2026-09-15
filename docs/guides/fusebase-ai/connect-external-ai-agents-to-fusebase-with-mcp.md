@@ -1,11 +1,47 @@
 ---
 title: "Connect external AI Agents to Fusebase with MCP"
-url: "https://thefusebase.com/guides/fusebase-ai/connect-external-ai-agents-to-fusebase-with-mcp/"
+url: "https://thefusebase.com/guides/fusebase-ai/connect-external-ai-agents-to-fusebase-with-mcp"
 section: "fusebase-ai"
-lastScraped: "2026-09-12T05:17:37.081Z"
+lastScraped: "2026-09-15T04:44:43.539Z"
 ---
 
 # Connect external AI Agents to Fusebase with MCP
+
+[Back to FuseBase AI](/guides/fusebase-ai)
+
+FuseBase AI
+
+# Connect external AI Agents to Fusebase with MCP
+
+Fusebase MCP lets you connect external AI agents, such as Claude, Codex, Cursor and other MCP-compatible tools, directly to your Fusebase organization. You can create an MCP...
+
+Guide details
+
+Published
+
+June 24, 2026
+
+Read time
+
+4 min read
+
+Category
+
+FuseBase AI
+
+In this guide
+
+1.  [How to obtain the MCP configuration for connecting to FuseBase](#0-toc-title)
+2.  [Revoke MCP Config](#1-toc-title)
+3.  [Token](#3-toc-title)
+4.  [Organization](#4-toc-title)
+5.  [Automation](#5-toc-title)
+6.  [Email](#6-toc-title)
+7.  [Notes](#7-toc-title)
+8.  [Billing](#8-toc-title)
+9.  [Postgres Databases](#9-toc-title)
+10.  [Files](#10-toc-title)
+11.  [Portals](#11-toc-title)
 
 Fusebase MCP lets you connect external AI agents, such as Claude, Codex, Cursor and other MCP-compatible tools, directly to your Fusebase organization.
 
@@ -15,11 +51,11 @@ Once connected, the agent can work with Fusebase on your behalf. Depending on th
 
 This gives you the flexibility to use the AI agent you prefer while keeping control over what it can see and do in Fusebase.
 
-## How to obtain the MCP configuration for connecting to FuseBase [#](#0-toc-title)
+## How to obtain the MCP configuration for connecting to FuseBase
 
 1) Open your organization settings and go to the Fusebase MCP section (available only to the owner and organization managers).
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20539'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/06/image-20-1024x539.png)
 
 2) Click on Create Fusebase MCP.
 
@@ -31,7 +67,7 @@ This gives you the flexibility to use the AI agent you prefer while keeping cont
 -   Read: the agent can view but cannot make any changes in your organization.
 -   Full: the agent can edit. Please be cautious when granting this level of access.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20640'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/06/image-21-1024x640.png)
 
 5) Next, click on Create Fusebase MCP, and you will see a page where you can copy your token as well as the configuration for adding to agents.
 
@@ -39,19 +75,19 @@ You can either copy the token and MCP URL, or download ready-made configurations
 
 After creation, the new config will appear in the list.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20649'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/06/image-22-1024x649.png)
 
-## Revoke MCP Config [#](#1-toc-title)
+## Revoke MCP Config
 
 If desired, you can disable any MCP config. To do this, click on it and click Revoke.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20652'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/06/image-23-1024x652.png)
 
-# FuseBase Area and available MCP operations [#](#2-toc-title)
+# FuseBase Area and available MCP operations
 
 Below is a list of operations that your agents can perform through FuseBase MCP.
 
-## Token [#](#3-toc-title)
+## Token
 
 Manage the API tokens that apps and integrations use to talk to Gate.
 
@@ -87,7 +123,7 @@ List every permission the platform knows about.
 
 Tell you which permissions a given operation requires.
 
-## Organization [#](#4-toc-title)
+## Organization
 
 Manage who belongs to the org and resolve org-level info.
 
@@ -111,11 +147,11 @@ Check the signed-in user’s own access status — are they a member yet, pendin
 
 Get the org’s canonical web address (its subdomain or custom domain).
 
-## Automation [#](#5-toc-title)
+## Automation
 
 These permissions are still in development and will be available soon.
 
-## Email [#](#6-toc-title)
+## Email
 
 Send one-off emails to existing members.
 
@@ -127,7 +163,7 @@ What it does
 
 Send a single email to one person who is **already** a member of the org. It is not an invite or sign-up flow.
 
-## Notes [#](#7-toc-title)
+## Notes
 
 Work with workspace note folders and notes.
 
@@ -159,7 +195,7 @@ Create a new note (optionally with starting content).
 
 Attach an uploaded file to a note.
 
-## Billing [#](#8-toc-title)
+## Billing
 
 Stripe setup, products, and payments for the org.
 
@@ -199,7 +235,7 @@ Cancel a buyer’s subscription (now or at period end).
 
 Read the latest payment/subscription status from Stripe.
 
-## Postgres Databases [#](#9-toc-title)
+## Postgres Databases
 
 Create and manage isolated databases (FuseBase PostgreSQL), their schema, and their data.
 
@@ -263,7 +299,7 @@ Run a single write (INSERT/UPDATE/DELETE) — no schema changes.
 
 Bulk-load data from CSV/TSV.
 
-## Files [#](#10-toc-title)
+## Files
 
 Upload and delete files via the file service.
 
@@ -283,7 +319,7 @@ Finish the upload and create the stored-file record (returns the file’s public
 
 Delete a stored file.
 
-## Portals [#](#11-toc-title)
+## Portals
 
 Discover client portals and invite people into them.
 

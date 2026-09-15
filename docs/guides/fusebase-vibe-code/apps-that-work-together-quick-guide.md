@@ -1,11 +1,38 @@
 ---
 title: "Apps That Work Together: Quick Guide"
-url: "https://thefusebase.com/guides/fusebase-vibe-code/apps-that-work-together-quick-guide/"
+url: "https://thefusebase.com/guides/fusebase-vibe-code/apps-that-work-together-quick-guide"
 section: "fusebase-vibe-code"
-lastScraped: "2026-09-12T05:17:41.614Z"
+lastScraped: "2026-09-15T04:45:02.082Z"
 ---
 
 # Apps That Work Together: Quick Guide
+
+[Back to Fusebase Vibe Code](/guides/fusebase-vibe-code)
+
+Fusebase Vibe Code
+
+# Apps That Work Together: Quick Guide
+
+Fusebase apps can now work together. This means one app can pass work to another app automatically. For example: You do not need to build one huge app that does everything. You...
+
+Guide details
+
+Published
+
+May 27, 2026
+
+Read time
+
+3 min read
+
+Category
+
+Fusebase Vibe Code
+
+In this guide
+
+1.  [Examples](#2-toc-title)
+2.  [Example](#4-toc-title)
 
 Fusebase apps can now work together. This means one app can pass work to another app automatically.
 
@@ -18,7 +45,7 @@ For example:
 
 You do not need to build one huge app that does everything. You can build smaller apps for different jobs and connect them into one workflow.
 
-# Why this is powerful [#](#0-toc-title)
+# Why this is powerful
 
 Before, an app was mostly a single tool. Now, apps can become part of a bigger workflow.
 
@@ -32,7 +59,7 @@ That means you can start small:
 
 Step by step, you turn simple apps into a full working system. The best part: apps can reuse each other.
 
-# Apps as Integrations [#](#1-toc-title)
+# Apps as Integrations
 
 Apps can also be used by other services. That means your Fusebase app can work not only with other Fusebase apps, but also with external tools, platforms, and custom systems.
 
@@ -40,7 +67,7 @@ For example, another service can send data to your app, ask it to process someth
 
 This makes your app work like an integration point.
 
-## Examples [#](#2-toc-title)
+## Examples
 
 -   A website can send form data to your app.
 -   A CRM can send a new lead to your app.
@@ -48,7 +75,7 @@ This makes your app work like an integration point.
 -   A custom tool can ask your app to generate a report.
 -   Another backend service can send a file to your app for processing.
 
-# How Other Apps Should Use Your App [#](#3-toc-title)
+# How Other Apps Should Use Your App
 
 When you create an app, think about what other apps or services may need from it.
 
@@ -62,7 +89,7 @@ For example:
 
 You do not need to write technical API instructions in your prompt. You can describe the connection in plain language.
 
-## Example [#](#4-toc-title)
+## Example
 
 Instead of saying:
 
@@ -76,7 +103,7 @@ Another example:
 
 **Allow other apps to start an approval flow by sending a record, approver, and message. Return the approval status.**
 
-# Technical Section: How It Works [#](#5-toc-title)
+# Technical Section: How It Works
 
 Under the hood, app-to-app communication works through an API. When an app is generated, Fusebase creates an **openapi.json** file for it.
 
@@ -98,11 +125,11 @@ This makes the app easier to use by:
 -   custom integrations
 -   developer tools
 
-# API Section in the App List [#](#6-toc-title)
+# API Section in the App List
 
 Each generated app now includes an **API** section. You can open this section from the app list to see what the app exposes.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20447'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/05/image-37-1024x447.png)
 
 In the API section, you can:
 
@@ -114,10 +141,10 @@ In the API section, you can:
 
 This is useful when you want to check how other apps, agents, or external services can interact with your app.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20448'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/05/image-38-1024x448.png)
 
 For example, you can open the API section of a Parser App and see how another app can send it a file for processing.
 
-# How does another app learn about the API? [#](#7-toc-title)
+# How does another app learn about the API?
 
 The API information has already been added to Fusebase Gate, so you only need to mention the app’s URL or ID in your prompt. Our MCP will then automatically discover all API methods and understand which requests to send and how the API contracts work.

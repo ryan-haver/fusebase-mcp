@@ -1,25 +1,53 @@
 ---
 title: "Navigation: Dashboards, workspaces, Folders, Sub-folders, Pages, Tags"
-url: "https://thefusebase.com/guides/basics/folders-and-tags/"
+url: "https://thefusebase.com/guides/basics/folders-and-tags"
 section: "basics"
-lastScraped: "2026-09-12T05:16:44.740Z"
+lastScraped: "2026-09-15T04:44:30.534Z"
 ---
 
 # Navigation: Dashboards, workspaces, Folders, Sub-folders, Pages, Tags
 
-## How to navigate inside FuseBase [#](#0-toc-title)
+[Back to FuseBase Basics](/guides/basics)
 
-[Embedded content](about:blank)
+FuseBase Basics
 
-## Structure [#](#1-toc-title)
+# Navigation: Dashboards, workspaces, Folders, Sub-folders, Pages, Tags
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+How to navigate inside FuseBase Structure
 
-[Embedded content](about:blank)
+Guide details
 
-**Read more:** [https://thefusebase.com/guides/getting-started/structure-in-fusebase/](https://thefusebase.com/guides/getting-started/structure-in-fusebase/)
+Published
 
-## Dashboard Overview: [#](#b1664917738_236)
+October 15, 2022
+
+Read time
+
+1 min read
+
+Category
+
+FuseBase Basics
+
+In this guide
+
+1.  [How to navigate inside FuseBase](#0-toc-title)
+2.  [Structure](#1-toc-title)
+3.  [Dashboard Overview:](#b1664917738_236)
+4.  [Custom Databases](#b1664917738_1084)
+5.  [Folders and Tags](#b1664917738_1499)
+
+## How to navigate inside FuseBase
+
+[Embedded content](https://www.youtube.com/embed/d3y6xZkCQvw?feature=oembed)
+
+## Structure
+
+[Embedded content](https://www.youtube.com/embed/EZFswk5B6bo?feature=oembed)
+
+**Read more:** [https://thefusebase.com/guides/getting-started/structure-in-fusebase/](/guides/getting-started/structure-in-fusebase)
+
+## Dashboard Overview:
 
 Dashboards allow you to efficiently manage your entire organization from one place. With the dashboards, you can:
 
@@ -29,16 +57,16 @@ Dashboards allow you to efficiently manage your entire organization from one pla
 -   Add your own fields and build your own CRM to manage your business.
 -   And much more
 
-**Read more:** [https://thefusebase.com/guides/dashboard-crm/dashboard-overview-managing-workspaces-portals-and-clients/](https://thefusebase.com/guides/dashboard-crm/dashboard-overview-managing-workspaces-portals-and-clients/)
+**Read more:** [https://thefusebase.com/guides/dashboard-crm/dashboard-overview-managing-workspaces-portals-and-clients/](/guides/dashboard-crm/dashboard-overview-managing-workspaces-portals-and-clients)
 
-## Custom Databases [#](#b1664917738_1084)
+## Custom Databases
 
 In FuseBase, you can not only use dashboards for your internal CRM, but also create your own databases with tables. These can be used for internal operations as well as embedded into the portal to display information to clients.
 
-**Read more:** [https://thefusebase.com/guides/table-database/custom-databases-quick-guide/](https://thefusebase.com/guides/table-database/custom-databases-quick-guide/)
+**Read more:** [https://thefusebase.com/guides/table-database/custom-databases-quick-guide/](/guides/table-database/custom-databases-quick-guide)
 
-## Folders and Tags [#](#b1664917738_1499)
+## Folders and Tags
 
 Inside every workspace you have Folders, Sub-filders, tags:
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/d3y6xZkCQvw?start=105&feature=oembed)

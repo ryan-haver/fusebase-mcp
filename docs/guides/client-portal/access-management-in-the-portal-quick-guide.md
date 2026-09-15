@@ -1,11 +1,40 @@
 ---
 title: "Access Management in the Portal – Quick Guide"
-url: "https://thefusebase.com/guides/client-portal/access-management-in-the-portal-quick-guide/"
+url: "https://thefusebase.com/guides/client-portal/access-management-in-the-portal-quick-guide"
 section: "client-portal"
-lastScraped: "2026-09-12T05:17:08.977Z"
+lastScraped: "2026-09-15T04:44:36.298Z"
 ---
 
 # Access Management in the Portal – Quick Guide
+
+[Back to Portals](/guides/client-portal)
+
+Portals
+
+# Access Management in the Portal – Quick Guide
+
+In Fusebase portals, you can finely tune the access level for your portal visitors: from a fully open portal to access by invitation only. You can configure access to the portal...
+
+Guide details
+
+Published
+
+March 23, 2025
+
+Read time
+
+3 min read
+
+Category
+
+Portals
+
+In this guide
+
+1.  [Portal Access Levels](#0-toc-title)
+2.  [Manual Client Invitations](#1-toc-title)
+3.  [Granular Permissions](#2-toc-title)
+4.  [Other Portal Access Management Options](#3-toc-title)
 
 In Fusebase portals, you can finely tune the access level for your portal visitors: from a fully open portal to access by invitation only.
 
@@ -17,15 +46,15 @@ b) Access settings for the portal (important – this sets the access level for 
 
 c) The Invite Clients option, if you want to manually send an invitation to the portal.
 
-![](https://thefusebase.com/wp-content/uploads/2025/03/image-21-1024x506.png)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/03/image-21-1024x506.png)
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20578'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/03/image-22-1024x578.png)
 
-## **Portal Access Levels** [#](#0-toc-title)
+## **Portal Access Levels**
 
 You can choose the appropriate access level for your portal through Portal Access.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20723'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/03/image-23-1024x723.png)
 
 Let’s go over each access level in more detail.
 
@@ -39,16 +68,16 @@ These two options (Email Required with or without verification) are ideal for de
 
 **Restricted** – If you activate this option, new clients can only be invited manually through Invite Clients. Existing users can continue accessing the portal using their previously created accounts. This option offers the highest level of security, and we recommend using it when you need maximum privacy for your projects—such as Data Rooms or dedicated client portals.
 
-## **Manual Client Invitations** [#](#1-toc-title)
+## **Manual Client Invitations**
 
-You can manually invite clients at any portal access level. To do this, simply click on Invite client, then enter the client’s email address. They will receive a Magic Link granting them access to the portal. You can read more about how Magic Links work at this [link](https://thefusebase.com/guides/client-portal/magic-links/).
+You can manually invite clients at any portal access level. To do this, simply click on Invite client, then enter the client’s email address. They will receive a Magic Link granting them access to the portal. You can read more about how Magic Links work at this [link](/guides/client-portal/magic-links).
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20797'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/03/image-24-1024x797.png)
 
-## **Granular Permissions** [#](#2-toc-title)
+## **Granular Permissions**
 
-You can also restrict client access to specific folders. For example, you might set the portal access level to Email Required, but still limit a client’s access to certain folders. This allows you to control exactly what each client can see and interact with. You can read more about granular permissions at this [link](https://thefusebase.com/guides/client-portal/granular-permissions/).
+You can also restrict client access to specific folders. For example, you might set the portal access level to Email Required, but still limit a client’s access to certain folders. This allows you to control exactly what each client can see and interact with. You can read more about granular permissions at this [link](/guides/client-portal/granular-permissions).
 
-## **Other Portal Access Management Options** [#](#3-toc-title)
+## **Other Portal Access Management Options**
 
-We also offer additional features for managing portal access. For example, you can add an extra layer of security to Magic Links by requiring a special access key. Alternatively, you can allow your visitors not only to use Magic Links but also to log in to the portal using an email and password. You can read more about these options at this [link](https://thefusebase.com/guides/client-portal/magic-links/).
+We also offer additional features for managing portal access. For example, you can add an extra layer of security to Magic Links by requiring a special access key. Alternatively, you can allow your visitors not only to use Magic Links but also to log in to the portal using an email and password. You can read more about these options at this [link](/guides/client-portal/magic-links).

@@ -1,29 +1,58 @@
 ---
-title: "Kanban view in Fusebase  – Quick Guide"
-url: "https://thefusebase.com/guides/dashboard-crm/kanban-view-in-fusebase-quick-guide/"
+title: "Kanban view in Fusebase – Quick Guide"
+url: "https://thefusebase.com/guides/dashboard-crm/kanban-view-in-fusebase-quick-guide"
 section: "dashboard-crm"
-lastScraped: "2026-09-12T05:18:36.151Z"
+lastScraped: "2026-09-15T04:44:52.851Z"
 ---
 
-# Kanban view in Fusebase  – Quick Guide
+# Kanban view in Fusebase – Quick Guide
+
+[Back to Table & Database](/guides/table-database)
+
+Table & Database
+
+# Kanban view in Fusebase – Quick Guide
+
+Kanban view allows you to group table rows by different columns and display rows as cards. This is a great option for working with projects, HR, client pipelines, etc. Creating a...
+
+Guide details
+
+Published
+
+December 2, 2025
+
+Read time
+
+1 min read
+
+Category
+
+Table & Database
+
+In this guide
+
+1.  [Creating a Kanban View](#0-toc-title)
+2.  [Selecting a column for grouping](#1-toc-title)
+3.  [Managing the display of data in a Kanban card](#2-toc-title)
+4.  [Moving Between Columns](#3-toc-title)
 
 Kanban view allows you to group table rows by different columns and display rows as cards. This is a great option for working with projects, HR, client pipelines, etc.
 
-## Creating a Kanban View [#](#0-toc-title)
+## Creating a Kanban View
 
 1.  Go to the required table.
 2.  Click **Add view**.
 3.  Select **Kanban** from the list of views.
 4.  Next, you will see the rows grouped by a specific column (by default, we group them by labels).
 
-## Selecting a column for grouping [#](#1-toc-title)
+## Selecting a column for grouping
 
 You can group rows by any column in the table. It can be a date column, a text column, etc. You can do this in the view settings.
 
-## Managing the display of data in a Kanban card [#](#2-toc-title)
+## Managing the display of data in a Kanban card
 
 Data from each column is shown in the Kanban card as a separate line. You can choose which columns to display and which to hide, and also set the order.
 
-## Moving Between Columns [#](#3-toc-title)
+## Moving Between Columns
 
 You can move cards between columns using drag and drop. Please note that when you move a card to another column, the value in the column used for grouping will also change. For example, if a card had the label “In Review,” and you move it to the “Done” column, the label will also change to “Done.”

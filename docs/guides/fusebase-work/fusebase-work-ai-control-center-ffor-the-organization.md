@@ -1,17 +1,57 @@
 ---
 title: "FuseBase Work – AI control center for the organization"
-url: "https://thefusebase.com/guides/fusebase-work/fusebase-work-ai-control-center-ffor-the-organization/"
+url: "https://thefusebase.com/guides/fusebase-work/fusebase-work-ai-control-center-ffor-the-organization"
 section: "fusebase-work"
-lastScraped: "2026-09-12T05:18:59.180Z"
+lastScraped: "2026-09-15T04:45:06.462Z"
 ---
 
 # FuseBase Work – AI control center for the organization
 
-## What is FuseBase Work? [#](#b1157579798_273)
+[Back to FuseBase Work](/guides/fusebase-work)
+
+FuseBase Work
+
+# FuseBase Work – AI control center for the organization
+
+What is FuseBase Work? FuseBase Work is your AI control center for the organization. It lets you connect AI agents, give them work, let them follow routines, and allow them to use...
+
+Guide details
+
+Published
+
+June 4, 2026
+
+Read time
+
+7 min read
+
+Category
+
+FuseBase Work
+
+In this guide
+
+1.  [What is FuseBase Work?](#b1157579798_273)
+2.  [Why do I need FuseBase Work?](#b1157579798_751)
+3.  [How is FuseBase Work different from using Claude Code or Codex directly?](#b1157579798_2878)
+4.  [Can I use my own keys for Claude/Codex?](#b1157579798_5492)
+5.  [Is FuseBase Work integrated with my FuseBase organization?](#4-toc-title)
+6.  [Can FuseBase Work work only inside FuseBase?](#b1157579798_3977)
+7.  [Are you using Paperclip for Fusebase Work?](#b3184795970_776)
+8.  [What are agents in FuseBase Work?](#7-toc-title)
+9.  [What are adapters and why are they needed?](#8-toc-title)
+10.  [Do I need to connect an adapter to use FuseBase Work?](#b1157579798_1668)
+11.  [Why does FuseBase Work use tasks instead of a regular chat?](#10-toc-title)
+12.  [How are tasks better than chat?](#11-toc-title)
+13.  [Who will have access to FuseBase Work?](#b2063864490_162)
+14.  [How do I activate and set up Fusebase Work?](#13-toc-title)
+15.  [How to get started with FuseBase Work](#14-toc-title)
+
+## What is FuseBase Work?
 
 FuseBase Work is your AI control center for the organization. It lets you connect AI agents, give them work, let them follow routines, and allow them to use your FuseBase Apps to move work forward automatically.
 
-## Why do I need FuseBase Work? [#](#b1157579798_751)
+## Why do I need FuseBase Work?
 
 FuseBase Work helps you turn AI from a chat assistant into something that can actually help run work. Instead of only asking AI questions, you can create agents that can:
 
@@ -25,7 +65,7 @@ FuseBase Work helps you turn AI from a chat assistant into something that can ac
 
 It helps your team save time on repeated work and keep processes moving.
 
-## How is FuseBase Work different from using Claude Code or Codex directly? [#](#b1157579798_2878)
+## How is FuseBase Work different from using Claude Code or Codex directly?
 
 Claude Code is a powerful tool for working with AI in a coding environment. FuseBase Work is different: it is designed to bring AI agents into your organization as managed, autonomous workers.
 
@@ -39,11 +79,11 @@ FuseRun gives your organization:
 -   **Visibility** — track what agents are doing, what they used, and what needs approval.
 -   **Security isolation** — every FuseRun setup runs as a separate isolated instance for your organization.
 
-## Can I use my own keys for Claude/Codex? [#](#b1157579798_5492)
+## Can I use my own keys for Claude/Codex?
 
 Yes! In fact, at the moment, to use FuseBase Work you either need to enter your own keys or have a subscription to Claude/Codex.
 
-## Is FuseBase Work integrated with my FuseBase organization? [#](#4-toc-title)
+## Is FuseBase Work integrated with my FuseBase organization?
 
 Yes, absolutely! By default, FuseBase Work is already integrated with your organization, and the default CEO agent can immediately:
 
@@ -54,9 +94,9 @@ Yes, absolutely! By default, FuseBase Work is already integrated with your organ
 -   create and edit databases
 -   and much more
 
-By default, only the CEO agent has access to FuseBase, but you can also connect other agents via MCP – [https://thefusebase.com/guides/fusebase-work/integration-of-agents-adapters-with-other-services-via-mcp/](https://thefusebase.com/guides/fusebase-work/integration-of-agents-adapters-with-other-services-via-mcp/)
+By default, only the CEO agent has access to FuseBase, but you can also connect other agents via MCP – [https://thefusebase.com/guides/fusebase-work/integration-of-agents-adapters-with-other-services-via-mcp/](/guides/fusebase-work/integration-of-agents-adapters-with-other-services-via-mcp)
 
-## Can FuseBase Work work only inside FuseBase? [#](#b1157579798_3977)
+## Can FuseBase Work work only inside FuseBase?
 
 No. FuseBase Work is not limited to FuseBase. FuseBase Work runs autonomous AI agents that can work across different types of tasks, tools, and projects. They can use FuseBase Apps and data when needed, but they can also help with work outside of FuseBase.
 
@@ -73,11 +113,11 @@ For example, agents can help with:
 -   operational routines
 -   etc
 
-## Are you using Paperclip for Fusebase Work? [#](#b3184795970_776)
+## Are you using Paperclip for Fusebase Work?
 
 Yes, Fusebase Work is a fork of Paperclip with a number of significant changes already implemented, and more will continue to be added. How are we better than standard Paperclip? For one, you don’t have to worry about secure setup and configuration – it’s already set up for you in a secure storage, so you can start using it right away. Additionally, Fusebase Work already knows your organization’s structure, so members don’t need to create additional accounts to access Cortex.
 
-## What are agents in FuseBase Work? [#](#7-toc-title)
+## What are agents in FuseBase Work?
 
 Agents are your virtual assistants or team members who can perform the tasks you assign to them. Just like in any hierarchy, agents can be either simple executors or managers who can create new agents and manage existing ones (while executors can report to manager agents).
 
@@ -93,7 +133,7 @@ Below are a few examples of agents you can create in FuseBase Work:
 -   Marketing Manager – This agent can coordinate content, SEO, social posts, campaign research, competitor analysis, and reporting.
 -   Product Manager – This agent can collect feedback, analyze feature requests, create specifications, and monitor roadmap tasks.
 
-## What are adapters and why are they needed? [#](#8-toc-title)
+## What are adapters and why are they needed?
 
 As mentioned above, agents perform the tasks you assign to them. However, in order to do so, they need tools, and these tools are called adapters. These can include Claude Code, Codex, or well-known orchestrators such as Hermes or OpenClaw.
 
@@ -105,7 +145,7 @@ For example, you may connect:
 -   OpenCode
 -   etc
 
-## Do I need to connect an adapter to use FuseBase Work? [#](#b1157579798_1668)
+## Do I need to connect an adapter to use FuseBase Work?
 
 Yes. FuseBase Work needs at least one adapter to run agents. You can start with one adapter and add more later. If you are not sure where to start, choose the recommended adapter in your setup screen.
 
@@ -113,7 +153,7 @@ You can use different adapters for different agents. For example, one agent can 
 
 You can also vary the models. For example, if you have connected Claude, one agent can use Claude Haiku while another uses Claude Opus.
 
-## Why does FuseBase Work use tasks instead of a regular chat? [#](#10-toc-title)
+## Why does FuseBase Work use tasks instead of a regular chat?
 
 In FuseBase Work, the main workflow is built around tasks rather than a standard chat.
 
@@ -123,7 +163,7 @@ Tasks work differently. You create a task, describe the outcome you want to achi
 
 This approach makes FuseBase Work more like a real work management system, rather than just an AI chat.
 
-## How are tasks better than chat? [#](#11-toc-title)
+## How are tasks better than chat?
 
 1.  You can assign a task and step away.
 2.  Every piece of work has a status.
@@ -131,31 +171,31 @@ This approach makes FuseBase Work more like a real work management system, rathe
 4.  There is a clear history and transparency.
 5.  It’s better suited for teamwork.
 
-## Who will have access to FuseBase Work? [#](#b2063864490_162)
+## Who will have access to FuseBase Work?
 
 At this stage, only the owner and managers of the organization have access to Cortex.
 
-## How do I activate and set up Fusebase Work? [#](#13-toc-title)
+## How do I activate and set up Fusebase Work?
 
 It’s very simple! Go to the FuseBase Work section and click on Set up FuseBase Work.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20380'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/06/image-2-1024x380.png)
 
 Next, you will need to wait while Fusebase Work is being installed. This usually takes 10-15 minutes. The installation runs in the background, so you can close the page during this time.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20397'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/06/image-3-1024x397.png)
 
 After a successful setup, we recommend first activating one (or several) of the adapters.
 
 By default, Claude Code, Codex, and Hermes are available to you. They are already installed, and you just need to add an API key or connect a subscription.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20666'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/06/image-4-1024x666.png)
 
 Once activated successfully, the adapter status will change to **Connected**.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20657'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/06/image-5-1024x657.png)
 
-## How to get started with FuseBase Work [#](#14-toc-title)
+## How to get started with FuseBase Work
 
 Once you have activated at least one adapter, you can proceed to FuseBase Work. By default, we create the first company and a CEO agent, who can start working on tasks and create new agents to delegate tasks.
 

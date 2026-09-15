@@ -1,13 +1,45 @@
 ---
 title: "Services in Fusebase Work: Quick Guide"
-url: "https://thefusebase.com/guides/fusebase-work/services-in-fusebase-work-quick-guide/"
+url: "https://thefusebase.com/guides/fusebase-work/services-in-fusebase-work-quick-guide"
 section: "fusebase-work"
-lastScraped: "2026-09-12T05:18:56.206Z"
+lastScraped: "2026-09-15T04:45:05.794Z"
 ---
 
 # Services in Fusebase Work: Quick Guide
 
-## What are Services? [#](#0-toc-title)
+[Back to FuseBase Work](/guides/fusebase-work)
+
+FuseBase Work
+
+# Services in Fusebase Work: Quick Guide
+
+What are Services? Services are hosted systems that Fusebase Work can set up and run for your organization. They are not the same as Fusebase Apps, and they are not just external...
+
+Guide details
+
+Published
+
+August 19, 2026
+
+Read time
+
+4 min read
+
+Category
+
+FuseBase Work
+
+In this guide
+
+1.  [What are Services?](#0-toc-title)
+2.  [Why use Services?](#1-toc-title)
+3.  [How to setup services?](#2-toc-title)
+4.  [What happens after setup?](#3-toc-title)
+5.  [Service permissions](#4-toc-title)
+6.  [Example: Firecrawl research workflow](#5-toc-title)
+7.  [Example: n8n automation workflow](#6-toc-title)
+
+## What are Services?
 
 Services are hosted systems that Fusebase Work can set up and run for your organization.
 
@@ -21,7 +53,7 @@ For example:
 
 Once a service is set up, Fusebase Work makes it available to approved agents through MCP. Agents can then use the service in tasks, routines, and workflows.
 
-## Why use Services? [#](#1-toc-title)
+## Why use Services?
 
 Autonomous agents are powerful, but they should not do everything by themselves.
 
@@ -44,13 +76,13 @@ If you need a complex business process, an agent can use n8n to create or manage
 
 If the workflow involves project management, the agent can use a connector to create tasks in Asana, send a Slack message, or sync data with another business tool.
 
-## How to setup services? [#](#2-toc-title)
+## How to setup services?
 
 To setup services, simply go to the required section in Fusebase Work. Then click Set up on the desired service. At the moment, two services are available: n8n and Firecrawl, and the list will continue to grow.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20513'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/08/image-23-1024x513.png)
 
-## What happens after setup? [#](#3-toc-title)
+## What happens after setup?
 
 Important! We set up services as is, without any modifications on our side. You can find documentation for the configured products on their official websites. For example, you can find n8n guides here – [https://docs.n8n.io/](https://docs.n8n.io/)
 
@@ -61,9 +93,9 @@ After the services are set up:
 
 For n8n, you can open the product itself and configure your flows directly within it.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20483'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/08/image-24-1024x483.png)
 
-## Service permissions [#](#4-toc-title)
+## Service permissions
 
 Not every agent should have access to every service.
 
@@ -79,9 +111,9 @@ For example:
 
 This makes services powerful while keeping your organization in control.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20561'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/08/image-25-1024x561.png)
 
-## Example: Firecrawl research workflow [#](#5-toc-title)
+## Example: Firecrawl research workflow
 
 A user creates a task:
 
@@ -96,7 +128,7 @@ The agent can:
 5.  Save the result into Fusebase.
 6.  Report back when the task is complete.
 
-## Example: n8n automation workflow [#](#6-toc-title)
+## Example: n8n automation workflow
 
 A user creates a task:
 

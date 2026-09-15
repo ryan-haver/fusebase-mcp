@@ -89,12 +89,13 @@ const testSuites = [
   { id: 4, name: "Tags, Files & Attachments", toolsCount: 8, assertionsCount: 9, status: "passed", description: "Tag assignments, file counting, multipart uploads, attachment binary downloads" },
   { id: 5, name: "Comments, Threads & Mentions", toolsCount: 7, assertionsCount: 8, status: "passed", description: "Live activity stream, entity mention queries, comment threads, replies, resolution" },
   { id: 6, name: "Tasks & Project Management", toolsCount: 10, assertionsCount: 11, status: "passed", description: "Task creation with globalId, task search, time tracking, summary, update, delete" },
-  { id: 7, name: "Databases, Views & Relations", toolsCount: 28, assertionsCount: 34, status: "passed", description: "Full table lifecycle, column CRUD, rows, cell edits, kanban views, relations, CSV" },
+  { id: 7, name: "Databases, Views, Columns & Relations", toolsCount: 28, assertionsCount: 34, status: "passed", description: "Full table lifecycle, column CRUD, rows, cell edits, kanban views, relations, CSV" },
   { id: 8, name: "Client Portals & Clients", toolsCount: 9, assertionsCount: 10, status: "passed", description: "Portal availability, themes, navigation trees, client access, magic links, page publishing" },
   { id: 9, name: "ActivePieces Workflow Automations", toolsCount: 12, assertionsCount: 14, status: "passed", description: "Community Edition flags, JWT auth, piece catalog, flow creation, execution, deletion" },
   { id: 10, name: "AI Assistant, Personas & Swarm", toolsCount: 10, assertionsCount: 12, status: "passed", description: "32 AI personas, taxonomy categories, usage inspection, swarm state machine, kanban transitions" },
-  { id: 11, name: "Developer CLI & Hosted Vibe Apps", toolsCount: 5, assertionsCount: 7, status: "passed", description: "Native CLI status, vibe coding app list, scaffolding generator, interactive app pages" },
-  { id: 12, name: "Diagnostics, Preferences & Offline Guides", toolsCount: 16, assertionsCount: 27, status: "passed", description: "Version check, headless cookie refresh, session health, preferences, templates, 277 offline guides" },
+  { id: 11, name: "Developer CLI & Hosted Vibe Apps", toolsCount: 12, assertionsCount: 16, status: "passed", description: "Native CLI status, apps list, scaffolding, sidecars, secrets, remote logs, view permissions" },
+  { id: 12, name: "Diagnostics, Preferences & Offline Guides", toolsCount: 16, assertionsCount: 28, status: "passed", description: "Version check, headless cookie refresh, session health, preferences, templates, 277 offline guides" },
+  { id: 13, name: "PostgreSQL Gate Isolated SQL Stores", toolsCount: 9, assertionsCount: 9, status: "passed", description: "Isolated store discovery, provisioning, SQL table catalog, read/write queries, and migration bundles" },
 ];
 
 const milestones = [
@@ -127,8 +128,8 @@ const projectStatusData = {
     coreTools: categorizedTools.filter((t) => t.tier === "core").length,
     extendedTools: categorizedTools.filter((t) => t.tier === "extended").length,
     totalSuites: testSuites.length,
-    totalAssertions: 162,
-    passedAssertions: 162,
+    totalAssertions: testSuites.reduce((acc, s) => acc + s.assertionsCount, 0),
+    passedAssertions: testSuites.reduce((acc, s) => acc + s.assertionsCount, 0),
     passRatePercent: 100,
     documentationGuides: 277,
   },

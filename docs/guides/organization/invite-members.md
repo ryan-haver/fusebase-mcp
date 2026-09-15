@@ -1,11 +1,43 @@
 ---
 title: "Invite members and clients"
-url: "https://thefusebase.com/guides/organization/invite-members/"
+url: "https://thefusebase.com/guides/organization/invite-members"
 section: "organization"
-lastScraped: "2026-09-12T05:17:36.183Z"
+lastScraped: "2026-09-15T04:44:42.828Z"
 ---
 
 # Invite members and clients
+
+[Back to Your organization](/guides/organization)
+
+Your organization
+
+# Invite members and clients
+
+Using our console, you can add an unlimited amount of members to your organization/ workspace.
+
+Guide details
+
+Published
+
+August 30, 2022
+
+Read time
+
+4 min read
+
+Category
+
+Your organization
+
+In this guide
+
+1.  [Inviting a Member to the Organization](#0-toc-title)
+2.  [Types of accounts in organizations](#b4024208028_425)
+3.  [Types of permissions in workspaces](#b1651908565_463)
+4.  [Add members in the workspace](#b4024208028_342)
+5.  [I want to invite a new member to only a specific folder or page. Is that possible?](#4-toc-title)
+6.  [Member Groups](#5-toc-title)
+7.  [Inviting Members and Clients to the Portal](#6-toc-title)
 
 To start, here is some information about the service structure. FuseBase provides a highly flexible, organized environment for ideas, collaboration, and knowledge sharing. The hierarchy in FuseBase is as follows:
 
@@ -13,7 +45,7 @@ Organization -> Workspaces -> Internal Space/Portal.
 
 A workspace can be divided into two main parts: the Internal Space, where you and your team work on internal documentation, projects, etc., and the portal, which is the external part of the workspace where you can invite clients for collaboration.
 
-## Inviting a Member to the Organization [#](#0-toc-title)
+## Inviting a Member to the Organization
 
 To add a member to the organization, follow these steps.
 
@@ -27,22 +59,22 @@ To add a member to the organization, follow these steps.
 -   Send an invite.
 -   The user will receive an email with an invitation to join. After accepting, the user will become a member of the organization.
 
-## Types of accounts in organizations [#](#b4024208028_425)
+## Types of accounts in organizations
 
 -   Organization **Owner** and **Managers** have access to all workspaces and to the organization’s console.
 -   Organization **Members** can access the workspaces they have been added to by the organization **Owner or** **Managers**.
 -   Members with a **Guest** role can have access to only one workspace and their stay in the organization can be limited in time.
 -   **Clients** have access only to the portal and do not have access to the Internal Space.
 
-## Types of permissions in workspaces [#](#b1651908565_463)
+## Types of permissions in workspaces
 
 -   **Admin** – users can edit pages, add new pages, share your pages through public pages.
 -   **Can create and edit** – users will be able to do full-fledged work on pages – read, edit, and even delete pages. Folders and tags management will also be available.
 -   **Read only** – user’s pages will be available only for reading.
 
-![Types of permissions in workspaces](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Types of permissions in workspaces](https://thefusebase.com/box/attachment/4512071/4xd1wz1oqvm4xa0sacc4/rlpeKoVcU3Ns6nUC/2 (5).gif)
 
-## Add members in the workspace [#](#b4024208028_342)
+## Add members in the workspace
 
 To add a member directly to the workspace, you need to:
 
@@ -54,25 +86,25 @@ To add a member directly to the workspace, you need to:
 -   Select permissions for the user.
 -   Send an invite.
 
-![Add members in the workspace](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Add members in the workspace](https://thefusebase.com/box/attachment/4512071/4xd1wz1oqvm4xa0sacc4/u2c4WriBnp6BxsMs/2 (2) (1) (1).gif)
 
 **Note: After adding a member to the workspace, you can always change their permissions.**
 
-![The user will receive an email with an invitation to join. After accepting, the user will become a member of the organization.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![The user will receive an email with an invitation to join. After accepting, the user will become a member of the organization.](https://thefusebase.com/box/attachment/4512071/4xd1wz1oqvm4xa0sacc4/0987mpRQXTWxEyvT/Group 26 (3).png)
 
 **Note: You can also add a member to the workspace from existing members.**
 
-![You can also add a member to the workspace from existing members.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![You can also add a member to the workspace from existing members.](https://thefusebase.com/box/attachment/4512071/4xd1wz1oqvm4xa0sacc4/h3F41kGOq3xYtKP1/Group 28 (3).png)
 
-## I want to invite a new member to only a specific folder or page. Is that possible? [#](#4-toc-title)
+## I want to invite a new member to only a specific folder or page. Is that possible?
 
-Yes, of course! This functionality is available for Advanced plan. You can read more about restricting access to folders here – [Managing access to folders and subfolders](https://thefusebase.com/guides/organization/managing-access-to-folders-and-subfolders/). If you want to restrict access to a page, in this guide will help – [Managing Access to Pages](https://thefusebase.com/guides/organization/managing-access-to-pages/)
+Yes, of course! This functionality is available for Advanced plan. You can read more about restricting access to folders here – [Managing access to folders and subfolders](/guides/organization/managing-access-to-folders-and-subfolders). If you want to restrict access to a page, in this guide will help – [Managing Access to Pages](/guides/organization/managing-access-to-pages)
 
-## Member Groups [#](#5-toc-title)
+## Member Groups
 
-To simplify workspace access management, you can use Groups. They allow you to add multiple members to the required workspaces with selected permissions at once. You can read more about groups in this guide: [https://thefusebase.com/guides/organization/create-manage-members-groups/](https://thefusebase.com/guides/organization/create-manage-members-groups/)
+To simplify workspace access management, you can use Groups. They allow you to add multiple members to the required workspaces with selected permissions at once. You can read more about groups in this guide: [https://thefusebase.com/guides/organization/create-manage-members-groups/](/guides/organization/create-manage-members-groups)
 
-## Inviting Members and Clients to the Portal [#](#6-toc-title)
+## Inviting Members and Clients to the Portal
 
 A workspace can be divided into two main parts: the Internal Space, where you and your team work on internal documentation, projects, etc., and the portal, which is the external part of the workspace where you can invite clients for collaboration.
 
@@ -80,4 +112,4 @@ Unlike members or guests, clients have access only to the portal and do not have
 
 You can send an invite to portal either through the business console at [https://teams.nimbusweb.me/](https://teams.nimbusweb.me/) or via the portal customizer (Share -> Invite Client). If you invite a client to the portal, they will have access only to the portal. If you invite a member, they will have access to both the portal and the Internal Space.
 
-You can learn more about inviting clients to the portal and automating your client workflows in this guide: [https://thefusebase.com/guides/client-portal/inviting-via-client-role/](https://thefusebase.com/guides/client-portal/inviting-via-client-role/)
+You can learn more about inviting clients to the portal and automating your client workflows in this guide: [https://thefusebase.com/guides/client-portal/inviting-via-client-role/](/guides/client-portal/inviting-via-client-role)

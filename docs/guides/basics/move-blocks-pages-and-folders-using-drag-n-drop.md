@@ -1,11 +1,37 @@
 ---
 title: "Move blocks, pages and folders using drag-n-drop"
-url: "https://thefusebase.com/guides/basics/move-blocks-pages-and-folders-using-drag-n-drop/"
+url: "https://thefusebase.com/guides/basics/move-blocks-pages-and-folders-using-drag-n-drop"
 section: "basics"
-lastScraped: "2026-09-12T05:16:52.012Z"
+lastScraped: "2026-09-15T04:44:32.735Z"
 ---
 
 # Move blocks, pages and folders using drag-n-drop
+
+[Back to FuseBase Basics](/guides/basics)
+
+FuseBase Basics
+
+# Move blocks, pages and folders using drag-n-drop
+
+Using the drag-n-drop function, you can easily move blocks, pages and folders in FuseBase.
+
+Guide details
+
+Published
+
+August 28, 2022
+
+Read time
+
+1 min read
+
+Category
+
+FuseBase Basics
+
+In this guide
+
+This guide is a short walkthrough.
 
 Using the drag-n-drop function, you can easily move blocks, pages and folders in [FuseBase](https://thefusebase.com/).
 
@@ -24,4 +50,4 @@ You can also move any folder (except the default one) to another folder. This wi
 -   In the folders list, hover over the folder you want to move.
 -   Hold down the left mouse button and drag the folder to the other desired folder.
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/K7yFh03LWEE?feature=oembed)

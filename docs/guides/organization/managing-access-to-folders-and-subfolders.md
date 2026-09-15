@@ -1,17 +1,49 @@
 ---
 title: "Managing access to folders and subfolders"
-url: "https://thefusebase.com/guides/organization/managing-access-to-folders-and-subfolders/"
+url: "https://thefusebase.com/guides/organization/managing-access-to-folders-and-subfolders"
 section: "organization"
-lastScraped: "2026-09-12T05:17:33.290Z"
+lastScraped: "2026-09-15T04:44:41.366Z"
 ---
 
 # Managing access to folders and subfolders
 
-## General information [#](#b3119846520_1122)
+[Back to Your organization](/guides/organization)
+
+Your organization
+
+# Managing access to folders and subfolders
+
+In FuseBase, you can restrict access to individual folders/subfolders for selected users.
+
+Guide details
+
+Published
+
+October 28, 2022
+
+Read time
+
+3 min read
+
+Category
+
+Your organization
+
+In this guide
+
+1.  [General information](#b3119846520_1122)
+2.  [How to change access to a folder for a workspace member](#b3119846520_1084)
+3.  [Who has permissions to manage folder access?](#b3119846520_1515)
+4.  [How to deny access to folders to individual members?](#b3119846520_1625)
+5.  [How to allow access to a folder for a user](#b3119846520_2960)
+6.  [How do I invite a new member to a folder?](#5-toc-title)
+7.  [How to return full access to the workspace for a user](#b4139667178_84)
+
+## General information
 
 In [Fusebase](https://thefusebase.com/), you can restrict access to individual folders/subfolders for selected users.
 
-![In Nimbus Note, you can restrict access to individual folders/subfolders for selected users.](https://app.nimbusweb.me/box/attachment/7570238/r7gbn3wnx4yh58zlas3b/YrG148KbYPBhsONh/image.png)
+![In Nimbus Note, you can restrict access to individual folders/subfolders for selected users.](/hosting-assets/legacy/thefusebase/box/attachment/7570238/r7gbn3wnx4yh58zlas3b/YrG148KbYPBhsONh/image.png)
 
 Currently, you can restrict access to folders for:
 
@@ -26,9 +58,9 @@ You cannot restrict access to folders for:
 
 **Important! All workspace members have access to the Unsorted (default) folder and the access cannot be restricted.**
 
-## How to change access to a folder for a workspace member [#](#b3119846520_1084)
+## How to change access to a folder for a workspace member
 
-### Who has permissions to manage folder access? [#](#b3119846520_1515)
+### Who has permissions to manage folder access?
 
 The following members have the ability to manage folder access:
 
@@ -36,21 +68,21 @@ The following members have the ability to manage folder access:
 -   Organization managers
 -   Workspace admins
 
-### How to deny access to folders to individual members? [#](#b3119846520_1625)
+### How to deny access to folders to individual members?
 
 1\. Right click on the desired folder/subfolder.
 
 2\. Select Manage members.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20720'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2022/10/image-1024x720.png)
 
 3\. In the window that appears, you will see a list of participants who have access to the folder.
 
-![In the window that appears, you will see a list of participants who have access to the folder.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![In the window that appears, you will see a list of participants who have access to the folder.](/hosting-assets/legacy/thefusebase/box/attachment/7570238/r7gbn3wnx4yh58zlas3b/rlqoX9i2WwbfUMhb/image.png)
 
 4\. Click on the Deny access icon.
 
-![Click on the Deny access icon.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Click on the Deny access icon.](/hosting-assets/legacy/thefusebase/box/attachment/7570238/r7gbn3wnx4yh58zlas3b/Fd7k0BYSf4eQBkiP/image.png)
 
 5\. Confirm the action.
 
@@ -66,7 +98,7 @@ If you denied access to at least one folder, then the following restrictions are
   
 – the user loses the ability to create new tags.
 
-### How to allow access to a folder for a user [#](#b3119846520_2960)
+### How to allow access to a folder for a user
 
 If you have limited access to folders, then you can also restore access to them for individual users.
 
@@ -76,14 +108,14 @@ If you have limited access to folders, then you can also restore access to them 
 
 3\. In the window that appears, click on Add members.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20704%20587'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2022/10/image-3.png)
 
 4\. In the window that appears, you will see:
 
 -   list of workspace members whom have been denied access to the folder
 -   list of organization members who are not members of the workspace
 
-![In the window that appears, you will see](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![In the window that appears, you will see](/hosting-assets/legacy/thefusebase/box/attachment/7570238/r7gbn3wnx4yh58zlas3b/0Imj1dqKCkVIEe9I/image.png)
 
 5\. To give access to the folder, click on No access and select the desired permission (Edit or Read Only), after which the corresponding access to folder will be given to the user.
 
@@ -91,7 +123,7 @@ If the user is already a member of the workspace, then they will be given access
 
 If the user was not a member of the workspace, then when adding to the folder, he will also be added to the workspace with the permissions that were specified when granting access to the folder.
 
-## How do I invite a new member to a folder? [#](#5-toc-title)
+## How do I invite a new member to a folder?
 
 Also, you can invite a new member to the folder via an invite.
 
@@ -101,9 +133,9 @@ Also, you can invite a new member to the folder via an invite.
 4) Go to the **By email tab**.  
 5) Enter the email address of the desired user and specify his/her role and permissions. Next, click on **Send invitation**.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20631%20524'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/04/image-92.png)
 
-## How to return full access to the workspace for a user [#](#b4139667178_84)
+## How to return full access to the workspace for a user
 
 If you want the user to have access to all old and new folders again, then you need to give him full access to the workspace.
 

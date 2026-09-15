@@ -1,11 +1,37 @@
 ---
 title: "Companies Dashboard in FuseBase CRM"
-url: "https://thefusebase.com/guides/dashboard-crm/companies-dashboard-in-fusebase-crm/"
+url: "https://thefusebase.com/guides/dashboard-crm/companies-dashboard-in-fusebase-crm"
 section: "dashboard-crm"
-lastScraped: "2026-09-12T05:18:47.752Z"
+lastScraped: "2026-09-15T04:44:54.209Z"
 ---
 
 # Companies Dashboard in FuseBase CRM
+
+[Back to Dashboard/CRM](/guides/dashboard-crm)
+
+Dashboard/CRM
+
+# Companies Dashboard in FuseBase CRM
+
+The Companies Dashboard is part of the built-in CRM in FuseBase. It gives teams a clear way to organize business relationships around companies, which is especially useful for...
+
+Guide details
+
+Published
+
+March 10, 2026
+
+Read time
+
+2 min read
+
+Category
+
+Dashboard/CRM
+
+In this guide
+
+1.  [Company Dashboard](#0-toc-title)
 
 The Companies Dashboard is part of the built-in CRM in FuseBase. It gives teams a clear way to organize business relationships around companies, which is especially useful for business workflows.
 
@@ -23,22 +49,22 @@ This helps your team see how different records relate to the same business accou
 
 The Companies Dashboard also supports CRM sync workflows. Since most CRMs use a Company or Account object, this structure helps align FuseBase data with your external CRM and makes account-based workflows easier to manage.
 
-## Company Dashboard [#](#0-toc-title)
+## Company Dashboard
 
 You can access the company dashboard through the corresponding section in Organization.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20538'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/03/image-1024x538.png)
 
 There, you will see the dashboard, where you can view the list of existing companies and add new ones.
 
 To add a company, click on Add company and then fill in the main fields: company name, its URL, description, etc.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20456'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/03/image-1-1024x456.png)
 
 You can also link the company to portals, workspaces, and clients. To do this, simply select the appropriate values in the corresponding fields.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20829%201024'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/03/image-2-829x1024.png)
 
-If you need additional fields for companies, you can do this via Edit columns. You can read more about it here: [https://thefusebase.com/guides/settings/custom-fields-in-the-dashboard-building-your-own-crm-in-fusebase/](https://thefusebase.com/guides/settings/custom-fields-in-the-dashboard-building-your-own-crm-in-fusebase/)
+If you need additional fields for companies, you can do this via Edit columns. You can read more about it here: [https://thefusebase.com/guides/settings/custom-fields-in-the-dashboard-building-your-own-crm-in-fusebase/](/guides/settings/custom-fields-in-the-dashboard-building-your-own-crm-in-fusebase)
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20461'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/03/image-3-1024x461.png)

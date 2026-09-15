@@ -1,11 +1,43 @@
 ---
 title: "Hotkeys and Markdown"
-url: "https://thefusebase.com/guides/basics/hotkeys-and-markdown/"
+url: "https://thefusebase.com/guides/basics/hotkeys-and-markdown"
 section: "basics"
-lastScraped: "2026-09-12T05:16:50.285Z"
+lastScraped: "2026-09-15T04:44:32.728Z"
 ---
 
 # Hotkeys and Markdown
+
+[Back to FuseBase Basics](/guides/basics)
+
+FuseBase Basics
+
+# Hotkeys and Markdown
+
+For all the work you will do with FuseBase, there are markdown hotkeys that can help you do it faster, even without touching your mouse.
+
+Guide details
+
+Published
+
+August 28, 2022
+
+Read time
+
+4 min read
+
+Category
+
+FuseBase Basics
+
+In this guide
+
+1.  [Most popular](#b1269940851_259)
+2.  [Quick access to the object menu](#b758700758_632)
+3.  [Lifehack](#b3058100626_18)
+4.  [Style your content](#b1269940851_751)
+5.  [Lifehack](#b821064416_10)
+6.  [Mentions and linking](#b1269940851_1102)
+7.  [Markdown style](#b1269940851_6611)
 
 For all the work you will do with FuseBase, there are markdown hotkeys that can help you do it faster, even without touching your mouse.
 
@@ -18,7 +50,7 @@ Easily change headings, lists, fonts or objects to make your document more dynam
 
 **☝️ Note: You’ll see cmd/ctrl used a lot below. This indicates command on Mac and control on Windows.**
 
-## Most popular [#](#b1269940851_259)
+## Most popular
 
 -   Add checkbox – **cmd/ctrl** + **shift** + **c**
 -   Add digital list – **cmd/ctrl** + **shift** + **7**
@@ -30,22 +62,22 @@ Easily change headings, lists, fonts or objects to make your document more dynam
 -   Add emoji – **:**
 -   Open the object menu – **/** (forward slash)
 
-![Easily change headings, lists, fonts or objects to make your document more dynamic.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Easily change headings, lists, fonts or objects to make your document more dynamic.](https://thefusebase.com/box/attachment/4475433/xc9nssvh37y94fu36k7q/SQtfkqr52WGaJJxJ/1_creating_checkbox_Trim_1 (3).gif)
 
-### Quick access to the object menu [#](#b758700758_632)
+### Quick access to the object menu
 
 Get to the object menu quickly by using the hotkey “/” (forward slash)!
 
 With a help of this menu, you can create different objects from tables to bookmarks and files. Just type a slash on a new line to choose the object from the list. You can also use a slash to change the block type: add it after a text to convert the block.  
 No worries, you can still use the arrow to open the object menu!
 
-### Lifehack [#](#b3058100626_18)
+### Lifehack
 
 When the cursor is at the beginning of a line or block, you can delete the entire text block / line by using the **Alt** + **Shift** + **Delete** hotkey.
 
 This applies to text boxes and lists only. It works in the same way as when you select the entire block and click **Delete**.
 
-## Style your content [#](#b1269940851_751)
+## Style your content
 
 To make your page more personal and attractive, customize the appearance of the text, add a background, lines, highlights and more.
 
@@ -74,12 +106,12 @@ To make your page more personal and attractive, customize the appearance of the 
 -   Align Left/Center/Right – **ctrl** + **shift** + **1/2/3**
 -   Duplicate block – hold down both the **⌥ / alt** + **the left mouse button** and drag the block
 
-### Lifehack [#](#b821064416_10)
+### Lifehack
 
 Use the **cmd/ctrl** + **v** hotkey to add text into a page.  
 If you want to insert text without formatting (e.g., without text color or bold font) use **cmd/ctrl** + **shift** + **v**.
 
-## Mentions and linking [#](#b1269940851_1102)
+## Mentions and linking
 
 It is very simple and easy to use mentions in your page. For example, you can mention any other workspace participant / page / folder / workspace in the page. The participants will receive a notification by email if you mention them.
 
@@ -95,7 +127,7 @@ With the help of embeds and bookmarks, you can greatly expand the capabilities o
 -   New paragraph – **enter**
 -   New line in text – **cmd/ctrl** + **enter**
 
-## Markdown style [#](#b1269940851_6611)
+## Markdown style
 
 FuseBase also supports Markdown hotkeys.  
 These hotkeys can be used to format text. They can be written anywhere in the line.
@@ -116,8 +148,8 @@ With the help of these hotkeys you can create various objects. They can only be 
 -   Type **“** (regular quotes) and a space to create a quote
 -   Type **“\`** (back quote) and a space to create a block of code
 
-![With the help of these hotkeys you can create various objects. They can only be used at the beginning of a line.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![With the help of these hotkeys you can create various objects. They can only be used at the beginning of a line.](https://thefusebase.com/box/attachment/4475433/xc9nssvh37y94fu36k7q/oiMhSxkQpilu5c6E/block of code_Trim 2.gif)
 
 If you want to disable the markdown, go to Settings – Editor and turn off the Enable Markdown toggle.
 
-![If you want to disable the markdown, go to Settings - Editor and turn off the Enable Markdown toggle.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![If you want to disable the markdown, go to Settings - Editor and turn off the Enable Markdown toggle.](/hosting-assets/legacy/thefusebase/box/attachment/4475433/xc9nssvh37y94fu36k7q/6YguvjqYlrvuJ5Xn/960w_2358_off_markdown_2.gif)

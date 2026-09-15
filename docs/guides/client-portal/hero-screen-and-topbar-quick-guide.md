@@ -1,29 +1,62 @@
 ---
 title: "Hero screen and Topbar – Quick guide"
-url: "https://thefusebase.com/guides/client-portal/hero-screen-and-topbar-quick-guide/"
+url: "https://thefusebase.com/guides/client-portal/hero-screen-and-topbar-quick-guide"
 section: "client-portal"
-lastScraped: "2026-09-12T05:17:13.131Z"
+lastScraped: "2026-09-15T04:44:36.844Z"
 ---
 
 # Hero screen and Topbar – Quick guide
+
+[Back to Portals](/guides/client-portal)
+
+Portals
+
+# Hero screen and Topbar – Quick guide
+
+In this guide, we will explain how to customize the appearance of your portal by editing the Hero screen and the top bar. Top bar is the area containing your logo and a list of...
+
+Guide details
+
+Published
+
+October 12, 2024
+
+Read time
+
+3 min read
+
+Category
+
+Portals
+
+In this guide
+
+1.  [Editing the Top Bar](#0-toc-title)
+2.  [Header section](#1-toc-title)
+3.  [Content section](#2-toc-title)
+4.  [Style section](#3-toc-title)
+5.  [Hero screen](#4-toc-title)
+6.  [Hero type section](#5-toc-title)
+7.  [Content section](#6-toc-title)
+8.  [Style section](#7-toc-title)
 
 In this guide, we will explain how to customize the appearance of your portal by editing the **Hero screen** and the **top bar**.
 
 **Top bar** is the area containing your logo and a list of links at the top of your portal.
 
-![](https://thefusebase.com/wp-content/uploads/2024/10/image-31-1024x544.png)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2024/10/image-31-1024x544.png)
 
 **Hero screen** is the top section of your portal.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2024/10/image-30-1024x544.png)
 
-## **Editing the Top Bar** [#](#0-toc-title)
+## **Editing the Top Bar**
 
 1) Go to the portal customizer.
 
 2) Hover your mouse over the top bar and click **Edit**.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20509'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2024/10/image-32-1024x509.png)
 
 3) The settings consist of three sections:
 
@@ -31,39 +64,39 @@ In this guide, we will explain how to customize the appearance of your portal by
 2.  **Content** – This section allows you to manage the content of the top bar.
 3.  **Style** – Here, you can modify the appearance of the top bar.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20515'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2024/10/image-33-1024x515.png)
 
-### Header section [#](#1-toc-title)
+### Header section
 
 Click on **Change** to select a different layout for the links in the top bar.
 
-### Content section [#](#2-toc-title)
+### Content section
 
 Here, you can change the logo: select a different one, adjust its size, or disable it entirely if needed.
 
 You can also manage the links in the top bar. To disable a all links, simply click on the **Minus** icon.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20413'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2024/10/image-34-1024x413.png)
 
 If you want to add or remove links, click on **Manage**. From there, you can add a new link or page to the top bar, or remove any unnecessary links.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20439'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2024/10/image-35-1024x439.png)
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20422'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2024/10/image-37-1024x422.png)
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20438'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2024/10/image-36-1024x438.png)
 
 You can also quickly enable or disable the search icon and the notification panel.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20460'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2024/10/image-38-1024x460.png)
 
-### Style section [#](#3-toc-title)
+### Style section
 
 In this section, you can change the color of the links, their background, and the background of the top bar itself.
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/MGXrCwW5s-c?feature=oembed)
 
-## Hero screen [#](#4-toc-title)
+## Hero screen
 
 In the **Hero screen** settings, you can:
 
@@ -74,7 +107,7 @@ In the **Hero screen** settings, you can:
 
 To edit the **Hero screen**, hover over it with your mouse and click **Edit**.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2024/10/image-39-1024x544.png)
 
 The Hero screen is divided into three sections:
 
@@ -82,26 +115,26 @@ The Hero screen is divided into three sections:
 2.  **Content** – This section allows you to modify the content of the Hero, such as text, images, or buttons.
 3.  **Style** – In this section, you can adjust the size of the Hero, change its background, and customize other visual elements.
 
-### Hero type section [#](#5-toc-title)
+### Hero type section
 
 Here, you can select the type of **Hero section**. FuseBase offers a wide variety of Hero layouts, so you can always find one that suits your preferences. We even offer options with a gallery in the Hero section, providing more dynamic visual layouts for your portal.
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/1CcvpaetBFk?feature=oembed)
 
-### Content section [#](#6-toc-title)
+### Content section
 
 Here, you can modify the appearance of the welcome text and portal description (or disable them entirely). You can also customize the text inside the search bar or disable it if it’s not needed.
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/puR1DLITNxM?feature=oembed)
 
 In the Wrapper section, you can change the background of the Hero section and manage its padding to adjust the spacing around the content.
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/5qo10amR8VE?feature=oembed)
 
-### Style section [#](#7-toc-title)
+### Style section
 
 In this section, you can update the background color or image for the entire top part of the portal. You can also select the size of the entire **Hero** section here, adjusting it to fit your desired layout.
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/zYfjN2RBmUc?feature=oembed)
 
 After making the necessary changes, don’t forget to save them by clicking the **Publish** button.

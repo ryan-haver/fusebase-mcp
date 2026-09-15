@@ -1,11 +1,44 @@
 ---
 title: "Links in FuseBase"
-url: "https://thefusebase.com/guides/basics/links-in-fusebase/"
+url: "https://thefusebase.com/guides/basics/links-in-fusebase"
 section: "basics"
-lastScraped: "2026-09-12T05:16:55.946Z"
+lastScraped: "2026-09-15T04:44:33.491Z"
 ---
 
 # Links in FuseBase
+
+[Back to FuseBase Basics](/guides/basics)
+
+FuseBase Basics
+
+# Links in FuseBase
+
+A link is an active element on a page. When you click on it, an action is performed. Any navigation through the pages and almost all actions performed by the user are carried out...
+
+Guide details
+
+Published
+
+August 27, 2022
+
+Read time
+
+4 min read
+
+Category
+
+FuseBase Basics
+
+In this guide
+
+1.  [Internal links to other pages](#b1533040143_126)
+2.  [Mentions](#b3748701507_0)
+3.  [Internal link to page](#b1686173633_22)
+4.  [Links to blocks inside pages](#b1686173633_139)
+5.  [External links](#b1533040143_168)
+6.  [Embeds](#b1533040143_192)
+7.  [Bookmarks](#b1533040143_208)
+8.  [External links](#b1533040143_227)
 
 A link is an active element on a page. When you click on it, an action is performed. Any navigation through the pages and almost all actions performed by the user are carried out with the help of links. Depending on the type, links can do the following:
 
@@ -16,9 +49,9 @@ A link is an active element on a page. When you click on it, an action is perfor
 
 In [FuseBase](https://thefusebase.com/), you can use different types of links for different cases: internal links to other pages, links to blocks inside pages, external links.
 
-## Internal links to other pages [#](#b1533040143_126)
+## Internal links to other pages
 
-### Mentions [#](#b3748701507_0)
+### Mentions
 
 In FuseBase, you can mention a team member, page, folder, or even another workspace in your pages. If you mention a page, folder, or workspace, then clicking on it will take you to the specific item that was tagged.
 
@@ -29,7 +62,7 @@ To mention a page, just do the following.
 -   Start typing the page title or manually select the page.
 -   Click on the mention and the selected page will automatically open.
 
-![In Nimbus Note, you can mention a team member, page, folder, or even another workspace in your pages.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![In Nimbus Note, you can mention a team member, page, folder, or even another workspace in your pages.](https://thefusebase.com/box/attachment/6019852/ggpxbm422tmwktk7zi9b/EVA2UNcj5X5whXpr/3 1549.gif)
 
 Another way to link pages by mentions is creating a new page from selection.
 
@@ -38,9 +71,9 @@ Another way to link pages by mentions is creating a new page from selection.
 
 A new page with a title created from the highlighted text will be made. In your original page, there will be a mention that links to the new page.
 
-Read more about Mentions [here](https://thefusebase.com/guides/basics/mentions-link-people-dates-folders-pages-and-workspaces/).
+Read more about Mentions [here](/guides/basics/mentions-link-people-dates-folders-pages-and-workspaces).
 
-### Internal link to page [#](#b1686173633_22)
+### Internal link to page
 
 Each page has an internal link, which only works for workspace members. You can find it in the page menu.
 
@@ -50,9 +83,9 @@ When you share a page with the internal link, users who are not authorized in Fu
 -   Select **Copy internal link**.
 -   Paste it inside a page in the desired place.
 
-![Each page has an internal link, which only works for workspace members. You can find it in the page menu.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Each page has an internal link, which only works for workspace members. You can find it in the page menu.](/hosting-assets/legacy/thefusebase/box/attachment/6019852/ggpxbm422tmwktk7zi9b/6Y0AgOUIoXQJhEyQ/image.png)
 
-## Links to blocks inside pages [#](#b1686173633_139)
+## Links to blocks inside pages
 
 You can copy links to blocks inside a page to create anchors. An anchor is a bookmark with a unique name at a specific place on a web page, designed to link you to a specific point. Using anchors is convenient when working with large documents since it allows you to quickly jump to a desired section. When you click the link, the page will not only open but also take you to the specific anchor within the page (e.g. a title or photo).
 
@@ -60,11 +93,11 @@ You can copy links to blocks inside a page to create anchors. An anchor is a boo
 -   Select **Copy link**.
 -   Paste the link anywhere inside your page.
 
-![Links to blocks inside pages](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Links to blocks inside pages](/hosting-assets/legacy/thefusebase/box/attachment/6019852/ggpxbm422tmwktk7zi9b/vCgLzCjcEVjyHlh8/preview.gif)
 
-## External links [#](#b1533040143_168)
+## External links
 
-### Embeds [#](#b1533040143_192)
+### Embeds
 
 Using embeds you can significantly expand the possibilities offered by FuseBase! You can add videos from Youtube, tweets from Twitter, tables from Airtable, maps from Google Maps and a lot more. Embeds can be both objects from other services and regular websites.
 
@@ -79,7 +112,7 @@ Examples of embed links:
 -   Figma – [https://www.figma.com/file/LKQ4FJ4bTnCSjedbRpk931/Sample-File](https://www.figma.com/file/LKQ4FJ4bTnCSjedbRpk931/Sample-File)
 -   Airtable – [https://airtable.com/embed/shrp9Is7PLYNJ6lpr?backgroundColor=orange&viewControls=on](https://airtable.com/embed/shrp9Is7PLYNJ6lpr?backgroundColor=orange&viewControls=on)
 
-![Using embeds you can significantly expand the possibilities offered by Nimbus Note! ](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Using embeds you can significantly expand the possibilities offered by Nimbus Note! ](https://thefusebase.com/box/attachment/6019852/ggpxbm422tmwktk7zi9b/IuEgQtckRUJdbJVD/youtube sheets.gif)
 
 The size of the embed can be changed. To do this, you need to move the cursor over the embed and click on the resize icons. Next, change the size of the embed while holding and moving the mouse.
 
@@ -87,18 +120,18 @@ Also, you can enable the display of the embed in full-width mode. For this, clic
 
 Read more about Embeds [here](https://thefusebase.com/guides/).
 
-### Bookmarks [#](#b1533040143_208)
+### Bookmarks
 
 The bookmark in FuseBase is a special card where, in addition to a link, there is a title, small description and preview picture of the website shown.
 
 -   Add a link through **Paste** or **Ctrl** + **V**.
 -   Select **Bookmark**.
 
-![The bookmark in Nimbus Note is a special card where, in addition to a link, there is a title, small description and preview picture of the website shown.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![The bookmark in Nimbus Note is a special card where, in addition to a link, there is a title, small description and preview picture of the website shown.](/hosting-assets/legacy/thefusebase/box/attachment/6019852/ggpxbm422tmwktk7zi9b/gvYb2fugXRbBUEx8/preview.gif)
 
-Read more about Bookmarks [here](https://thefusebase.com/guides/basics/bookmarks/).
+Read more about Bookmarks [here](/guides/basics/bookmarks).
 
-### External links [#](#b1533040143_227)
+### External links
 
 In FuseBase, you can add links to any website and hide it under text or a button.
 
@@ -110,6 +143,6 @@ In FuseBase, you can add links to any website and hide it under text or a button
 
 -   To change the link or description of the link or button, press on it and select Edit. To delete the link, select Remove.
 
-![To change the link or description of the link or button, press on it and select Edit. To delete the link, select Remove.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![To change the link or description of the link or button, press on it and select Edit. To delete the link, select Remove.](/hosting-assets/legacy/thefusebase/box/attachment/6019852/ggpxbm422tmwktk7zi9b/ngEKcj9aVBSP9LU4/image.png)
 
-Read more about buttons [here](https://thefusebase.com/guides/basics/button-object/).
+Read more about buttons [here](/guides/basics/button-object).

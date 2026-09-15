@@ -1,46 +1,72 @@
 ---
 title: "How to embed document from Google Docs/Google Sheet?"
-url: "https://thefusebase.com/guides/embedding-sharing/how-to-embed-document-from-google-docs-google-sheet/"
+url: "https://thefusebase.com/guides/embedding-sharing/how-to-embed-document-from-google-docs-google-sheet"
 section: "embedding-sharing"
-lastScraped: "2026-09-12T05:18:15.500Z"
+lastScraped: "2026-09-15T04:44:47.798Z"
 ---
 
 # How to embed document from Google Docs/Google Sheet?
+
+[Back to Embedding & Sharing](/guides/embedding-sharing)
+
+Embedding & Sharing
+
+# How to embed document from Google Docs/Google Sheet?
+
+How to embed document from Google Docs/Google Sheet
+
+Guide details
+
+Published
+
+October 15, 2022
+
+Read time
+
+1 min read
+
+Category
+
+Embedding & Sharing
+
+In this guide
+
+This guide is a short walkthrough.
 
 1) Open the wanted file in Google Docs.
 
 2) Click on Share –
 
-![How to embed document from Google Docs/Google Sheet?](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/Z9BLVaE6sxcdDt5F/image.png)
+![How to embed document from Google Docs/Google Sheet?](/hosting-assets/legacy/thefusebase/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/Z9BLVaE6sxcdDt5F/image.png)
 
 3) Click on Advanced –
 
-![How to embed document from Google Docs/Google Sheet?](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/wpa6BUNg4LVPKubs/image.png)
+![How to embed document from Google Docs/Google Sheet?](/hosting-assets/legacy/thefusebase/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/wpa6BUNg4LVPKubs/image.png)
 
 4) Click on Change in Who has access –
 
-![How to embed document from Google Docs/Google Sheet?](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/WufzcX3VqS7vPft2/image.png)
+![How to embed document from Google Docs/Google Sheet?](/hosting-assets/legacy/thefusebase/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/WufzcX3VqS7vPft2/image.png)
 
 5) Select On – Anyone with this link –
 
-![How to embed document from Google Docs/Google Sheet?](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/Hh2OrUU72tFYfsvU/image.png)
+![How to embed document from Google Docs/Google Sheet?](/hosting-assets/legacy/thefusebase/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/Hh2OrUU72tFYfsvU/image.png)
 
 6) Select the required rights: View only or Edit in Access: Anyone (no sign-in required) –
 
-![Select the required rights: View only or Edit in Access: Anyone (no sign-in required)](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/6vv1coIzPAcA0ymI/image.png)
+![Select the required rights: View only or Edit in Access: Anyone (no sign-in required)](/hosting-assets/legacy/thefusebase/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/6vv1coIzPAcA0ymI/image.png)
 
 7) Click on Save.
 
 8) Copy the link from Link to share –
 
-![Copy the link from Link to share](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Copy the link from Link to share](/hosting-assets/legacy/thefusebase/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/ijbdk5qoEaPm6j8c/image.png)
 
 9) Open FuseBase and go to the desired page.
 
 10) In the objects menu, select Embed and paste the link that you copied from Link to share –
 
-![In the objects menu, select Embed and paste the link that you copied from Link to share](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![In the objects menu, select Embed and paste the link that you copied from Link to share](/hosting-assets/legacy/thefusebase/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/Hsgkdq02QbDz2COQ/image.png)
 
 11) Click on Enter –
 
-![In the objects menu, select Embed and paste the link that you copied from Link to share](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![In the objects menu, select Embed and paste the link that you copied from Link to share](/hosting-assets/legacy/thefusebase/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/WNH5bUaEwryAFdYP/image.png)

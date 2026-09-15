@@ -1,11 +1,37 @@
 ---
 title: "Deals Dashboard in FuseBase CRM"
-url: "https://thefusebase.com/guides/dashboard-crm/deals-dashboard-in-fusebase-crm/"
+url: "https://thefusebase.com/guides/dashboard-crm/deals-dashboard-in-fusebase-crm"
 section: "dashboard-crm"
-lastScraped: "2026-09-12T05:18:47.816Z"
+lastScraped: "2026-09-15T04:44:54.235Z"
 ---
 
 # Deals Dashboard in FuseBase CRM
+
+[Back to Dashboard/CRM](/guides/dashboard-crm)
+
+Dashboard/CRM
+
+# Deals Dashboard in FuseBase CRM
+
+The Deals Dashboard is part of the built-in CRM in FuseBase. It helps teams manage sales opportunities, track deal progress, and organize revenue-related workflows in one place....
+
+Guide details
+
+Published
+
+March 17, 2026
+
+Read time
+
+2 min read
+
+Category
+
+Dashboard/CRM
+
+In this guide
+
+This guide is a short walkthrough.
 
 The Deals Dashboard is part of the built-in CRM in FuseBase. It helps teams manage sales opportunities, track deal progress, and organize revenue-related workflows in one place.
 
@@ -26,7 +52,7 @@ Each deal record can include:
 
 The deals dashboard is available in the Organization section.
 
-![](https://thefusebase.com/wp-content/uploads/2026/03/image-20-1024x534.png)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/03/image-20-1024x534.png)
 
 The Deals Dashboard includes two main views:
 
@@ -35,10 +61,10 @@ The Deals Dashboard includes two main views:
 
 The default **Pipeline** view uses a Kanban layout and groups deals by Deal Stage. This gives teams a simple way to track progress from new opportunities to closed outcomes. You can switch between the pipeline and All deals from the views list.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20510'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/03/image-21-1024x510.png)
 
 To create a new deal, click Add in the desired pipeline stage (for example, Lead) and enter the deal name, its value, description, and other details. You can also immediately link the deal to companies, clients, and so on.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20539'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/03/image-22-1024x539.png)
 
 If you want to move a deal through the pipeline, simply drag it to the desired stage.

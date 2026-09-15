@@ -1,11 +1,37 @@
 ---
 title: "Webhook Trigger – Guide"
-url: "https://thefusebase.com/guides/automations-and-integrations/webhook-trigger-guide/"
+url: "https://thefusebase.com/guides/automations-and-integrations/webhook-trigger-guide"
 section: "automations-and-integrations"
-lastScraped: "2026-09-12T05:18:08.310Z"
+lastScraped: "2026-09-15T04:44:57.001Z"
 ---
 
 # Webhook Trigger – Guide
+
+[Back to Automations and Integrations](/guides/automations-and-integrations)
+
+Automations and Integrations
+
+# Webhook Trigger – Guide
+
+A Webhook Trigger allows you to start an automation flow by sending an HTTP request to a unique webhook URL. This is useful when you want your automation to react to events or...
+
+Guide details
+
+Published
+
+October 3, 2025
+
+Read time
+
+2 min read
+
+Category
+
+Automations and Integrations
+
+In this guide
+
+This guide is a short walkthrough.
 
 A Webhook Trigger allows you to start an automation flow by sending an HTTP request to a unique webhook URL. This is useful when you want your automation to react to events or data coming from other systems or applications.
 
@@ -21,11 +47,11 @@ Below we will show the basic settings: how to get the webhook URL and which sett
 
 2) Select Webhook as the trigger.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-17-1024x517.png)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-17-1024x517.png)
 
 3) Copy the webhook URL and specify it in the application that should send the request to the webhook.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20698'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-18-1024x698.png)
 
 **Request Method**
 
@@ -62,4 +88,4 @@ The keys and values you include here will be available in your automation workfl
 
 After you have configured sending to the webhook, make sure to test data reception using Send Data. This information will be necessary for setting up the next steps.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20738'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-19-1024x738.png)

@@ -1,11 +1,37 @@
 ---
 title: "Connect AI Agents to Fusebase Dashboards with MCP"
-url: "https://thefusebase.com/guides/table-database/connect-ai-agents-to-fusebase-dashboards-with-mcp/"
+url: "https://thefusebase.com/guides/table-database/connect-ai-agents-to-fusebase-dashboards-with-mcp"
 section: "table-database"
-lastScraped: "2026-09-12T05:18:30.480Z"
+lastScraped: "2026-09-15T04:44:52.046Z"
 ---
 
 # Connect AI Agents to Fusebase Dashboards with MCP
+
+[Back to Table & Database](/guides/table-database)
+
+Table & Database
+
+# Connect AI Agents to Fusebase Dashboards with MCP
+
+Fusebase Dashboards MCP connects AI agents directly to the structured data your business runs on. Instead of only reading documents or answering questions, an agent can work with...
+
+Guide details
+
+Published
+
+June 30, 2026
+
+Read time
+
+2 min read
+
+Category
+
+Table & Database
+
+In this guide
+
+This guide is a short walkthrough.
 
 Fusebase Dashboards MCP connects AI agents directly to the structured data your business runs on.
 
@@ -25,11 +51,11 @@ For example, an agent can:
 -   prepare reports using current data instead of outdated exports;
 -   create and maintain records as part of a larger workflow.
 
-# How to obtain the MCP configuration for connecting to FuseBase [#](#0-toc-title)
+# How to obtain the MCP configuration for connecting to FuseBase
 
 1) Open your organization settings and go to the Dashboards MCP section (available only to the owner and organization managers).
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20554'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/06/image-24-1024x554.png)
 
 2) 2) Click on Create Dashboard MCP.
 
@@ -41,7 +67,7 @@ For example, an agent can:
 -   Custom: you decide which areas the agent can access. Off means no access, Read is view-only, and Edit grants full access.
 -   Read: the agent can view but cannot make any changes in your organization.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20649'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/06/image-25-1024x649.png)
 
 5) Next, click on Create Dashboard MCP, and you will see a page where you can copy your token as well as the configuration for adding to agents.
 
@@ -49,10 +75,10 @@ You can either copy the token and MCP URL, or download ready-made configurations
 
 After creation, the new config will appear in the list.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20651'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/06/image-26-1024x651.png)
 
-# Revoke MCP Config [#](#1-toc-title)
+# Revoke MCP Config
 
 If desired, you can disable any MCP config. To do this, click on it and click Revoke.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20652'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/06/image-27-1024x652.png)

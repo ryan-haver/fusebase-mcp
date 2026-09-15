@@ -1,13 +1,39 @@
 ---
 title: "Internal Space and Portals – how do they differ?"
-url: "https://thefusebase.com/guides/client-portal/internal-space-and-portals-the-difference/"
+url: "https://thefusebase.com/guides/client-portal/internal-space-and-portals-the-difference"
 section: "client-portal"
-lastScraped: "2026-09-12T05:17:25.311Z"
+lastScraped: "2026-09-15T04:44:38.519Z"
 ---
 
 # Internal Space and Portals – how do they differ?
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/Internal-space-1-1024x478.png)
+[Back to Portals](/guides/client-portal)
+
+Portals
+
+# Internal Space and Portals – how do they differ?
+
+Use this guide to effectively use Internal Space and Portals through an understanding of their differences.
+
+Guide details
+
+Published
+
+November 8, 2023
+
+Read time
+
+1 min read
+
+Category
+
+Portals
+
+In this guide
+
+This guide is a short walkthrough.
+
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/11/Internal-space-1-1024x478.png)
 
 In the standard web version, there is an **Internal Space** area where you can work individually or in a team:
 
@@ -15,11 +41,11 @@ In the standard web version, there is an **Internal Space** area where you can w
 -   Hold chats
 -   Manage and control tasks
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20350%20674'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/11/Internal-space-2.png)
 
 It is an **Inner area**, available only to you and other organization members. When you make a portal, its layout will appear in your **Sidebar**.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20362%20744'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/11/Internal-space-3.png)
 
 Here, you can:
 
@@ -29,4 +55,4 @@ Here, you can:
 -   Add extra portal pages by selecting the **\+ sign** next to a folder.
 -   Change portal page settings by clicking the **Menu** icon next to the page name.
 
-When you’re ready, you can move your information from Internal Space to the desired portal by using **Drag and Drop** (selecting the appropriate page and dragging it to the portal) or using the **Add to Portal** option, explained [here](https://thefusebase.com/guides/client-portal/adding-pages-to-the-portal-from-the-web-client/).
+When you’re ready, you can move your information from Internal Space to the desired portal by using **Drag and Drop** (selecting the appropriate page and dragging it to the portal) or using the **Add to Portal** option, explained [here](/guides/client-portal/adding-pages-to-the-portal-from-the-web-client).

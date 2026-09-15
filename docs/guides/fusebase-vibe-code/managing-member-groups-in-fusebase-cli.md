@@ -1,13 +1,39 @@
 ---
 title: "Managing member groups in FuseBase CLI"
-url: "https://thefusebase.com/guides/fusebase-vibe-code/managing-member-groups-in-fusebase-cli/"
+url: "https://thefusebase.com/guides/fusebase-vibe-code/managing-member-groups-in-fusebase-cli"
 section: "fusebase-vibe-code"
-lastScraped: "2026-09-12T05:17:45.316Z"
+lastScraped: "2026-09-15T04:45:03.653Z"
 ---
 
 # Managing member groups in FuseBase CLI
 
-In Fusebase, you can create member groups and add them to workspaces with different permissions. This is a very convenient feature for bulk management of organization members. You can read more about groups here: [https://thefusebase.com/guides/organization/create-manage-members-groups/](https://thefusebase.com/guides/organization/create-manage-members-groups/)
+[Back to Fusebase Vibe Code](/guides/fusebase-vibe-code)
+
+Fusebase Vibe Code
+
+# Managing member groups in FuseBase CLI
+
+In Fusebase, you can create member groups and add them to workspaces with different permissions. This is a very convenient feature for bulk management of organization members. You...
+
+Guide details
+
+Published
+
+April 13, 2026
+
+Read time
+
+1 min read
+
+Category
+
+Fusebase Vibe Code
+
+In this guide
+
+This guide is a short walkthrough.
+
+In Fusebase, you can create member groups and add them to workspaces with different permissions. This is a very convenient feature for bulk management of organization members. You can read more about groups here: [https://thefusebase.com/guides/organization/create-manage-members-groups/](/guides/organization/create-manage-members-groups)
 
 With Fusebase CLI, you can also integrate group functionality into your AI apps.  
 Your apps will be able to:

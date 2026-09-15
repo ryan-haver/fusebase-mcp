@@ -1,11 +1,43 @@
 ---
 title: "AI Agents – Quick Guide"
-url: "https://thefusebase.com/guides/fusebase-ai/ai-agents-quick-guide/"
+url: "https://thefusebase.com/guides/fusebase-ai/ai-agents-quick-guide"
 section: "fusebase-ai"
-lastScraped: "2026-09-12T05:17:40.352Z"
+lastScraped: "2026-09-15T04:44:44.322Z"
 ---
 
 # AI Agents – Quick Guide
+
+[Back to FuseBase AI](/guides/fusebase-ai)
+
+FuseBase AI
+
+# AI Agents – Quick Guide
+
+AI Agents are small applications that can perform various tasks using modern AI technologies. These can include text generation, analysis of textual and visual information, text...
+
+Guide details
+
+Published
+
+April 14, 2025
+
+Read time
+
+8 min read
+
+Category
+
+FuseBase AI
+
+In this guide
+
+1.  [Creating Your First AI Agent](#0-toc-title)
+2.  [Using Sources in AI Agents](#1-toc-title)
+3.  [Integrations – connect your favorite services to agents.](#2-toc-title)
+4.  [Web Search Tool](#3-toc-title)
+5.  [Integration with Chrome Extension (Include WebPage Content to the agent)](#4-toc-title)
+6.  [Saving a Response in FuseBase](#5-toc-title)
+7.  [Agent Access Management](#6-toc-title)
 
 AI Agents are small applications that can perform various tasks using modern AI technologies. These can include text generation, analysis of textual and visual information, text translation, data extraction, and much more.
 
@@ -22,9 +54,9 @@ It’s important to note that the apps are tightly integrated into the Fusebase 
 
 Before reading the guide, you can watch a video where we outline the main features of agents and how to set them up for your needs.
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/pbiaBBKn6CU?feature=oembed)
 
-## Creating Your First AI Agent [#](#0-toc-title)
+## Creating Your First AI Agent
 
 Let’s start by creating a simple agent that allows you to translate input text from one language to another.
 
@@ -36,7 +68,7 @@ It’s important to note that apps can be used not only by you, but also by:
 
 1) Go to the Agents section and click “Add new.”
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20540'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/04/image-44-1024x540.png)
 
 2) In the window that appears, you’ll see the settings for your new agent. In the Title field, enter the name of the agent.
 
@@ -44,7 +76,7 @@ In the Description, briefly explain what your app does. This helps other members
 
 3) Next, it is necessary to create a mini form through which users can add text for translation and specify the desired language.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201945%201345'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/04/image-13.png)
 
 In addition to text fields, you can also allow users to upload a file. For example, when using the app, a user can upload a document and have it translated. We support various file formats — from images to documents.
 
@@ -58,17 +90,17 @@ When writing your prompt, don’t forget to select the necessary fields from the
 
 It is also possible to immediately add several additional conditions. For example, you can ask not to add your own comments, maintain a neutral tone, and not add extra formatting to the text.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201347%201140'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/04/image-2.png)
 
 5) Next, click Publish changes to save and publish your app, making it available to users in your organization.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201221%201365'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/04/image-3.png)
 
 Now let’s try out our app. Click Start, enter the text you want to translate, and let’s try translating it into French.
 
 As you can see, it’s all very simple. You can create these mini apps for any tasks you need — from text generation to image and document analysis.
 
-## **Using Sources in AI Agents** [#](#1-toc-title)
+## **Using Sources in AI Agents**
 
 Sources allow your app to reference and work with existing content from your Fusebase organization — such as pages, folders, or files.
 
@@ -86,7 +118,7 @@ Let’s try creating an AI app for Customer Success that can answer questions ba
 
 2) Next, add a field where your team members will enter their questions.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20925%20937'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/04/image-4.png)
 
 3) Now you need to define the prompt, specifying what the agent should do — namely, answer the questions entered in the field. Don’t forget to specify that the questions should be taken from the **Your question** field. You can also add a set of rules — for example, instruct the assistant not to make up answers if it’s unsure of the correct response.
 
@@ -94,31 +126,31 @@ Prompt example:
 
 **I’m customer suport agent and i received the following question for user: @Your Question** **Please help me answer the question, based on our relevant product documentation. If you can’t find a specific answer, direct me to our help center instead. If you can’t find the answer, ask clarifying questions. If those don’t help, say that you couldn’t find the answer in the database. I forbid you from making up answers if you’re not confident in their accuracy.**
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201279%201357'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/04/image-5.png)
 
 Next, you need to go to Sources and select the folders or pages that the assistant will use to generate answers.
 
 It’s important to note that you can also reference specific folders or pages from Sources directly in the prompt if needed. In the case of the assistant, this isn’t necessary — but, for example, you might want to point to a specific page (to use it as a template) or a particular folder. To do this, simply type @ and select the relevant item from the list.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201028%20948'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/04/add-mention.png)
 
 Now let’s publish the changes and launch our app. Let’s test it with a simple question that’s often asked in our support.
 
 As we can see, the answer is accurate and the app works as expected.
 
-## **Integrations – connect your favorite services to agents**. [#](#2-toc-title)
+## **Integrations – connect your favorite services to agents**.
 
 Our agents not only allow you to search the Internet, your knowledge base, or generate new content, but also fully integrate with the services you use. This way, our agents become a true personal intelligent assistant, enabling you to easily automate your everyday tasks.
 
 For example, you can send research results to Slack, book meetings in your calendar, create invoices in Stripe, and much more. And all of this without complex interfaces or configurations. You simply give a command, and our agent understands and executes it. Integrations are implemented through a new innovative protocol – MCP (Model Context Protocol).
 
-You can read more about the functionality in this article – [https://thefusebase.com/guides/fusebase-ai/integration-of-ai-agents-with-other-services-google-calendar-slack-stripe-etc/](https://thefusebase.com/guides/fusebase-ai/integration-of-ai-agents-with-other-services-google-calendar-slack-stripe-etc/ )
+You can read more about the functionality in this article – [https://thefusebase.com/guides/fusebase-ai/integration-of-ai-agents-with-other-services-google-calendar-slack-stripe-etc/](/guides/fusebase-ai/integration-of-ai-agents-with-other-services-google-calendar-slack-stripe-etc)
 
-## **Web Search Tool** [#](#3-toc-title)
+## **Web Search Tool**
 
 Our agents can also perform web searches to retrieve relevant information. To do this, you can use the **Web Search** option.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201948%201329'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/04/image-14.png)
 
 For example, let’s say you need an agent that searches for the latest news about your competitors. You simply create an agent and provide a prompt like this:
 
@@ -136,7 +168,7 @@ After that, you just need to run the agent whenever you want to get updated info
 
 You can also specify a URL directly, and in that case, the agent will search for the required information at that exact address. For example, you can instruct it to look for release updates about Fusebase at [https://thefusebase.com/blog/](https://thefusebase.com/blog/) — and the agent will go straight to that link.
 
-## Integration with Chrome Extension (Include WebPage Content to the agent) [#](#4-toc-title)
+## Integration with Chrome Extension (Include WebPage Content to the agent)
 
 You can also use agents directly in the [browser extension](https://chromewebstore.google.com/detail/fusebase-assistant-ai-cha/haafigbapbpbpnmgcknnmilaaaimggpk?hl=en). It provides full functionality — plus an extra feature: the ability to use the content of the currently open page in the agent.
 
@@ -144,7 +176,7 @@ For example, the agent can summarize articles from the current page or help resp
 
 To include content from the open page in the prompt, just press @ and select Webpage content.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20957%20936'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/04/image-15.png)
 
 Example prompt: **Analyze and summarize content from @Webpage content**
 
@@ -160,31 +192,31 @@ Currently, our agents can work with:
 -   **Images** — they can extract and understand text from images, as well as interpret image content;
 -   **Videos** — they can transcribe video files and answer questions based on the transcript content;
 
-## Saving a Response in FuseBase [#](#5-toc-title)
+## Saving a Response in FuseBase
 
 You can create a new page in Fusebase from the agent’s response. Moreover, you can even save the response to an existing page, thereby enriching it with new information. You can do this by clicking the corresponding icon below the agent’s response –
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201840%201112'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/06/image-28.png)
 
 If you want to create a new page with the agent’s response, click on the desired folder and press Create page –
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201306%201376'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/01/save-to-fusebase.png)
 
 If you want to enrich an existing page, click on the desired one and press Add to page –
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201365%201367'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/06/image-33.png)
 
 You can also speed up saving responses by enabling the Save choice switch. In this case, the agent remembers your selection, and you can save to a page or create a new one with a single click.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201357%201366'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/06/image-34.png)
 
-## **Agent Access Management** [#](#6-toc-title)
+## **Agent Access Management**
 
 By default, agents are available to all organization members, but you can manage this and decide who will have access to your agent.
 
 To do this, go to the agent settings in the Visibility tab.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20744'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/06/image-30-1024x744.png)
 
 Then, choose the appropriate option:
 
@@ -192,6 +224,6 @@ Only for me – the agent will be visible only to you
 For all members and clients – all members and clients of the organization will have access to the agent  
 For specific members – select specific members who will have access to the agent.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20870'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/06/image-32-1024x870.png)
 
 After selecting, click Publish to save the changes.

@@ -1,11 +1,37 @@
 ---
 title: "What’s the Difference Between Agents and Automation?"
-url: "https://thefusebase.com/guides/automations-and-integrations/whats-the-difference-between-agents-and-automation/"
+url: "https://thefusebase.com/guides/automations-and-integrations/whats-the-difference-between-agents-and-automation"
 section: "automations-and-integrations"
-lastScraped: "2026-09-12T05:18:10.935Z"
+lastScraped: "2026-09-15T04:44:56.996Z"
 ---
 
 # What’s the Difference Between Agents and Automation?
+
+[Back to Automations and Integrations](/guides/automations-and-integrations)
+
+Automations and Integrations
+
+# What’s the Difference Between Agents and Automation?
+
+We’re often asked: “Why do we need automation if we already have agents, and vice versa?” Here’s a clear breakdown to help you understand how these two powerful tools complement...
+
+Guide details
+
+Published
+
+June 12, 2025
+
+Read time
+
+1 min read
+
+Category
+
+Automations and Integrations
+
+In this guide
+
+This guide is a short walkthrough.
 
 We’re often asked: “Why do we need automation if we already have agents, and vice versa?” Here’s a clear breakdown to help you understand how these two powerful tools complement each other, rather than compete.
 
@@ -17,7 +43,7 @@ We’re often asked: “Why do we need automation if we already have agents, and
 
 **Automation**
 
--   Automation focuses on building more complex, [multi-step workflows](https://thefusebase.com/guides/automations-and-integrations/using-ai-agents-in-automation/) – think of it as creating a system of agents working together.
+-   Automation focuses on building more complex, [multi-step workflows](/guides/automations-and-integrations/using-ai-agents-in-automation) – think of it as creating a system of agents working together.
 -   With automation, you can set up multi-agent flows with conditions and rules. For example, one agent finds a blog topic, another writes the post, a third formats it, and a fourth publishes it.
 -   Automation is also great for recurring processes, like managing tasks, files, or other modules within your system.
 

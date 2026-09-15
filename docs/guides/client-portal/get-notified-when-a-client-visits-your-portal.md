@@ -1,13 +1,44 @@
 ---
 title: "Get Notified When a Client Visits Your Portal"
-url: "https://thefusebase.com/guides/client-portal/get-notified-when-a-client-visits-your-portal/"
+url: "https://thefusebase.com/guides/client-portal/get-notified-when-a-client-visits-your-portal"
 section: "client-portal"
-lastScraped: "2026-09-12T05:16:59.812Z"
+lastScraped: "2026-09-15T04:44:34.962Z"
 ---
 
 # Get Notified When a Client Visits Your Portal
 
-## Why You Need It [#](#0-toc-title)
+[Back to Portals](/guides/client-portal)
+
+Portals
+
+# Get Notified When a Client Visits Your Portal
+
+Why You Need It When you share a client portal or deal room, knowing when someone opens it can be just as important as knowing what they view. A timely notification helps you...
+
+Guide details
+
+Published
+
+July 28, 2026
+
+Read time
+
+2 min read
+
+Category
+
+Portals
+
+In this guide
+
+1.  [Why You Need It](#0-toc-title)
+2.  [How It Works](#1-toc-title)
+3.  [Portal Visit Notifications](#2-toc-title)
+4.  [What the Notification Includes](#3-toc-title)
+5.  [New Client Account Notifications](#4-toc-title)
+6.  [Managing Notifications](#5-toc-title)
+
+## Why You Need It
 
 When you share a client portal or deal room, knowing when someone opens it can be just as important as knowing what they view. A timely notification helps you recognize client interest and respond while their attention is still focused on your content.
 
@@ -20,9 +51,9 @@ For example, you can:
 
 Instead of repeatedly checking portal analytics, you will receive an email as soon as a visitor starts a portal session.
 
-## How It Works [#](#1-toc-title)
+## How It Works
 
-### Portal Visit Notifications [#](#2-toc-title)
+### Portal Visit Notifications
 
 FuseBase sends an email notification to portal managers when a visitor opens any page in the portal.
 
@@ -36,7 +67,7 @@ Visits from portal managers are excluded, so your own activity and your team’s
 
 The notification is sent when a visitor starts a portal session. Navigating between pages during the same session does not trigger additional emails.
 
-### What the Notification Includes [#](#3-toc-title)
+### What the Notification Includes
 
 If the visitor is signed in, the email identifies them by their name or email address. Anonymous visitors are displayed as “Someone.”
 
@@ -49,9 +80,9 @@ The email also includes:
 
 You can use **Go to Portal** to open the visitor’s entry page or **Go to Analytics** to review their activity in more detail.
 
-### New Client Account Notifications [#](#4-toc-title)
+### New Client Account Notifications
 
-Portal managers can also be notified when a visitor creates a new client account through a portal using **[Email required](https://thefusebase.com/guides/client-portal/access-management-in-the-portal-quick-guide/)** access mode.
+Portal managers can also be notified when a visitor creates a new client account through a portal using **[Email required](/guides/client-portal/access-management-in-the-portal-quick-guide)** access mode.
 
 This notification is sent when an anonymous visitor enters their email address and creates a new account with the Client role. It is not sent when someone logs in to an existing account or creates an account after receiving a direct invitation from a portal manager.
 
@@ -62,7 +93,7 @@ The email includes:
 -   A link to the portal
 -   A link to the portal analytics
 
-### Managing Notifications [#](#5-toc-title)
+### Managing Notifications
 
 Portal visitor notifications are enabled by default. Each portal manager can control them from the email notification section in their personal settings.
 
