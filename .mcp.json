@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "fusebase": {
+      "command": "node",
+      "args": ["c:/scripts/fusebase-mcp/dist/index.js"],
+      "env": {
+        "FUSEBASE_TOOLS": "all"
+      }
+    }
+  }
+}
