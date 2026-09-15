@@ -211,6 +211,34 @@ async function runTests() {
   assert(trackersRes.found === true, "Resolves trackers alias");
   assert(trackersRes.dashboardId === "dash_trackers_1", "Resolves trackers to trackers dashboard ID");
 
+  // 5. FuseBase Work, Firecrawl & n8n Service Integration Verification
+  console.log("\n5. FuseBase Work, Firecrawl & n8n Verification:");
+  assert(typeof client.runAiAgentTask === "function", "FusebaseClient exposes runAiAgentTask");
+  assert(typeof client.scrapeUrlViaFirecrawl === "function", "FusebaseClient exposes scrapeUrlViaFirecrawl");
+  assert(typeof client.triggerN8nFlow === "function", "FusebaseClient exposes triggerN8nFlow");
+
+  // Verify mock execution of runAiAgentTask
+  let requestedEndpoint = "";
+  let requestedBody: any = null;
+  client["request"] = async (endpoint: string, options?: any) => {
+    requestedEndpoint = endpoint;
+    requestedBody = options?.body ? JSON.parse(options.body) : null;
+    return { success: true, threadId: "mock_thread_123" };
+  };
+
+  const agentTaskRes = await client.runAiAgentTask("agent_test_1", "Analyze competitor Q3 metrics");
+  assert(agentTaskRes.success === true, "runAiAgentTask executes successfully");
+  assert(requestedEndpoint.includes("/agents/agent_test_1/threads"), "runAiAgentTask targets agent threads endpoint");
+  assert(requestedBody?.prompt === "Analyze competitor Q3 metrics", "runAiAgentTask passes user prompt");
+
+  const firecrawlRes = await client.scrapeUrlViaFirecrawl("https://news.ycombinator.com", {
+    agentId: "agent_firecrawl_1",
+    formats: ["markdown", "json"],
+  });
+  assert(firecrawlRes.success === true, "scrapeUrlViaFirecrawl executes successfully");
+  assert(requestedEndpoint.includes("/agents/agent_firecrawl_1/threads"), "scrapeUrlViaFirecrawl targets Firecrawl agent thread");
+  assert(requestedBody?.prompt.includes("https://news.ycombinator.com"), "scrapeUrlViaFirecrawl formats target URL into prompt");
+
   // Summary
   console.log("\n=================================================");
   console.log(`Results: ${passed} Passed, ${failed} Failed`);

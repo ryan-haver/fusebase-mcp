@@ -1104,6 +1104,86 @@ export class FusebaseClient {
     );
   }
 
+  /**
+   * Run a prompt or task with an AI agent in FuseBase Work.
+   * Creates a new conversation thread or posts a message to an existing thread.
+   */
+  async runAiAgentTask(
+    agentId: string,
+    prompt: string,
+    options?: { threadId?: string; orgId?: string },
+  ): Promise<Record<string, unknown>> {
+    const org = options?.orgId || this.orgId;
+    if (options?.threadId) {
+      return this.request<Record<string, unknown>>(
+        `/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads/${options.threadId}/messages`,
+        {
+          method: "POST",
+          body: JSON.stringify({ message: prompt, text: prompt, content: prompt }),
+        },
+      ).catch(async () => {
+        return this.request<Record<string, unknown>>(
+          `/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentId}/run`,
+          {
+            method: "POST",
+            body: JSON.stringify({ prompt, threadId: options?.threadId }),
+          },
+        );
+      });
+    }
+
+    return this.request<Record<string, unknown>>(
+      `/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads`,
+      {
+        method: "POST",
+        body: JSON.stringify({ message: prompt, text: prompt, prompt }),
+      },
+    ).catch(async () => {
+      return this.request<Record<string, unknown>>(
+        `/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentId}/run`,
+        {
+          method: "POST",
+          body: JSON.stringify({ prompt }),
+        },
+      );
+    });
+  }
+
+  /**
+   * Scrape and extract web content via the FuseBase Work Firecrawl service or web parser agent.
+   */
+  async scrapeUrlViaFirecrawl(
+    url: string,
+    options?: { agentId?: string; formats?: string[]; prompt?: string },
+  ): Promise<Record<string, unknown>> {
+    let targetAgentId = options?.agentId;
+    if (!targetAgentId) {
+      const agents = await this.listAgents().catch(() => []);
+      const scraperAgent = agents.find(
+        (a) =>
+          /firecrawl|scraper|web\s*parser/i.test(a.title || "") ||
+          /firecrawl|scraper|web\s*parser/i.test(typeof a.description === "string" ? a.description : ""),
+      );
+      targetAgentId = scraperAgent?.globalId || "qMjAPHPS1e6UdoYf";
+    }
+
+    const extractionPrompt = options?.prompt
+      ? `${options.prompt}\nTarget URL: ${url}`
+      : `Please scrape and extract the content from the following URL into clean markdown: ${url}\nRequested formats: ${(options?.formats || ["markdown"]).join(", ")}`;
+
+    return this.runAiAgentTask(targetAgentId, extractionPrompt);
+  }
+
+  /**
+   * Trigger an n8n automation flow or webhook in FuseBase Work.
+   */
+  async triggerN8nFlow(
+    flowId: string,
+    payload: Record<string, unknown> = {},
+  ): Promise<unknown> {
+    return this.triggerAutomationFlow(flowId, payload);
+  }
+
   // ─── Mentions ─────────────────────────────────────────────────
 
   /** Get mentionable entities for a workspace */

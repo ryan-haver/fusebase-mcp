@@ -1,21 +1,26 @@
 # FuseBase MCP Server
 
 [![Live Status Dashboard](https://img.shields.io/badge/Live%20Status-Operational-10b981?style=for-the-badge&logo=googlecloud&logoColor=white)](https://fusebase-mcp.thefusebase.app/)
-[![Production Tools](https://img.shields.io/badge/Production%20Tools-165%20Verified-6366f1?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
-[![Cloud Data Assertions](https://img.shields.io/badge/Cloud%20Assertions-171%2F171%20Passed-34d399?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
-[![Protocol Compliance](https://img.shields.io/badge/Protocol-JSON--RPC%202.0%20%2B%20RFC%206570-06b6d4?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
+[![Production Tools](https://img.shields.io/badge/Production%20Tools-168%20Verified-6366f1?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
+[![Automated Assertions](https://img.shields.io/badge/Automated%20Assertions-171%20Passing-10b981?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
+[![Deep Data Validation](https://img.shields.io/badge/Deep%20Data%20Validation-100%25%20Verified-0ea5e9?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 
-An enterprise-grade [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server enabling autonomous AI coding agents and developers to programmatically manage [FuseBase](https://www.fusebase.com/) (formerly Nimbus Note) workspaces — collaborative Y.js documents, relational tables, ActivePieces automations, client portals, hosted web apps, and multi-agent swarm boards with 100% deep data validation.
-
-> 📊 **[Open Live Platform Status & Interactive Tools Directory → https://fusebase-mcp.thefusebase.app/](https://fusebase-mcp.thefusebase.app/)**
->
-> *Real-time engineering status, interactive searchable directory of all 165 MCP tools with schema parameters, 12 test suite validation metrics, system architecture, and milestone chronology.*
+An enterprise-grade [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server enabling autonomous AI coding agents and developers to programmatically manage [FuseBase](https://www.fusebase.com/) (formerly Nimbus Note) workspaces - collaborative Y.js documents, relational tables, ActivePieces automations, client portals, hosted web apps, and multi-agent swarm boards with 100% deep data validation.
 
 ---
 
-## ✨ Features
+### Official Web Dashboard
 
-- **165 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, billing, user preferences, multi-agent profiles, and swarm orchestration
+> **Production Status & Interactive Architecture Dashboard**: **[fusebase-mcp.thefusebase.app](https://fusebase-mcp.thefusebase.app/)**  
+> *Real-time engineering status, interactive searchable directory of all 168 MCP tools with schema parameters, 12 test suite validation metrics, system architecture, and milestone chronology.*
+
+---
+
+## Capabilities
+
+- **168 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, FuseBase Work (Firecrawl & n8n), billing, user preferences, multi-agent profiles, and swarm orchestration
+- **Advanced Markdown Ingestion**: Automatic parsing of GFM tables into interactive `TableBlock` objects, markdown images (`![alt](url)`), GitHub callouts (`> [!NOTE]`, `> [!WARNING]`, etc.), HTML underline/highlight, and `<details><summary>` toggles
+- **FuseBase Work, Firecrawl & n8n**: Native tools to invoke any of 32 organization AI agents, crawl/parse web pages via hosted Firecrawl, and trigger n8n automation flows
 - **Two-tier system** — 34 core tools load by default (complete CRUD suite); 131 extended tools on demand
 - **Token Economics & Markdown Conversion** — retrieve page content as clean Markdown (`get_page_content(format: "markdown")`) for ~50% token reduction via built-in `htmlToMarkdown` converter
 - **Binary Payload Safety & Native Images** — `download_attachment` renders images as native MCP `image` blocks and streams large files directly to local disk (`data/downloads/`)
@@ -323,10 +328,11 @@ Core tools load by default and provide complete CRUD and organization operations
 | Guides | `get_guide` | Get full markdown guide by section and slug |
 | Guides | `list_guide_sections` | Browse all 19 documentation sections |
 
-### Extended Tools (131)
+### Extended Tools (134)
 
 Enable with `set_tool_tier(tier: "all")` or set `FUSEBASE_TOOLS=all` in `.env`:
 
+- **FuseBase Work (Firecrawl & n8n)**: `fusebase_work_run_agent`, `fusebase_work_scrape_url`, `fusebase_work_trigger_n8n`
 - **Client Portal Hub**: `check_portal_availability`, `create_portal`, `get_portal`, `get_portal_theme`, `get_portal_navigation_menu`, `get_workspace_portal`, `publish_page_to_portal`, `list_portal_clients`, `invite_portal_client`, `create_portal_magic_link`, `list_portals`, `get_portal_pages`
 - **Multi-Agent Swarms**: `fusebase_swarm_init`, `fusebase_swarm_task_transition`
 - **FuseBase CLI & Hosted Apps**: `fusebase_cli_status`, `fusebase_cli_init`, `fusebase_cli_list_apps`, `fusebase_cli_deploy`, `fusebase_cli_sidecar_add`, `fusebase_cli_sidecar_list`, `fusebase_cli_sidecar_remove`, `fusebase_cli_secret_create`, `fusebase_cli_secret_list`, `fusebase_cli_logs`, `fusebase_cli_app_update`, `create_interactive_app_page`

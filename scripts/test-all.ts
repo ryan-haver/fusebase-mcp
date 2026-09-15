@@ -3,12 +3,12 @@
  *
  * Runs the entire quality, validation, and end-to-end testing pipeline:
  *  1. TypeScript compilation & unused locals check (tsc --noUnusedLocals --noEmit)
- *  2. Schema & Documentation Audit (audit-tools.ts - validates 165 tools & README parity)
+ *  2. Schema & Documentation Audit (audit-tools.ts - validates 168 tools & README parity)
  *  3. Flow Automations & Hosted Vibe Apps (test-cli-and-flow.ts)
  *  4. Block Model & Quill Delta Regression (test-regression.ts)
- *  5. MCP Protocol & Prompts End-to-End Test (test-mcp-e2e.ts - 165 tools, 17 prompts, 8 resources)
- *  6. Database Engine & Relational E2E (test-database-e2e.ts - 44 live database assertions)
- *  7. Full-Spectrum Live Data Validation (test-data-validation.ts - 165/165 tools live data validation)
+ *  5. MCP Protocol & Prompts End-to-End Test (test-mcp-e2e.ts - 168 tools, 17 prompts, 8 resources)
+ *  6. Database Engine & Relational E2E (test-database-e2e.ts - 95 live database assertions)
+ *  7. Full-Spectrum Live Data Validation (test-data-validation.ts - 168/168 tools live data validation)
  */
 
 import { spawn } from "child_process";
@@ -66,7 +66,7 @@ const STEPS: TestStep[] = [
     name: "Full-Spectrum Live Data Validation",
     command: "npx",
     args: ["tsx", "scripts/test-data-validation.ts"],
-    description: "Executes and deeply validates data structures across all 165 tools against live FuseBase infrastructure",
+    description: "Executes and deeply validates data structures across all 168 tools against live FuseBase infrastructure",
   },
 ];
 
@@ -110,7 +110,7 @@ async function runStep(step: TestStep, index: number, total: number): Promise<bo
 async function main() {
   console.log("\n╔══════════════════════════════════════════════════════════════════════════════╗");
   console.log("║               FUSEBASE MCP MASTER UNIFIED VERIFICATION PIPELINE              ║");
-  console.log("║         165 Tools  •  17 Prompts  •  8 Resources  •  Deep Data Validation     ║");
+  console.log("║         168 Tools  •  17 Prompts  •  8 Resources  •  Deep Data Validation     ║");
   console.log("╚══════════════════════════════════════════════════════════════════════════════╝");
 
   const overallStart = Date.now();

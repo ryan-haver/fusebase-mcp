@@ -296,6 +296,16 @@
 
 ---
 
+## 19. FuseBase Work, Firecrawl & n8n
+
+| Status | Method | Endpoint / Service | Tool / Description | Value |
+|---|---|---|---|---|
+| ✅ | POST | `/ai-assistant/rest/orgs/{org}/agents/{agentId}/threads` | `fusebase_work_run_agent`: Run task or message thread with AI agent | ⭐⭐⭐⭐⭐ |
+| ✅ | POST | Firecrawl Service / Scraper Agent (`qMjAPHPS1e6UdoYf`) | `fusebase_work_scrape_url`: Crawl and extract clean markdown/JSON from URL | ⭐⭐⭐⭐⭐ |
+| ✅ | POST | `/automation/api/v1/flows/{flowId}/runs` | `fusebase_work_trigger_n8n`: Trigger n8n/ActivePieces automation flow | ⭐⭐⭐⭐⭐ |
+
+---
+
 ## Summary Dashboard
 
 | Category | ✅ Implemented | 🔲 Backlog (Viable) | 🔒 Plan-Gated / UI State | ❌ Non-Viable / Error | 🔗 External |
@@ -310,24 +320,24 @@
 | **Organization** | 8 | **0** | 0 | 0 | 0 |
 | **Workspaces** | 7 | **0** | 0 | 0 | 0 |
 | **Portals & Client Hubs** | 14 | **0** | 0 | 0 | 0 |
-| **AI & Agents** | 5 | **0** | 0 | 1 | 0 |
+| **AI & Agents** | 8 | **0** | 0 | 1 | 0 |
 | **Databases & Tables** | 16 | **0** | 0 | 0 | 0 |
 | **Automation** | 13 | **0** | 6 | 0 | 1 |
 | **Billing & Account** | 4 | **0** | 1 | 0 | 0 |
 | **User Preferences & Vars** | 4 | **0** | 5 | 1 | 0 |
 | **Chat & Telemetry** | 0 | **0** | 0 | 0 | 2 |
 | **Auth & Navigation** | 0 | **0** | 14 | 3 | 0 |
-| **TOTAL** | **118** | **0 (100% Viable Coverage)** | **28** | **6** | **3** |
+| **TOTAL** | **121** | **0 (100% Viable Coverage)** | **28** | **6** | **3** |
 
-> **Coverage Milestone**: Every single viable endpoint identified in the 182 method/route probes has been fully wrapped into the 165-tool MCP ecosystem (34 Core, 131 Extended). Zero unmapped viable endpoints remain.
+> **Coverage Milestone**: Every single viable endpoint identified across all probes has been fully wrapped into the 168-tool MCP ecosystem (34 Core, 134 Extended). Zero unmapped viable endpoints remain.
 
 ### Implementation Breakdown
 
 | Tool Tier | Total Tools | Description |
 |---|---|---|
 | **Core Tier** | 34 tools | Essential day-to-day workspace, page, block, task, folder, profile, and session management tools. Complete self-contained CRUD and organization suite with lightweight context footprint. |
-| **Extended Tier** | 131 tools | Exhaustive administrative, automation, database, entity template, portal, task, time tracking, billing, CLI lifecycle, hosted web apps, Docker sidecars, secrets, and AI management tools. Activated dynamically via `set_tool_tier("all")` or `FUSEBASE_TOOLS=all`. |
-| **Total Suite** | **165 tools** | Complete coverage of the FuseBase API surface with zero viable endpoints left unmapped. |
+| **Extended Tier** | 134 tools | Exhaustive administrative, automation, database, entity template, portal, task, time tracking, billing, CLI lifecycle, hosted web apps, Docker sidecars, secrets, FuseBase Work (Firecrawl & n8n), and AI management tools. Activated dynamically via `set_tool_tier("all")` or `FUSEBASE_TOOLS=all`. |
+| **Total Suite** | **168 tools** | Complete coverage of the FuseBase API surface with zero viable endpoints left unmapped. |
 
 ---
 

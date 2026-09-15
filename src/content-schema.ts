@@ -65,6 +65,7 @@ export interface InlineSegment {
   strikethrough?: boolean;
   underline?: boolean;
   code?: boolean;
+  highlight?: { color: string } | string;
   /** Inline link URL */
   link?: string;
 }

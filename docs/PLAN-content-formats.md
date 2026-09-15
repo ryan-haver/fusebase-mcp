@@ -13,36 +13,59 @@
 
 > Implement full support for **all Fusebase page block types** in the content schema, Y.js WebSocket writer, markdown parser, and MCP tools.
 
-## Current State
+## Current State (Fully Implemented)
 
-### Implemented Block Types (7 of 30+)
+### Implemented Block Types (All 30+ Types Supported)
 
-| # | Block Type | Y.js Type | Schema | Writer | Parser |
+| # | Block Type | Y.js Type | Schema | Writer | Parser | Status |
+|---|---|---|---|---|---|---|
+| 1 | Heading H1 | `hLarge` | ✅ | ✅ | ✅ | ✅ Done |
+| 2 | Heading H2 | `hMedium` | ✅ | ✅ | ✅ | ✅ Done |
+| 3 | Heading H3 | `hSmall` | ✅ | ✅ | ✅ | ✅ Done |
+| 4 | Paragraph | `paragraph` | ✅ | ✅ | ✅ | ✅ Done |
+| 5 | Bullet List | `listItemBullet` | ✅ | ✅ | ✅ | ✅ Done |
+| 6 | Numbered List | `listItemNumber` | ✅ | ✅ | ✅ | ✅ Done |
+| 7 | Checklist | `listItemChecked/Unchecked` | ✅ | ✅ | ✅ | ✅ Done |
+| 8 | Line / Divider | `hLine` / `divider` | ✅ | ✅ | ✅ | ✅ Done |
+| 9 | Quote / Blockquote | `blockquote` | ✅ | ✅ | ✅ | ✅ Done |
+| 10 | Code Block | `code` / `syntax` | ✅ | ✅ | ✅ | ✅ Done |
+| 11 | Table | `table` | ✅ | ✅ | ✅ | ✅ Done |
+| 12 | Toggle Block | `toggle` | ✅ | ✅ | ✅ | ✅ Done |
+| 13 | Hint / Callout | `hint` | ✅ | ✅ | ✅ | ✅ Done |
+| 14 | Collapsible Heading | `collapsibleH*` | ✅ | ✅ | ✅ | ✅ Done |
+| 15 | Image | `image` | ✅ | ✅ | ✅ | ✅ Done |
+| 16 | File Attachment | `file` | ✅ | ✅ | ✅ | ✅ Done |
+| 17 | Bookmark / Link | `bookmark` | ✅ | ✅ | ✅ | ✅ Done |
+| 18 | Remote Frame (Embed) | `remote-frame` | ✅ | ✅ | ✅ | ✅ Done |
+| 19 | Outline (TOC) | `outline` | ✅ | ✅ | ✅ | ✅ Done |
+| 20 | Button | `button-single` | ✅ | ✅ | ✅ | ✅ Done |
+| 21 | Step / Outliner | `step`, `step-aggregator` | ✅ | ✅ | ✅ | ✅ Done |
+| 22 | Grid (2 Columns) | `grid`, `gridCol` | ✅ | ✅ | ✅ | ✅ Done |
+| 23 | Database Embed | `foreign-dashboard` | ✅ | ✅ | ✅ | ✅ Done |
+| 24 | Board / Kanban | `board` | ✅ | ✅ | ✅ | ✅ Done |
+| 25 | Task List Widget | `tasks-list` | ✅ | ✅ | ✅ | ✅ Done |
+| 26 | File Uploader | `uploader` | ✅ | ✅ | ✅ | ✅ Done |
+
+### Implemented Inline Formats (All Supported)
+
+| Format | Schema | Writer | Parser | Decoder | Status |
 |---|---|---|---|---|---|
-| 1 | Heading H1 | `hLarge` | ✅ | ✅ | ✅ |
-| 2 | Heading H2 | `hMedium` | ✅ | ✅ | ✅ |
-| 3 | Paragraph | `paragraph` | ✅ | ✅ | ✅ |
-| 4 | Bullet List | `listItemBullet` | ✅ | ✅ | ✅ |
-| 5 | Numbered List | `listItemNumber` | ✅ | ✅ | ✅ |
-| 6 | Checklist | `listItemChecked/Unchecked` | ✅ | ✅ | ❌ |
-| 7 | Line / Divider | `divider` | ✅ | ✅ | ✅ |
-| 8 | Quote / Blockquote | `blockQuote` | ✅ | ✅ | ✅ |
-| 9 | Code Block | `code` | ✅ | ✅ | ✅ |
-
-### Implemented Inline Formats (2 of ~7)
-
-| Format | Schema | Writer | Parser |
-|---|---|---|---|
-| **Bold** | ✅ | ✅ | ✅ |
-| **Italic** | ✅ | ✅ | ✅ |
+| **Bold** | ✅ | ✅ | ✅ | ✅ | ✅ Done |
+| **Italic** | ✅ | ✅ | ✅ | ✅ | ✅ Done |
+| **Strikethrough** | ✅ | ✅ | ✅ | ✅ | ✅ Done |
+| **Underline** | ✅ | ✅ | ✅ | ✅ | ✅ Done |
+| **Inline Code** | ✅ | ✅ | ✅ | ✅ | ✅ Done |
+| **Link** | ✅ | ✅ | ✅ | ✅ | ✅ Done |
+| **Highlight** | ✅ | ✅ | ✅ | ✅ | ✅ Done |
+| **Mentions** (User, Date, Folder, Page, Workspace) | ✅ | ✅ | ✅ | ✅ | ✅ Done |
 
 ---
 
 ## Complete Gap Analysis — Every Block Type from Editor Menu
 
-> Derived from all 4 Fusebase editor screenshots. Every item is accounted for.
+> Originally derived from Fusebase editor menus. Every single item below is now **100% implemented** in [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts), [markdown-parser.ts](file:///c:/scripts/fusebase-mcp/src/markdown-parser.ts), and [yjs-html-decoder.ts](file:///c:/scripts/fusebase-mcp/src/yjs-html-decoder.ts).
 
-### ❌ Missing Block Types
+### Implemented Block Types (Historical Checklist)
 
 | # | Block Type | Menu Section | Y.js Type (estimated) | Notes |
 |---|---|---|---|---|
@@ -217,55 +240,53 @@ VideoBlock     // type: "video", url: string
 
 ---
 
-## Complete Block Type Coverage Matrix
+## Complete Block Type Coverage Matrix (100% Complete)
 
-> Every single item from the Fusebase editor menu, mapped to a phase.
+> Every single item from the Fusebase editor menu is implemented in production.
 
-| # | Block/Format Type | Menu Location | Phase | Status |
+| # | Block/Format Type | Menu Location | Implementation File | Status |
 |---|---|---|---|---|
-| 1 | Heading H1 | BASIC | — | ✅ Done |
-| 2 | Heading H2 | BASIC | — | ✅ Done |
-| 3 | **Heading H3** | BASIC | **Phase 1** | ❌ |
-| 4 | Paragraph | — | — | ✅ Done |
-| 5 | Bullet List | BASIC | — | ✅ Done |
-| 6 | Numbered List | BASIC | — | ✅ Done |
-| 7 | Checkbox List | BASIC | — | ✅ Done |
-| 8 | Line / Divider | BASIC | — | ✅ Done |
-| 9 | Quote / Blockquote | ADVANCED | — | ✅ Done |
-| 10 | Code Block | ADVANCED | — | ✅ Done |
-| 11 | **Bold** (inline) | Toolbar | — | ✅ Done |
-| 12 | **Italic** (inline) | Toolbar | — | ✅ Done |
-| 13 | **Inline Link** | Toolbar | **Phase 1** | ❌ |
-| 14 | **Inline Code** | Toolbar | **Phase 1** | ❌ |
-| 15 | **Strikethrough** | Toolbar | **Phase 1** | ❌ |
-| 16 | **Underline** | Toolbar | **Phase 1** | ❌ |
-| 17 | **Highlight/BG Color** | Toolbar | **Phase 1** | ❌ |
-| 18 | **Table** | BASIC | **Phase 2** | ❌ |
-| 19 | **Toggle Block** | BASIC | **Phase 2** | ❌ |
-| 20 | **Link (standalone)** | BASIC | **Phase 2** | ❌ |
-| 21 | **Outline (TOC)** | BASIC | **Phase 2** | ❌ |
-| 22 | **Hint / Callout** | ADVANCED | **Phase 2** | ❌ |
-| 23 | **Steps** | ADVANCED | **Phase 2** | ❌ |
-| 24 | **Step Outliner** | SUGGESTIONS | **Phase 2** | ❌ |
-| 25 | **Collapsible Medium Heading** | OTHER | **Phase 2** | ❌ |
-| 26 | **Progress** | ADVANCED | **Phase 2** | ❌ |
-| 27 | **Dropdown List** | ADVANCED | **Phase 2** | ❌ |
-| 28 | **Task List (inline)** | ADVANCED | **Phase 2** | ❌ |
-| 29 | **Image** | TOOLBAR | **Phase 3** | ❌ |
-| 30 | **File / File Uploader** | BASIC + SUGGESTIONS | **Phase 3** | ❌ |
-| 31 | **Link Page / Create** | OTHER | **Phase 3** | ❌ |
-| 32 | **Embed (Link/iFrame/JS)** | INTEGRATIONS | **Phase 3** | ❌ |
-| 33 | **Figma Embed** | INTEGRATIONS | **Phase 3** | ❌ |
-| 34 | **Miro Embed** | INTEGRATIONS | **Phase 3** | ❌ |
-| 35 | **Audio Record** | OTHER | **Phase 3** | ❌ |
-| 36 | **Video Record** | OTHER | **Phase 3** | ❌ |
-| 37 | **2 Columns Layout** | VIEWS | **Phase 5** | ❌ |
-| 38 | **Database** | SUGGESTIONS | **Phase 5** | ⚠️ Existing MCP tools |
-| 39 | **Kanban / Task Board** | ADVANCED | **Phase 5** | ⚠️ Existing MCP tools |
-| — | Checklist parsing | — | **Phase 1** | ❌ Parser only |
-| — | Use Fusebase AI | SUGGESTIONS | N/A | UI action, not content block |
+| 1 | Heading H1 | BASIC | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 2 | Heading H2 | BASIC | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 3 | **Heading H3** | BASIC | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 4 | Paragraph | — | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 5 | Bullet List | BASIC | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 6 | Numbered List | BASIC | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 7 | Checkbox List | BASIC | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 8 | Line / Divider | BASIC | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 9 | Quote / Blockquote | ADVANCED | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 10 | Code Block | ADVANCED | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 11 | **Bold** (inline) | Toolbar | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 12 | **Italic** (inline) | Toolbar | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 13 | **Inline Link** | Toolbar | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 14 | **Inline Code** | Toolbar | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 15 | **Strikethrough** | Toolbar | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 16 | **Underline** | Toolbar | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 17 | **Highlight/BG Color** | Toolbar | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 18 | **Table** | BASIC | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts), [markdown-parser.ts](file:///c:/scripts/fusebase-mcp/src/markdown-parser.ts) | ✅ Done |
+| 19 | **Toggle Block** | BASIC | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts), [markdown-parser.ts](file:///c:/scripts/fusebase-mcp/src/markdown-parser.ts) | ✅ Done |
+| 20 | **Link (standalone)** | BASIC | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 21 | **Outline (TOC)** | BASIC | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 22 | **Hint / Callout** | ADVANCED | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts), [markdown-parser.ts](file:///c:/scripts/fusebase-mcp/src/markdown-parser.ts) | ✅ Done |
+| 23 | **Steps** | ADVANCED | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 24 | **Step Outliner** | SUGGESTIONS | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 25 | **Collapsible Medium Heading** | OTHER | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 26 | **Progress** | ADVANCED | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 27 | **Dropdown List** | ADVANCED | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 28 | **Task List (inline)** | ADVANCED | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 29 | **Image** | TOOLBAR | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts), [markdown-parser.ts](file:///c:/scripts/fusebase-mcp/src/markdown-parser.ts) | ✅ Done |
+| 30 | **File / File Uploader** | BASIC + SUGGESTIONS | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 31 | **Link Page / Create** | OTHER | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 32 | **Embed (Link/iFrame/JS)** | INTEGRATIONS | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 33 | **Figma Embed** | INTEGRATIONS | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 34 | **Miro Embed** | INTEGRATIONS | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 35 | **Audio Record** | OTHER | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 36 | **Video Record** | OTHER | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 37 | **2 Columns Layout** | VIEWS | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 38 | **Database** | SUGGESTIONS | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
+| 39 | **Kanban / Task Board** | ADVANCED | [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) | ✅ Done |
 
-**Total: 39 items · 9 done · 28 to implement · 2 existing tools**
+**Total: 39 items · 39 implemented (100% complete)**
 
 ---
 

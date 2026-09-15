@@ -85,8 +85,8 @@ async function main() {
     console.log("--------------------------------------------------");
 
     const toolsRes = await client.listTools();
-    console.log(`Registered Tools: ${toolsRes.tools.length} (Expected: 165)`);
-    assert(toolsRes.tools.length === 165, `Expected 165 tools, found ${toolsRes.tools.length}`);
+    console.log(`Registered Tools: ${toolsRes.tools.length} (Expected: 168)`);
+    assert(toolsRes.tools.length === 168, `Expected 168 tools, found ${toolsRes.tools.length}`);
 
     const allDatabaseTools = [
       // Core DB tools

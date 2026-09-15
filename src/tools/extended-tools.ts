@@ -3343,4 +3343,78 @@ export function registerExtendedTools(
       }
     },
   );
+
+  // === FuseBase Work, Firecrawl & n8n Integrations ===
+
+  server.tool(
+    "fusebase_work_run_agent",
+    "Run a task or send a prompt to an AI agent in FuseBase Work. Initiates an agent run thread or appends to an existing thread.",
+    {
+      agentId: z.string().describe("FuseBase Work AI agent global ID"),
+      prompt: z.string().describe("Task instructions or prompt for the agent"),
+      threadId: z.string().optional().describe("Optional existing conversation thread ID to continue"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ agentId, prompt, threadId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.runAiAgentTask(agentId, prompt, { threadId });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_work_scrape_url",
+    "Scrape and extract clean web content from a URL using FuseBase Work's hosted Firecrawl engine or web parser agent.",
+    {
+      url: z.string().url().describe("Target website URL to scrape"),
+      agentId: z.string().optional().describe("Optional specific Firecrawl/scraper agent global ID"),
+      formats: z.array(z.string()).optional().default(["markdown"]).describe("Desired output formats (default: ['markdown'])"),
+      prompt: z.string().optional().describe("Optional extraction prompt or instructions (e.g. 'Extract pricing table and features')"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ url, agentId, formats, prompt, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.scrapeUrlViaFirecrawl(url, { agentId, formats, prompt });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_work_trigger_n8n",
+    "Trigger an n8n workflow or automation flow in FuseBase Work with custom input parameters.",
+    {
+      flowId: z.string().describe("Workflow flow ID or webhook ID"),
+      payload: z.record(z.string(), z.unknown()).optional().default({}).describe("JSON payload to pass to the workflow"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ flowId, payload, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.triggerN8nFlow(flowId, payload);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
 }

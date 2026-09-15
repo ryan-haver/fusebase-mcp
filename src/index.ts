@@ -135,7 +135,7 @@ registerPrompts(server, getClient);
 if (process.env.FUSEBASE_TOOLS === "all") {
   enableExtendedTools();
 } else {
-  console.error("[fusebase] Running in core mode (34 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 165.");
+  console.error("[fusebase] Running in core mode (34 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 168.");
 }
 
 // ─── Start ──────────────────────────────────────────────────────
