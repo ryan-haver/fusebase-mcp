@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { FusebaseClient } from "../client.js";
-import type { FusebaseMember, FusebaseOrgMember, FusebaseFile, FusebaseLabel } from "../types.js";
+import type { FusebaseLabel } from "../types.js";
 import { markdownToSchema } from "../markdown-parser.js";
 import type { ContentBlock } from "../content-schema.js";
 import { writeContentViaWebSocket } from "../yjs-ws-writer.js";
@@ -746,17 +746,19 @@ export function registerExtendedTools(
 
   server.tool(
     "add_database_row",
-    "Add a new row to a database entity table. For built-in entities (clients, spaces), only entity name is needed. For custom databases, also provide databaseId and dashboardId (from list_databases or create_database). Uses Next.js server action internally.",
+    "Add a new row to a database table or entity. Uses canonical batchPutDashboardData with create_new_row: true. You can optionally supply initial column values as a key-value map (using column display names or opaque item_keys).",
     {
       entity: z.string().describe("Entity type (e.g. 'clients', 'spaces', 'custom')"),
       databaseId: z.string().optional().describe("Database UUID (required for custom databases, from create_database)"),
       dashboardId: z.string().optional().describe("Dashboard UUID (required for custom databases, from create_database)"),
+      viewId: z.string().optional().describe("View UUID (optional, auto-discovered from dashboard if omitted)"),
+      values: z.record(z.string(), z.unknown()).optional().describe("Initial column values as { 'Column Name' or item_key: value }"),
       orgId: z.string().optional().describe("Organization ID (defaults to env FUSEBASE_ORG_ID)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ entity, databaseId, dashboardId, orgId, profile }) => {
+    }, async ({ entity, databaseId, dashboardId, viewId, values, orgId, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.addDatabaseRow(entity, { databaseId, dashboardId, orgId });
+        const result = await client.addDatabaseRow(entity, { databaseId, dashboardId, viewId, values, orgId });
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
@@ -779,6 +781,201 @@ export function registerExtendedTools(
       const client = getClient(profile);
       try {
         const result = await client.deleteRow(dashboardId, rowId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "batch_put_database_data",
+    "High-throughput batch create and update for database rows and cell values. Supports creating new rows (create_new_row: true) and updating existing rows (create_new_row: false, root_index_value: rowUuid). Values can use column display names or opaque item_keys. To delete a cell value, pass null.",
+    {
+      dashboardId: z.string().describe("Dashboard (table) ID"),
+      viewId: z.string().describe("View ID"),
+      rows: z.array(z.object({
+        create_new_row: z.boolean().optional().describe("Set true to create a new row (default false)"),
+        root_index_value: z.string().optional().describe("Row UUID (required when updating, optional when creating)"),
+        values: z.record(z.string(), z.unknown()).or(z.array(z.object({
+          item_key: z.string(),
+          value: z.unknown(),
+        }))).describe("Row values: either { 'Column Name': value } map or [{ item_key, value }] array"),
+      })).describe("Array of row creation/update specifications"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ dashboardId, viewId, rows, profile }) => {
+      const client = getClient(profile);
+      try {
+        let keyByName: Map<string, string> | null = null;
+        const normalizedRows: Array<{
+          create_new_row?: boolean;
+          root_index_value?: string;
+          values: Array<{ item_key: string; value: unknown }>;
+        }> = [];
+
+        for (const r of rows) {
+          if (Array.isArray(r.values)) {
+            normalizedRows.push({
+              create_new_row: r.create_new_row,
+              root_index_value: r.root_index_value,
+              values: r.values,
+            });
+          } else if (typeof r.values === "object" && r.values !== null) {
+            if (!keyByName) {
+              const mapping = await client.resolveColumnKeys(dashboardId, viewId);
+              keyByName = mapping.keyByName;
+            }
+            const itemValues: Array<{ item_key: string; value: unknown }> = [];
+            for (const [k, v] of Object.entries(r.values as Record<string, unknown>)) {
+              const itemKey = keyByName.get(k.toLowerCase()) || k;
+              itemValues.push({ item_key: itemKey, value: v });
+            }
+            normalizedRows.push({
+              create_new_row: r.create_new_row,
+              root_index_value: r.root_index_value,
+              values: itemValues,
+            });
+          } else {
+            normalizedRows.push({
+              create_new_row: r.create_new_row,
+              root_index_value: r.root_index_value,
+              values: [],
+            });
+          }
+        }
+
+        const result = await client.batchPutDashboardData(dashboardId, viewId, normalizedRows);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "resolve_database_alias",
+    "Resolve a system managed database or dashboard alias ('companies_db', 'deals_db', 'meetings', 'clients', 'spaces') to its database, dashboard, and view UUIDs. Useful for CRM and pipeline automation.",
+    {
+      alias: z.string().describe("Database alias (e.g. 'companies_db', 'deals_db', 'meetings', 'clients', 'spaces')"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ alias, profile }) => {
+      const client = getClient(profile);
+      try {
+        const resolved = await client.resolveDatabaseAlias(alias);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(resolved, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "link_database_rows",
+    "Link two rows between related tables via an existing relation. Requires the relation ID, the source row UUID (from the source table), and the target row UUID (from the target table). Use list_database_relations to find relation IDs.",
+    {
+      relationId: z.string().describe("Relation ID (from list_database_relations)"),
+      sourceRowUuid: z.string().describe("Row UUID in the source table"),
+      targetRowUuid: z.string().describe("Row UUID in the target table"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ relationId, sourceRowUuid, targetRowUuid, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.addRelationRows(relationId, [{ source_index: sourceRowUuid, target_index: targetRowUuid }]);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "unlink_database_rows",
+    "Remove a link between two rows in related tables. If sourceRowUuid and targetRowUuid are omitted, removes all links for the relation.",
+    {
+      relationId: z.string().describe("Relation ID"),
+      sourceRowUuid: z.string().optional().describe("Source row UUID to unlink"),
+      targetRowUuid: z.string().optional().describe("Target row UUID to unlink"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ relationId, sourceRowUuid, targetRowUuid, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.deleteRelationRows(relationId, { source_index: sourceRowUuid, target_index: targetRowUuid });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "get_relation_rows",
+    "Get active row link mappings for a relation. Shows which source rows are linked to which target rows.",
+    {
+      relationId: z.string().describe("Relation ID"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ relationId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.getRelationDetails(relationId, true);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "reorder_database_rows",
+    "Reorder rows within a database view or section. Takes an array of { rowUuid, order } objects.",
+    {
+      dashboardId: z.string().describe("Dashboard (table) ID"),
+      viewId: z.string().describe("View ID"),
+      rowOrders: z.array(z.object({
+        rowUuid: z.string().describe("Row UUID"),
+        order: z.number().describe("Order position index (0-based or 1-based integer)"),
+      })).describe("Array of row positions"),
+      sectionType: z.string().optional().describe("Section type (default: 'view')"),
+      sectionKey: z.string().optional().describe("Section key (default: 'view')"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ dashboardId, viewId, rowOrders, sectionType, sectionKey, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.updateDashboardRowOrder(
+          dashboardId,
+          viewId,
+          rowOrders.map((r) => ({ row_uuid: r.rowUuid, order: r.order })),
+          { section_type: sectionType, section_key: sectionKey },
+        );
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
@@ -1368,18 +1565,19 @@ export function registerExtendedTools(
 
   server.tool(
     "get_database_rows",
-    "Get rows from a database view in a structured format optimised for agent use. Each row includes: rowUuid (needed for update_database_cell), cells (column name → value map), and rawCells (column key → value map). Also returns the schema (column name, key, type) so you can look up the correct column key before calling update_database_cell. Wraps get_database_data with friendly field names.",
+    "Get rows from a database view in a structured format optimised for agent use. Each row includes: rowUuid (needed for update_database_cell), cells (raw column key → value map), and namedCells (human-readable column name → value map). Wraps get_database_data with friendly field names and schema reflection.",
     {
       dashboardId: z.string().describe("Dashboard (table) ID"),
       viewId: z.string().describe("View ID"),
       page: z.number().optional().describe("Page number (default 1)"),
       limit: z.number().optional().describe("Rows per page (default 50)"),
+      resolveNames: z.boolean().optional().describe("Whether to resolve opaque column keys to display names in namedCells (default: true)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
-    async ({ dashboardId, viewId, page, limit, profile }) => {
+    async ({ dashboardId, viewId, page, limit, resolveNames, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.getDatabaseRows(dashboardId, viewId, { page, limit });
+        const result = await client.getDatabaseRows(dashboardId, viewId, { page, limit, resolveNames });
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
@@ -2034,6 +2232,168 @@ export function registerExtendedTools(
     },
   );
 
+  server.tool(
+    "fusebase_cli_sidecar_add",
+    "Add an auxiliary Docker sidecar container (e.g. headless Chromium, Redis cache, Lightpanda) to an app backend via the FuseBase CLI.",
+    {
+      appPath: z.string().describe("Relative path or ID of the app (e.g. 'apps/my-app')"),
+      name: z.string().describe("Name of the sidecar container (e.g. 'chromium', 'redis')"),
+      image: z.string().describe("Docker image (e.g. 'browserless/chrome:latest', 'redis:7-alpine')"),
+      port: z.number().optional().describe("Local port number exposed by the container (e.g. 9222, 6379)"),
+      tier: z.enum(["small", "medium", "large"]).optional().describe("Resource tier for the sidecar (default small)"),
+      env: z.record(z.string(), z.string()).optional().describe("Static environment variables as key-value pairs"),
+      secrets: z.array(z.string()).optional().describe("Secret keys allowlisted for this sidecar (e.g. ['DB_PASSWORD', 'REDIS_TOKEN:AUTH'])"),
+      cwd: z.string().optional().describe("Project directory path"),
+    },
+    async ({ appPath, name, image, port, tier, env, secrets, cwd }) => {
+      try {
+        const res = await FusebaseCliManager.addSidecar(appPath, name, image, { port, tier, env, secrets, cwd });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(res, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_cli_sidecar_list",
+    "List configured Docker sidecar containers for an app via the FuseBase CLI.",
+    {
+      appPath: z.string().describe("Relative path or ID of the app (e.g. 'apps/my-app')"),
+      cwd: z.string().optional().describe("Project directory path"),
+    },
+    async ({ appPath, cwd }) => {
+      try {
+        const res = await FusebaseCliManager.listSidecars(appPath, cwd);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(res, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_cli_sidecar_remove",
+    "Remove a Docker sidecar container from an app via the FuseBase CLI.",
+    {
+      appPath: z.string().describe("Relative path or ID of the app (e.g. 'apps/my-app')"),
+      name: z.string().describe("Name of the sidecar container to remove"),
+      cwd: z.string().optional().describe("Project directory path"),
+    },
+    async ({ appPath, name, cwd }) => {
+      try {
+        const res = await FusebaseCliManager.removeSidecar(appPath, name, cwd);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(res, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_cli_secret_create",
+    "Register a platform application secret key for an app via the FuseBase CLI.",
+    {
+      appPath: z.string().describe("Relative path or ID of the app (e.g. 'apps/my-app')"),
+      key: z.string().describe("Secret key name (e.g. 'STRIPE_API_KEY', 'DB_PASSWORD')"),
+      description: z.string().optional().describe("Optional human-readable description for the secret"),
+      cwd: z.string().optional().describe("Project directory path"),
+    },
+    async ({ appPath, key, description, cwd }) => {
+      try {
+        const res = await FusebaseCliManager.createSecret(appPath, key, description, cwd);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(res, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_cli_secret_list",
+    "List registered application secrets for an app via the FuseBase CLI.",
+    {
+      appPath: z.string().describe("Relative path or ID of the app (e.g. 'apps/my-app')"),
+      cwd: z.string().optional().describe("Project directory path"),
+    },
+    async ({ appPath, cwd }) => {
+      try {
+        const res = await FusebaseCliManager.listSecrets(appPath, cwd);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(res, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_cli_logs",
+    "Retrieve remote deployment logs or local dev logs for a FuseBase app.",
+    {
+      appPath: z.string().optional().describe("Relative path or ID of the app"),
+      lines: z.number().optional().describe("Number of log lines to retrieve (default 50)"),
+      type: z.enum(["remote", "dev"]).optional().describe("Log source: 'remote' production logs or 'dev' local server logs"),
+      cwd: z.string().optional().describe("Project directory path"),
+    },
+    async ({ appPath, lines, type, cwd }) => {
+      try {
+        const res = await FusebaseCliManager.getLogs(appPath, { lines, type, cwd });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(res, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_cli_app_update",
+    "Update an existing app's configuration via the FuseBase CLI, including dashboard view permissions and build commands.",
+    {
+      appIdOrPath: z.string().describe("App ID or directory path to update"),
+      permissions: z.string().optional().describe("Dashboard view permissions (e.g. 'dashboardView.dashId:viewId.read,write')"),
+      devCommand: z.string().optional().describe("Local dev server command (e.g. 'npm run dev')"),
+      buildCommand: z.string().optional().describe("Build command (e.g. 'npm run build')"),
+      outputDir: z.string().optional().describe("Build output directory (e.g. 'dist')"),
+      cwd: z.string().optional().describe("Project directory path"),
+    },
+    async ({ appIdOrPath, permissions, devCommand, buildCommand, outputDir, cwd }) => {
+      try {
+        const res = await FusebaseCliManager.updateApp(appIdOrPath, { permissions, devCommand, buildCommand, outputDir, cwd });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(res, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
   // === ActivePieces Flow Mutations ===
 
   server.tool(
@@ -2205,24 +2565,50 @@ export function registerExtendedTools(
 
   server.tool(
     "fusebase_swarm_init",
-    "Initialize a multi-agent swarm state machine database in FuseBase. Creates a Kanban board structured with roles (agent-pm, agent-architect, agent-dev, agent-qa), task statuses (Backlog, In Progress, Review, Done), and audit trails.",
+    "Initialize a multi-agent swarm state machine database in FuseBase. Supports 'standard' 4-stage Kanban or 'flow' for FuseBase Flow's official 8-phase lifecycle (Specify -> Clarify -> Plan -> Decisions -> Tasks -> Verify Gate -> Implement -> Review & Deploy) with product-owner and ai-developer roles.",
     {
       title: z.string().describe("Title of the swarm project / database (e.g. 'FuseBase MVP Sprint Swarm')"),
       description: z.string().optional().describe("Objective and scope of the multi-agent sprint"),
+      template: z.enum(["standard", "flow"]).optional().describe("Workflow template: 'flow' for FuseBase Flow 8-phase lifecycle or 'standard' for 4-stage Kanban (default 'standard')"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
-    async ({ title, description, profile }) => {
+    async ({ title, description, template, profile }) => {
       const client = getClient(profile);
+      const isFlow = template === "flow";
       try {
         const db = await client.createDatabase(title, {
-          description: description || `Multi-Agent Swarm State Machine for ${title}`,
-          icon: "robot",
-          color: "6366F1",
+          description: description || (isFlow ? `FuseBase Flow 8-Phase Swarm State Machine for ${title}` : `Multi-Agent Swarm State Machine for ${title}`),
+          icon: isFlow ? "cpu" : "robot",
+          color: isFlow ? "10B981" : "6366F1",
         });
 
         const dashboard = db.data.dashboards?.[0];
         const dashboardId = dashboard?.global_id;
         const viewId = dashboard?.views?.[0]?.global_id;
+
+        const availableRoles = isFlow
+          ? ["product-owner", "ai-developer", "agent-architect", "agent-qa"]
+          : [
+              "agent-pm",
+              "agent-architect",
+              "agent-dev",
+              "agent-qa",
+              "agent-review",
+              "agent-devops",
+            ];
+
+        const workflowStages = isFlow
+          ? [
+              "Specify",
+              "Clarify",
+              "Plan",
+              "Decisions",
+              "Tasks",
+              "Verify Gate",
+              "Implement",
+              "Review & Deploy",
+            ]
+          : ["Backlog", "In Progress", "Review", "Done"];
 
         return {
           content: [
@@ -2231,21 +2617,16 @@ export function registerExtendedTools(
               text: JSON.stringify(
                 {
                   success: true,
-                  message: `Swarm Kanban Database "${title}" initialized successfully.`,
+                  message: `Swarm Kanban Database "${title}" (${isFlow ? "FuseBase Flow 8-Phase" : "Standard"}) initialized successfully.`,
                   databaseId: db.data.global_id,
                   dashboardId,
                   viewId,
-                  availableRoles: [
-                    "agent-pm",
-                    "agent-architect",
-                    "agent-dev",
-                    "agent-qa",
-                    "agent-review",
-                    "agent-devops",
-                  ],
-                  workflowStages: ["Backlog", "In Progress", "Review", "Done"],
-                  instructions:
-                    "Use 'add_database_row' to create tasks with role and acceptance criteria. Use 'fusebase_swarm_task_transition' to transition tasks across stages with audit comments.",
+                  template: isFlow ? "flow" : "standard",
+                  availableRoles,
+                  workflowStages,
+                  instructions: isFlow
+                    ? "FuseBase Flow 8-Phase Lifecycle: Product Owner manages Specify -> Clarify -> Plan -> Decisions -> Tasks -> Verify Gate. AI Developer executes task slices in isolated sessions, stopping at the verification gate, and deploys only upon approval."
+                    : "Use 'add_database_row' to create tasks with role and acceptance criteria. Use 'fusebase_swarm_task_transition' to transition tasks across stages with audit comments.",
                 },
                 null,
                 2,
@@ -2261,15 +2642,15 @@ export function registerExtendedTools(
 
   server.tool(
     "fusebase_swarm_task_transition",
-    "Transition a swarm task across lifecycle stages (Backlog -> In Progress -> Review -> Done), record agent audit comments, and trigger next-agent handover.",
+    "Transition a swarm task across lifecycle stages (e.g. Backlog -> In Progress -> Review -> Done, or Flow 8-phase stages), record agent audit comments, and trigger next-agent handover.",
     {
       dashboardId: z.string().describe("Dashboard/Table ID of the swarm board"),
       viewId: z.string().describe("View ID of the swarm board"),
       rowId: z.string().describe("Row UUID of the task card to transition"),
       groupByColumnKey: z.string().describe("Column key of the status column (from get_database_schema)"),
-      newStatus: z.enum(["Backlog", "In Progress", "Review", "Done"]).describe("New status stage for the task"),
+      newStatus: z.string().describe("New status stage for the task (e.g. 'Backlog', 'In Progress', 'Review', 'Done', or Flow stages: 'Specify', 'Clarify', 'Plan', 'Decisions', 'Tasks', 'Verify Gate', 'Implement', 'Review & Deploy')"),
       comment: z.string().describe("Audit log / review comment explaining the work done or reason for transition"),
-      nextRole: z.string().optional().describe("Next agent profile assigned to take over the task (e.g. 'agent-dev', 'agent-qa')"),
+      nextRole: z.string().optional().describe("Next agent profile assigned to take over the task (e.g. 'ai-developer', 'agent-dev', 'agent-qa')"),
       profile: z.string().optional().describe("Acting agent profile"),
     },
     async ({ dashboardId, viewId, rowId, groupByColumnKey, newStatus, comment, nextRole, profile }) => {
@@ -2714,6 +3095,231 @@ export function registerExtendedTools(
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(user, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  // === FuseBase PostgreSQL (Gate Isolated SQL Stores) ===
+
+  server.tool(
+    "list_isolated_stores",
+    "List all isolated PostgreSQL stores (databases) in the organization provisioned via FuseBase Gate.",
+    {
+      orgId: z.string().optional().describe("Organization ID (defaults to active org)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ orgId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.listIsolatedStores(orgId);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "create_isolated_store",
+    "Provision a new isolated PostgreSQL database in the organization via FuseBase Gate.",
+    {
+      alias: z.string().describe("Database alias (identifier for app or workflow)"),
+      engine: z.string().optional().default("postgres").describe("Database engine (default: 'postgres')"),
+      storeType: z.string().optional().default("sql").describe("Store type (default: 'sql')"),
+      orgId: z.string().optional().describe("Organization ID (defaults to active org)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ alias, engine, storeType, orgId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.createIsolatedStore(alias, { engine, storeType, orgId });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "query_isolated_sql",
+    "Execute a read-only SQL query (SELECT) against a FuseBase PostgreSQL Isolated Store. Runs inside a READ ONLY transaction.",
+    {
+      storeId: z.string().describe("Isolated store ID"),
+      sql: z.string().describe("SQL query (e.g. 'SELECT * FROM users WHERE active = true')"),
+      params: z.array(z.unknown()).optional().describe("Query parameters for parameterized query ($1, $2)"),
+      stage: z.enum(["dev", "prod"]).optional().default("prod").describe("Database stage ('prod' or 'dev', default: 'prod')"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ storeId, sql, params, stage, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.queryIsolatedStoreSql(storeId, sql, params, stage);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "execute_isolated_sql",
+    "Execute a DML statement (INSERT, UPDATE, DELETE) against a FuseBase PostgreSQL Isolated Store. For schema DDL changes, use apply_isolated_sql_migrations instead.",
+    {
+      storeId: z.string().describe("Isolated store ID"),
+      sql: z.string().describe("SQL statement (e.g. 'UPDATE users SET status = $1 WHERE id = $2')"),
+      params: z.array(z.unknown()).optional().describe("Statement parameters ($1, $2)"),
+      stage: z.enum(["dev", "prod"]).optional().default("prod").describe("Database stage ('prod' or 'dev', default: 'prod')"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ storeId, sql, params, stage, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.executeIsolatedStoreSql(storeId, sql, params, stage);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "select_isolated_sql_rows",
+    "Select rows from a table in a FuseBase PostgreSQL Isolated Store using structured filters and options.",
+    {
+      storeId: z.string().describe("Isolated store ID"),
+      table: z.string().describe("Table name"),
+      where: z.record(z.string(), z.unknown()).optional().describe("Filter conditions as { column: value }"),
+      limit: z.number().optional().default(100).describe("Max rows to return (default: 100, max: 500)"),
+      offset: z.number().optional().default(0).describe("Row offset for pagination"),
+      order: z.array(z.string()).optional().describe("Sort columns (e.g. ['created_at DESC'])"),
+      stage: z.enum(["dev", "prod"]).optional().default("prod").describe("Database stage ('prod' or 'dev')"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ storeId, table, where, limit, offset, order, stage, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.selectIsolatedStoreSqlRows(storeId, table, { where, limit, offset, order, stage });
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "insert_isolated_sql_row",
+    "Insert a single row into a table in a FuseBase PostgreSQL Isolated Store.",
+    {
+      storeId: z.string().describe("Isolated store ID"),
+      table: z.string().describe("Table name"),
+      row: z.record(z.string(), z.unknown()).describe("Column values to insert"),
+      stage: z.enum(["dev", "prod"]).optional().default("prod").describe("Database stage ('prod' or 'dev')"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ storeId, table, row, stage, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.insertIsolatedStoreSqlRow(storeId, table, row, stage);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "batch_insert_isolated_sql_rows",
+    "Insert multiple rows into a table in a FuseBase PostgreSQL Isolated Store in a single request.",
+    {
+      storeId: z.string().describe("Isolated store ID"),
+      table: z.string().describe("Table name"),
+      rows: z.array(z.record(z.string(), z.unknown())).describe("Array of row objects to insert"),
+      stage: z.enum(["dev", "prod"]).optional().default("prod").describe("Database stage ('prod' or 'dev')"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ storeId, table, rows, stage, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.batchInsertIsolatedStoreSqlRows(storeId, table, rows, stage);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "list_isolated_sql_tables",
+    "List all user tables in a FuseBase PostgreSQL Isolated Store.",
+    {
+      storeId: z.string().describe("Isolated store ID"),
+      stage: z.enum(["dev", "prod"]).optional().default("prod").describe("Database stage ('prod' or 'dev')"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ storeId, stage, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.listIsolatedStoreSqlTables(storeId, stage);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "apply_isolated_sql_migrations",
+    "Apply a DDL schema migration bundle to a FuseBase PostgreSQL Isolated Store.",
+    {
+      storeId: z.string().describe("Isolated store ID"),
+      bundle: z.record(z.string(), z.unknown()).describe("Migration bundle object (with version and migrations array)"),
+      stage: z.enum(["dev", "prod"]).optional().default("prod").describe("Database stage ('prod' or 'dev')"),
+      dryRun: z.boolean().optional().default(false).describe("Validate without applying (dry run)"),
+      profile: z.string().optional().describe("Agent profile to use for authentication"),
+    },
+    async ({ storeId, bundle, stage, dryRun, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.applyIsolatedStoreSqlMigrations(storeId, bundle, stage, dryRun);
+        return {
+          content: [
+            { type: "text" as const, text: JSON.stringify(result, null, 2) },
           ],
         };
       } catch (error) {

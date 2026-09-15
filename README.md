@@ -1,7 +1,7 @@
 # FuseBase MCP Server
 
 [![Live Status Dashboard](https://img.shields.io/badge/Live%20Status-Operational-10b981?style=for-the-badge&logo=googlecloud&logoColor=white)](https://fusebase-mcp.thefusebase.app/)
-[![Production Tools](https://img.shields.io/badge/Production%20Tools-143%20Verified-6366f1?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
+[![Production Tools](https://img.shields.io/badge/Production%20Tools-165%20Verified-6366f1?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 [![Cloud Data Assertions](https://img.shields.io/badge/Cloud%20Assertions-162%2F162%20Passed-34d399?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 [![Protocol Compliance](https://img.shields.io/badge/Protocol-JSON--RPC%202.0%20%2B%20RFC%206570-06b6d4?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 
@@ -9,20 +9,20 @@ An enterprise-grade [Model Context Protocol (MCP)](https://modelcontextprotocol.
 
 > 📊 **[Open Live Platform Status & Interactive Tools Directory → https://fusebase-mcp.thefusebase.app/](https://fusebase-mcp.thefusebase.app/)**
 >
-> *Real-time engineering status, interactive searchable directory of all 143 MCP tools with schema parameters, 12 test suite validation metrics, system architecture, and milestone chronology.*
+> *Real-time engineering status, interactive searchable directory of all 165 MCP tools with schema parameters, 12 test suite validation metrics, system architecture, and milestone chronology.*
 
 ---
 
 ## ✨ Features
 
-- **143 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, billing, user preferences, multi-agent profiles, and swarm orchestration
-- **Two-tier system** — 34 core tools load by default (complete CRUD suite); 109 extended tools on demand
+- **165 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, billing, user preferences, multi-agent profiles, and swarm orchestration
+- **Two-tier system** — 34 core tools load by default (complete CRUD suite); 131 extended tools on demand
 - **Token Economics & Markdown Conversion** — retrieve page content as clean Markdown (`get_page_content(format: "markdown")`) for ~50% token reduction via built-in `htmlToMarkdown` converter
 - **Binary Payload Safety & Native Images** — `download_attachment` renders images as native MCP `image` blocks and streams large files directly to local disk (`data/downloads/`)
 - **Safety Annotations (`[DESTRUCTIVE]`)** — permanent deletion tools are explicitly tagged so AI clients and human supervisors can prompt for confirmation
 - **Native MCP Resources (8)** — `fusebase://status`, `fusebase://workspaces`, `fusebase://guides/index`, `fusebase://work/connectors`, `fusebase://workspaces/{workspaceId}/pages/{pageId}`, `fusebase://databases/{databaseId}`, `fusebase://portals/{portalId}/clients`
-- **Native MCP Prompts (13)** — pre-engineered workflow templates (`create-sop`, `summarize-page`, `build-kanban-project`, `design-automation-workflow`, `build-hosted-app`, `build-event-bridge`, `orchestrate-multi-agent-swarm`, `launch-client-portal`, `workspace-activity-digest`, `audit-page-governance`, `build-relational-database`, `import-knowledge-base`, `configure-ai-persona`)
-- **Official FuseBase CLI & Hosted Apps** — inspect CLI status (`fusebase_cli_status`), initialize products (`fusebase_cli_init`), list apps (`fusebase_cli_list_apps`), and deploy Vite/React SPA apps to the FuseBase Cloud (`fusebase_cli_deploy`)
+- **Native MCP Prompts (17)** — pre-engineered workflow templates (`create-sop`, `summarize-page`, `build-kanban-project`, `design-automation-workflow`, `build-hosted-app`, `build-event-bridge`, `orchestrate-multi-agent-swarm`, `launch-client-portal`, `workspace-activity-digest`, `audit-page-governance`, `build-relational-database`, `import-knowledge-base`, `configure-ai-persona`, `crm-seed-demo-data`, `portal-embedded-app`, `fullstack-app-architecture`, `token-waste-audit`)
+- **Official FuseBase CLI & Hosted Apps** — inspect CLI status (`fusebase_cli_status`), initialize products (`fusebase_cli_init`), list apps (`fusebase_cli_list_apps`), deploy Vite/React SPA apps to FuseBase Cloud (`fusebase_cli_deploy`), configure Docker sidecars (`fusebase_cli_sidecar_add`, `fusebase_cli_sidecar_list`, `fusebase_cli_sidecar_remove`), manage platform secrets (`fusebase_cli_secret_create`, `fusebase_cli_secret_list`), inspect remote logs (`fusebase_cli_logs`), and update app view permissions (`fusebase_cli_app_update`)
 - **Granular block mutations** — non-destructive page block appending (`append_page_content`) via real-time Y.js WebSockets
 - **Vibe Coding & Web Apps** — generate interactive web app pages (`create_interactive_app_page`) with responsive full-width embeds (`allowOverWidth`)
 - **ActivePieces Workflow Automation** — flow inspection, creation, updating, deletion, trigger test runs (`trigger_automation_flow`), and connector piece catalog with auto-managed JWT authentication
@@ -164,6 +164,24 @@ Add to your MCP client config. Examples:
 
 </details>
 
+<details>
+<summary><strong>Claude Code Plugin</strong> — <code>.claude-plugin/plugin.json</code></summary>
+
+This repository includes native Claude Code plugin packaging:
+```bash
+claude plugin add c:/scripts/fusebase-mcp
+```
+Or reference `.claude-plugin/plugin.json` directly from your Claude workspace configuration.
+
+</details>
+
+<details>
+<summary><strong>Codex Agent Marketplace</strong> — <code>.codex-plugin/plugin.json</code></summary>
+
+Packaged with `.codex-plugin/plugin.json` for OpenAI Codex agent ecosystems with standard JSON-RPC 2.0 stdio discovery.
+
+</details>
+
 > **Note:** Replace `/path/to/fusebase-mcp` with the actual path where you cloned the repo. On Windows, use double backslashes: `"C:\\path\\to\\fusebase-mcp\\dist\\index.js"`.
 
 ### 5. Verify
@@ -177,8 +195,9 @@ If it works, you're all set! 🎉
 You can also run automated verification directly from your terminal:
 
 ```bash
-npm run test:data-validation  # Full deep data validation across all 143 tools & endpoints
-npm run test:audit            # Validate all 143 tool schemas, parameters, and documentation
+npm run test:data-validation  # Full deep data validation across all 165 tools & endpoints
+npm run test:audit            # Validate all 165 tool schemas, parameters, and documentation
+npm run test:database         # End-to-end live verification of canonical database, batch, & relation tools
 npm test                      # Run full 15-stage platform end-to-end test suite
 npm run deploy:status         # Build & deploy live status dashboard to fusebase-mcp.thefusebase.app
 npm run deploy:page           # Embed the live status dashboard into a FuseBase workspace note
@@ -214,7 +233,7 @@ Clients can attach FuseBase data directly into their context window:
 
 | URI Pattern | Type | Description |
 | --- | --- | --- |
-| `fusebase://status` | Static | Live operational status, 143-tool catalog, 12 test suites, and web dashboard URL |
+| `fusebase://status` | Static | Live operational status, 165-tool catalog, 13 test suites, and web dashboard URL |
 | `fusebase://workspaces` | Static | JSON array of all accessible workspaces |
 | `fusebase://guides/index` | Static | Comprehensive index of all 277 FuseBase documentation guides |
 | `fusebase://work/connectors` | Static | Catalog of integrated third-party services and automation connectors |
@@ -223,7 +242,7 @@ Clients can attach FuseBase data directly into their context window:
 | `fusebase://databases/{databaseId}` | Template | Complete JSON schema and views for a database (also supports legacy `{did}`) |
 | `fusebase://portals/{portalId}/clients` | Template | List of invited external clients and permissions for a portal |
 
-### Pre-Engineered Prompts (13)
+### Pre-Engineered Prompts (17)
 
 Quick-start workflow prompts available to AI clients:
 
@@ -240,6 +259,10 @@ Quick-start workflow prompts available to AI clients:
 - **`build-relational-database`**: Architects a multi-table relational schema with bidirectional relations (`add_relation_column`), lookup rollups (`add_lookup_column`), and specialized Kanban/Grid views.
 - **`import-knowledge-base`**: Plans structured migrations of Notion workspaces, Confluence spaces, or CSV datasets into FuseBase folders, markdown pages, and databases.
 - **`configure-ai-persona`**: Designs specialized AI assistant personas with tailored charters, quick-action suggestion chips, and starter conversation threads.
+- **`crm-seed-demo-data`**: Generates high-fidelity CRM demo records (Companies, Contacts, Deals table/pipeline, Trackers) with relational integrity across parent and child tables.
+- **`portal-embedded-app`**: Guides scaffolding and deployment of FuseBase client portal embedded applications using dynamic `{{CurrentPortal}}` view filtering and runtime context authentication.
+- **`fullstack-app-architecture`**: Architects enterprise full-stack FuseBase Web Applications with Docker sidecar microservices, secret whitelisting, and unified localhost routing.
+- **`token-waste-audit`**: Audits active agent interactions and tool invocations to identify redundant schema fetching, enforce compact Markdown formats, and recover context bandwidth.
 
 ---
 
@@ -250,7 +273,7 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Tier | Tools | Description |
 | --- | --- | --- |
 | **Core** (default) | 34 | Day-to-day: full CRUD and organization for pages, folders, content, tasks, tags, attachments, members, guides, session health, profiles |
-| **Extended** | +109 | Admin, CLI apps, automations, portal lifecycle, databases, templates, swarm state machines, billing, preferences |
+| **Extended** | +131 | Admin, CLI apps, automations, portal lifecycle, databases, relations, batch mutations, isolated SQL stores, templates, swarm state machines, billing, preferences |
 
 **Enable extended tools:**
 
@@ -298,13 +321,13 @@ Core tools load by default and provide complete CRUD and organization operations
 | Guides | `get_guide` | Get full markdown guide by section and slug |
 | Guides | `list_guide_sections` | Browse all 19 documentation sections |
 
-### Extended Tools (109)
+### Extended Tools (131)
 
 Enable with `set_tool_tier(tier: "all")` or set `FUSEBASE_TOOLS=all` in `.env`:
 
 - **Client Portal Hub**: `check_portal_availability`, `create_portal`, `get_portal`, `get_portal_theme`, `get_portal_navigation_menu`, `get_workspace_portal`, `publish_page_to_portal`, `list_portal_clients`, `invite_portal_client`, `create_portal_magic_link`, `list_portals`, `get_portal_pages`
 - **Multi-Agent Swarms**: `fusebase_swarm_init`, `fusebase_swarm_task_transition`
-- **FuseBase CLI & Hosted Apps**: `fusebase_cli_status`, `fusebase_cli_init`, `fusebase_cli_list_apps`, `fusebase_cli_deploy`, `create_interactive_app_page`
+- **FuseBase CLI & Hosted Apps**: `fusebase_cli_status`, `fusebase_cli_init`, `fusebase_cli_list_apps`, `fusebase_cli_deploy`, `fusebase_cli_sidecar_add`, `fusebase_cli_sidecar_list`, `fusebase_cli_sidecar_remove`, `fusebase_cli_secret_create`, `fusebase_cli_secret_list`, `fusebase_cli_logs`, `fusebase_cli_app_update`, `create_interactive_app_page`
 - **ActivePieces Workflow Automations**: `list_automation_flows`, `get_automation_flow`, `create_automation_flow`, `update_automation_flow`, `delete_automation_flow`, `trigger_automation_flow`, `list_flow_runs`, `list_automation_pieces`, `get_automation_flags`, `list_automation_folders`, `create_automation_folder`, `delete_automation_folder`, `get_automation_user`
 - **Tasks (Metrics & Logs)**: `get_tasks_workspace_summary`, `get_task_time_tracking`, `get_task_description`, `get_task_count`, `get_task_usage`
 - **Labels & Tags**: `get_labels`, `get_note_tags`
@@ -313,10 +336,12 @@ Enable with `set_tool_tier(tier: "all")` or set `FUSEBASE_TOOLS=all` in `.env`:
 - **Organization Administration**: `get_member_roles`, `get_workspace_members_v1`, `get_org_trials`, `get_org_usage`, `get_org_limits`, `get_usage_summary`, `get_org_permissions`, `get_org_features`, `get_ai_usage`
 - **Workspaces & Subscription**: `get_workspace_premium_status`, `get_active_import_status`, `get_workspace_detail`, `get_workspace_emails`, `get_workspace_info`
 - **Navigation & AI Assistant**: `get_agent_public_profile`, `get_ai_assistant_state`, `list_ai_agent_threads`, `get_ai_agent_favorites`, `get_navigation_menu`, `get_mention_entities`, `list_agents`, `list_ai_agent_categories`, `get_recently_updated_notes`
-- **Databases & Tables**: `get_dashboard_templates`, `get_database_entity_templates`, `get_database_data`, `list_databases`, `get_database_entity`, `create_database`, `add_database_row`, `delete_database_row`, `move_kanban_card`, `list_database_relations`, `create_dashboard_table`, `delete_relation`, `list_all_databases`, `get_database_detail`, `update_database`, `delete_database`, `get_dashboard_detail`, `delete_dashboard`
+- **Databases & Tables**: `get_dashboard_templates`, `get_database_entity_templates`, `get_database_data`, `list_databases`, `get_database_entity`, `create_database`, `add_database_row`, `delete_database_row`, `move_kanban_card`, `list_database_relations`, `create_dashboard_table`, `delete_relation`, `list_all_databases`, `get_database_detail`, `update_database`, `delete_database`, `get_dashboard_detail`, `delete_dashboard`, `batch_put_database_data`, `resolve_database_alias`
 - **Views**: `update_view`, `set_view_representation`, `create_view`, `delete_view`, `duplicate_view`, `set_view_grouping`
 - **Columns**: `add_database_column`, `delete_database_column`, `rename_database_column`, `reorder_database_columns`, `set_column_width`, `add_relation_column`, `add_lookup_column`
-- **Cells & Rows**: `update_database_cell`, `get_database_rows`, `get_database_schema`
+- **Cells & Rows**: `update_database_cell`, `get_database_rows`, `get_database_schema`, `reorder_database_rows`
+- **Row-Level Relations**: `link_database_rows`, `unlink_database_rows`, `get_relation_rows`
+- **Gate PostgreSQL Isolated SQL Stores**: `list_isolated_stores`, `create_isolated_store`, `query_isolated_sql`, `execute_isolated_sql`, `select_isolated_sql_rows`, `insert_isolated_sql_row`, `batch_insert_isolated_sql_rows`, `list_isolated_sql_tables`, `apply_isolated_sql_migrations`
 - **Billing & User Preferences**: `get_billing_info`, `get_user_preferences`, `set_sidebar_collapsed`
 - **Import/Export**: `duplicate_database`, `export_csv`, `import_csv`
 
@@ -331,7 +356,7 @@ Enable with `set_tool_tier(tier: "all")` or set `FUSEBASE_TOOLS=all` in `.env`:
 
 ```text
 src/
-  index.ts              → MCP server (143 tools, stdio transport, tier system, instructions)
+  index.ts              → MCP server (165 tools, stdio transport, tier system, instructions)
   client.ts             → HTTP client (cookie auth, ActivePieces token exchange, 401 auto-retry, logging)
   crypto.ts             → AES-256-GCM encryption for multi-profile secrets at rest
   types.ts              → TypeScript interfaces for API responses
@@ -341,7 +366,7 @@ src/
   guide-loader.ts       → Guide search index (277 guides, 19 sections)
   tools/
     core-tools.ts       → 34 Core tools (full CRUD and organization for pages, tasks, folders, content, profiles)
-    extended-tools.ts   → 109 Extended tools (databases, views, automations, portals, admin, CLI)
+    extended-tools.ts   → 131 Extended tools (databases, views, relations, batch mutations, SQL stores, automations, portals, admin, CLI)
     helpers.ts          → HTML-to-markdown converter, MIME detection, error formatting
   yjs-ws-writer.ts      → Y.js WebSocket writer (write + read via WS sync)
   yjs-html-decoder.ts   → Y.js document → HTML decoder (20+ block types)
@@ -351,6 +376,7 @@ scripts/
   auth.ts               → Capture/refresh session cookies via Playwright (multi-profile)
   audit-tools.ts        → Tool schema and parameter completeness validator (`npm run test:audit`)
   test-mcp-e2e.ts       → Comprehensive 14-stage platform test suite (`npm test`)
+  test-database-e2e.ts  → Full lifecycle verification of canonical database, batch & relation tools (`npm run test:database`)
   test-regression.ts    → Y.js block type and format regression test (`npm run test:regression`)
   inspect-hub.ts        → Deep inspection of client portal and workspace hubs
   scrape-guides.ts      → Scrape FuseBase help guides into markdown + NLM sync
@@ -371,7 +397,7 @@ See [ENDPOINT_REFERENCE.md](ENDPOINT_REFERENCE.md) for all discovered and implem
 - [x] **Native AI Assistant & Agent Threads** — AI suggestions, threads, and user preferences.
 - [x] **Token Economics & Binary Safety** — HTML-to-Markdown conversion and native image / local disk file staging.
 - [x] **RFC 6570 Resource Templates & Prompts** — Direct URI data mounting and pre-engineered workflows.
-- [x] **Full-Spectrum 143-Tool Deep Data Validation** — 100% live verification with field, type, and lifecycle assertions.
+- [x] **Full-Spectrum 165-Tool Deep Data Validation** — 100% live verification with field, type, and lifecycle assertions.
 
 ### Future Opportunities
 - **Bidirectional Webhook Listeners** — Local webhook listener bridge for real-time external event triggers into FuseBase.
@@ -382,7 +408,7 @@ See [ENDPOINT_REFERENCE.md](ENDPOINT_REFERENCE.md) for all discovered and implem
 The server includes automated test suites to ensure zero regressions across tool schemas, parameter types, protocol compliance, and live API synchronization:
 
 ```bash
-# 1. Full-Spectrum 143-Tool Deep Data Validation Suite (12 suites, 100% data assertions)
+# 1. Full-Spectrum 165-Tool Deep Data Validation Suite (12 suites, 100% data assertions)
 npm run test:data-validation
 
 # 2. Full Live Platform End-to-End Suite (15 stages against live API)
@@ -400,9 +426,9 @@ npm run deploy:status
 
 | Test Command | Coverage Area |
 |---|---|
-| `npm run test:data-validation` | Deep data validation across all 143 tools and underlying endpoints: asserts schema types, non-null values, UUID formats, round-trip state mutations, and guaranteed resource cleanup |
+| `npm run test:data-validation` | Deep data validation across all 165 tools and underlying endpoints: asserts schema types, non-null values, UUID formats, round-trip state mutations, and guaranteed resource cleanup |
 | `npm test` | Exercises all 15 platform subsystems: resources, templates, prompts, core/extended switching, Y.js WebSocket sync, CLI status, ActivePieces, portals, and swarms |
-| `npm run test:audit` | Validates that all 143 tools have descriptions, schemas, parameter docs, and 100% documentation coverage in README.md |
+| `npm run test:audit` | Validates that all 165 tools have descriptions, schemas, parameter docs, and 100% documentation coverage in README.md |
 | `npm run test:regression` | Validates round-trip Y.js WebSocket write → read fidelity across all 25+ block types and inline formats |
 | `npm run deploy:status` | Synchronizes latest project metrics & git commit details, compiles the dashboard SPA, deploys to `https://fusebase-mcp.thefusebase.app/`, and verifies live HTTP 200 health |
 

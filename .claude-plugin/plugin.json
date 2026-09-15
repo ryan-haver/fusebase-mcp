@@ -1,0 +1,32 @@
+{
+  "name": "fusebase",
+  "version": "1.4.0",
+  "description": "Comprehensive FuseBase MCP server and agent platform tool suite for workspaces, Y.js live collaboration, dashboards, visual tables, CRM pipelines, client portals, automations, and Gate PostgreSQL stores.",
+  "keywords": [
+    "fusebase",
+    "mcp",
+    "agent",
+    "swarm",
+    "crm",
+    "collaboration",
+    "yjs",
+    "portal",
+    "activepieces"
+  ],
+  "author": {
+    "name": "FuseBase",
+    "url": "https://thefusebase.com"
+  },
+  "homepage": "https://thefusebase.com",
+  "repository": "https://github.com/ryan-haver/fusebase-mcp",
+  "license": "MIT",
+  "server": {
+    "command": "node",
+    "args": [
+      "dist/index.js"
+    ],
+    "transport": {
+      "type": "stdio"
+    }
+  }
+}

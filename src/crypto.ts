@@ -289,13 +289,3 @@ export function loadCredentialStore(): CredentialStore | null {
     return null;
   }
 }
-
-/**
- * Load and decrypt agent credentials from data/credentials.enc.
- * Returns null if file doesn't exist or decryption fails.
- * @deprecated Use loadCredentialStore() to also get proxy config.
- */
-export function loadCredentials(): Record<string, AgentCredential> | null {
-  const store = loadCredentialStore();
-  return store?.credentials ?? null;
-}

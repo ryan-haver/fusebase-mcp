@@ -29,9 +29,6 @@
 
 import * as Y from "yjs";
 import * as encoding from "lib0/encoding";
-import * as decoding from "lib0/decoding";
-import * as syncProtocol from "y-protocols/sync";
-import * as awarenessProtocol from "y-protocols/awareness";
 import { WebSocket } from "ws";
 import type { ContentBlock } from "./content-schema.js";
 import { decodeYDocToHtml } from "./yjs-html-decoder.js";
@@ -1146,8 +1143,6 @@ export async function writeContentViaWebSocket(
       ws.send(Buffer.from(awarenessMsg));
     });
 
-    let syncStep2Received = false;
-
     ws.on("message", (raw: Buffer, isBinary: boolean) => {
       if (!isBinary) return;
       const data = new Uint8Array(raw);
@@ -1186,7 +1181,6 @@ export async function writeContentViaWebSocket(
       else if (subType === 1) {
         // Server SyncStep2: server sends its document state
         // With encv2=true, the data is V2-encoded
-        syncStep2Received = true;
         const [uLen, uStart] = readVarUint(data, subOff);
         const updateData = data.slice(uStart, uStart + uLen);
 
