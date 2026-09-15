@@ -279,7 +279,7 @@
 ## 18. Technical Breakdown: Failing & Error Endpoints (404, 500, 308, 403)
 
 ### Are these documented endpoints from FuseBase?
-**No.** FuseBase does **not** publish an official public REST API specification or developer API documentation. All 277 guides in our documentation repository (`docs/guides/`) are end-user guides and FuseBase CLI references. The web application at `inkabeam.nimbusweb.me` relies entirely on internal microservice gateway routes (`gwapi2`, `v4/api/proxy/*`, `automation/api/v1/*`). Our reference points are derived empirically from browser network traffic (HAR captures), WebSocket CRDT synchronization, and client bundle route definitions.
+**No.** FuseBase does **not** publish an official public REST API specification or developer API documentation. All 278 guides in our documentation repository (`docs/guides/`) are end-user guides and FuseBase CLI references. The web application at `inkabeam.nimbusweb.me` relies entirely on internal microservice gateway routes (`gwapi2`, `v4/api/proxy/*`, `automation/api/v1/*`). Our reference points are derived empirically from browser network traffic (HAR captures), WebSocket CRDT synchronization, and client bundle route definitions.
 
 ### Root-Cause Analysis of Observed Error Codes
 

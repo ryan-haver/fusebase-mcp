@@ -240,9 +240,9 @@ Clients can attach FuseBase data directly into their context window:
 
 | URI Pattern | Type | Description |
 | --- | --- | --- |
-| `fusebase://status` | Static | Live operational status, 165-tool catalog, 13 test suites, and web dashboard URL |
+| `fusebase://status` | Static | Live operational status, 168-tool catalog, 14 test suites, and web dashboard URL |
 | `fusebase://workspaces` | Static | JSON array of all accessible workspaces |
-| `fusebase://guides/index` | Static | Comprehensive index of all 277 FuseBase documentation guides |
+| `fusebase://guides/index` | Static | Comprehensive index of all 278 FuseBase documentation guides |
 | `fusebase://work/connectors` | Static | Catalog of integrated third-party services and automation connectors |
 | `fusebase://guides/{section}/{slug}` | Template | Full markdown content of any specific guide |
 | `fusebase://workspaces/{workspaceId}/pages/{pageId}` | Template | Decoded HTML representation of any page (also supports legacy `{wid}/{nid}`) |
@@ -324,7 +324,7 @@ Core tools load by default and provide complete CRUD and organization operations
 | Files | `list_files` | List uploaded files |
 | Files | `download_attachment` | Download attachment (native MCP `image` block or direct disk save to `data/downloads/`) |
 | Members | `get_members` | List workspace members |
-| Guides | `search_guides` | Search 277 FuseBase guides by keyword |
+| Guides | `search_guides` | Search 278 FuseBase guides by keyword |
 | Guides | `get_guide` | Get full markdown guide by section and slug |
 | Guides | `list_guide_sections` | Browse all 19 documentation sections |
 
@@ -393,7 +393,7 @@ scripts/
   deploy-status-dashboard.ts → Build & deploy live status dashboard SPA (`npm run deploy:status`)
   deploy-workspace-page.ts   → Embed status dashboard into workspace note (`npm run deploy:page`)
 docs/
-  guides/               → 277 FuseBase guides across 19 sections (auto-scraped)
+  guides/               → 278 FuseBase guides across 19 sections (auto-scraped)
 data/                   → (gitignored) Cookie store, downloads, API logs, workspace cache
 ```
 

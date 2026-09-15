@@ -353,7 +353,7 @@ export default function App() {
                 </div>
                 <div className="stat-row">
                   <span className="stat-row-label">Offline Documentation Guides:</span>
-                  <span className="stat-val-cyan">277 guides across 19 sections</span>
+                  <span className="stat-val-cyan">278 guides across 19 sections</span>
                 </div>
               </div>
             </div>
