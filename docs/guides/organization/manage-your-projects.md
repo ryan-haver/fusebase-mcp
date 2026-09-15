@@ -1,72 +1,108 @@
 ---
 title: "Manage Your Projects"
-url: "https://thefusebase.com/guides/organization/manage-your-projects/"
+url: "https://thefusebase.com/guides/organization/manage-your-projects"
 section: "organization"
-lastScraped: "2026-09-12T05:17:36.283Z"
+lastScraped: "2026-09-15T04:44:41.500Z"
 ---
 
 # Manage Your Projects
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/manage-project-1024x357.png)
+[Back to Your organization](/guides/organization)
+
+Your organization
+
+# Manage Your Projects
+
+Discover your workspace. Learn to easily manage information, tasks, teams and projects.
+
+Guide details
+
+Published
+
+November 7, 2023
+
+Read time
+
+3 min read
+
+Category
+
+Your organization
+
+In this guide
+
+1.  [First Things First — Create Workspaces](#0-toc-title)
+2.  [Turn Ideas into Action Items — Add Task Lists](#1-toc-title)
+3.  [How to Create Tasks and Add Them to the Task Lists](#2-toc-title)
+4.  [How to Comment on Tasks](#3-toc-title)
+5.  [How to Move Your Tasks](#4-toc-title)
+6.  [How to Filter Tasks](#5-toc-title)
+7.  [How to Track Progress on Task Lists](#6-toc-title)
+8.  [Visualize Your Workflow — Try the Kanban Method](#7-toc-title)
+9.  [Organize Your Portfolio](#8-toc-title)
+10.  [Get Help from Our Experts](#9-toc-title)
+11.  [Book a Call With Us](#10-toc-title)
+
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/11/manage-project-1024x357.png)
 
 Whether you are new to project management or just changed tools, this page will help you get to the core of managing tasks and projects and organizing portfolios in FuseBase.
 
 Make yourself comfortable, there is a lot to learn!
 
-##   First Things First — Create Workspaces [#](#0-toc-title)
+##   First Things First — Create Workspaces
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/A5R1x2wSUjk?feature=oembed)
 
 Organize your projects within workspaces. We recommend creating separate workspaces for your projects. Each workspace has its own nested folder structure, tags, permission settings and branding.  
 This way, you can easily manage your information, tasks, teams and projects.
 
-**🔗** Learn [in our guide >>](https://thefusebase.com/guides/organization/manage-workspaces-in-organization/) how to create new workspaces and invite your team and clients there.
+**🔗** Learn [in our guide >>](/guides/organization/manage-workspaces-in-organization) how to create new workspaces and invite your team and clients there.
 
 😎 **FuseBase Team suggests**  
 If you want to manage client projects, try FuseBase **Portals**. They are no-code websites created for easier collaboration and team-client alignment.  
 **See what your** [**portal can look like here >>**](https://acme-demoportal.nimbusweb.me/)
 
-###  Turn Ideas into Action Items — Add Task Lists [#](#1-toc-title)
+###  Turn Ideas into Action Items — Add Task Lists
 
 Organize your work and get results by dividing your big goals into tasks. You can group your tasks by topics and initiatives within task lists. Each task in the task list can have labels, assignees, deadlines, and reminders.
 
 💡 **Quick tip**  
 You can also add task descriptions, leave clarifying comments and add cost & time estimates by clicking on the task.
 
-### How to Create Tasks and Add Them to the Task Lists [#](#2-toc-title)
+### How to Create Tasks and Add Them to the Task Lists
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/uXOKTuWUXNk?feature=oembed)
 
-### How to Comment on Tasks [#](#3-toc-title)
+### How to Comment on Tasks
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/6XwqKHSR8TY?feature=oembed)
 
-### How to Move Your Tasks  [#](#4-toc-title)
+### How to Move Your Tasks 
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/haJjtrlcBlI?feature=oembed)
 
-### How to Filter Tasks [#](#5-toc-title)
+### How to Filter Tasks
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/Z5OyaTxxwrY?feature=oembed)
 
-### How to Track Progress on Task Lists [#](#6-toc-title)
+### How to Track Progress on Task Lists
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/2H76ztj0VNw?feature=oembed)
 
-##  Visualize Your Workflow — Try the Kanban Method [#](#7-toc-title)
+##  Visualize Your Workflow — Try the Kanban Method
 
 You can organize your work using the Kanban method in FuseBase. Turn your goals into task cards and move them across the board. With Kanban boards, you can fully visualize the project process, manage tasks and analyze the flow.  
 Watch the video on **how to organize your tasks with Kanban Boards** 👇
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/NX9poAoygkg?feature=oembed)
 
 😎 **FuseBase Team suggests**  
 Create both task lists and Kanban boards. While **task lists** can consist of backlog ideas, **Kanban boards** will help you visualize ongoing tasks and their status.  
 Check out the examples below 👇
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20715%20332'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/11/Kanban-boards.png)
 
-###  Organize Your Portfolio [#](#8-toc-title)
+###  Organize Your Portfolio
 
 **If you have several ongoing initiatives or sub-projects with their own workflows, statuses, and supporting information, a database may be a good choice.**
 
@@ -79,22 +115,22 @@ Check out the examples below 👇
 
 -   Create a system of filters to quickly find particular initiatives.
 
-**🔗 You can do that with @-mention.** [**Read more about it here >>**](https://thefusebase.com/guides/basics/mentions-link-people-dates-folders-pages-and-workspaces/)
+**🔗 You can do that with @-mention.** [**Read more about it here >>**](/guides/basics/mentions-link-people-dates-folders-pages-and-workspaces)
 
 -   Add the overview pages and the portfolio table to your workspace Favorites.
 
-**🔗 Learn what Favorites mean from** [**this guide >>**](https://thefusebase.com/guides/basics/tags-favorites-fast-access-to-your-pages/)
+**🔗 Learn what Favorites mean from** [**this guide >>**](/guides/basics/tags-favorites-fast-access-to-your-pages)
 
 **💡 **Quick tip**  
 **Adapt content, choose the responsible team and change risk level to get to know how databases work in FuseBase.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20954%20277'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/11/databases.png)
 
-## Get Help from Our Experts [#](#9-toc-title)
+## Get Help from Our Experts
 
 Congrats! You can now organize and manage your projects in FuseBase. If you want to continue exploring our tool, move on to Related Guides and choose the desired topic.  
 
-### Book a Call With Us [#](#10-toc-title)
+### Book a Call With Us
 
 Get straight to business and talk to our team about how you can create a workflow and manage your projects in FuseBase. We’ll explore your particular case in 30 minutes and suggest a custom solution for you and your company. BTW, it’s free **🙌**
 
@@ -102,10 +138,10 @@ Choose your desired date for available time slots to get your custom solution. [
 
 **Related Guides**
 
-**[Create Super Docs](https://thefusebase.com/guides/getting-started/create-super-docs/)**
+**[Create Super Docs](/guides/getting-started/create-super-docs)**
 
-**[Get Started with AI in FuseBase](https://thefusebase.com/guides/getting-started/get-started-with-ai-in-fusebase/)**
+**[Get Started with AI in FuseBase](/guides/getting-started/get-started-with-ai-in-fusebase)**
 
-**[Collaborate With Clients Using FuseBase Portals](https://thefusebase.com/guides/client-portal/collaborate-with-clients-using-fusebase-portals/)**
+**[Collaborate With Clients Using FuseBase Portals](/guides/client-portal/collaborate-with-clients-using-fusebase-portals)**
 
-**[Work with Your Team](https://thefusebase.com/guides/organization/work-with-your-team/)**
+**[Work with Your Team](/guides/organization/work-with-your-team)**

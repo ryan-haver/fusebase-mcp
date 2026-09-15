@@ -1,19 +1,45 @@
 ---
 title: "FuseBase AI Note Taker & Meeting recorder"
-url: "https://thefusebase.com/guides/screenshot/fusebase-ai-taker/"
+url: "https://thefusebase.com/guides/screenshot/fusebase-ai-taker"
 section: "screenshot"
-lastScraped: "2026-09-12T05:18:26.611Z"
+lastScraped: "2026-09-15T04:44:51.315Z"
 ---
 
 # FuseBase AI Note Taker & Meeting recorder
 
+[Back to Screenshots and Videos](/guides/screenshot)
+
+Screenshots and Videos
+
+# FuseBase AI Note Taker & Meeting recorder
+
+To start, here is a short video where we showcase the features of the extension. Fusebase AI Pro — an extension that allows you to record a video from a meeting, an audio message,...
+
+Guide details
+
+Published
+
+October 10, 2025
+
+Read time
+
+2 min read
+
+Category
+
+Screenshots and Videos
+
+In this guide
+
+This guide is a short walkthrough.
+
 To start, here is a short video where we showcase the features of the extension.
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/_KY5Oiz1RX8?feature=oembed)
 
 [Fusebase AI Pro](https://chromewebstore.google.com/detail/pljdghaomjmmleolekcgcamfpbhekbmc) — an extension that allows you to record a video from a meeting, an audio message, take a screenshot, and quickly share what you’ve made with your colleagues.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20707%20777'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-23.png)
 
 In the extension itself, you’ll find several modes:
 
@@ -24,16 +50,16 @@ In the extension itself, you’ll find several modes:
 
 If you wish, you can select a workspace and folders where data will be saved by default. To do this, click on **Manage default folders** –
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20731%20846'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-24.png)
 
 Here you can select the folder where audio, video, etc. will be saved. For each type, you can choose a separate folder.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20871%20717'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-25.png)
 
 You can choose either an existing folder or create a new one in the workspace.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20859%201024'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-26-859x1024.png)
 
 You can also choose how the link will be shared after uploading to Fusebase: as **public** (can be shared immediately) or private (for example, if you want to edit it first).
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20997%20870'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-27.png)

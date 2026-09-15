@@ -1,11 +1,44 @@
 ---
 title: "Sending Emails from Apps: Quick Guide"
-url: "https://thefusebase.com/guides/fusebase-vibe-code/sending-emails-from-apps-quick-guide/"
+url: "https://thefusebase.com/guides/fusebase-vibe-code/sending-emails-from-apps-quick-guide"
 section: "fusebase-vibe-code"
-lastScraped: "2026-09-12T05:17:41.497Z"
+lastScraped: "2026-09-15T04:45:02.071Z"
 ---
 
 # Sending Emails from Apps: Quick Guide
+
+[Back to Fusebase Vibe Code](/guides/fusebase-vibe-code)
+
+Fusebase Vibe Code
+
+# Sending Emails from Apps: Quick Guide
+
+Fusebase Apps can send emails through the Fusebase Email Service. This means an app can do more than collect data, update dashboards, or manage workflows. It can also communicate...
+
+Guide details
+
+Published
+
+June 22, 2026
+
+Read time
+
+5 min read
+
+Category
+
+Fusebase Vibe Code
+
+In this guide
+
+1.  [What apps can do with email](#0-toc-title)
+2.  [1\. Client onboarding emails](#2-toc-title)
+3.  [2\. Request and approval reminders](#3-toc-title)
+4.  [3\. Sales follow-ups](#4-toc-title)
+5.  [4\. Status updates for clients](#5-toc-title)
+6.  [5\. Internal notifications](#6-toc-title)
+7.  [6\. Weekly reports and digests](#7-toc-title)
+8.  [7\. Small email campaigns](#8-toc-title)
 
 Fusebase Apps can send emails through the Fusebase Email Service. This means an app can do more than collect data, update dashboards, or manage workflows. It can also communicate with people automatically. Your apps can send:
 
@@ -20,7 +53,7 @@ Fusebase Apps can send emails through the Fusebase Email Service. This means an 
 -   scheduled digests
 -   etc
 
-## What apps can do with email [#](#0-toc-title)
+## What apps can do with email
 
 Apps can send emails based on user actions, workflow events, stored data, or schedules.
 
@@ -35,9 +68,9 @@ For example, an app can:
 -   confirm that a file, form, payment, or request was received
 -   etc
 
-# Common App Use Cases [#](#1-toc-title)
+# Common App Use Cases
 
-## 1\. Client onboarding emails [#](#2-toc-title)
+## 1\. Client onboarding emails
 
 Create an onboarding app that sends the right emails as a client moves through the process.
 
@@ -50,7 +83,7 @@ The app can:
 
 **Example:** A client submits an onboarding form. The app creates their record, sends a welcome email, and shares the next steps automatically.
 
-## 2\. Request and approval reminders [#](#3-toc-title)
+## 2\. Request and approval reminders
 
 Create an app that follows up when someone has not completed an action.
 
@@ -63,7 +96,7 @@ The app can:
 
 **Example:** A client has not uploaded requested documents after three days. The app sends a polite reminder automatically.
 
-## 3\. Sales follow-ups [#](#4-toc-title)
+## 3\. Sales follow-ups
 
 Create an app that sends follow-up emails after a lead takes an action.
 
@@ -76,7 +109,7 @@ The app can:
 
 **Example:** A lead requests a demo. The app sends a confirmation email, creates a CRM record, and alerts the sales team.
 
-## 4\. Status updates for clients [#](#5-toc-title)
+## 4\. Status updates for clients
 
 Create an app that keeps clients informed without your team writing every message manually.
 
@@ -90,7 +123,7 @@ The app can:
 
 **Example:** A client request is completed. The app sends an email with a summary and a link to the final result.
 
-## 5\. Internal notifications [#](#6-toc-title)
+## 5\. Internal notifications
 
 Create an app that alerts your team when something important happens.
 
@@ -103,7 +136,7 @@ The app can:
 
 **Example:** A customer submits a high-priority support request. The app immediately emails the support manager.
 
-## 6\. Weekly reports and digests [#](#7-toc-title)
+## 6\. Weekly reports and digests
 
 Create an app that sends regular summaries automatically.
 
@@ -117,7 +150,7 @@ The app can:
 
 **Example:** Every Monday morning, the app sends the operations team a summary of overdue requests, approvals, and client activity.
 
-## 7\. Small email campaigns [#](#8-toc-title)
+## 7\. Small email campaigns
 
 Create an app that sends a focused email campaign to a selected group of contacts.
 
@@ -132,15 +165,15 @@ This is useful for:
 
 **Example:** You select all clients using a specific service. The app sends them a personalized announcement about a new feature.
 
-# How to add functionality to apps [#](#9-toc-title)
+# How to add functionality to apps
 
-You can add the ability to send various email messages in apps through regular prompts. You simply need to describe what you need in the app, and the AI will add the required features. Please note that by default, emails are sent on behalf of FuseBase, but you can connect a [custom SMTP](https://thefusebase.com/guides/branding/custom-smtp/), and emails will be sent from your own address.
+You can add the ability to send various email messages in apps through regular prompts. You simply need to describe what you need in the app, and the AI will add the required features. Please note that by default, emails are sent on behalf of FuseBase, but you can connect a [custom SMTP](/guides/branding/custom-smtp), and emails will be sent from your own address.
 
-# Can the email appearance be customized? [#](#10-toc-title)
+# Can the email appearance be customized?
 
 Yes, absolutely! You can directly instruct the agent with the desired email design or, for example, add a template editor in the app where you can define the email template’s style, the layout of elements, and so on.
 
-# Prompt Examples [#](#11-toc-title)
+# Prompt Examples
 
 -   **Create an app that sends a welcome email when a new client signs up.**
 -   **Create an app that sends a confirmation email after someone submits a form.**

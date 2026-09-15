@@ -1,11 +1,40 @@
 ---
 title: "Chat in FuseBase"
-url: "https://thefusebase.com/guides/basics/chat-in-fusebase/"
+url: "https://thefusebase.com/guides/basics/chat-in-fusebase"
 section: "basics"
-lastScraped: "2026-09-12T05:16:55.908Z"
+lastScraped: "2026-09-15T04:44:31.377Z"
 ---
 
 # Chat in FuseBase
+
+[Back to FuseBase Basics](/guides/basics)
+
+FuseBase Basics
+
+# Chat in FuseBase
+
+Now you can collaborate and COMMUNICATE right in Nimbus Note. Nimbus Note has a chat where you can communicate both privately in private messages and publicly in channels with...
+
+Guide details
+
+Published
+
+August 28, 2022
+
+Read time
+
+3 min read
+
+Category
+
+FuseBase Basics
+
+In this guide
+
+1.  [How to open the chat list?](#b1286917793_2637)
+2.  [How do I add channels and members to the chat list?](#b1286917793_2682)
+3.  [How to add users to a channel?](#b1286917793_2750)
+4.  [How to write messages in the chat?](#b1286917793_3221)
 
 Now you can collaborate and COMMUNICATE right in Nimbus Note.
 
@@ -19,29 +48,29 @@ Add your coworkers to the Fusebase workspace and start setting up your successfu
 -   Send links with ideas or project variants.
 -   Chat right where you work without switching to other tools with Fusebase.
 
-## How to open the chat list? [#](#b1286917793_2637)
+## How to open the chat list?
 
 To open a chat, click on Chat in the left sidebar.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20694'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2022/08/image-19-1024x694.png)
 
 In the chat list, you will see public channels and a list of private chats.
 
 The list of members will display all members of organizations, the list of channels – all public ones created by you or where you were added as a member.
 
-![In the chat list, you will see public channels and a list of private chats.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![In the chat list, you will see public channels and a list of private chats.](/hosting-assets/legacy/thefusebase/box/attachment/7009234/t4u02fvsferx3ytke483/km8vLJKHoF4gYpgK/image.png)
 
 Members who are currently online will have a special indicator.
 
-![Members who are currently online will have a special indicator.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Members who are currently online will have a special indicator.](/hosting-assets/legacy/thefusebase/box/attachment/7009234/t4u02fvsferx3ytke483/KbVC3cLLtQw7bJz5/image.png)
 
-## How do I add channels and members to the chat list? [#](#b1286917793_2682)
+## How do I add channels and members to the chat list?
 
 To add a new member, click **+**. You will see a list of members. By clicking on any of them, you will add them to the list of chats.
 
 To add a new or existing channel to the list, click **+**.
 
-![To add a new or existing channel to the list, click +.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![To add a new or existing channel to the list, click +.](/hosting-assets/legacy/thefusebase/box/attachment/7009234/t4u02fvsferx3ytke483/JdUve2jHqsujAQs6/image.png)
 
 You will see three possible options –
 
@@ -49,7 +78,7 @@ You will see three possible options –
 -   New Private Channel – allows you to create a private channel.
 -   Browse channel – allows you to find the organization’s public channel available for joining.
 
-![You will see three possible options ](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![You will see three possible options ](/hosting-assets/legacy/thefusebase/box/attachment/7009234/t4u02fvsferx3ytke483/78fXa7XpbXllF70D/image.png)
 
 To create a new channel, select the appropriate option, enter a name and click Enter.
 
@@ -63,35 +92,35 @@ Each channel has a block of options, including:
 
 To access the options, click on the three dots next to the channel name.
 
-![To access the options, click on the three dots next to the channel name.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![To access the options, click on the three dots next to the channel name.](/hosting-assets/legacy/thefusebase/box/attachment/7009234/t4u02fvsferx3ytke483/oJhagXmEHeUIIcQa/image.png)
 
 To collapse the list of channels and chats, click the arrow at the top of the block.
 
-![To collapse the list of channels and chats, click the arrow at the top of the block.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![To collapse the list of channels and chats, click the arrow at the top of the block.](/hosting-assets/legacy/thefusebase/box/attachment/7009234/t4u02fvsferx3ytke483/X1u82zY2j5DKVSl4/image.png)
 
-## How to add users to a channel? [#](#b1286917793_2750)
+## How to add users to a channel?
 
 You can add users to a channel and also view a list of channel members.
 
 To view the list of members, click on their icons.
 
-![To view the list of members, click on their icons.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![To view the list of members, click on their icons.](/hosting-assets/legacy/thefusebase/box/attachment/7009234/t4u02fvsferx3ytke483/iSC162miKNxlB1PL/image.png)
 
 You can invite members one by one or invite all members at once.
 
-![You can invite members one by one or invite all members at once.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![You can invite members one by one or invite all members at once.](/hosting-assets/legacy/thefusebase/box/attachment/7009234/t4u02fvsferx3ytke483/cG2yeqVfncWbx2JO/image.png)
 
 ☝ On the right top corner, you can see the video icon. This feature will be available in the second iteration.
 
-## How to write messages in the chat? [#](#b1286917793_3221)
+## How to write messages in the chat?
 
 By opening a chat or channel, you can write messages to any member or channel. Messages are arranged in such a way that it is most convenient for you to read messages. Just type in a message and press Enter or the send message button.
 
-![By opening a chat or channel, you can write messages to any member or channel. ](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![By opening a chat or channel, you can write messages to any member or channel. ](/hosting-assets/legacy/thefusebase/box/attachment/7009234/t4u02fvsferx3ytke483/diCBN4ciy4k3om9G/image.png)
 
 You can also mention other members in messages. Just type **@**and select the desired member’s name from the list.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20561'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2022/08/image-20-1024x561.png)
 
 Also, if you send a link as a message, it will be highlighted and you can open it from chat in just one click!
 
@@ -103,4 +132,4 @@ Several options are available under the messages:
 
 The options are available in the message menu.
 
-![The options are available in the message menu.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![The options are available in the message menu.](/hosting-assets/legacy/thefusebase/box/attachment/7009234/t4u02fvsferx3ytke483/B1N8gs9EG1i8ccam/image.png)

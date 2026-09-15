@@ -18,6 +18,7 @@
     "test:audit": "npx tsx scripts/audit-tools.ts",
     "test:regression": "npx tsx scripts/test-regression.ts",
     "test:all": "npx tsx scripts/test-all.ts",
+    "scrape:guides": "npx tsx scripts/scrape-guides.ts",
     "deploy:status": "npx tsx scripts/deploy-status-dashboard.ts",
     "deploy:page": "npx tsx scripts/deploy-workspace-page.ts",
     "postinstall": "npx playwright install chromium || true"

@@ -1,25 +1,54 @@
 ---
 title: "E-Signature – Client Contract Management – Quick Guide"
-url: "https://thefusebase.com/guides/client-portal/e-signature-client-contract-management-quick-guide/"
+url: "https://thefusebase.com/guides/client-portal/e-signature-client-contract-management-quick-guide"
 section: "client-portal"
-lastScraped: "2026-09-12T05:17:05.956Z"
+lastScraped: "2026-09-15T04:44:36.306Z"
 ---
 
 # E-Signature – Client Contract Management – Quick Guide
 
+[Back to Portals](/guides/client-portal)
+
+Portals
+
+# E-Signature – Client Contract Management – Quick Guide
+
+In the portals, you can also manage client contracts and other documents, in particular sign them and/or send them for signing through a legal eSignature. Preparing the Document...
+
+Guide details
+
+Published
+
+January 26, 2025
+
+Read time
+
+3 min read
+
+Category
+
+Portals
+
+In this guide
+
+1.  [Preparing the Document for Signature](#0-toc-title)
+2.  [Sending a Document for Signature](#1-toc-title)
+3.  [Signing the Document](#2-toc-title)
+4.  [Document Statuses](#3-toc-title)
+
 In the portals, you can also manage client contracts and other documents, in particular sign them and/or send them for signing through a legal eSignature.
 
-## ****Preparing the Document for Signature**** [#](#0-toc-title)
+## ****Preparing the Document for Signature****
 
 First, you need to upload the document to be signed and add the corresponding field. You can do this through the file manager.
 
 Click **Upload** and upload the necessary PDF document.
 
-![](https://thefusebase.com/wp-content/uploads/2025/01/image-48.png)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/01/image-48.png)
 
 Then, click the **Add eSign** button.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202369%201016'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/01/image-49.png)
 
 Next, you need to add a signature field to the document. You can also add the date that the signer must enter, text blocks, the signer’s initials, etc.
 
@@ -27,34 +56,34 @@ By default, only one signer is added to the document. However, you can select tw
 
 To do this, click the **+** and select **Add second party**. Then, choose the place for the second signer’s signature.
 
-## **Sending a Document for Signature** [#](#1-toc-title)
+## **Sending a Document for Signature**
 
 After the document is prepared for signature, you can send it to the signers. You can do this immediately after adding the signature field, or later by clicking the **Draft** button.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202561%201398'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/01/image-50.png)
 
 Next, select the members you want to send the contract to for signature. You can only choose from the members who have access to the portal with the document.
 
 Next, click **Next**, after which the document will be sent to the selected signers for signature. If you are among the signers, you can sign the document immediately.
 
-## **Signing the Document** [#](#2-toc-title)
+## **Signing the Document**
 
 There are two ways to sign the document:
 
 1.  Click the link in the email that will be sent to all signers.
 2.  Sign through the file manager. If a member needs to sign the document, the **Sign** option will be active next to the relevant document.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202523%201317'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/01/image-51.png)
 
 After the client opens the document for signing, they need to click **Sign** to begin the process. If only a signature is required, it can be entered immediately in the corresponding field. If a date, initials, etc. are also required, you will need to complete all the steps.
 
 After the process is complete, you can download the document if it has been signed by all parties, or wait until all parties have signed the document.
 
-## **Document Statuses** [#](#3-toc-title)
+## **Document Statuses**
 
 In the file manager, next to the document name, you can find a status column.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%202485%201025'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/01/image-52.png)
 
 Below are the descriptions:
 

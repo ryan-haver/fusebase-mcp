@@ -1,57 +1,85 @@
 ---
 title: "Embed Google Data Studio"
-url: "https://thefusebase.com/guides/embedding-sharing/embed-google-data-studio/"
+url: "https://thefusebase.com/guides/embedding-sharing/embed-google-data-studio"
 section: "embedding-sharing"
-lastScraped: "2026-09-12T05:18:19.559Z"
+lastScraped: "2026-09-15T04:44:49.244Z"
 ---
 
 # Embed Google Data Studio
+
+[Back to Embedding & Sharing](/guides/embedding-sharing)
+
+Embedding & Sharing
+
+# Embed Google Data Studio
+
+Adding Google Data Studio embed to FuseBase
+
+Guide details
+
+Published
+
+September 1, 2022
+
+Read time
+
+1 min read
+
+Category
+
+Embedding & Sharing
+
+In this guide
+
+1.  [How do I copy an embed code from Embed Google Data Studio?](#b4010851759_1050)
+2.  [Adding Google Data Studio embed to FuseBase](#b4010851759_1518)
+3.  [Resize Embeds](#b4010851759_1955)
 
 By adding Google Data Studio reports to [FuseBase](https://thefusebase.com/), you can:
 
 -   Monitor the current situation in real time.
 -   Share reports with team members and company clients.
 
-## How do I copy an embed code from Embed Google Data Studio? [#](#b4010851759_1050)
+## How do I copy an embed code from Embed Google Data Studio?
 
 -   Open [Google Data Studio Overview](https://datastudio.google.com/) under the desired account.
 -   Select a report and go to **edit mode**.
 -   Click on **Share**.
 
-![How do I copy an embed code from Embed Google Data Studio?](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20524'%3E%3C/svg%3E)
+![How do I copy an embed code from Embed Google Data Studio?](/hosting-assets/legacy/thefusebase/wp-content/uploads/2022/09/Group-100-1024x524.png)
 
 -   Select **Embed Report.**
 
-![Select Embed Report.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20524'%3E%3C/svg%3E)
+![Select Embed Report.](/hosting-assets/legacy/thefusebase/wp-content/uploads/2022/09/Group-155-1024x524.png)
 
 -   Copy the **Embed Code**.
 
-![Copy the Embed Code.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20381'%3E%3C/svg%3E)
+![Copy the Embed Code.](/hosting-assets/legacy/thefusebase/wp-content/uploads/2022/09/Group-163-1-1024x381.png)
 
 **Note: To be able to edit reports by you and your workspace members without leaving FuseBase, you need to specify the suitable permissions in the Share menu.**
 
-![To be able to edit reports by you and your workspace members without leaving FuseBase, you need to specify the suitable permissions in the Share menu](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20566'%3E%3C/svg%3E)
+![To be able to edit reports by you and your workspace members without leaving FuseBase, you need to specify the suitable permissions in the Share menu](/hosting-assets/legacy/thefusebase/wp-content/uploads/2022/09/Group-165-1-1024x566.png)
 
-## Adding Google Data Studio embed to FuseBase [#](#b4010851759_1518)
+## Adding Google Data Studio embed to FuseBase
 
 -   Open FuseBase.
 -   Click on the arrow and select **Embed** or **cmd/ctrl** + **⌥/alt** + **m**.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20916%20640'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2022/09/Group-169-2-1.png)
 
 -   Add the code using **Cmd/Ctrl**+**V**.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20611'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2022/09/Frame-2147207152-24-1024x611.png)
 
-### Resize Embeds [#](#b4010851759_1955)
+### Resize Embeds
 
 -   Drag the upper-right corner and **resize** (all proportions will be preserved).
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20580'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2022/09/Group-111-1024x580.png)
 
 -   For free resizing, hold the **ALT** key and start resizing using the bottom-right chip.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20499'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2022/09/Group-167-2-1024x499.png)
 
 **Note: To return the embed to its original position, use the hotkey Ctrl + Z, or click on the three dots and select Undo.**
 

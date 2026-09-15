@@ -1,15 +1,45 @@
 ---
 title: "Guest accounts"
-url: "https://thefusebase.com/guides/organization/guest-accounts/"
+url: "https://thefusebase.com/guides/organization/guest-accounts"
 section: "organization"
-lastScraped: "2026-09-12T05:17:36.252Z"
+lastScraped: "2026-09-15T04:44:42.169Z"
 ---
 
 # Guest accounts
 
+[Back to Your organization](/guides/organization)
+
+Your organization
+
+# Guest accounts
+
+Members with guest accounts are not counted in billing and you don’t need to pay for them.
+
+Guide details
+
+Published
+
+October 15, 2022
+
+Read time
+
+4 min read
+
+Category
+
+Your organization
+
+In this guide
+
+1.  [Add guest to organization](#b1268871241_0)
+2.  [Expiration (time limit for staying in the organization) of guest accounts](#b1268871241_2031)
+3.  [Convert guest to member](#b1268871241_4274)
+4.  [Editing Guest Data](#b1268871241_4581)
+5.  [Guest Deleting](#b1268871241_6007)
+
 First, we’ll explain the difference between a guest account and a regular one. A participant with the rights of the Guest has the same opportunities as other members of the organization, but with one restriction – access to only one workspace. You can also limit the time the Guest account stays at the organization. The number of guest accounts is limited and depends on the number of members. You can add 3 guests for each member. For example, if you have 3 members, you can add 9 guests.
 
-## Add guest to organization [#](#b1268871241_0)
+## Add guest to organization
 
 There are two ways to add a guest account:
 
@@ -17,7 +47,7 @@ There are two ways to add a guest account:
 
 In the Members menu, click on Invite new members –
 
-![In the Members menu, click on Invite new members](https://app.nimbusweb.me/box/attachment/4080931/bk8trab1r981msdpx5n3/4dqASVOQfgEDfAa3/image.png)
+![In the Members menu, click on Invite new members](/hosting-assets/legacy/thefusebase/box/attachment/4080931/bk8trab1r981msdpx5n3/4dqASVOQfgEDfAa3/image.png)
 
 You need to:
 
@@ -27,17 +57,17 @@ You need to:
 -   Choose permissions (edit or read-only);
 -   Next, click on Send invitations.
 
-![Adding a guest through the Add to Organization dialog](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Adding a guest through the Add to Organization dialog](/hosting-assets/legacy/thefusebase/box/attachment/4080931/bk8trab1r981msdpx5n3/uQXpYL5nAGzTgqxp/image.png)
 
 **Adding a guest through the Add to Project dialog**
 
 Open the list of projects and in the menu of the desired project, select Invite members –
 
-![Adding a guest through the Add to Project dialog](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Adding a guest through the Add to Project dialog](/hosting-assets/legacy/thefusebase/box/attachment/4080931/bk8trab1r981msdpx5n3/Qz0eiSpBPSaqJKOX/image.png)
 
 Go to New by email –
 
-![Go to New by email ](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Go to New by email ](/hosting-assets/legacy/thefusebase/box/attachment/4080931/bk8trab1r981msdpx5n3/rboCr4yhBQPAQpVq/image.png)
 
 You need to:
 
@@ -46,23 +76,23 @@ You need to:
 -   Choose permissions (edit or read-only);
 -   Next, click on Send invitations.
 
-![Adding a guest through the Add to Project dialog](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Adding a guest through the Add to Project dialog](/hosting-assets/legacy/thefusebase/box/attachment/4080931/bk8trab1r981msdpx5n3/L1FSDthp6PnwuEE5/image.png)
 
 After accepting the invite, the guest will appear in the list of participants in the organization and the project. Guest accounts are highlighted on the list and are easy to find.
 
-![Guest accounts are highlighted on the list and are easy to find.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Guest accounts are highlighted on the list and are easy to find.](/hosting-assets/legacy/thefusebase/box/attachment/4080931/bk8trab1r981msdpx5n3/wFKgadOpgxCwMU0q/image.png)
 
-## Expiration (time limit for staying in the organization) of guest accounts [#](#b1268871241_2031)
+## Expiration (time limit for staying in the organization) of guest accounts
 
 By default, the guest’s stay in the organization is unlimited, but if desired, you can set a period in the participant’s profile.
 
 To do this, we go to the list of participants and click on the name of the desired participant.
 
-![To do this, we go to the list of participants and click on the name of the desired participant.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![To do this, we go to the list of participants and click on the name of the desired participant.](/hosting-assets/legacy/thefusebase/box/attachment/4080931/bk8trab1r981msdpx5n3/nfs5xcuq63arvMAo/image.png)
 
 In the menu that appears, we find the item Expiration, where you can change the expiration time.
 
-![In the menu that appears, we find the item Expiration, where you can change the expiration time.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![In the menu that appears, we find the item Expiration, where you can change the expiration time.](/hosting-assets/legacy/thefusebase/box/attachment/4080931/bk8trab1r981msdpx5n3/GfYXAm70myjRfPJ8/image.png)
 
 Today there are the following periods for expiration:
 
@@ -77,21 +107,21 @@ If you set the expiration date for the guest, then in the list of participants y
 
 If desired, you can change the expiration date—from a week to a day, or from a month to a year. You can even remove the expiration date. This will be in effect from the moment of the change. For example, if you added a guest on 11/11/2025 and set the expiration to one week, then the guest should leave on 11/18/2025. However, let’s say on 11/15/2020 you changed the expiration period from a week to one month. Then accordingly the guest will be deleted on 12/15/2020.
 
-## Convert guest to member [#](#b1268871241_4274)
+## Convert guest to member
 
 The guest can be converted into a regular member of the organization with all opportunities (participation in various projects, etc.). This can be done through the menu participant.
 
-![The guest can be converted into a regular member of the organization with all opportunities](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![The guest can be converted into a regular member of the organization with all opportunities](/hosting-assets/legacy/thefusebase/box/attachment/4080931/bk8trab1r981msdpx5n3/5dlK0w7L6Vk2u0Pp/image.png)
 
 Important: You can turn a guest into a regular member, but you cannot turn an organization member into a guest.
 
-## Editing Guest Data [#](#b1268871241_4581)
+## Editing Guest Data
 
 Open the list of members.
 
 Click on the name of the guest you want. Finding a guest on the list is very easy – they stand out in the list of participants.
 
-![Finding a guest on the list is very easy - they stand out in the list of participants.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Finding a guest on the list is very easy - they stand out in the list of participants.](/hosting-assets/legacy/thefusebase/box/attachment/4080931/bk8trab1r981msdpx5n3/h9ih4cdESgRonDh5/image.png)
 
 In the menu that appears, you can:
 
@@ -100,9 +130,9 @@ In the menu that appears, you can:
 -   Convert guest to regular members;
 -   Remove guest from the organization.
 
-![Finding a guest on the list is very easy - they stand out in the list of participants.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Finding a guest on the list is very easy - they stand out in the list of participants.](/hosting-assets/legacy/thefusebase/box/attachment/4080931/bk8trab1r981msdpx5n3/sWqNHbLEPy8wgv5h/image.png)
 
-## Guest Deleting [#](#b1268871241_6007)
+## Guest Deleting
 
 You can remove a guest from a workspace or organization.
 
@@ -116,7 +146,7 @@ In the menu that appears, find the guest in the Members list.
 
 Click on Remove from workspace.
 
-![Delete from workspace](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Delete from workspace](/hosting-assets/legacy/thefusebase/box/attachment/4080931/bk8trab1r981msdpx5n3/yPHvKiTNJxOr8M91/image.png)
 
 The guest will be deleted from the workspace, but will remain in the organization. It will be possible to add them to another workspace.
 
@@ -128,6 +158,6 @@ Click on the guest name.
 
 In the window that appears, click on Delete and confirm the action.
 
-![Deleting from organization](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Deleting from organization](/hosting-assets/legacy/thefusebase/box/attachment/4080931/bk8trab1r981msdpx5n3/s91WuFFG45lOZyup/image.png)
 
 The guest has been removed from the workspace and the organization.

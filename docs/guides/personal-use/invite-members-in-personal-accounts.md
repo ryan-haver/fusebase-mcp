@@ -1,21 +1,48 @@
 ---
 title: "Invite members in Personal accounts"
-url: "https://thefusebase.com/guides/personal-use/invite-members-in-personal-accounts/"
+url: "https://thefusebase.com/guides/personal-use/invite-members-in-personal-accounts"
 section: "personal-use"
-lastScraped: "2026-09-12T05:18:47.692Z"
+lastScraped: "2026-09-15T04:45:01.222Z"
 ---
 
 # Invite members in Personal accounts
 
+[Back to Personal use](/guides/personal-use)
+
+Personal use
+
+# Invite members in Personal accounts
+
+You can invite members (such as colleagues, relatives, or friends) to your workspaces.
+
+Guide details
+
+Published
+
+September 20, 2022
+
+Read time
+
+1 min read
+
+Category
+
+Personal use
+
+In this guide
+
+1.  [Add members](#b1818677541_419)
+2.  [I want to invite a new member to only a specific folder or page. Is that possible?](#b4055099684_1203)
+
 You can invite members (such as colleagues, relatives, or friends) to your workspaces. For example, you can manage joint lists of purchases and tasks with your family members. Together, you can edit, add items, and more.
 
-## Add members [#](#b1818677541_419)
+## Add members
 
 1) Go to your organization’s business console – [https://teams.nimbusweb.me/](https://teams.nimbusweb.me/)
 
 2) Click on **Invite new members**.
 
-![](https://thefusebase.com/wp-content/uploads/2023/08/image-11-1024x411.png)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/08/image-11-1024x411.png)
 
 3) In the window that appears, you can specify:
 
@@ -25,10 +52,10 @@ You can invite members (such as colleagues, relatives, or friends) to your works
 -   Permissions (Edit or Read Only).
 -   If the workspace has a portal, you can immediately invite a new member there.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20454'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/08/image-12-1024x454.png)
 
-4) Next, click **Send Invitations**. Member must accept the invitations (or follow the [Magic link](https://thefusebase.com/guides/client-portal/magic-links/)) to become a member of the organization.
+4) Next, click **Send Invitations**. Member must accept the invitations (or follow the [Magic link](/guides/client-portal/magic-links)) to become a member of the organization.
 
-### I want to invite a new member to only a specific folder or page. Is that possible? [#](#b4055099684_1203)
+### I want to invite a new member to only a specific folder or page. Is that possible?
 
-Yes, of course! This functionality is available for Team and Business plans. You can read more about restricting access to folders here – [Managing access to folders and subfolders – FuseBase](https://thefusebase.com/guides/organization/managing-access-to-folders-and-subfolders/). If you want to restrict access to a page, in this guide will help – [Managing Access to Pages – FuseBase](https://thefusebase.com/guides/organization/managing-access-to-pages/).
+Yes, of course! This functionality is available for Team and Business plans. You can read more about restricting access to folders here – [Managing access to folders and subfolders – FuseBase](/guides/organization/managing-access-to-folders-and-subfolders). If you want to restrict access to a page, in this guide will help – [Managing Access to Pages – FuseBase](/guides/organization/managing-access-to-pages).

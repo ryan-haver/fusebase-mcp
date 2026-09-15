@@ -1,11 +1,37 @@
 ---
 title: "Fusebase CLI and Working with Notes/Documents"
-url: "https://thefusebase.com/guides/fusebase-vibe-code/fusebase-cli-and-working-with-notes-documents/"
+url: "https://thefusebase.com/guides/fusebase-vibe-code/fusebase-cli-and-working-with-notes-documents"
 section: "fusebase-vibe-code"
-lastScraped: "2026-09-12T05:17:48.119Z"
+lastScraped: "2026-09-15T04:45:03.581Z"
 ---
 
 # Fusebase CLI and Working with Notes/Documents
+
+[Back to Fusebase Vibe Code](/guides/fusebase-vibe-code)
+
+Fusebase Vibe Code
+
+# Fusebase CLI and Working with Notes/Documents
+
+Fusebase CLI supports key functionalities for working with notes in your apps and features: All the tools for working with notes are already included in Fusebase CLI, and you just...
+
+Guide details
+
+Published
+
+March 31, 2026
+
+Read time
+
+1 min read
+
+Category
+
+Fusebase Vibe Code
+
+In this guide
+
+This guide is a short walkthrough.
 
 Fusebase CLI supports key functionalities for working with notes in your apps and features:
 

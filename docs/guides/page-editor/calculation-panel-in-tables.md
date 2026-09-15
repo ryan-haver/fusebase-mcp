@@ -1,11 +1,46 @@
 ---
 title: "Calculation panel in tables (FuseBase Document Editor)"
-url: "https://thefusebase.com/guides/page-editor/calculation-panel-in-tables/"
+url: "https://thefusebase.com/guides/page-editor/calculation-panel-in-tables"
 section: "page-editor"
-lastScraped: "2026-09-12T05:18:51.991Z"
+lastScraped: "2026-09-15T04:44:54.974Z"
 ---
 
 # Calculation panel in tables (FuseBase Document Editor)
+
+[Back to Page Editor](/guides/page-editor)
+
+Page Editor
+
+# Calculation panel in tables (FuseBase Document Editor)
+
+You can use them to make initial calculations — manage your income and expenses, filter by date, check the amount of completed checkboxes
+
+Guide details
+
+Published
+
+October 15, 2022
+
+Read time
+
+5 min read
+
+Category
+
+Page Editor
+
+In this guide
+
+1.  [Columns and counting types](#b1763046647_617)
+2.  [Multi Type / Text Columns](#b1763046647_5438)
+3.  [Numbers / Currency](#b1763046647_5497)
+4.  [Date](#b1763046647_5525)
+5.  [Checkboxes](#b1763046647_5539)
+6.  [Rating](#b1763046647_5559)
+7.  [Progress column](#b1763046647_5575)
+8.  [Colloborate](#b1763046647_5603)
+9.  [Files](#b1763046647_5635)
+10.  [Can I hide the count for individual columns?](#b1763046647_5384)
 
 [FuseBase](https://thefusebase.com/) tables are not just tables! You can use them to make initial calculations — manage your income and expenses, filter by date, check the amount of completed checkboxes.
 
@@ -13,15 +48,15 @@ The calculation panel will simplify the work with data in cells. For example, fo
 
 The counting panel is displayed below the last row.
 
-![The counting panel is displayed below the last row](https://app.nimbusweb.me/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/MNNAC38OFXnquL5f/image.png)
+![The counting panel is displayed below the last row](/hosting-assets/legacy/thefusebase/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/MNNAC38OFXnquL5f/image.png)
 
 If you need to change Count Type, you can click on the current type and select the desired value.
 
 The type of calculation depends on the type of column. Let’s look at this in more detail.
 
-## Columns and counting types [#](#b1763046647_617)
+## Columns and counting types
 
-### Multi Type / Text Columns [#](#b1763046647_5438)
+### Multi Type / Text Columns
 
 **All** – total number of cells in the column
 
@@ -37,7 +72,7 @@ The type of calculation depends on the type of column. Let’s look at this in m
 
 **Percent unique** – cells where there are unique values, i.e. which are not repeated with others. Empty cells are not included here. Shown as a percentage.
 
-### Numbers / Currency [#](#b1763046647_5497)
+### Numbers / Currency
 
 **Sum** – the sum of numbers from all cells in the column.
 
@@ -49,7 +84,7 @@ The type of calculation depends on the type of column. Let’s look at this in m
 
 **Median** – the median value.
 
-### Date [#](#b1763046647_5525)
+### Date
 
 **Earlist date** – Earliest date – this displays the earliest date in cells.
 
@@ -59,7 +94,7 @@ The type of calculation depends on the type of column. Let’s look at this in m
 
 **Date range (months)** – the same, but in months. For example, a date in one column is August 12, 2020, and another is September 25, 2020. This would be 1 month..
 
-### Checkboxes [#](#b1763046647_5539)
+### Checkboxes
 
 **All** – total number of cells.
 
@@ -71,7 +106,7 @@ The type of calculation depends on the type of column. Let’s look at this in m
 
 **Percent unchecked** – the number of checkboxes that are not yet marked. Shown as a percentage.
 
-### Rating [#](#b1763046647_5559)
+### Rating
 
 **Minimum** – the minimum rating that was selected in the column cells.
 
@@ -81,7 +116,7 @@ The type of calculation depends on the type of column. Let’s look at this in m
 
 **With rating** – a menu opens with a choice of the number of stars and the number of lines with the desired rating displayed.
 
-### Progress column [#](#b1763046647_5575)
+### Progress column
 
 **Min** – the minimum value of progress in the cells of the column.
 
@@ -91,7 +126,7 @@ The type of calculation depends on the type of column. Let’s look at this in m
 
 **With progress** – a menu opens with a choice of progress. For example, you can indicate progress greater than 50% and accordingly the number of lines with the desired progress.
 
-### Colloborate [#](#b1763046647_5603)
+### Colloborate
 
 **All** – total number of cells in the column.
 
@@ -107,7 +142,7 @@ The type of calculation depends on the type of column. Let’s look at this in m
 
 **Percent unique** – cells where there are unique values, i.e. which are not repeated with others. Empty cells are not included here. Shown as a percentage.
 
-### Files [#](#b1763046647_5635)
+### Files
 
 **All** – total number of cells in the column.
 
@@ -121,8 +156,8 @@ The type of calculation depends on the type of column. Let’s look at this in m
 
 You can also add negative numbers in your tables. Just write down “-“ in the cell before your number. Watch how to do that in the video below.
 
-## Can I hide the count for individual columns? [#](#b1763046647_5384)
+## Can I hide the count for individual columns?
 
 Yes, click on the counting menu of the desired column and select None. To enable counting, you need to point to the place where the counting menu is displayed and select the desired type of counting.
 
-![To enable counting, you need to point to the place where the counting menu is displayed and select the desired type of counting.](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![To enable counting, you need to point to the place where the counting menu is displayed and select the desired type of counting.](/hosting-assets/legacy/thefusebase/box/attachment/3589208/xbfa1n0z0x9fbzi9wiws/V7gLCgWofrSyIOtz/image.png)

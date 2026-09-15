@@ -1,19 +1,45 @@
 ---
 title: "Tip: How to change the image on the Login page"
-url: "https://thefusebase.com/guides/client-portal/tip-how-to-change-the-image-on-the-auth-page/"
+url: "https://thefusebase.com/guides/client-portal/tip-how-to-change-the-image-on-the-auth-page"
 section: "client-portal"
-lastScraped: "2026-09-12T05:17:02.913Z"
+lastScraped: "2026-09-15T04:44:35.604Z"
 ---
 
 # Tip: How to change the image on the Login page
 
+[Back to Portals](/guides/client-portal)
+
+Portals
+
+# Tip: How to change the image on the Login page
+
+If you need a custom image on the login page of the portal, this can be easily done through custom styles. 1) Go to Custom Code. 2) Add this code in Custom Style and save and...
+
+Guide details
+
+Published
+
+October 3, 2025
+
+Read time
+
+1 min read
+
+Category
+
+Portals
+
+In this guide
+
+This guide is a short walkthrough.
+
 If you need a custom image on the login page of the portal, this can be easily done through custom styles.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-13-1024x538.png)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-13-1024x538.png)
 
 1) Go to Custom Code.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-14-1024x522.png)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-14-1024x522.png)
 
 2) Add this code in Custom Style and save and publish it (Important: replace the link with the link to your image.)
 
@@ -28,8 +54,8 @@ If you need a custom image on the login page of the portal, this can be easily d
 </style>
 ```
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20696'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-15-1024x696.png)
 
 3) That’s it, you’re all set!
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20536'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-16-1024x536.png)

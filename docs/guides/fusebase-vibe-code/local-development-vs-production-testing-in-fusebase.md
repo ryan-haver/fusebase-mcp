@@ -1,13 +1,45 @@
 ---
 title: "Local Development vs Production Testing in FuseBase"
-url: "https://thefusebase.com/guides/fusebase-vibe-code/local-development-vs-production-testing-in-fusebase/"
+url: "https://thefusebase.com/guides/fusebase-vibe-code/local-development-vs-production-testing-in-fusebase"
 section: "fusebase-vibe-code"
-lastScraped: "2026-09-12T05:17:48.730Z"
+lastScraped: "2026-09-15T04:45:04.319Z"
 ---
 
 # Local Development vs Production Testing in FuseBase
 
-## Why there are two stages [#](#0-toc-title)
+[Back to Fusebase Vibe Code](/guides/fusebase-vibe-code)
+
+Fusebase Vibe Code
+
+# Local Development vs Production Testing in FuseBase
+
+Why there are two stages When you build an app with AI, it is better to test it in two steps: This makes the process safer, faster, and easier. Local development/testing Local...
+
+Guide details
+
+Published
+
+March 21, 2026
+
+Read time
+
+2 min read
+
+Category
+
+Fusebase Vibe Code
+
+In this guide
+
+1.  [Why there are two stages](#0-toc-title)
+2.  [Local development/testing](#1-toc-title)
+3.  [Why local testing is better first](#2-toc-title)
+4.  [Production testing after deploy](#3-toc-title)
+5.  [What production testing is for](#4-toc-title)
+6.  [Best practice](#5-toc-title)
+7.  [Recommended workflow](#6-toc-title)
+
+## Why there are two stages
 
 When you build an app with AI, it is better to test it in two steps:
 
@@ -16,13 +48,13 @@ When you build an app with AI, it is better to test it in two steps:
 
 This makes the process safer, faster, and easier.
 
-## Local development/testing [#](#1-toc-title)
+## Local development/testing
 
 Local testing is the best place for the first checks.
 
 To view the feature locally, you need to enter **fusebase dev start** in the terminal, or simply type **Open local server** in the AI chat. This lets you test the feature in your browser right away. If something is broken, missing, or just not good enough, you can immediately tell the AI in chat. The AI can then fix the issue or improve the feature. In the latest versions, we have also enabled the CLI to automatically retrieve and fix logs, so you no longer need to write anything additional in the chat—the AI will detect and resolve issues on its own.
 
-### Why local testing is better first [#](#2-toc-title)
+### Why local testing is better first
 
 -   It is **faster**
 -   You can **see changes immediately**
@@ -33,13 +65,13 @@ To view the feature locally, you need to enter **fusebase dev start** in the ter
 
 In simple words: **local testing is your safe workspace**. This is where you experiment, debug, improve, and repeat.
 
-## Production testing after deploy [#](#3-toc-title)
+## Production testing after deploy
 
 Production testing happens **after** you deploy/publish the feature.
 
 To deploy, you need to enter **fusebase deploy** in the terminal, or simply type **Deploy** or **Publish** in the AI chat. After deployment, FuseBase provides real feature links, and the app can be launched from the Apps section. The CLI guide also says deployment is how you make the latest changes available in production.
 
-### What production testing is for [#](#4-toc-title)
+### What production testing is for
 
 Production testing is useful when you want to:
 
@@ -50,7 +82,7 @@ Production testing is useful when you want to:
 
 But production is **not** the best place for early debugging.
 
-## Best practice [#](#5-toc-title)
+## Best practice
 
 A good rule is:
 
@@ -69,7 +101,7 @@ Production testing is for:
 -   checking the live version
 -   sharing the app with others
 
-## Recommended workflow [#](#6-toc-title)
+## Recommended workflow
 
 1.  Ask AI to build the feature
 2.  Open the local server

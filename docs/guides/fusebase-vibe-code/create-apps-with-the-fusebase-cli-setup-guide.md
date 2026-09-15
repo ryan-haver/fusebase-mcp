@@ -1,117 +1,163 @@
 ---
-title: "Create Apps with the Fusebase CLI: Setup Guide"
-url: "https://thefusebase.com/guides/fusebase-vibe-code/create-apps-with-the-fusebase-cli-setup-guide/"
+title: "Create Apps with the FuseBase CLI: Setup Guide"
+url: "https://thefusebase.com/guides/fusebase-vibe-code/create-apps-with-the-fusebase-cli-setup-guide"
 section: "fusebase-vibe-code"
-lastScraped: "2026-09-12T05:17:41.459Z"
+lastScraped: "2026-09-15T04:45:02.077Z"
 ---
 
-# Create Apps with the Fusebase CLI: Setup Guide
+# Create Apps with the FuseBase CLI: Setup Guide
 
-## What is the difference between the plugin and the CLI? [#](#b1058932340_141)
+[Back to FuseBase Vibe Code](/guides/fusebase-vibe-code)
 
-To create Fusebase Apps, you use the **Fusebase CLI**. You can use it in two ways:
+FuseBase Vibe Code
 
-1.  **With a plugin**
-2.  **With the CLI setup**
+# Create Apps with the FuseBase CLI: Setup Guide
 
-The **plugin** is the easiest option. You work fully through a normal AI chat in **Claude Code** or **Codex**. You describe what you want to build, and the plugin handles the app creation flow for you.
+Create FuseBase Apps with the FuseBase plugin or CLI. Follow setup videos and step-by-step instructions for Claude Code, Codex, and other IDEs.
 
-The **CLI setup** is also simple. You only need to run a few basic commands at the beginning, such as initializing the FuseBase product. After that, most of the work still happens through AI chat. This option is best if you use another IDE or assistant, such as **Cursor**, **OpenCode**, or your own coding environment.
+Published August 26, 2026 8 min read
 
-Both options create the same Fusebase Apps. The difference is only how you start and control the process.
+## On this page
 
-## Set up with a Plugin [#](#1-toc-title)
+1.  [What is the difference between the plugin and the CLI?](#plugin-or-cli)
+2.  [Set up with a plugin](#plugin-setup)
+3.  [Claude Code setup](#claude-code-setup)
+4.  [Codex setup](#codex-setup)
+5.  [Prefer written instructions?](#written-setup)
+6.  [Set up with the CLI](#cli-setup)
+7.  [Step 1. Log in to FuseBase](#log-in)
+8.  [Step 2. Create a product in FuseBase](#create-product)
+9.  [Step 3. Create an app](#create-app)
 
-The plugin is the easiest way to create Fusebase Apps. You can work directly through AI chat: describe what you want to build, ask for changes, and let the plugin guide the app creation process.
+## What is the difference between the plugin and the CLI?
+
+To create FuseBase Apps, you use the FuseBase CLI. You can use it in two ways:
+
+1.  1\. With a plugin
+2.  2\. With the CLI setup
+
+The plugin is the easiest option. You work fully through a normal AI chat in Claude Code or Codex. You describe what you want to build, and the plugin handles the app creation flow for you.
+
+The CLI setup is also simple. You only need to run a few basic commands at the beginning, such as initializing the FuseBase product. After that, most of the work still happens through AI chat. This option is best if you use another IDE or assistant, such as Cursor, OpenCode, or your own coding environment.
+
+Both options create the same FuseBase Apps. The difference is only how you start and control the process.
+
+## Set up with a plugin
+
+The plugin is the easiest way to create FuseBase Apps. You can work directly through AI chat: describe what you want to build, ask for changes, and let the plugin guide the app creation process.
 
 Start with the video for the tool you use:
 
-### Claude Code setup [#](#2-toc-title)
+### Claude Code setup
 
-Watch this video if you want to create Fusebase Apps using the plugin in Claude Code.
+Watch this video if you want to create FuseBase Apps using the plugin in Claude Code.
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/_UjG36GgMso?feature=oembed)
 
-### Codex setup [#](#3-toc-title)
+### Codex setup
 
-Watch this video if you want to create Fusebase Apps using the plugin in Codex.
+Watch this video if you want to create FuseBase Apps using the plugin in Codex.
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/GJzE1A7VmmI?feature=oembed)
 
-### Prefer written instructions? [#](#4-toc-title)
+### Prefer written instructions?
 
-You can also follow the step-by-step setup guide below. The guide is written using Claude Code as an example, but it applies similarly to Codex overall.
+You can also follow the step-by-step setup guide below. The guide uses Claude Code as an example, but the same overall process applies to Codex.
 
-1) Open your Claude Code
+1.  1 Open Claude Code.
+2.  2 Go to the Code tab.
 
-2) Go to the Code tab
+![Claude Code desktop with the Code tab selected](https://thefusebase.com/wp-content/uploads/2026/08/image-29-1024x416.png)
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20416'%3E%3C/svg%3E)
+Open Claude Code and select the Code tab.
 
-3) Click the + icon
+1.  3 Click the + icon.
+2.  4 Click Add Plugins.
 
-4) Click Add Plugins
+![Claude Code add menu with Add Plugins selected](https://thefusebase.com/wp-content/uploads/2026/08/image-30-1024x907.png)
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20907'%3E%3C/svg%3E)
+Choose Add Plugins from the add menu.
 
-5) Click +
+1.  5 Click +.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20566'%3E%3C/svg%3E)
+![Claude Code plugin manager with the add button highlighted](https://thefusebase.com/wp-content/uploads/2026/08/image-31-1024x566.png)
 
-6) Select Add from repository
+Use the add button in the plugin manager.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20610'%3E%3C/svg%3E)
+1.  6 Select Add from repository.
 
-7) Add **fusebase-dev/agent-plugins** to the input field and click Sync.
+![Claude Code plugin source menu with Add from repository selected](https://thefusebase.com/wp-content/uploads/2026/08/image-32-1024x610.png)
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20582'%3E%3C/svg%3E)
+Select Add from repository.
 
-8) Next, click the + to complete the plugin setup.
+1.  7 Add fusebase-dev/agent-plugins to the input field and click Sync.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20559'%3E%3C/svg%3E)
+![Repository field containing fusebase-dev slash agent-plugins](https://thefusebase.com/wp-content/uploads/2026/08/image-33-1024x582.png)
+
+Enter fusebase-dev/agent-plugins and sync the repository.
+
+1.  8 Click + to complete the plugin setup.
+
+![Claude Code plugin listing with the install control](https://thefusebase.com/wp-content/uploads/2026/08/image-34-1024x559.png)
+
+Add the FuseBase plugin to complete setup.
 
 The setup is complete, and you can start creating apps.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20398'%3E%3C/svg%3E)
+Simply provide the app description in the chat, and it will be implemented. All work will take place directly in the chat. If the CLI is not installed, the plugin will prompt you to install it. If you are not signed in to FuseBase, it will prompt you to authenticate.
 
-Simply provide the app description in the chat, and it will be implemented. All work will take place directly in the chat. If the CLI isn’t installed, the plugin will prompt you to install it, and if you’re not signed in to FuseBase, it will prompt you to authenticate.
+![Claude Code chat ready to create a FuseBase app](https://thefusebase.com/wp-content/uploads/2026/08/image-35-1024x398.png)
 
-## **Set up with the CLI** [#](#5-toc-title)
+The plugin is ready. Describe the app you want to create.
 
-For other IDEs, you can use our standard CLI. You can download the CLI using this link – [https://ai-dev.thefusebase.com/how-it-works](https://ai-dev.thefusebase.com/how-it-works)
+## Set up with the CLI
+
+For other IDEs, you can use our standard CLI. Download the CLI from the FuseBase AI development site. [ai-dev.thefusebase.com](https://ai-dev.thefusebase.com/how-it-works)
 
 Once you have downloaded it, launch the installer and wait for the installation to complete.
 
-Unlike the plugin, after setting up the CLI, some commands will need to be entered in the terminal (as a reminder, with the plugin all work can be done through the chat).
+Unlike the plugin, after setting up the CLI, some commands will need to be entered in the terminal. With the plugin, all work can be done through the chat.
 
-### Step 1. Log in to FuseBase [#](#8-toc-title)
+### Step 1. Log in to FuseBase
 
-1) Open your favorite IDE (for example, Cursor or Claude Code) and go to the terminal.
+Open your favorite IDE, such as Cursor or Claude Code, and go to the terminal.
+
+Your browser does not support the guide video.
+
+Open an IDE terminal for your app project.
 
 We recommend creating a separate folder or project for each app.
 
-2) In the terminal, enter **fusebase init**. First, you will need to log in to FuseBase. A browser window will open automatically for authorization. You will only need to authorize once.
+In the terminal, enter fusebase init. First, you will need to log in to FuseBase. A browser window will open automatically for authorization. You will only need to authorize once.
 
-### Step 2. Creating an product in FuseBase [#](#9-toc-title)
+```
+fusebase init
+```
 
-Next, select organization where the app will be created.
+### Step 2. Create a product in FuseBase
 
-Next, specify the name of the product. For example, if you are creating a ticketing system, enter “Tickets”. Depending on the product name, the app name and its subdomain will be created, and you can always change them later.
+Next, select the organization where the app will be created.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20704'%3E%3C/svg%3E)
+Specify the name of the product. For example, if you are creating a ticketing system, enter “Tickets”. The app name and its subdomain will be created from the product name, and you can always change them later.
 
-That’s it – you can now start creating your own products in FuseBase.
+![FuseBase CLI prompts for organization and product selection](https://thefusebase.com/wp-content/uploads/2026/08/image-36-1024x704.png)
 
-### Step 3. Creating a App [#](#10-toc-title)
+Choose the organization and name the product.
 
-Next, you can create the app or apps you need. To do this, you can use any AI chat tool in your IDE, such as Claude Code, Copilot, and others. Simply describe what you need.
+That is it. You can now start creating your own products in FuseBase.
 
-For example, simply write something like:
+### Step 3. Create an app
 
-**I need a ticketing system that includes an admin side for managing tickets and a client side where clients can create tickets.** **Create a new database for the ticketing system. Only organization managers will have access to the admin section, while clients will have access to the client section.**
+Next, create the app or apps you need. You can use any AI chat tool in your IDE, such as Claude Code or Copilot. Simply describe what you need.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20480'%3E%3C/svg%3E)
+For example, write something like:
 
-Next, the AI will begin creating the feature. If necessary, please answer any questions that may arise during the process.
+> I need a ticketing system that includes an admin side for managing tickets and a client side where clients can create tickets. Create a new database for the ticketing system. Only organization managers will have access to the admin section, while clients will have access to the client section.
 
-You can find the full guide to creating apps here — [https://thefusebase.com/guides/fusebase-vibe-code/fusebase-apps-quick-guide/](https://thefusebase.com/guides/fusebase-vibe-code/fusebase-apps-quick-guide/)
+![AI coding assistant creating a FuseBase ticketing application](https://thefusebase.com/wp-content/uploads/2026/02/image-10-1024x480.png)
+
+Describe the product requirements in your AI coding assistant.
+
+The AI will begin creating the feature. Answer any questions that may arise during the process.
+
+[Continue with the full guide to creating FuseBase Apps](/guides/fusebase-vibe-code/fusebase-apps-quick-guide)

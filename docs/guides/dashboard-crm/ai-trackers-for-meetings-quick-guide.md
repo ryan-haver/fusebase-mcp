@@ -1,15 +1,44 @@
 ---
 title: "AI Trackers for Meetings – Quick Guide"
-url: "https://thefusebase.com/guides/dashboard-crm/ai-trackers-for-meetings-quick-guide/"
+url: "https://thefusebase.com/guides/dashboard-crm/ai-trackers-for-meetings-quick-guide"
 section: "dashboard-crm"
-lastScraped: "2026-09-12T05:17:37.044Z"
+lastScraped: "2026-09-15T04:44:43.658Z"
 ---
 
 # AI Trackers for Meetings – Quick Guide
 
+[Back to FuseBase AI](/guides/fusebase-ai)
+
+FuseBase AI
+
+# AI Trackers for Meetings – Quick Guide
+
+Next to the meetings dashboard, you can see the trackers table – First, let’s explain what trackers are and why you need them. In Fusebase, trackers are a set of rules/keywords...
+
+Guide details
+
+Published
+
+January 23, 2026
+
+Read time
+
+5 min read
+
+Category
+
+FuseBase AI
+
+In this guide
+
+1.  [Why they’re needed and what the benefits are](#0-toc-title)
+2.  [Create Your Own Tracker](#1-toc-title)
+3.  [Tracker Results](#2-toc-title)
+4.  [I added a meeting and a transcript, but I don’t see the tracker results. Why is that?](#3-toc-title)
+
 Next to the meetings dashboard, you can see the trackers table –
 
-![](https://thefusebase.com/wp-content/uploads/2026/01/image-29-1024x556.png)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/01/image-29-1024x556.png)
 
 First, let’s explain what trackers are and why you need them. In Fusebase, trackers are a set of rules/keywords that the system uses to “catch” the right moments in a meeting recording and transcript.
 
@@ -22,7 +51,7 @@ Examples of trackers:
 
 Essentially, a tracker = a filter that says: “Show me all moments where the client asked about pricing,” or “where the name of competitor X was mentioned.”
 
-## Why they’re needed and what the benefits are [#](#0-toc-title)
+## Why they’re needed and what the benefits are
 
 **Quality and risk control**
 
@@ -47,13 +76,13 @@ You shouldn’t think that trackers can only be used in the Sales niche. They ca
 
 Going forward, we plan to create trackers not only for transcripts, but also for emails, documents, and so on.
 
-## Create Your Own Tracker [#](#1-toc-title)
+## Create Your Own Tracker
 
 Now let’s take a closer look at the trackers table. By default, we’ve already created a few trackers for you. Let’s see what parts each tracker consists of. And to understand it better, we’ll create our own tracker. For example, we want to understand whether the next meeting was discussed on the call, and if yes — when it was scheduled.
 
 1) First, click **Add tracker**
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20553'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/01/image-30-1024x553.png)
 
 2) **Tracker name** and **Tracker description** – here you can find the tracker’s name, as well as a description of what exactly it does.
 
@@ -63,7 +92,7 @@ Now let’s take a closer look at the trackers table. By default, we’ve alread
 
 If you want, you can change it however you like.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20558'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/01/image-31-1024x558.png)
 
 4) **Insights Prompt** – imagine the tracker has triggered and, for example, found conditions in the transcript that match the trackers and showed fragments of the call. But what if there are many of them, or you need specific information? That’s what the Insight column is for: by default, we show a summary of what the tracker found in the call. But you can also manually specify a prompt and explicitly write your requirements.
 
@@ -71,17 +100,17 @@ For example, in our case we want to immediately see the date and time of the nex
 
 **Based on the Transcript Evidence, extract the day and time of the next meeting. If there are no exact details, indicate the context in which the next meeting was mentioned.**
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20551'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/01/image-32-1024x551.png)
 
 5) **Is Active** – here we specify whether the tracker is active or not. If the tracker is active, it is automatically applied to all new meetings, as long as a transcript is available.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20566'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/01/image-33-1024x566.png)
 
 6) Tracker Industry and Tracker Type – optional columns, and you can choose the values as you like.
 
 7) Next, click **Add** **tracker** to create a new tracker.
 
-## Tracker Results [#](#2-toc-title)
+## Tracker Results
 
 You have set up the trackers and now want to view their results. It is important to note that currently, trackers are automatically triggered for all newly added transcripts.
 
@@ -89,17 +118,17 @@ If you already have videos with transcripts, you can also apply the trackers to 
 
 To view the tracker results, you need to go to the tracker table and click on the desired tracker.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20554'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/01/image-34-1024x554.png)
 
 A table with the tracker results will then open.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20489'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/01/image-35-1024x489.png)
 
 Let’s review the data available to us:
 
 **Meeting Name** – the name of the meeting where the tracker was triggered. By clicking on the meeting name, you can view its details.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20409'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/01/image-36-1024x409.png)
 
 **Match** – if the tracker found information in the video that matches its conditions, Match will be active. If nothing in the video matches the tracker conditions, then Match will be inactive.
 
@@ -107,12 +136,12 @@ Let’s review the data available to us:
 
 **Summary/Insight** – if there is Evidence, the summary provides a concise overview highlighting the most important information from it.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20486'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/01/image-37-1024x486.png)
 
 **Activations** – the number of times the tracker was triggered during a meeting. For example, if the tracker monitors competitor mentions and they were mentioned three times at different points during the meeting, the number of activations will be 3.
 
-## I added a meeting and a transcript, but I don’t see the tracker results. Why is that? [#](#3-toc-title)
+## I added a meeting and a transcript, but I don’t see the tracker results. Why is that?
 
 The processing speed of the transcript by the tracker depends on several factors, primarily the total number of videos in the queue. If there are many videos, there may be slight delays. Typically, the tracker processes a video within 3-5 minutes after it is added. It’s also possible that the video has already been processed, but you need to refresh the dashboard to see the results. To do this, simply refresh the page or click the dashboard refresh button.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20393'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/01/image-76-1024x393.png)

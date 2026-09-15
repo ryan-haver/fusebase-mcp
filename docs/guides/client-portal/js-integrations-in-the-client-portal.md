@@ -1,11 +1,37 @@
 ---
 title: "JS integrations in the client portal"
-url: "https://thefusebase.com/guides/client-portal/js-integrations-in-the-client-portal/"
+url: "https://thefusebase.com/guides/client-portal/js-integrations-in-the-client-portal"
 section: "client-portal"
-lastScraped: "2026-09-12T05:17:22.236Z"
+lastScraped: "2026-09-15T04:44:39.129Z"
 ---
 
 # JS integrations in the client portal
+
+[Back to Portals](/guides/client-portal)
+
+Portals
+
+# JS integrations in the client portal
+
+Learn how to connect JS-integrations to portal scripts and third-party applications.
+
+Guide details
+
+Published
+
+November 8, 2023
+
+Read time
+
+1 min read
+
+Category
+
+Portals
+
+In this guide
+
+1.  [Embedding the JS code into the portal](#b1397216678_405)
 
 JS integrations allow you to connect third-party scripts and applications to the portal including:
 
@@ -13,21 +39,21 @@ JS integrations allow you to connect third-party scripts and applications to the
 -   Analytics from Google Analytics
 -   CTA popups from Sumo
 
-## Embedding the JS code into the portal [#](#b1397216678_405)
+## Embedding the JS code into the portal
 
 -   Go to the **Customizer** of the portal.
 -   Go to **Settings**
 
-![](https://thefusebase.com/wp-content/uploads/2023/11/Go-to-Settings-1024x546.png)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/11/Go-to-Settings-1024x546.png)
 
 -   Go to Custom Code
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20331'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/11/Go-to-Custom-Code-1024x331.png)
 
 -   Enter the required code (which can be copied from another service first).
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20452'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/11/Enter-the-required-code-1024x452.png)
 
 -   Publish your changes
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20277'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/11/publish-your-changes-1024x277.png)

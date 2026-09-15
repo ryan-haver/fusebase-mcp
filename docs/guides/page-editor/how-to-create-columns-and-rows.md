@@ -1,26 +1,54 @@
 ---
 title: "Basic FuseBase document navigation. Move blocks, create columns, resize"
-url: "https://thefusebase.com/guides/page-editor/how-to-create-columns-and-rows/"
+url: "https://thefusebase.com/guides/page-editor/how-to-create-columns-and-rows"
 section: "page-editor"
-lastScraped: "2026-09-12T05:18:52.414Z"
+lastScraped: "2026-09-15T04:44:56.354Z"
 ---
 
 # Basic FuseBase document navigation. Move blocks, create columns, resize
 
-## Basic FBS document navigation. Move blocks, create columns, resize [#](#0-toc-title)
+[Back to Page Editor](/guides/page-editor)
+
+Page Editor
+
+# Basic FuseBase document navigation. Move blocks, create columns, resize
+
+Basic FBS document navigation. Move blocks, create columns, resize FuseBase documents consist of blocks which you can drag&drop, resize, and copy and paste into other documents....
+
+Guide details
+
+Published
+
+August 26, 2022
+
+Read time
+
+1 min read
+
+Category
+
+Page Editor
+
+In this guide
+
+1.  [Basic FBS document navigation. Move blocks, create columns, resize](#0-toc-title)
+2.  [Three dots are one of the most important controls to move object and select properties](#1-toc-title)
+3.  [Use double click to create a new line between objects](#2-toc-title)
+
+## Basic FBS document navigation. Move blocks, create columns, resize
 
 FuseBase documents consist of blocks which you can drag&drop, resize, and copy and paste into other documents.
 
-[Embedded content](about:blank)
+[Embedded content](https://www.youtube.com/embed/BQwwjvBbVC8?feature=oembed)
 
 …
 
-## Three dots are one of the most important controls to move object and select properties [#](#1-toc-title)
+## Three dots are one of the most important controls to move object and select properties
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20678%20273'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/11/image.png)
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20880%20550'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/11/drag-n-drop-1.gif)
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201560%20920'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/11/Untitled-design-2.gif)
 
-## Use double click to create a new line between objects [#](#2-toc-title)
+## Use double click to create a new line between objects

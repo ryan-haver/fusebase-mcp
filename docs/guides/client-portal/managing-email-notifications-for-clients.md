@@ -1,17 +1,43 @@
 ---
 title: "Managing Email Notifications for Clients"
-url: "https://thefusebase.com/guides/client-portal/managing-email-notifications-for-clients/"
+url: "https://thefusebase.com/guides/client-portal/managing-email-notifications-for-clients"
 section: "client-portal"
-lastScraped: "2026-09-12T05:17:05.416Z"
+lastScraped: "2026-09-15T04:44:35.627Z"
 ---
 
 # Managing Email Notifications for Clients
+
+[Back to Portals](/guides/client-portal)
+
+Portals
+
+# Managing Email Notifications for Clients
+
+There are cases when it is necessary to limit email notifications for clients if they raise concerns about receiving too many. Fusebase allows you to limit email notifications for...
+
+Guide details
+
+Published
+
+October 21, 2025
+
+Read time
+
+1 min read
+
+Category
+
+Portals
+
+In this guide
+
+This guide is a short walkthrough.
 
 There are cases when it is necessary to limit email notifications for clients if they raise concerns about receiving too many.
 
 Fusebase allows you to limit email notifications for all portal clients. This can be done through the Members and Groups menu in the Client Notifications tab.
 
-![](https://thefusebase.com/wp-content/uploads/2025/10/image-44-1536x803-1-1024x535.png)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-44-1536x803-1-1024x535.png)
 
 By default, all notifications are enabled for clients, but you can disable the following:
 

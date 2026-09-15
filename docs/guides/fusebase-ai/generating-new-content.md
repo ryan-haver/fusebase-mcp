@@ -1,64 +1,95 @@
 ---
 title: "AI-Powered Writing in FuseBase Editor"
-url: "https://thefusebase.com/guides/fusebase-ai/generating-new-content/"
+url: "https://thefusebase.com/guides/fusebase-ai/generating-new-content"
 section: "fusebase-ai"
-lastScraped: "2026-09-12T05:17:40.973Z"
+lastScraped: "2026-09-15T04:44:45.002Z"
 ---
 
 # AI-Powered Writing in FuseBase Editor
 
-## Generating New Content [#](#0-toc-title)
+[Back to FuseBase AI](/guides/fusebase-ai)
+
+FuseBase AI
+
+# AI-Powered Writing in FuseBase Editor
+
+Generating New Content You can generate new content through the FuseBase AI object, which can be called from the list of objects. In the menu that appears you can: Once you have...
+
+Guide details
+
+Published
+
+June 13, 2023
+
+Read time
+
+5 min read
+
+Category
+
+FuseBase AI
+
+In this guide
+
+1.  [Generating New Content](#0-toc-title)
+2.  [Working With Highlighted Text](#1-toc-title)
+3.  [Working With the Whole Page](#2-toc-title)
+4.  [Discover More AI Features in FuseBase](#3-toc-title)
+5.  [FuseBase AI Assistant](#4-toc-title)
+6.  [Custom AI Agents](#5-toc-title)
+
+## Generating New Content
 
 You can generate new content through the FuseBase AI object, which can be called from the list of objects.
 
-![](https://thefusebase.com/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-15-44-35.png)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-15-44-35.png)
 
 In the menu that appears you can:
 
 -   Write your request in AI, for example **Create a Blog post about FuseBase:**
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20620'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-15-49-51-1024x620.png)
 
 -   Choose one of the ready-made queries (they are also called prompts):
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20639'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-15-50-40-1024x639.png)
 
 -   Specify the tone for the future text. By default, it’s neutral, but you might want a serious tone:
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201074%20664'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-15-52-27.png)
 
 -   If there is content on the page, you can choose whether to send the content along with the request or not. Usually, sending content improves the response from AI and makes it accurate and relevant to the context of the page.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20641'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-15-53-52-1024x641.png)
 
 Once you have selected a Prompt, press **Enter** or the **Create Confirmation button**.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201090%20666'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-15-53-52-1.png)
 
 Next, you will see the content generation process.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201231%20347'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/06/image-120.png)
 
 After the generation is complete, you will see a menu.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201294%20654'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-15-32-38.png)
 
 If you are satisfied, click **Done** and the text will be added to the page. If you want to generate it again, click **Try Again**. Clicking **Done** will cancel adding the content.
 
 Also, you can refine your request by removing unnecessary information or changing the tone.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201268%20640'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-15-34-26.png)
 
 -   **Make shorter / Make longer** – increases or decreases the length of the generated text.
 -   **Continue** is a great option if you are satisfied with the generated text, but want to supplement it. For example, you’ve generated a post about FuseBase Platform, but you need to supplement it with a list of competitors. To do this, click **Continue** and write **Competitors** in the input box.
 
-## Working With Highlighted Text [#](#1-toc-title)
+## Working With Highlighted Text
 
 You can also work with parts of the text. Highlight the desired text and select **Use AI**.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201180%20484'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-15-39-14.png)
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201156%20478'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-15-39-14-1.png)
 
 Next, select the desired action:
 
@@ -80,9 +111,9 @@ After selecting the desired option, the AI will start working on the selected te
 -   Continue – great option if you are happy with the generated text but want to add to it. For example, you’ve made a summary of a post about FuseBase Platform, but you need to supplement it with a list of competitors. To do this, click on Continue and write Competitors in the input field;
 -   Discard – leave the old text and don’t add the new one.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20566%20484'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-15-41-40.png)
 
-## Working With the Whole Page [#](#2-toc-title)
+## Working With the Whole Page
 
 If you want, you can send the entire page to AI for processing. To do this, click **Ask AI** on the top menu of the page.
 
@@ -95,26 +126,26 @@ Next, a menu of options will open:
 
 After selecting the desired option, the AI will start working on the selected text. When the generation is complete, you will see a menu.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20460%20298'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-15-34.png)
 
 If you are satisfied, click **Done** and the text will be added to the end of the page. If you want to generate again, click **Try Again**. Clicking **Done** will cancel adding the content.
 
 Also, you can refine your request, for example, to remove unnecessary information or change the tone.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201268%20640'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2023/06/screenshot-nimbus-nimbusweb-me-2025-11-14-15-34-26-1.png)
 
 -   **Make shorter / Make longer** – Shorten of lengthen the generated text.
 -   **Continue** – this is a great option if you are satisfied with the generated text, but you want to supplement it. For example, you’ve made a summary of a post about FuseBase Platform, but you need to supplement it with a list of competitors. To do this, click **Continue** and write **Competitors** in the input box.
 
-## Discover More AI Features in FuseBase [#](#3-toc-title)
+## Discover More AI Features in FuseBase
 
-### FuseBase AI Assistant [#](#4-toc-title)
+### FuseBase AI Assistant
 
 -   **Instant Answers:** Get quick, accurate responses to questions using your organization’s data.
 -   **Knowledge at Your Fingertips:** The Assistant can search documents, pages, and resources across your workspace.
 -   **Smart Recommendations:** Receive context-aware suggestions to help you work smarter.
 
-### **Custom AI Agents** [#](#5-toc-title)
+### **Custom AI Agents**
 
 -   **Automate Routine Tasks:** Build AI agents tailored to your workflows—summarize documents, generate reports, handle repetitive queries, and more.
 -   **Easy Setup:** No coding required! Configure agents for your team’s unique needs in minutes.
@@ -122,5 +153,5 @@ Also, you can refine your request, for example, to remove unnecessary informatio
 
 **Learn more:**
 
--   [AI Assistant – Quick Guide](https://thefusebase.com/guides/fusebase-ai/ai-assistant-quick-guide/)
--   [AI Agents – Quick Guide](https://thefusebase.com/guides/fusebase-ai/ai-agents-quick-guide/)
+-   [AI Assistant – Quick Guide](/guides/fusebase-ai/ai-assistant-quick-guide)
+-   [AI Agents – Quick Guide](/guides/fusebase-ai/ai-agents-quick-guide)

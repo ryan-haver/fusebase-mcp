@@ -1,23 +1,53 @@
 ---
 title: "How do I import pages from Evernote?"
-url: "https://thefusebase.com/guides/import-fusebase/how-do-i-import-pages-from-evernote/"
+url: "https://thefusebase.com/guides/import-fusebase/how-do-i-import-pages-from-evernote"
 section: "import-fusebase"
-lastScraped: "2026-09-12T05:18:47.208Z"
+lastScraped: "2026-09-15T04:45:01.280Z"
 ---
 
 # How do I import pages from Evernote?
 
+[Back to Import to FuseBase](/guides/import-fusebase)
+
+Import to FuseBase
+
+# How do I import pages from Evernote?
+
+Start the transition from Evernote to Nimbus Note by exporting your pages from Evernote. It’s easy and fast.
+
+Guide details
+
+Published
+
+August 19, 2022
+
+Read time
+
+4 min read
+
+Category
+
+Import to FuseBase
+
+In this guide
+
+1.  [Export Your Pages From Evernote](#0-toc-title)
+2.  [Export your notes on Mac or Windows](#1-toc-title)
+3.  [Evernote export on Linux](#b900365111_2555)
+4.  [Import pages from Evernote to Nimbus](#b1898741125_3373)
+5.  [Wondering why Nimbus is better than Evernote?](#b1898741125_4246)
+
 Start the **migration from Evernote to Nimbus Note** by exporting your pages from Evernote. All your information from Evernote will be saved and moved to Nimbus Note, where you can continue to work on your pages and enjoy great [Nimbus Note](https://thefusebase.com/note/) features.
 
-## Export Your Pages From Evernote [#](#0-toc-title)
+## Export Your Pages From Evernote
 
 Follow these simple steps, and you won’t lose pages full of important ideas and essential information. You need to use the Mac or Windows version of Evernote to start the process of exporting.
 
-![Follow these simple steps, and you won't lose pages full of important ideas and essential information.](https://app.nimbusweb.me/box/attachment/3619592/xy0gqbv700g6mvmd5tfn/NPJXvTtLRlcA5W93/Export_from_Evernote.gif)
+![Follow these simple steps, and you won't lose pages full of important ideas and essential information.](/hosting-assets/legacy/thefusebase/box/attachment/3619592/xy0gqbv700g6mvmd5tfn/NPJXvTtLRlcA5W93/Export_from_Evernote.gif)
 
 This software instruction was prepared by a third-party company and FuseBase can’t guarantee the accuracy of the information.
 
-### Export your notes on Mac or Windows [#](#1-toc-title)
+### Export your notes on Mac or Windows
 
 Here are detailed instructions on exporting **individual notes** from Evernote:
 
@@ -75,14 +105,14 @@ To export **all pages** and save all your information for importing later to Nim
 
 Evernote does not save your notebook structure when you export your notes. If you want to keep the structure you had in Evernote, we recommend exporting each notebook separately.
 
-### Evernote export on Linux [#](#b900365111_2555)
+### Evernote export on Linux
 
 You can use Nixnote, the most well-known Evernote client for Linux. It can be downloaded here – [https://github.com/baumgarr/Nixnote2](https://github.com/baumgarr/Nixnote2)
 
 It allows you to export your pages to NNEX format, which can then be renamed to ENEX and imported into Nimbus Note in the same way.
 
 ##   
-Import pages from Evernote to Nimbus [#](#b1898741125_3373)
+Import pages from Evernote to Nimbus
 
 **Please note: Currently, import is available only****in the web client. Open Nimbus in your browser to import your notes.**
 
@@ -98,11 +128,11 @@ Enjoy your old notes boosted by Nimbus superpowers.
 
 Here is a video instruction:
 
-![Import pages from Evernote to Nimbus](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E)
+![Import pages from Evernote to Nimbus](/hosting-assets/legacy/thefusebase/box/attachment/3619592/xy0gqbv700g6mvmd5tfn/Tvv679tgMzNtlx96/import.gif)
 
 This software instruction was prepared by a third-party company and FuseBase can’t guarantee the accuracy of the information.
 
-## Wondering why Nimbus is better than Evernote? [#](#b1898741125_4246)
+## Wondering why Nimbus is better than Evernote?
 
 Explore our [in-depth comparison between Nimbus Note and Evernote here>](https://thefusebase.com/comparison/nimbus-note-vs-evernote/) Find out what ex-Evernote users think about Nimbus Note and how Nimbus can empower your notes?
 

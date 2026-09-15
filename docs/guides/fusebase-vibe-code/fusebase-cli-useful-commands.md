@@ -1,11 +1,37 @@
 ---
 title: "FuseBase CLI – Useful Commands"
-url: "https://thefusebase.com/guides/fusebase-vibe-code/fusebase-cli-useful-commands/"
+url: "https://thefusebase.com/guides/fusebase-vibe-code/fusebase-cli-useful-commands"
 section: "fusebase-vibe-code"
-lastScraped: "2026-09-12T05:17:51.767Z"
+lastScraped: "2026-09-15T04:45:04.998Z"
 ---
 
 # FuseBase CLI – Useful Commands
+
+[Back to Fusebase Vibe Code](/guides/fusebase-vibe-code)
+
+Fusebase Vibe Code
+
+# FuseBase CLI – Useful Commands
+
+Here we will cover commands that will be helpful when working with FuseBase CLI. These commands are independent of the IDE and remain the same whether you are using Cursor, VS...
+
+Guide details
+
+Published
+
+March 11, 2026
+
+Read time
+
+3 min read
+
+Category
+
+Fusebase Vibe Code
+
+In this guide
+
+This guide is a short walkthrough.
 
 Here we will cover commands that will be helpful when working with FuseBase CLI. These commands are independent of the IDE and remain the same whether you are using Cursor, VS Code, or any other editor. These commands can be executed from the terminal.
 
@@ -43,8 +69,8 @@ In this case, your instructions will not be overwritten and will be preserved ev
 
 **fusebase integrations** – Fusebase CLI allows you to create apps based on data from other services, and for convenience, we have added default MCP support for Notion, Figma and Asana (the list will be expanded). To enable integration, enter the command fusebase integrations in terminal and select the desired service with a space. Then, press Enter.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20461'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/03/image-38-1024x461.png)
 
 Important! After activating the MCP of another service, we recommend restarting the ID to activate this MCP. After that, select the /mcp command in Agent’s chat and authorize in the required service.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20922%20950'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2026/03/image-39.png)

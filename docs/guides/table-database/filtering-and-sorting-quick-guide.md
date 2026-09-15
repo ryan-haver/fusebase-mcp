@@ -1,21 +1,75 @@
 ---
 title: "Filtering and Sorting – Quick Guide"
-url: "https://thefusebase.com/guides/table-database/filtering-and-sorting-quick-guide/"
+url: "https://thefusebase.com/guides/table-database/filtering-and-sorting-quick-guide"
 section: "table-database"
-lastScraped: "2026-09-12T05:18:39.315Z"
+lastScraped: "2026-09-15T04:44:53.516Z"
 ---
 
 # Filtering and Sorting – Quick Guide
 
-# Filtering [#](#0-toc-title)
+[Back to Table & Database](/guides/table-database)
+
+Table & Database
+
+# Filtering and Sorting – Quick Guide
+
+Filtering If there is a lot of data in the database, it is often necessary to focus only on what is really important and needed right now. For these purposes, we have added the...
+
+Guide details
+
+Published
+
+October 15, 2025
+
+Read time
+
+9 min read
+
+Category
+
+Table & Database
+
+In this guide
+
+1.  [How do I enable filtering?](#0-toc-title)
+2.  [How do I enable multi-column filtering?](#1-toc-title)
+3.  [OR/AND operators](#2-toc-title)
+4.  [How do I remove the filter?](#3-toc-title)
+5.  [Columns and filter types](#4-toc-title)
+6.  [Text column](#5-toc-title)
+7.  [Filter conditions](#6-toc-title)
+8.  [Filter value](#7-toc-title)
+9.  [Single / Multiple Select](#8-toc-title)
+10.  [Filter conditions](#9-toc-title)
+11.  [Filter values](#10-toc-title)
+12.  [Number / Currency](#11-toc-title)
+13.  [Conditions](#12-toc-title)
+14.  [Values](#13-toc-title)
+15.  [Files](#17-toc-title)
+16.  [Conditions](#18-toc-title)
+17.  [Values](#19-toc-title)
+18.  [Checkbox](#26-toc-title)
+19.  [Conditions](#27-toc-title)
+20.  [Value](#28-toc-title)
+21.  [Date](#29-toc-title)
+22.  [Conditions](#30-toc-title)
+23.  [Values](#31-toc-title)
+24.  [Links](#32-toc-title)
+25.  [Conditions](#33-toc-title)
+26.  [Value](#34-toc-title)
+27.  [Filter Choose from list](#27-toc-title)
+28.  [Dynamic filters](#28-toc-title)
+29.  [Can I manually sort rows in a table?](#30-toc-title)
+
+# Filtering
 
 If there is a lot of data in the database, it is often necessary to focus only on what is really important and needed right now. For these purposes, we have added the ability to filter data based on various conditions.
 
-## How do I enable filtering? [#](#0-toc-title)
+## How do I enable filtering?
 
 To activate filtering, click on Filter –
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20495'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-32-1024x495.png)
 
 Next, you will see the filtering bar. Here, you can:
 
@@ -23,40 +77,40 @@ Next, you will see the filtering bar. Here, you can:
 -   choose the filter condition (2);
 -   specify the filtering value (3).
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20545'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-33-1024x545.png)
 
-## How do I enable multi-column filtering? [#](#1-toc-title)
+## How do I enable multi-column filtering?
 
 You can also utilize multiple filters. To do this, open the filter bar, and click Add condition. Then enter the filter values.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20401'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-34-1024x401.png)
 
-## OR/AND operators [#](#2-toc-title)
+## OR/AND operators
 
 If you use multiple filtering, you can use OR / AND operators to make filtering more accurate.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20414'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-35-1024x414.png)
 
 If the OR filter is selected, the table only shows rows that match ALL filters simultaneously.  
 If the filter AND was chosen instead, only rows that have a match for all the selected filters should show up. In our case, one row.
 
-## How do I remove the filter? [#](#3-toc-title)
+## How do I remove the filter?
 
 You can remove a filter by clicking on the trash can icon next to the filter.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20414'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-36-1024x414.png)
 
 You can also remove all filters by clicking Clear all.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20386'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-37-1024x386.png)
 
-## Columns and filter types [#](#4-toc-title)
+## Columns and filter types
 
 Below is a list of columns and filter types.
 
-### Text column [#](#5-toc-title)
+### Text column
 
-#### Filter conditions [#](#6-toc-title)
+#### Filter conditions
 
 -   Contains (default) – shows the strings that contain part of the input. For example, if John, then we show the string, John Doe;
 -   Is – shows rows with exact values in the cell column. For example, if the cell says John Doe. Then John Doe must be in the filter. Otherwise, it is not shown;
@@ -65,25 +119,25 @@ Below is a list of columns and filter types.
 -   Start with/End with – shows rows that start or end with the specified value
 -   Empty/Not empty – shows lines with any data or vice versa.
 
-#### Filter value [#](#7-toc-title)
+#### Filter value
 
 A text input box where enter the desired text.
 
-### Single / Multiple Select [#](#8-toc-title)
+### Single / Multiple Select
 
-#### Filter conditions [#](#9-toc-title)
+#### Filter conditions
 
 -   Has any of (default) – show all lines with selected labels (there can be multiple labels). If the value has more than one label, at least one label must meet the conditions;
 -   Has none of – show all lines with none of the selected labels (there can be multiple labels);
 -   Empty/Not empty – displays lines with any labels and vice versa.
 
-#### Filter values [#](#10-toc-title)
+#### Filter values
 
 In the value, you can select the desired labels for which you want to enable filtering. You can select multiple labels at once.
 
-### Number / Currency [#](#11-toc-title)
+### Number / Currency
 
-#### Conditions [#](#12-toc-title)
+#### Conditions
 
 -   Equal – rows whose values are equal to the selected one are displayed;
 -   Not equal – the rows whose values are not equal to the selected one are displayed;
@@ -93,18 +147,18 @@ In the value, you can select the desired labels for which you want to enable fil
 -   Less than or equal – the rows that are less than or equal to the selected one are displayed;
 -   Empty/Not empty – rows with any numbers and vice versa are displayed.
 
-#### Values [#](#13-toc-title)
+#### Values
 
 You can enter a numeric value in the format selected for the column. This includes negative digits.
 
-### Files [#](#17-toc-title)
+### Files
 
-#### Conditions [#](#18-toc-title)
+#### Conditions
 
 -   File type – here, you select the file type (the list in the conditions). For example, you can select multiple values to filter rows that have both documents and pictures.
 -   Empty/Not empty – displays rows with any files and vice versa.
 
-#### Values [#](#19-toc-title)
+#### Values
 
 You can select different file types:
 
@@ -113,23 +167,23 @@ You can select different file types:
 -   Media: mp4, mp3, mov, avi, webm;
 -   Other: all other file types.
 
-### Checkbox [#](#26-toc-title)
+### Checkbox
 
-#### Conditions [#](#27-toc-title)
+#### Conditions
 
 Is – checkboxes have only one condition: the checkbox is marked as done or not.
 
-#### Value [#](#28-toc-title)
+#### Value
 
 Depending on the status change, the displayed lines are updated.
 
-### Date [#](#29-toc-title)
+### Date
 
-#### Conditions [#](#30-toc-title)
+#### Conditions
 
 There is only one condition for a date – it must match the selected time value. After filtering, the rows that match the selected values are displayed.
 
-#### Values [#](#31-toc-title)
+#### Values
 
 Dropdown list with values. You can select multiple values (for example, Today and a Custom date).
 
@@ -142,9 +196,9 @@ Dropdown list with values. You can select multiple values (for example, Today an
 
 You can also choose to display rows where there are empty values (date not selected).
 
-### Links [#](#32-toc-title)
+### Links
 
-#### Conditions [#](#33-toc-title)
+#### Conditions
 
 -   Contains (default) – shows the strings that contain part of the input. For example, if Nimbus web, then we show the string, nimbusweb.me. You can search both by link name and by URL;
 -   Is – shows the rows with the exact values in the cell column. For example, if the cell reads nimbusweb.me. Then the filter must contain nimbusweb.me. Otherwise, it is not shown;
@@ -153,23 +207,23 @@ You can also choose to display rows where there are empty values (date not selec
 -   Start with/End with – shows rows that start or end with the specified value
 -   Empty/Not empty – shows rows with any data or vice versa.
 
-#### Value [#](#34-toc-title)
+#### Value
 
 Text injection where necessary text can be entered.
 
-## Filter **Choose from list** [#](#27-toc-title)
+## Filter **Choose from list**
 
 Also, for a number of columns, the **Choose from list** filter is available. It allows you to select specific rows from the database and display only them. This is a great option for creating segments. For example, you can create separate Views and display only the rows you need in them.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20430'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-38-1024x430.png)
 
-## **Dynamic filters** [#](#28-toc-title)
+## **Dynamic filters**
 
 In addition to standard ones, you also have access to dynamic filters that allow filtering rows depending on the portal visitor’s email — based on their belonging to a portal, workspace, or group.
 
 They work very simply: in the filter value, click on the variable option and select the desired one.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20367'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-80-1024x367.png)
 
 Then, if the row contains the corresponding data (for example, the email in the cell matches the visitor’s email), that row will be displayed to the user.
 
@@ -185,27 +239,27 @@ Here’s what we do:
 
 1) Add an **Email** column to the view that will be added to the portal.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20467'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-81-1024x467.png)
 
 2) Add test@thefusebase1.com to the required rows.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20456'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-82-1024x456.png)
 
 3) Then, set up a filter for the **Email** column and specify the condition **IS**, and in **Value**, select the **UserEmail** variable.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20389'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-83-1024x389.png)
 
 That’s it — all set! Now you can test it: log in as test@thefusebase1.com, and you’ll see the intended rows.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20519'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-84-1024x519.png)
 
 Then log in with another email, and you won’t see the rows you shouldn’t have access to.
 
 You can also extend the filter conditions so that if the email is empty, the rows are displayed to all portal visitors. To do this, add a new **Empty** condition with the **OR** operator.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20342'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-86-1024x342.png)
 
-# Sorting [#](#29-toc-title)
+# Sorting
 
 You can create databases with different information in columns and sort columns by different criteria.
 
@@ -219,7 +273,7 @@ Number columns can be sorted from smaller to larger numbers; in columns with che
 
 To change the sorting, simply click on the sorting icon next to the column name. Clicking the same icon again changes its type, for example A-z switches to z-A and vice versa.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20440'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-39-1024x440.png)
 
 If you want to sort by another column, then click on the sorting icon in that column (the sorting icon will appear when you hover over the column).
 
@@ -234,14 +288,14 @@ Below are examples of the principles by which data is sorted in columns of diffe
 **Date** – sorted from an earlier to a later date and vice versa.  
 **Links** – sorted alphabetically by domain.
 
-### Can I manually sort rows in a table? [#](#30-toc-title)
+### Can I manually sort rows in a table?
 
 Yes, absolutely! By default, manual sorting is enabled in new tables. However, if column sorting is active, you can disable it via the “Remove sort” option in the menu. If you’re satisfied with the current row order, don’t forget to enable the “Keep sorted” option (if left inactive, the previous row order used during manual sorting will be preserved).
 
 After that, you can manually move a row to the desired position. Simply click on the move icon and, while holding down the mouse button, drag the row to where you want it.
 
-# Refresh button – what it does and why it’s needed [#](#31-toc-title)
+# Refresh button – what it does and why it’s needed
 
 In the top bar of the dashboard, you can see the data refresh button. The built-in CRM does not have real-time data updates (for example, if another member invites a client or creates a portal, it will not immediately appear in the list until you refresh). To avoid refreshing the entire page, you can simply click on the icon, and you will always have up-to-date data.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20497'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/10/image-40-1024x497.png)

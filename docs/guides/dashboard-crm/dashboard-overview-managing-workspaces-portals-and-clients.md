@@ -1,11 +1,37 @@
 ---
 title: "Dashboard Overview: Managing Workspaces, Portals, and Clients"
-url: "https://thefusebase.com/guides/dashboard-crm/dashboard-overview-managing-workspaces-portals-and-clients/"
+url: "https://thefusebase.com/guides/dashboard-crm/dashboard-overview-managing-workspaces-portals-and-clients"
 section: "dashboard-crm"
-lastScraped: "2026-09-12T05:16:40.206Z"
+lastScraped: "2026-09-15T04:44:27.561Z"
 ---
 
 # Dashboard Overview: Managing Workspaces, Portals, and Clients
+
+[Back to Dashboard/CRM](/guides/dashboard-crm)
+
+Dashboard/CRM
+
+# Dashboard Overview: Managing Workspaces, Portals, and Clients
+
+Our dashboards allow you to efficiently manage your entire organization from one place. With the dashboards, you can: To access the organization dashboard, simply click on the...
+
+Guide details
+
+Published
+
+June 2, 2025
+
+Read time
+
+2 min read
+
+Category
+
+Dashboard/CRM
+
+In this guide
+
+This guide is a short walkthrough.
 
 Our dashboards allow you to efficiently manage your entire organization from one place. With the dashboards, you can:
 
@@ -17,7 +43,7 @@ Our dashboards allow you to efficiently manage your entire organization from one
 
 To access the organization dashboard, simply click on the corresponding icon and select Organization.
 
-![](https://thefusebase.com/wp-content/uploads/2025/06/image-13-1024x539.png)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/06/image-13-1024x539.png)
 
 Please note that only organization owners and managers have access to the organization dashboards.
 
@@ -31,16 +57,16 @@ Currently, there are 3 main dashboards available:
 
 Each dashboard has its own set of columns. For example, in the Workspace dashboard, you can view workspace members, available portals, and more.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20554'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/06/image-14-1024x554.png)
 
 You also have access to quick actions. For instance, if a workspace doesn’t have a portal, you can create one directly from the dashboard or invite a new client to a portal.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20559'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/06/image-16-1024x559.png)
 
 Each entity (workspace, portal, or client) also has various options available through the menu. For example, you can access workspace settings, send an invite to a specific portal, or edit a client’s name.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20559'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2025/06/image-17-1024x559.png)
 
 **Custom fields – building your own CRM in Fusebase**
 
-In dashboards, you can also add your own fields and create a full-fledged CRM for client management and deal tracking. You can read more in this guide: [https://thefusebase.com/guides/settings/custom-fields-in-the-dashboard-building-your-own-crm-in-fusebase/](https://thefusebase.com/guides/settings/custom-fields-in-the-dashboard-building-your-own-crm-in-fusebase/)
+In dashboards, you can also add your own fields and create a full-fledged CRM for client management and deal tracking. You can read more in this guide: [https://thefusebase.com/guides/settings/custom-fields-in-the-dashboard-building-your-own-crm-in-fusebase/](/guides/settings/custom-fields-in-the-dashboard-building-your-own-crm-in-fusebase)

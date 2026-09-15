@@ -1,27 +1,54 @@
 ---
 title: "Import documents from Bear"
-url: "https://thefusebase.com/guides/import-fusebase/import-documents-from-bear/"
+url: "https://thefusebase.com/guides/import-fusebase/import-documents-from-bear"
 section: "import-fusebase"
-lastScraped: "2026-09-12T05:18:44.404Z"
+lastScraped: "2026-09-15T04:45:00.550Z"
 ---
 
 # Import documents from Bear
 
-## Export pages from Bear [#](#b1869045833_1)
+[Back to Import to FuseBase](/guides/import-fusebase)
+
+Import to FuseBase
+
+# Import documents from Bear
+
+Export the desired documents to an HTML file. You can find the detailed instructions here.
+
+Guide details
+
+Published
+
+August 19, 2022
+
+Read time
+
+1 min read
+
+Category
+
+Import to FuseBase
+
+In this guide
+
+1.  [Export pages from Bear](#b1869045833_1)
+2.  [Import pages to Nimbus](#b3676605805_0)
+
+## Export pages from Bear
 
 -   Export the desired documents to an HTML file. You can find the detailed instructions here – [https://bear.app/faq/export-your-notes/](https://bear.app/faq/export-your-notes/)
 -   Save the exported file.
 
-## Import pages to Nimbus [#](#b3676605805_0)
+## Import pages to Nimbus
 
-![Import pages to Nimbus](https://app.nimbusweb.me/box/attachment/5533623/nasg91a5908w2kuc8g3b/AzM8sipQBkBY6RZS/bear_2.gif)
+![Import pages to Nimbus](/hosting-assets/legacy/thefusebase/box/attachment/5533623/nasg91a5908w2kuc8g3b/AzM8sipQBkBY6RZS/bear_2.gif)
 
 -   Open [Nimbus Note](https://thefusebase.com/note/).
 -   In the import menu, click on **Import from Bear**.
 
-![Import pages to Nimbus](https://app.nimbusweb.me/box/attachment/5533623/nasg91a5908w2kuc8g3b/qkkk7NoAWV0ISncQ/Group%20214.png)
+![Import pages to Nimbus](https://thefusebase.com/box/attachment/5533623/nasg91a5908w2kuc8g3b/qkkk7NoAWV0ISncQ/Group 214.png)
 
-![Import pages to Nimbus](https://app.nimbusweb.me/box/attachment/5533623/nasg91a5908w2kuc8g3b/OxyHUJDrucIyasZA/Group%20209%20(1).png)
+![Import pages to Nimbus](https://thefusebase.com/box/attachment/5533623/nasg91a5908w2kuc8g3b/OxyHUJDrucIyasZA/Group 209 (1).png)
 
 -   Select the exported **HTML file**.
 -   Wait for the import to finish.

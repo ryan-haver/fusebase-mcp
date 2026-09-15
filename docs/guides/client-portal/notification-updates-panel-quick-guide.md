@@ -1,11 +1,37 @@
 ---
 title: "Notification/Updates Panel – Quick Guide"
-url: "https://thefusebase.com/guides/client-portal/notification-updates-panel-quick-guide/"
+url: "https://thefusebase.com/guides/client-portal/notification-updates-panel-quick-guide"
 section: "client-portal"
-lastScraped: "2026-09-12T05:17:13.069Z"
+lastScraped: "2026-09-15T04:44:37.918Z"
 ---
 
 # Notification/Updates Panel – Quick Guide
+
+[Back to Portals](/guides/client-portal)
+
+Portals
+
+# Notification/Updates Panel – Quick Guide
+
+The notification panel allows your clients to stay informed about what’s happening on your portal. For example, clients can receive updates about: Access to the notification panel...
+
+Guide details
+
+Published
+
+September 30, 2024
+
+Read time
+
+1 min read
+
+Category
+
+Portals
+
+In this guide
+
+This guide is a short walkthrough.
 
 The notification panel allows your clients to stay informed about what’s happening on your portal. For example, clients can receive updates about:
 
@@ -17,11 +43,11 @@ The notification panel allows your clients to stay informed about what’s happe
 
 Access to the notification panel is available through the corresponding icon in the top bar of the portal.
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-74-1024x314.png)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2024/09/image-74-1024x314.png)
 
 Next, the notification panel will open.
 
-![](https://thefusebase.com/wp-content/uploads/2024/09/image-75.png)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2024/09/image-75.png)
 
 The panel is divided into two tabs:
 
@@ -30,18 +56,18 @@ The panel is divided into two tabs:
 
 Clicking on an event will take you to the source, such as the portal page, task dashboard, etc.
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20819%20655'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2024/09/image-76.png)
 
 If you need to hide the notification panel, it’s easy to do:
 
 1) Go to edit the top bar (hover over it and click the pencil icon) –
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20545'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2024/09/image-80-1024x545.png)
 
 2) Deactivate the **Updates panel** switcher –
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20549'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2024/09/image-81-1024x549.png)
 
 3) Save and then publish the changes –
 
-![](data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201024%20544'%3E%3C/svg%3E)
+![](/hosting-assets/legacy/thefusebase/wp-content/uploads/2024/09/image-82-1024x544.png)
