@@ -1,11 +1,11 @@
 {
   "project": "FuseBase MCP Server",
   "version": "0.0.0",
-  "lastUpdated": "2026-09-15T05:41:25.092Z",
+  "lastUpdated": "2026-09-15T05:44:43.887Z",
   "git": {
-    "commit": "a0ec85d",
+    "commit": "a730d88",
     "branch": "master",
-    "commitDate": "2026-09-14T23:39:26-06:00"
+    "commitDate": "2026-09-14T23:41:41-06:00"
   },
   "protocol": {
     "specification": "JSON-RPC 2.0",
