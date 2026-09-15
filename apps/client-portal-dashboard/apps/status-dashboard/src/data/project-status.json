@@ -1,11 +1,11 @@
 {
   "project": "FuseBase MCP Server",
   "version": "0.0.0",
-  "lastUpdated": "2026-09-15T05:29:22.475Z",
+  "lastUpdated": "2026-09-15T05:41:25.092Z",
   "git": {
-    "commit": "2aabedf",
+    "commit": "a0ec85d",
     "branch": "master",
-    "commitDate": "2026-09-14T23:26:39-06:00"
+    "commitDate": "2026-09-14T23:39:26-06:00"
   },
   "protocol": {
     "specification": "JSON-RPC 2.0",
@@ -571,7 +571,7 @@
     },
     {
       "name": "list_guide_sections",
-      "description": "List all 17 FuseBase guide sections with the number of guides in each. Use this to browse available documentation categories before searching for specific topics.",
+      "description": "List all 19 FuseBase guide sections with the number of guides in each. Use this to browse available documentation categories before searching for specific topics.",
       "tier": "core",
       "category": "Diagnostics, Preferences & Guides",
       "parameters": []
