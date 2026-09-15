@@ -140,13 +140,34 @@ async function main() {
   // 1.1 list_workspaces
   const workspaces = await callTool(client, "list_workspaces");
   assertArray(workspaces, "list_workspaces", 1);
-  const targetWs = workspaces[0];
+  const wsArg = process.argv.find((a) => a.startsWith("--workspace="))?.split("=")[1];
+  const targetSpec = wsArg || process.env.FUSEBASE_WORKSPACE_ID;
+  let targetWs = workspaces[0];
+
+  if (targetSpec) {
+    const found = workspaces.find(
+      (w: any) =>
+        w.workspaceId.toLowerCase() === targetSpec.toLowerCase() ||
+        w.title.toLowerCase() === targetSpec.toLowerCase() ||
+        w.title.toLowerCase().includes(targetSpec.toLowerCase())
+    );
+    if (found) targetWs = found;
+  } else {
+    // Prefer dedicated project or agent workspace by default to protect personal workspace
+    const dedicated = workspaces.find(
+      (w: any) =>
+        w.title.toLowerCase().includes("mcp") ||
+        w.title.toLowerCase().includes("agent")
+    );
+    if (dedicated) targetWs = dedicated;
+  }
+
   assertString(targetWs.workspaceId, "workspaceId");
   assertString(targetWs.orgId, "orgId");
   assertString(targetWs.title, "title");
   const targetWsId = targetWs.workspaceId;
   const orgId = targetWs.orgId;
-  console.log(`✅ [1/143] list_workspaces: Found ${workspaces.length} workspaces. Target: ${targetWsId} (Org: ${orgId})`);
+  console.log(`✅ [1/143] list_workspaces: Found ${workspaces.length} workspaces. Target: "${targetWs.title}" (${targetWsId}) [Org: ${orgId}]`);
 
   // 1.2 get_workspace_info
   const wsInfo = await callTool(client, "get_workspace_info", { workspaceId: targetWsId });

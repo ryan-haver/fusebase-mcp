@@ -171,7 +171,29 @@ You can also run automated verification directly from your terminal:
 npm run test:data-validation  # Full deep data validation across all 143 tools & endpoints
 npm run test:audit            # Validate all 143 tool schemas, parameters, and documentation
 npm test                      # Run full 15-stage platform end-to-end test suite
+npm run deploy:status         # Build & deploy live status dashboard to fusebase-mcp.thefusebase.app
+npm run deploy:page           # Embed the live status dashboard into a FuseBase workspace note
 ```
+
+### Target Workspace Selection & Isolation
+
+By default, test suites and workspace deployments prioritize dedicated project workspaces (e.g. named `"Agent Projects"` or `"FuseBase MCP"`) to isolate test runs and prevent polluting personal or client workspaces.
+
+You can explicitly target any workspace in your FuseBase organization:
+- **CLI flag**:
+  ```bash
+  npm run test:data-validation -- --workspace="Agent Projects"
+  npm run deploy:page -- --workspace="Agent Projects"
+  ```
+- **Environment variable**: Set `FUSEBASE_WORKSPACE_ID` in your `.env`:
+  ```env
+  FUSEBASE_WORKSPACE_ID=49b306wxd9oa7hyc
+  ```
+- **Automatic Fallback**:
+  1. CLI `--workspace=<id|name>`
+  2. `.env` `FUSEBASE_WORKSPACE_ID`
+  3. Auto-detected workspace with `"mcp"` or `"agent"` in title
+  4. First available organization workspace
 
 ## 📚 Native MCP Resources & Prompts
 
