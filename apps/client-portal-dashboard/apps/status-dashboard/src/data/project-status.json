@@ -1,11 +1,11 @@
 {
   "project": "FuseBase MCP Server",
   "version": "0.0.0",
-  "lastUpdated": "2026-09-15T04:46:05.858Z",
+  "lastUpdated": "2026-09-15T05:29:22.475Z",
   "git": {
-    "commit": "e76f014",
+    "commit": "2aabedf",
     "branch": "master",
-    "commitDate": "2026-09-14T22:30:58-06:00"
+    "commitDate": "2026-09-14T23:26:39-06:00"
   },
   "protocol": {
     "specification": "JSON-RPC 2.0",
@@ -13,14 +13,14 @@
     "status": "HEALTHY"
   },
   "summary": {
-    "totalTools": 165,
+    "totalTools": 168,
     "coreTools": 34,
-    "extendedTools": 131,
-    "totalSuites": 13,
-    "totalAssertions": 181,
-    "passedAssertions": 181,
+    "extendedTools": 134,
+    "totalSuites": 14,
+    "totalAssertions": 184,
+    "passedAssertions": 184,
     "passRatePercent": 100,
-    "documentationGuides": 277
+    "documentationGuides": 278
   },
   "testSuites": [
     {
@@ -117,7 +117,7 @@
       "toolsCount": 16,
       "assertionsCount": 28,
       "status": "passed",
-      "description": "Version check, headless cookie refresh, session health, preferences, templates, 277 offline guides"
+      "description": "Version check, headless cookie refresh, session health, preferences, templates, 278 offline guides"
     },
     {
       "id": 13,
@@ -126,6 +126,14 @@
       "assertionsCount": 9,
       "status": "passed",
       "description": "Isolated store discovery, provisioning, SQL table catalog, read/write queries, and migration bundles"
+    },
+    {
+      "id": 14,
+      "name": "FuseBase Work, Firecrawl & n8n Integration",
+      "toolsCount": 3,
+      "assertionsCount": 3,
+      "status": "passed",
+      "description": "AI agent prompt dispatch, Firecrawl web content extraction, and n8n workflow triggers"
     }
   ],
   "milestones": [
@@ -2055,6 +2063,42 @@
         "bundle",
         "stage",
         "dryRun",
+        "profile"
+      ]
+    },
+    {
+      "name": "fusebase_work_run_agent",
+      "description": "Run a task or send a prompt to an AI agent in FuseBase Work. Initiates an agent run thread or appends to an existing thread.",
+      "tier": "extended",
+      "category": "FuseBase Work, Firecrawl & n8n",
+      "parameters": [
+        "agentId",
+        "prompt",
+        "threadId",
+        "profile"
+      ]
+    },
+    {
+      "name": "fusebase_work_scrape_url",
+      "description": "Scrape and extract clean web content from a URL using FuseBase Work's hosted Firecrawl engine or web parser agent.",
+      "tier": "extended",
+      "category": "FuseBase Work, Firecrawl & n8n",
+      "parameters": [
+        "url",
+        "agentId",
+        "formats",
+        "prompt",
+        "profile"
+      ]
+    },
+    {
+      "name": "fusebase_work_trigger_n8n",
+      "description": "Trigger an n8n workflow or automation flow in FuseBase Work with custom input parameters.",
+      "tier": "extended",
+      "category": "FuseBase Work, Firecrawl & n8n",
+      "parameters": [
+        "flowId",
+        "payload",
         "profile"
       ]
     }

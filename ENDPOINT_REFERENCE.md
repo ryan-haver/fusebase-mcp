@@ -4,7 +4,7 @@
 > Update this document when new endpoints are discovered or new tools are implemented.
 >
 > Source: API discovery crawl & comprehensive method probe (182 method/route probes).
-> Cross-referenced against 165 implemented MCP tools (34 Core, 131 Extended).
+> Cross-referenced against 168 implemented MCP tools (34 Core, 134 Extended).
 > Last updated: 2026-09-14
 
 ---

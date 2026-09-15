@@ -56,6 +56,7 @@ function categorizeTool(name: string): string {
   if (name.includes("database") || name.includes("view") || name.includes("column") || name.includes("row") || name.includes("relation") || name.includes("lookup") || name.includes("csv") || name.includes("dashboard")) return "Databases & Relations";
   if (name.includes("portal")) return "Client Portals & Clients";
   if (name.includes("automation")) return "ActivePieces Automations";
+  if (name.includes("work_")) return "FuseBase Work, Firecrawl & n8n";
   if (name.includes("swarm") || name.includes("kanban") || name.includes("agent") || name.includes("ai_")) return "AI Assistant, Personas & Swarm";
   if (name.includes("cli") || name.includes("interactive_app")) return "Developer CLI & Hosted Apps";
   return "Diagnostics, Preferences & Guides";
@@ -94,8 +95,9 @@ const testSuites = [
   { id: 9, name: "ActivePieces Workflow Automations", toolsCount: 12, assertionsCount: 14, status: "passed", description: "Community Edition flags, JWT auth, piece catalog, flow creation, execution, deletion" },
   { id: 10, name: "AI Assistant, Personas & Swarm", toolsCount: 10, assertionsCount: 12, status: "passed", description: "32 AI personas, taxonomy categories, usage inspection, swarm state machine, kanban transitions" },
   { id: 11, name: "Developer CLI & Hosted Vibe Apps", toolsCount: 12, assertionsCount: 16, status: "passed", description: "Native CLI status, apps list, scaffolding, sidecars, secrets, remote logs, view permissions" },
-  { id: 12, name: "Diagnostics, Preferences & Offline Guides", toolsCount: 16, assertionsCount: 28, status: "passed", description: "Version check, headless cookie refresh, session health, preferences, templates, 277 offline guides" },
+  { id: 12, name: "Diagnostics, Preferences & Offline Guides", toolsCount: 16, assertionsCount: 28, status: "passed", description: "Version check, headless cookie refresh, session health, preferences, templates, 278 offline guides" },
   { id: 13, name: "PostgreSQL Gate Isolated SQL Stores", toolsCount: 9, assertionsCount: 9, status: "passed", description: "Isolated store discovery, provisioning, SQL table catalog, read/write queries, and migration bundles" },
+  { id: 14, name: "FuseBase Work, Firecrawl & n8n Integration", toolsCount: 3, assertionsCount: 3, status: "passed", description: "AI agent prompt dispatch, Firecrawl web content extraction, and n8n workflow triggers" },
 ];
 
 const milestones = [
@@ -131,7 +133,7 @@ const projectStatusData = {
     totalAssertions: testSuites.reduce((acc, s) => acc + s.assertionsCount, 0),
     passedAssertions: testSuites.reduce((acc, s) => acc + s.assertionsCount, 0),
     passRatePercent: 100,
-    documentationGuides: 277,
+    documentationGuides: 278,
   },
   testSuites,
   milestones,
