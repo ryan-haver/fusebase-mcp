@@ -1,16 +1,15 @@
 {
   "project": "FuseBase MCP Server",
   "version": "0.0.0",
-  "lastUpdated": "2026-09-15T01:58:19.785Z",
+  "lastUpdated": "2026-09-15T02:07:15.038Z",
   "git": {
-    "commit": "541660f",
+    "commit": "2b23dc9",
     "branch": "master",
-    "commitDate": "2026-09-14T19:58:11-06:00"
+    "commitDate": "2026-09-14T19:58:36-06:00"
   },
-  "environment": {
-    "cloudHost": "inkabeam.nimbusweb.me",
-    "organizationId": "u268r1",
-    "primaryWorkspaceId": "45h7lom5ryjak34u",
+  "protocol": {
+    "specification": "JSON-RPC 2.0",
+    "compliance": "RFC 6570",
     "status": "HEALTHY"
   },
   "summary": {
@@ -20,7 +19,8 @@
     "totalSuites": 12,
     "totalAssertions": 162,
     "passedAssertions": 162,
-    "passRatePercent": 100
+    "passRatePercent": 100,
+    "documentationGuides": 277
   },
   "testSuites": [
     {

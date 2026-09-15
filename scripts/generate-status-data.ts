@@ -117,10 +117,9 @@ const projectStatusData = {
     branch: gitBranch,
     commitDate: gitDate,
   },
-  environment: {
-    cloudHost: "inkabeam.nimbusweb.me",
-    organizationId: "u268r1",
-    primaryWorkspaceId: "45h7lom5ryjak34u",
+  protocol: {
+    specification: "JSON-RPC 2.0",
+    compliance: "RFC 6570",
     status: "HEALTHY",
   },
   summary: {
@@ -131,6 +130,7 @@ const projectStatusData = {
     totalAssertions: 162,
     passedAssertions: 162,
     passRatePercent: 100,
+    documentationGuides: 277,
   },
   testSuites,
   milestones,

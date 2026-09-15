@@ -5,7 +5,6 @@ import {
   Wrench,
   Layers,
   GitCommit,
-  Cloud,
   Database,
   FileText,
   Terminal,
@@ -171,15 +170,13 @@ export default function App() {
 
         <div className="kpi-card">
           <div className="kpi-icon-wrap icon-cyan">
-            <Cloud style={{ width: '24px', height: '24px' }} />
+            <Terminal style={{ width: '24px', height: '24px' }} />
           </div>
           <div>
-            <div className="kpi-value kpi-value-sm" style={{ color: '#22d3ee' }}>{statusData.environment.cloudHost}</div>
-            <div className="kpi-label">Connected Cloud Workspace</div>
+            <div className="kpi-value" style={{ color: '#22d3ee' }}>JSON-RPC 2.0</div>
+            <div className="kpi-label">MCP Protocol Compliance</div>
             <div className="kpi-subtext">
-              Org: <span style={{ fontFamily: 'monospace', color: '#e5e7eb' }}>{statusData.environment.organizationId}</span>
-              {' • '}
-              WS: <span style={{ fontFamily: 'monospace', color: '#e5e7eb' }}>{statusData.environment.primaryWorkspaceId.slice(0, 8)}...</span>
+              <strong style={{ color: '#22d3ee' }}>RFC 6570</strong> • Universal Client Protocol
             </div>
           </div>
         </div>
@@ -310,11 +307,11 @@ export default function App() {
               <ul className="key-val-list">
                 <li className="key-val-item">
                   <span className="key-val-label">Core Cloud Gateway:</span>
-                  <span className="key-val-data">https://inkabeam.nimbusweb.me/v2/api</span>
+                  <span className="key-val-data">https://&#123;org&#125;.nimbusweb.me/v2/api</span>
                 </li>
                 <li className="key-val-item">
                   <span className="key-val-label">Collaborative Sync Transport:</span>
-                  <span className="key-val-data">wss://inkabeam.nimbusweb.me/v4/api/texts</span>
+                  <span className="key-val-data">wss://&#123;org&#125;.nimbusweb.me/v4/api/texts</span>
                 </li>
                 <li className="key-val-item">
                   <span className="key-val-label">ActivePieces Engine:</span>
