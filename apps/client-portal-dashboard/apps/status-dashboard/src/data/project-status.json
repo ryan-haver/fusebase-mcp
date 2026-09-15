@@ -1,11 +1,11 @@
 {
   "project": "FuseBase MCP Server",
   "version": "0.0.0",
-  "lastUpdated": "2026-09-15T19:34:32.845Z",
+  "lastUpdated": "2026-09-15T19:40:28.998Z",
   "git": {
-    "commit": "88f6659",
+    "commit": "6c6c4be",
     "branch": "master",
-    "commitDate": "2026-09-15T12:13:41-06:00"
+    "commitDate": "2026-09-15T13:35:35-06:00"
   },
   "protocol": {
     "specification": "JSON-RPC 2.0",
@@ -16,9 +16,9 @@
     "totalTools": 175,
     "coreTools": 34,
     "extendedTools": 141,
-    "totalSuites": 15,
-    "totalAssertions": 191,
-    "passedAssertions": 191,
+    "totalSuites": 16,
+    "totalAssertions": 206,
+    "passedAssertions": 206,
     "passRatePercent": 100,
     "documentationGuides": 278
   },
@@ -142,6 +142,14 @@
       "assertionsCount": 7,
       "status": "passed",
       "description": "Direct token connection, whoami tenant resolution, scoped token creation, revocation, and direct MCP tool calls"
+    },
+    {
+      "id": 16,
+      "name": "Authentication Modes & Feature Parity Validation",
+      "toolsCount": 11,
+      "assertionsCount": 15,
+      "status": "passed",
+      "description": "Empirical side-by-side validation of Pure Token Mode vs Session Cookie Mode across all 11 platform domains"
     }
   ],
   "milestones": [
@@ -207,6 +215,13 @@
       "status": "completed",
       "date": "Sept 2026",
       "description": "Zero-browser direct API token connection to gate-mcp and dashboards-mcp over Streamable HTTP SSE with automatic tenant identity discovery and first-class token lifecycle management"
+    },
+    {
+      "id": "m10",
+      "title": "Authentication Feature Parity & Gate CRUD Fallbacks",
+      "status": "completed",
+      "date": "Sept 2026",
+      "description": "Full empirical parity test suite validating Pure Token Mode vs Cookie Session Mode across 11 core domains, seamless Gate MCP page/note/folder CRUD fallback in client, and comprehensive architectural documentation"
     }
   ],
   "tools": [

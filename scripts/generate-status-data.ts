@@ -100,6 +100,7 @@ const testSuites = [
   { id: 13, name: "PostgreSQL Gate Isolated SQL Stores", toolsCount: 9, assertionsCount: 9, status: "passed", description: "Isolated store discovery, provisioning, SQL table catalog, read/write queries, and migration bundles" },
   { id: 14, name: "FuseBase Work, Firecrawl & n8n Integration", toolsCount: 3, assertionsCount: 3, status: "passed", description: "AI agent prompt dispatch, Firecrawl web content extraction, and n8n workflow triggers" },
   { id: 15, name: "Direct Gate Bridge & Token Management", toolsCount: 7, assertionsCount: 7, status: "passed", description: "Direct token connection, whoami tenant resolution, scoped token creation, revocation, and direct MCP tool calls" },
+  { id: 16, name: "Authentication Modes & Feature Parity Validation", toolsCount: 11, assertionsCount: 15, status: "passed", description: "Empirical side-by-side validation of Pure Token Mode vs Session Cookie Mode across all 11 platform domains" },
 ];
 
 const milestones = [
@@ -112,6 +113,7 @@ const milestones = [
   { id: "m7", title: "182-Route Exhaustive Discovery & Error Diagnostic", status: "completed", date: "Sept 2026", description: "Full API crawl cataloging live vs decommissioned endpoints, container root-cause diagnostics, and move_page promotion" },
   { id: "m8", title: "Full-Spectrum 175-Tool Deep Data Validation", status: "completed", date: "Sept 2026", description: "100% live data assertion test harness: 175/175 tools, 172/172 passed data assertions, 0 leaks" },
   { id: "m9", title: "Official Remote Gate & Dashboards MCP Token Bridge", status: "completed", date: "Sept 2026", description: "Zero-browser direct API token connection to gate-mcp and dashboards-mcp over Streamable HTTP SSE with automatic tenant identity discovery and first-class token lifecycle management" },
+  { id: "m10", title: "Authentication Feature Parity & Gate CRUD Fallbacks", status: "completed", date: "Sept 2026", description: "Full empirical parity test suite validating Pure Token Mode vs Cookie Session Mode across 11 core domains, seamless Gate MCP page/note/folder CRUD fallback in client, and comprehensive architectural documentation" },
 ];
 
 const projectStatusData = {

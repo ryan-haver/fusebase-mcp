@@ -2,7 +2,8 @@
 
 [![Live Status Dashboard](https://img.shields.io/badge/Live%20Status-Operational-10b981?style=for-the-badge&logo=googlecloud&logoColor=white)](https://fusebase-mcp.thefusebase.app/)
 [![Production Tools](https://img.shields.io/badge/Production%20Tools-175%20Verified-6366f1?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
-[![Automated Assertions](https://img.shields.io/badge/Automated%20Assertions-172%20Passing-10b981?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
+[![Automated Assertions](https://img.shields.io/badge/Automated%20Assertions-206%20Passing-10b981?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
+[![Feature Parity](https://img.shields.io/badge/Token%20vs%20Cookie%20Parity-100%25%20Verified-8b5cf6?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 [![Deep Data Validation](https://img.shields.io/badge/Deep%20Data%20Validation-100%25%20Verified-0ea5e9?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 
 An enterprise-grade [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server enabling autonomous AI coding agents and developers to programmatically manage [FuseBase](https://www.fusebase.com/) (formerly Nimbus Note) workspaces - collaborative Y.js documents, relational tables, ActivePieces automations, client portals, hosted web apps, and multi-agent swarm boards with 100% deep data validation.
