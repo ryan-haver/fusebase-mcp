@@ -1,11 +1,11 @@
 {
   "project": "FuseBase MCP Server",
   "version": "0.0.0",
-  "lastUpdated": "2026-09-15T02:21:11.036Z",
+  "lastUpdated": "2026-09-15T04:46:05.858Z",
   "git": {
-    "commit": "e846a12",
+    "commit": "e76f014",
     "branch": "master",
-    "commitDate": "2026-09-14T20:21:04-06:00"
+    "commitDate": "2026-09-14T22:30:58-06:00"
   },
   "protocol": {
     "specification": "JSON-RPC 2.0",
@@ -13,12 +13,12 @@
     "status": "HEALTHY"
   },
   "summary": {
-    "totalTools": 143,
+    "totalTools": 165,
     "coreTools": 34,
-    "extendedTools": 109,
-    "totalSuites": 12,
-    "totalAssertions": 162,
-    "passedAssertions": 162,
+    "extendedTools": 131,
+    "totalSuites": 13,
+    "totalAssertions": 181,
+    "passedAssertions": 181,
     "passRatePercent": 100,
     "documentationGuides": 277
   },
@@ -73,7 +73,7 @@
     },
     {
       "id": 7,
-      "name": "Databases, Views & Relations",
+      "name": "Databases, Views, Columns & Relations",
       "toolsCount": 28,
       "assertionsCount": 34,
       "status": "passed",
@@ -106,18 +106,26 @@
     {
       "id": 11,
       "name": "Developer CLI & Hosted Vibe Apps",
-      "toolsCount": 5,
-      "assertionsCount": 7,
+      "toolsCount": 12,
+      "assertionsCount": 16,
       "status": "passed",
-      "description": "Native CLI status, vibe coding app list, scaffolding generator, interactive app pages"
+      "description": "Native CLI status, apps list, scaffolding, sidecars, secrets, remote logs, view permissions"
     },
     {
       "id": 12,
       "name": "Diagnostics, Preferences & Offline Guides",
       "toolsCount": 16,
-      "assertionsCount": 27,
+      "assertionsCount": 28,
       "status": "passed",
       "description": "Version check, headless cookie refresh, session health, preferences, templates, 277 offline guides"
+    },
+    {
+      "id": 13,
+      "name": "PostgreSQL Gate Isolated SQL Stores",
+      "toolsCount": 9,
+      "assertionsCount": 9,
+      "status": "passed",
+      "description": "Isolated store discovery, provisioning, SQL table catalog, read/write queries, and migration bundles"
     }
   ],
   "milestones": [
@@ -892,13 +900,15 @@
     },
     {
       "name": "add_database_row",
-      "description": "Add a new row to a database entity table. For built-in entities (clients, spaces), only entity name is needed. For custom databases, also provide databaseId and dashboardId (from list_databases or create_database). Uses Next.js server action internally.",
+      "description": "Add a new row to a database table or entity. Uses canonical batchPutDashboardData with create_new_row: true. You can optionally supply initial column values as a key-value map (using column display names or opaque item_keys).",
       "tier": "extended",
       "category": "Databases & Relations",
       "parameters": [
         "entity",
         "databaseId",
         "dashboardId",
+        "viewId",
+        "values",
         "orgId",
         "profile"
       ]
@@ -911,6 +921,76 @@
       "parameters": [
         "dashboardId",
         "rowId",
+        "profile"
+      ]
+    },
+    {
+      "name": "batch_put_database_data",
+      "description": "High-throughput batch create and update for database rows and cell values. Supports creating new rows (create_new_row: true) and updating existing rows (create_new_row: false, root_index_value: rowUuid). Values can use column display names or opaque item_keys. To delete a cell value, pass null.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "rows",
+        "profile"
+      ]
+    },
+    {
+      "name": "resolve_database_alias",
+      "description": "Resolve a system managed database or dashboard alias ('companies_db', 'deals_db', 'meetings', 'clients', 'spaces') to its database, dashboard, and view UUIDs. Useful for CRM and pipeline automation.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "alias",
+        "profile"
+      ]
+    },
+    {
+      "name": "link_database_rows",
+      "description": "Link two rows between related tables via an existing relation. Requires the relation ID, the source row UUID (from the source table), and the target row UUID (from the target table). Use list_database_relations to find relation IDs.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "relationId",
+        "sourceRowUuid",
+        "targetRowUuid",
+        "profile"
+      ]
+    },
+    {
+      "name": "unlink_database_rows",
+      "description": "Remove a link between two rows in related tables. If sourceRowUuid and targetRowUuid are omitted, removes all links for the relation.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "relationId",
+        "sourceRowUuid",
+        "targetRowUuid",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_relation_rows",
+      "description": "Get active row link mappings for a relation. Shows which source rows are linked to which target rows.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "relationId",
+        "profile"
+      ]
+    },
+    {
+      "name": "reorder_database_rows",
+      "description": "Reorder rows within a database view or section. Takes an array of { rowUuid, order } objects.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "rowOrders",
+        "sectionType",
+        "sectionKey",
         "profile"
       ]
     },
@@ -945,6 +1025,7 @@
       "tier": "extended",
       "category": "Databases & Relations",
       "parameters": [
+        "databaseId",
         "dashboardId",
         "title",
         "profile"
@@ -957,6 +1038,7 @@
       "category": "Databases & Relations",
       "parameters": [
         "relationId",
+        "dashboardId",
         "profile"
       ]
     },
@@ -1110,6 +1192,7 @@
       "parameters": [
         "dashboardId",
         "sourceViewId",
+        "viewId",
         "name",
         "profile"
       ]
@@ -1121,6 +1204,7 @@
       "category": "Databases & Relations",
       "parameters": [
         "csvContent",
+        "csv",
         "databaseId",
         "dashboardId",
         "viewId",
@@ -1195,7 +1279,7 @@
     },
     {
       "name": "get_database_rows",
-      "description": "Get rows from a database view in a structured format optimised for agent use. Each row includes: rowUuid (needed for update_database_cell), cells (column name → value map), and rawCells (column key → value map). Also returns the schema (column name, key, type) so you can look up the correct column key before calling update_database_cell. Wraps get_database_data with friendly field names.",
+      "description": "Get rows from a database view in a structured format optimised for agent use. Each row includes: rowUuid (needed for update_database_cell), cells (raw column key → value map), and namedCells (human-readable column name → value map). Wraps get_database_data with friendly field names and schema reflection.",
       "tier": "extended",
       "category": "Databases & Relations",
       "parameters": [
@@ -1203,6 +1287,7 @@
         "viewId",
         "page",
         "limit",
+        "resolveNames",
         "profile"
       ]
     },
@@ -1490,6 +1575,91 @@
       ]
     },
     {
+      "name": "fusebase_cli_sidecar_add",
+      "description": "Add an auxiliary Docker sidecar container (e.g. headless Chromium, Redis cache, Lightpanda) to an app backend via the FuseBase CLI.",
+      "tier": "extended",
+      "category": "Developer CLI & Hosted Apps",
+      "parameters": [
+        "appPath",
+        "name",
+        "image",
+        "port",
+        "tier",
+        "env",
+        "secrets",
+        "cwd"
+      ]
+    },
+    {
+      "name": "fusebase_cli_sidecar_list",
+      "description": "List configured Docker sidecar containers for an app via the FuseBase CLI.",
+      "tier": "extended",
+      "category": "Developer CLI & Hosted Apps",
+      "parameters": [
+        "appPath",
+        "cwd"
+      ]
+    },
+    {
+      "name": "fusebase_cli_sidecar_remove",
+      "description": "Remove a Docker sidecar container from an app via the FuseBase CLI.",
+      "tier": "extended",
+      "category": "Developer CLI & Hosted Apps",
+      "parameters": [
+        "appPath",
+        "name",
+        "cwd"
+      ]
+    },
+    {
+      "name": "fusebase_cli_secret_create",
+      "description": "Register a platform application secret key for an app via the FuseBase CLI.",
+      "tier": "extended",
+      "category": "Developer CLI & Hosted Apps",
+      "parameters": [
+        "appPath",
+        "key",
+        "description",
+        "cwd"
+      ]
+    },
+    {
+      "name": "fusebase_cli_secret_list",
+      "description": "List registered application secrets for an app via the FuseBase CLI.",
+      "tier": "extended",
+      "category": "Developer CLI & Hosted Apps",
+      "parameters": [
+        "appPath",
+        "cwd"
+      ]
+    },
+    {
+      "name": "fusebase_cli_logs",
+      "description": "Retrieve remote deployment logs or local dev logs for a FuseBase app.",
+      "tier": "extended",
+      "category": "Developer CLI & Hosted Apps",
+      "parameters": [
+        "appPath",
+        "lines",
+        "type",
+        "cwd"
+      ]
+    },
+    {
+      "name": "fusebase_cli_app_update",
+      "description": "Update an existing app's configuration via the FuseBase CLI, including dashboard view permissions and build commands.",
+      "tier": "extended",
+      "category": "Developer CLI & Hosted Apps",
+      "parameters": [
+        "appIdOrPath",
+        "permissions",
+        "devCommand",
+        "buildCommand",
+        "outputDir",
+        "cwd"
+      ]
+    },
+    {
       "name": "create_automation_flow",
       "description": "Create a new ActivePieces workflow automation in FuseBase.",
       "tier": "extended",
@@ -1570,18 +1740,19 @@
     },
     {
       "name": "fusebase_swarm_init",
-      "description": "Initialize a multi-agent swarm state machine database in FuseBase. Creates a Kanban board structured with roles (agent-pm, agent-architect, agent-dev, agent-qa), task statuses (Backlog, In Progress, Review, Done), and audit trails.",
+      "description": "Initialize a multi-agent swarm state machine database in FuseBase. Supports 'standard' 4-stage Kanban or 'flow' for FuseBase Flow's official 8-phase lifecycle (Specify -> Clarify -> Plan -> Decisions -> Tasks -> Verify Gate -> Implement -> Review & Deploy) with product-owner and ai-developer roles.",
       "tier": "extended",
       "category": "AI Assistant, Personas & Swarm",
       "parameters": [
         "title",
         "description",
+        "template",
         "profile"
       ]
     },
     {
       "name": "fusebase_swarm_task_transition",
-      "description": "Transition a swarm task across lifecycle stages (Backlog -> In Progress -> Review -> Done), record agent audit comments, and trigger next-agent handover.",
+      "description": "Transition a swarm task across lifecycle stages (e.g. Backlog -> In Progress -> Review -> Done, or Flow 8-phase stages), record agent audit comments, and trigger next-agent handover.",
       "tier": "extended",
       "category": "Tasks & Projects",
       "parameters": [
@@ -1769,6 +1940,121 @@
       "tier": "extended",
       "category": "ActivePieces Automations",
       "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "list_isolated_stores",
+      "description": "List all isolated PostgreSQL stores (databases) in the organization provisioned via FuseBase Gate.",
+      "tier": "extended",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "orgId",
+        "profile"
+      ]
+    },
+    {
+      "name": "create_isolated_store",
+      "description": "Provision a new isolated PostgreSQL database in the organization via FuseBase Gate.",
+      "tier": "extended",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "alias",
+        "engine",
+        "storeType",
+        "orgId",
+        "profile"
+      ]
+    },
+    {
+      "name": "query_isolated_sql",
+      "description": "Execute a read-only SQL query (SELECT) against a FuseBase PostgreSQL Isolated Store. Runs inside a READ ONLY transaction.",
+      "tier": "extended",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "storeId",
+        "sql",
+        "params",
+        "stage",
+        "profile"
+      ]
+    },
+    {
+      "name": "execute_isolated_sql",
+      "description": "Execute a DML statement (INSERT, UPDATE, DELETE) against a FuseBase PostgreSQL Isolated Store. For schema DDL changes, use apply_isolated_sql_migrations instead.",
+      "tier": "extended",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "storeId",
+        "sql",
+        "params",
+        "stage",
+        "profile"
+      ]
+    },
+    {
+      "name": "select_isolated_sql_rows",
+      "description": "Select rows from a table in a FuseBase PostgreSQL Isolated Store using structured filters and options.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "storeId",
+        "table",
+        "where",
+        "limit",
+        "offset",
+        "order",
+        "stage",
+        "profile"
+      ]
+    },
+    {
+      "name": "insert_isolated_sql_row",
+      "description": "Insert a single row into a table in a FuseBase PostgreSQL Isolated Store.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "storeId",
+        "table",
+        "row",
+        "stage",
+        "profile"
+      ]
+    },
+    {
+      "name": "batch_insert_isolated_sql_rows",
+      "description": "Insert multiple rows into a table in a FuseBase PostgreSQL Isolated Store in a single request.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "storeId",
+        "table",
+        "rows",
+        "stage",
+        "profile"
+      ]
+    },
+    {
+      "name": "list_isolated_sql_tables",
+      "description": "List all user tables in a FuseBase PostgreSQL Isolated Store.",
+      "tier": "extended",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "storeId",
+        "stage",
+        "profile"
+      ]
+    },
+    {
+      "name": "apply_isolated_sql_migrations",
+      "description": "Apply a DDL schema migration bundle to a FuseBase PostgreSQL Isolated Store.",
+      "tier": "extended",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "storeId",
+        "bundle",
+        "stage",
+        "dryRun",
         "profile"
       ]
     }
