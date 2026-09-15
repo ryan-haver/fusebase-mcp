@@ -6,8 +6,8 @@ An [MCP](https://modelcontextprotocol.io/) server that lets AI assistants manage
 
 ## ✨ Features
 
-- **136 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, billing, user preferences, multi-agent profiles, and swarm orchestration
-- **Two-tier system** — 33 core tools load by default (complete CRUD suite); 103 extended tools on demand
+- **143 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, billing, user preferences, multi-agent profiles, and swarm orchestration
+- **Two-tier system** — 34 core tools load by default (complete CRUD suite); 109 extended tools on demand
 - **Token Economics & Markdown Conversion** — retrieve page content as clean Markdown (`get_page_content(format: "markdown")`) for ~50% token reduction via built-in `htmlToMarkdown` converter
 - **Binary Payload Safety & Native Images** — `download_attachment` renders images as native MCP `image` blocks and streams large files directly to local disk (`data/downloads/`)
 - **Safety Annotations (`[DESTRUCTIVE]`)** — permanent deletion tools are explicitly tagged so AI clients and human supervisors can prompt for confirmation
@@ -167,8 +167,9 @@ If it works, you're all set! 🎉
 You can also run automated verification directly from your terminal:
 
 ```bash
-npm run test:audit  # Validate all 143 tool schemas, parameters, and documentation
-npm test            # Run full 14-stage platform end-to-end test suite
+npm run test:data-validation  # Full deep data validation across all 143 tools & endpoints
+npm run test:audit            # Validate all 143 tool schemas, parameters, and documentation
+npm test                      # Run full 15-stage platform end-to-end test suite
 ```
 
 ## 📚 Native MCP Resources & Prompts
@@ -330,13 +331,14 @@ data/                   → (gitignored) Cookie store, downloads, API logs, work
 See [ENDPOINT_REFERENCE.md](ENDPOINT_REFERENCE.md) for all discovered and implemented API endpoints.
 
 ### Completed Milestones
-- [x] **Core Tier CRUD Completeness** — 33 core tools providing full CRUD for pages, folders, content, tasks, and files.
+- [x] **Core Tier CRUD Completeness** — 34 core tools providing full CRUD for pages, folders, content, tasks, and files.
 - [x] **ActivePieces Workflow Automation** — Flow creation, updates, triggers, piece catalog, and JWT exchange.
 - [x] **Client Portal Hub Lifecycle** — Portal creation, domain lookup, theme inspection, client permissions, and magic links.
 - [x] **Multi-Agent Swarm Orchestration** — Collaborative Kanban state machines with role transitions.
 - [x] **Native AI Assistant & Agent Threads** — AI suggestions, threads, and user preferences.
 - [x] **Token Economics & Binary Safety** — HTML-to-Markdown conversion and native image / local disk file staging.
 - [x] **RFC 6570 Resource Templates & Prompts** — Direct URI data mounting and pre-engineered workflows.
+- [x] **Full-Spectrum 143-Tool Deep Data Validation** — 100% live verification with field, type, and lifecycle assertions.
 
 ### Future Opportunities
 - **Bidirectional Webhook Listeners** — Local webhook listener bridge for real-time external event triggers into FuseBase.
@@ -347,20 +349,24 @@ See [ENDPOINT_REFERENCE.md](ENDPOINT_REFERENCE.md) for all discovered and implem
 The server includes automated test suites to ensure zero regressions across tool schemas, parameter types, protocol compliance, and live API synchronization:
 
 ```bash
-# 1. Full Live Platform End-to-End Suite (14 stages against live API)
+# 1. Full-Spectrum 143-Tool Deep Data Validation Suite (12 suites, 100% data assertions)
+npm run test:data-validation
+
+# 2. Full Live Platform End-to-End Suite (15 stages against live API)
 npm test
 
-# 2. Tool Schema, Duplicate, & Documentation Coverage Auditor
+# 3. Tool Schema, Duplicate, & Documentation Coverage Auditor
 npm run test:audit
 
-# 3. Y.js Block Schema & Inline Format Regression Suite
+# 4. Y.js Block Schema & Inline Format Regression Suite
 npm run test:regression
 ```
 
 | Test Command | Coverage Area |
 |---|---|
-| `npm test` | Exercises all 14 platform subsystems: resources, templates, prompts, core/extended switching, Y.js WebSocket sync, CLI status, ActivePieces, portals, and swarms |
-| `npm run test:audit` | Validates that all 136 tools have descriptions, schemas, parameter docs, and 100% documentation coverage in README.md |
+| `npm run test:data-validation` | Deep data validation across all 143 tools and underlying endpoints: asserts schema types, non-null values, UUID formats, round-trip state mutations, and guaranteed resource cleanup |
+| `npm test` | Exercises all 15 platform subsystems: resources, templates, prompts, core/extended switching, Y.js WebSocket sync, CLI status, ActivePieces, portals, and swarms |
+| `npm run test:audit` | Validates that all 143 tools have descriptions, schemas, parameter docs, and 100% documentation coverage in README.md |
 | `npm run test:regression` | Validates round-trip Y.js WebSocket write → read fidelity across all 25+ block types and inline formats |
 
 ## 🤝 Contributing
