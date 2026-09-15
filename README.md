@@ -2,7 +2,7 @@
 
 [![Live Status Dashboard](https://img.shields.io/badge/Live%20Status-Operational-10b981?style=for-the-badge&logo=googlecloud&logoColor=white)](https://fusebase-mcp.thefusebase.app/)
 [![Production Tools](https://img.shields.io/badge/Production%20Tools-165%20Verified-6366f1?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
-[![Cloud Data Assertions](https://img.shields.io/badge/Cloud%20Assertions-162%2F162%20Passed-34d399?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
+[![Cloud Data Assertions](https://img.shields.io/badge/Cloud%20Assertions-171%2F171%20Passed-34d399?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 [![Protocol Compliance](https://img.shields.io/badge/Protocol-JSON--RPC%202.0%20%2B%20RFC%206570-06b6d4?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 
 An enterprise-grade [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server enabling autonomous AI coding agents and developers to programmatically manage [FuseBase](https://www.fusebase.com/) (formerly Nimbus Note) workspaces — collaborative Y.js documents, relational tables, ActivePieces automations, client portals, hosted web apps, and multi-agent swarm boards with 100% deep data validation.
@@ -195,9 +195,11 @@ If it works, you're all set! 🎉
 You can also run automated verification directly from your terminal:
 
 ```bash
-npm run test:data-validation  # Full deep data validation across all 165 tools & endpoints
+npm run test:all              # Master 7-stage unified verification pipeline (100% full platform test)
+npm run test:database         # 13-Phase end-to-end database & relational validation suite (95 assertions)
+npm run test:flow             # ActivePieces workflow automations & FuseBase CLI suite (36 assertions)
+npm run test:data-validation  # Full deep data validation across all 165 tools & endpoints (171 assertions)
 npm run test:audit            # Validate all 165 tool schemas, parameters, and documentation
-npm run test:database         # End-to-end live verification of canonical database, batch, & relation tools
 npm test                      # Run full 15-stage platform end-to-end test suite
 npm run deploy:status         # Build & deploy live status dashboard to fusebase-mcp.thefusebase.app
 npm run deploy:page           # Embed the live status dashboard into a FuseBase workspace note
@@ -373,13 +375,17 @@ src/
   content-schema.ts     → Content block IR (25+ block types)
   markdown-parser.ts    → Markdown → ContentBlock[] converter
 scripts/
-  auth.ts               → Capture/refresh session cookies via Playwright (multi-profile)
-  audit-tools.ts        → Tool schema and parameter completeness validator (`npm run test:audit`)
-  test-mcp-e2e.ts       → Comprehensive 14-stage platform test suite (`npm test`)
-  test-database-e2e.ts  → Full lifecycle verification of canonical database, batch & relation tools (`npm run test:database`)
+  test-all.ts           → Master 7-stage unified verification runner (`npm run test:all`)
+  test-database-e2e.ts  → Dedicated 13-phase e2e database & relational validation suite (`npm run test:database`)
+  test-cli-and-flow.ts  → ActivePieces workflow automations & FuseBase CLI test suite (`npm run test:flow`)
+  test-data-validation.ts → Deep data validation across all 165 tools (`npm run test:data-validation`)
+  test-mcp-e2e.ts       → Full 15-stage platform integration test suite (`npm test`)
   test-regression.ts    → Y.js block type and format regression test (`npm run test:regression`)
+  audit-tools.ts        → Tool schema and parameter completeness validator (`npm run test:audit`)
+  auth.ts               → Capture/refresh session cookies via Playwright (multi-profile)
   inspect-hub.ts        → Deep inspection of client portal and workspace hubs
-  scrape-guides.ts      → Scrape FuseBase help guides into markdown + NLM sync
+  deploy-status-dashboard.ts → Build & deploy live status dashboard SPA (`npm run deploy:status`)
+  deploy-workspace-page.ts   → Embed status dashboard into workspace note (`npm run deploy:page`)
 docs/
   guides/               → 277 FuseBase guides across 19 sections (auto-scraped)
 data/                   → (gitignored) Cookie store, downloads, API logs, workspace cache
@@ -408,38 +414,49 @@ See [ENDPOINT_REFERENCE.md](ENDPOINT_REFERENCE.md) for all discovered and implem
 The server includes automated test suites to ensure zero regressions across tool schemas, parameter types, protocol compliance, and live API synchronization:
 
 ```bash
-# 1. Full-Spectrum 165-Tool Deep Data Validation Suite (12 suites, 100% data assertions)
+# 1. Master 7-Stage Unified Verification Pipeline (Recommended before every push)
+npm run test:all
+
+# 2. Dedicated 13-Phase E2E Database Subsystem Test Suite (Dynamic creation, schema, cells, Kanban, cloning, cleanup)
+npm run test:database
+
+# 3. ActivePieces Workflow Automations & Hosted Vibe Apps CLI Suite
+npm run test:flow
+
+# 4. Full-Spectrum 165-Tool Deep Data Validation Suite (13 suites, 100% data assertions)
 npm run test:data-validation
 
-# 2. Full Live Platform End-to-End Suite (15 stages against live API)
+# 5. Full Live Platform End-to-End Suite (15 stages against live API)
 npm test
 
-# 3. Tool Schema, Duplicate, & Documentation Coverage Auditor
+# 6. Tool Schema, Duplicate, & Documentation Coverage Auditor
 npm run test:audit
 
-# 4. Y.js Block Schema & Inline Format Regression Suite
+# 7. Y.js Block Schema & Inline Format Regression Suite
 npm run test:regression
 
-# 5. Live Status Dashboard Build & Deployment Pipeline (Deploy prior to commit & push)
+# 8. Live Status Dashboard Build & Deployment Pipeline (Deploy prior to commit & push)
 npm run deploy:status
 ```
 
 | Test Command | Coverage Area |
 |---|---|
-| `npm run test:data-validation` | Deep data validation across all 165 tools and underlying endpoints: asserts schema types, non-null values, UUID formats, round-trip state mutations, and guaranteed resource cleanup |
-| `npm test` | Exercises all 15 platform subsystems: resources, templates, prompts, core/extended switching, Y.js WebSocket sync, CLI status, ActivePieces, portals, and swarms |
-| `npm run test:audit` | Validates that all 165 tools have descriptions, schemas, parameter docs, and 100% documentation coverage in README.md |
-| `npm run test:regression` | Validates round-trip Y.js WebSocket write → read fidelity across all 25+ block types and inline formats |
-| `npm run deploy:status` | Synchronizes latest project metrics & git commit details, compiles the dashboard SPA, deploys to `https://fusebase-mcp.thefusebase.app/`, and verifies live HTTP 200 health |
+| `npm run test:all` | **Master 7-stage unified verification runner**: runs Static Type Audit, Tool Schema Audit, Flow & CLI, Y.js block regressions, MCP protocol & prompts, E2E database suite, and Full-Spectrum Live Data Validation |
+| `npm run test:database` | **Dedicated 13-phase database lifecycle suite**: dynamically provisions isolated test databases, verifies 7 column types, schema mutations, batch row ingestion, friendly cell updates, Kanban view shifts, relations, CSV portability, database cloning, and zero-debris automated cleanup (95/95 assertions) |
+| `npm run test:flow` | **ActivePieces & CLI suite**: verifies flow creation, piece discovery, execution triggers, CLI status, app scaffolding, sidecars, secrets, and CRM alias resolution (36/36 assertions) |
+| `npm run test:data-validation` | **Deep data validation across all 165 tools**: asserts schema types, non-null values, UUID formats, round-trip state mutations, and guaranteed resource cleanup (171/171 assertions) |
+| `npm test` | **15 platform subsystems**: resources, templates, prompts, core/extended switching, Y.js WebSocket sync, CLI status, ActivePieces, portals, and swarms |
+| `npm run test:audit` | **Schema & documentation auditor**: validates that all 165 tools have descriptions, schemas, parameter docs, and 100% documentation coverage in README.md |
+| `npm run test:regression` | **Collaborative document fidelity**: validates round-trip Y.js WebSocket write → read fidelity across all 25+ block types and inline formats |
+| `npm run deploy:status` | **Live cloud status synchronization**: compiles dashboard SPA, deploys to `https://fusebase-mcp.thefusebase.app/`, and verifies live HTTP 200 health |
 
 ### Pre-Commit & Push Workflow Checklist
 
 Before any commit and push to git:
-1. **Validate All Tools**: `npm run test:data-validation` (guarantees 100% data assertion pass rate and zero resource leaks).
+1. **Master Pipeline**: `npm run test:all` (runs all 7 stages: type audit, schema audit, flows, Y.js blocks, MCP protocol, database lifecycle, and deep data validation).
 2. **Audit & Lint**: `npm run test:audit` (guarantees schema descriptions and 100% README documentation coverage).
-3. **Verify Regression**: `npm test` (guarantees 15-stage integration pass).
-4. **Deploy Status Dashboard**: `npm run deploy:status` (deploys latest project state & git hash to `https://fusebase-mcp.thefusebase.app/`).
-5. **Commit & Push**: Commit clean changes and push to `origin/master`.
+3. **Deploy Status Dashboard**: `npm run deploy:status` (deploys latest project state & git hash to `https://fusebase-mcp.thefusebase.app/`).
+4. **Commit & Push**: Commit clean changes and push to `origin/master`.
 
 ## 🤝 Contributing
 
