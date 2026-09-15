@@ -2042,7 +2042,7 @@ export function registerExtendedTools(
           client["host"],
           workspaceId,
           page.globalId,
-          client["cookie"],
+          client.getCookie(),
           blocks,
           { replace: true },
         );
@@ -3411,6 +3411,171 @@ export function registerExtendedTools(
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
           ],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  // === Gate Token & Direct MCP Bridge Tools ===
+
+  server.tool(
+    "fusebase_token_list",
+    "List all FuseBase API tokens belonging to the organization / user with scopes, provisioning source, and expiry via FuseBase Gate.",
+    {
+      tokenSource: z.enum(["manual", "app"]).optional().describe("Filter by provisioning source ('manual' for user-created, 'app' for app-provisioned)"),
+      includeExpired: z.boolean().optional().describe("When true, returns expired tokens (hidden by default)"),
+      page: z.number().min(1).optional().describe("Pagination page number (default 1)"),
+      limit: z.number().min(1).max(100).optional().describe("Page size limit (default 20, max 100)"),
+      profile: z.string().optional().describe("Named authentication profile"),
+    },
+    async ({ tokenSource, includeExpired, page, limit, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.listTokens({
+          token_source: tokenSource,
+          include_expired: includeExpired,
+          page,
+          limit,
+        });
+        return {
+          content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_token_create",
+    "Create a new FuseBase API token with specified scopes and permissions (secret token returned only once) via FuseBase Gate.",
+    {
+      name: z.string().describe("Human-readable name or purpose for the token"),
+      scopes: z.array(z.object({
+        scope_type: z.string().describe("Scope type (e.g. 'org' or 'client')"),
+        scope_id: z.string().describe("Scope target ID (e.g. organization ID or app client ID)"),
+      })).describe("Resource scopes to bind the token to"),
+      permissions: z.array(z.string()).describe("Permission strings (e.g. ['health.read', 'notes.read', 'isolated_store.read'])"),
+      expiresAt: z.string().optional().describe("Optional ISO 8601 expiration timestamp"),
+      profile: z.string().optional().describe("Named authentication profile"),
+    },
+    async ({ name, scopes, permissions, expiresAt, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.createToken({
+          name,
+          scopes,
+          permissions,
+          expires_at: expiresAt || null,
+        });
+        return {
+          content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_token_get",
+    "Retrieve details of a specific FuseBase API token by its global ID via FuseBase Gate.",
+    {
+      tokenId: z.string().describe("Global ID of the token to retrieve"),
+      profile: z.string().optional().describe("Named authentication profile"),
+    },
+    async ({ tokenId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.getToken(tokenId);
+        return {
+          content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_token_revoke",
+    "Permanently revoke (soft delete) a FuseBase API token so it can no longer be used for authentication.",
+    {
+      tokenId: z.string().describe("Global ID of the token to revoke"),
+      profile: z.string().optional().describe("Named authentication profile"),
+    },
+    async ({ tokenId, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.revokeToken(tokenId);
+        return {
+          content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_token_permission_catalog",
+    "List all platform base permissions and service-owned permissions registered on the FuseBase Gate platform.",
+    {
+      profile: z.string().optional().describe("Named authentication profile"),
+    },
+    async ({ profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.listPermissionCatalog();
+        return {
+          content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_gate_whoami",
+    "Query the authenticated token identity, tenant organization ID, custom domain, default workspace, and granted scopes/permissions from FuseBase Gate or Dashboards MCP.",
+    {
+      target: z.enum(["gate", "dashboards"]).optional().describe("Upstream target gateway (defaults to 'gate')"),
+      profile: z.string().optional().describe("Named authentication profile"),
+    },
+    async ({ target, profile }) => {
+      const client = getClient(profile);
+      try {
+        const result = await client.gateWhoami(target);
+        return {
+          content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
+        };
+      } catch (error) {
+        return errorResult(error);
+      }
+    },
+  );
+
+  server.tool(
+    "fusebase_direct_tool_call",
+    "Execute any official upstream FuseBase Gate or Dashboards operation directly via the Streamable HTTP MCP bridge.",
+    {
+      opId: z.string().describe("Operation identifier (e.g. 'listIsolatedStores', 'listTokens', 'sendOrgEmail', 'listPortals')"),
+      args: z.record(z.string(), z.unknown()).optional().describe("Operation argument payload object"),
+      target: z.enum(["gate", "dashboards"]).optional().describe("Upstream target gateway ('gate' or 'dashboards', default 'gate')"),
+      profile: z.string().optional().describe("Named authentication profile"),
+    },
+    async ({ opId, args, target, profile }) => {
+      const client = getClient(profile);
+      try {
+        if (!client.gateBridge) {
+          throw new Error("Direct tool call requires Gate MCP bridge. Configure FUSEBASE_GATE_TOKEN or FUSEBASE_TOKEN.");
+        }
+        const result = await client.gateBridge.toolCall(opId, args || {}, target);
+        return {
+          content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
         };
       } catch (error) {
         return errorResult(error);

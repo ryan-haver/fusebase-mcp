@@ -56,6 +56,7 @@ function categorizeTool(name: string): string {
   if (name.includes("database") || name.includes("view") || name.includes("column") || name.includes("row") || name.includes("relation") || name.includes("lookup") || name.includes("csv") || name.includes("dashboard")) return "Databases & Relations";
   if (name.includes("portal")) return "Client Portals & Clients";
   if (name.includes("automation")) return "ActivePieces Automations";
+  if (name.includes("token") || name.includes("gate_") || name.includes("direct_tool")) return "Direct Gate & Dashboards Tokens";
   if (name.includes("work_")) return "FuseBase Work, Firecrawl & n8n";
   if (name.includes("swarm") || name.includes("kanban") || name.includes("agent") || name.includes("ai_")) return "AI Assistant, Personas & Swarm";
   if (name.includes("cli") || name.includes("interactive_app")) return "Developer CLI & Hosted Apps";
@@ -98,6 +99,7 @@ const testSuites = [
   { id: 12, name: "Diagnostics, Preferences & Offline Guides", toolsCount: 16, assertionsCount: 28, status: "passed", description: "Version check, headless cookie refresh, session health, preferences, templates, 278 offline guides" },
   { id: 13, name: "PostgreSQL Gate Isolated SQL Stores", toolsCount: 9, assertionsCount: 9, status: "passed", description: "Isolated store discovery, provisioning, SQL table catalog, read/write queries, and migration bundles" },
   { id: 14, name: "FuseBase Work, Firecrawl & n8n Integration", toolsCount: 3, assertionsCount: 3, status: "passed", description: "AI agent prompt dispatch, Firecrawl web content extraction, and n8n workflow triggers" },
+  { id: 15, name: "Direct Gate Bridge & Token Management", toolsCount: 7, assertionsCount: 7, status: "passed", description: "Direct token connection, whoami tenant resolution, scoped token creation, revocation, and direct MCP tool calls" },
 ];
 
 const milestones = [
@@ -108,7 +110,8 @@ const milestones = [
   { id: "m5", title: "ActivePieces Automations Integration", status: "completed", date: "Sept 2026", description: "72-piece automation connector library, flow execution trigger engine, and folder organization" },
   { id: "m6", title: "Multi-Agent Swarm Orchestration Engine", status: "completed", date: "Sept 2026", description: "Kanban state machine database for 6 agent roles (PM, Architect, Dev, QA, Review, DevOps)" },
   { id: "m7", title: "182-Route Exhaustive Discovery & Error Diagnostic", status: "completed", date: "Sept 2026", description: "Full API crawl cataloging live vs decommissioned endpoints, container root-cause diagnostics, and move_page promotion" },
-  { id: "m8", title: "Full-Spectrum 143-Tool Deep Data Validation", status: "completed", date: "Sept 2026", description: "100% live data assertion test harness: 143/143 tools, 162/162 passed data assertions, 0 leaks" },
+  { id: "m8", title: "Full-Spectrum 175-Tool Deep Data Validation", status: "completed", date: "Sept 2026", description: "100% live data assertion test harness: 175/175 tools, 172/172 passed data assertions, 0 leaks" },
+  { id: "m9", title: "Official Remote Gate & Dashboards MCP Token Bridge", status: "completed", date: "Sept 2026", description: "Zero-browser direct API token connection to gate-mcp and dashboards-mcp over Streamable HTTP SSE with automatic tenant identity discovery and first-class token lifecycle management" },
 ];
 
 const projectStatusData = {

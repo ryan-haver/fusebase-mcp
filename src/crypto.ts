@@ -289,3 +289,66 @@ export function loadCredentialStore(): CredentialStore | null {
     return null;
   }
 }
+
+// ─── Token Store ────────────────────────────────────────────────
+
+export interface TokenCredentials {
+  gateToken?: string;
+  dashboardsToken?: string;
+  token?: string;
+  orgId?: string;
+  host?: string;
+}
+
+/** Get the path to the encrypted token file. Uses profile if provided. */
+export function getTokenEncPath(profile?: string): string {
+  const filename = profile ? `token_${profile}.enc` : "token.enc";
+  return path.join(DATA_DIR, filename);
+}
+
+/**
+ * Save encrypted FuseBase API tokens to data/token_{profile}.enc.
+ */
+export function saveEncryptedToken(
+  tokenData: TokenCredentials,
+  profile?: string
+): void {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  const filepath = getTokenEncPath(profile);
+  const payload = JSON.stringify({
+    ...tokenData,
+    savedAt: new Date().toISOString(),
+  });
+  fs.writeFileSync(filepath, encryptData(payload), { mode: 0o600 });
+  console.error(
+    `[crypto] FuseBase API tokens encrypted and saved to ${path.basename(filepath)}`
+  );
+}
+
+/**
+ * Load and decrypt tokens from data/token_{profile}.enc.
+ */
+export function loadEncryptedToken(profile?: string): TokenCredentials | null {
+  const filepath = getTokenEncPath(profile);
+  if (!fs.existsSync(filepath)) return null;
+
+  try {
+    const encrypted = fs.readFileSync(filepath, "utf-8").trim();
+    const decrypted = decryptData(encrypted);
+    const data = JSON.parse(decrypted);
+    return {
+      gateToken: data.gateToken || undefined,
+      dashboardsToken: data.dashboardsToken || undefined,
+      token: data.token || undefined,
+      orgId: data.orgId || undefined,
+      host: data.host || undefined,
+    };
+  } catch (err) {
+    console.error(
+      `[crypto] Failed to decrypt ${path.basename(filepath)}:`,
+      err instanceof Error ? err.message : err
+    );
+    return null;
+  }
+}
+
