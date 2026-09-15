@@ -100,7 +100,7 @@ Entity Hierarchy:
 
 Tool Tiers:
 - Starts in Core Tier (34 tools) covering full CRUD and organization for pages, folders, content, comments, tasks, attachments, and profile management.
-- Call 'set_tool_tier' with tier="all" to unlock all 143 tools (databases, views, relations, permissions, automations, portals, webhooks).
+- Call 'set_tool_tier' with tier="all" to unlock all 158 tools (databases, views, relations, permissions, automations, portals, webhooks).
 
 Content & Sync Guidelines:
 - Pages are collaborative documents backed by Y.js CRDT state. Use 'append_page_content' or 'update_page_content' to edit. Real-time updates propagate via WebSocket.
@@ -114,7 +114,7 @@ Content & Sync Guidelines:
 
 let extendedToolsRegistered = false;
 
-function enableExtendedTools() {
+function enableExtendedTools(): void {
   if (extendedToolsRegistered) return;
   registerExtendedTools(server, getClient);
   extendedToolsRegistered = true;
@@ -135,7 +135,7 @@ registerPrompts(server, getClient);
 if (process.env.FUSEBASE_TOOLS === "all") {
   enableExtendedTools();
 } else {
-  console.error("[fusebase] Running in core mode (33 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 136.");
+  console.error("[fusebase] Running in core mode (34 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 165.");
 }
 
 // ─── Start ──────────────────────────────────────────────────────

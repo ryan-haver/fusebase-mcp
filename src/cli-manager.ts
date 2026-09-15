@@ -217,4 +217,99 @@ export class FusebaseCliManager {
       });
     });
   }
+
+  /**
+   * Add a sidecar container to an app.
+   */
+  static async addSidecar(
+    appPath: string,
+    name: string,
+    image: string,
+    options?: {
+      port?: number;
+      tier?: "small" | "medium" | "large";
+      env?: Record<string, string>;
+      secrets?: string[];
+      cwd?: string;
+    },
+  ) {
+    const args = ["add", "--app", appPath, "--name", name, "--image", image];
+    if (options?.port) args.push("--port", String(options.port));
+    if (options?.tier) args.push("--tier", options.tier);
+    if (options?.env) {
+      for (const [k, v] of Object.entries(options.env)) {
+        args.push("--env", `${k}=${v}`);
+      }
+    }
+    if (options?.secrets) {
+      for (const sec of options.secrets) {
+        args.push("--secret", sec);
+      }
+    }
+    return this.executeCommand("sidecar", args, options?.cwd);
+  }
+
+  /**
+   * Remove a sidecar container from an app.
+   */
+  static async removeSidecar(appPath: string, name: string, cwd?: string) {
+    return this.executeCommand("sidecar", ["remove", "--app", appPath, "--name", name], cwd);
+  }
+
+  /**
+   * List configured sidecar containers for an app.
+   */
+  static async listSidecars(appPath: string, cwd?: string) {
+    return this.executeCommand("sidecar", ["list", "--app", appPath], cwd);
+  }
+
+  /**
+   * Register an application secret on the FuseBase platform.
+   */
+  static async createSecret(appPath: string, key: string, description?: string, cwd?: string) {
+    const secretVal = description ? `${key}:${description}` : key;
+    return this.executeCommand("secret", ["create", "--app", appPath, "--secret", secretVal], cwd);
+  }
+
+  /**
+   * List registered application secrets.
+   */
+  static async listSecrets(appPath: string, cwd?: string) {
+    return this.executeCommand("secret", ["list", "--app", appPath], cwd);
+  }
+
+  /**
+   * Retrieve remote deployment logs or local dev logs.
+   */
+  static async getLogs(
+    appPath?: string,
+    options?: { lines?: number; type?: "remote" | "dev"; cwd?: string },
+  ) {
+    const args = ["logs"];
+    if (appPath) args.push("--app", appPath);
+    if (options?.lines) args.push("--lines", String(options.lines));
+    return this.executeCommand("logs", args.slice(1), options?.cwd, 15000);
+  }
+
+  /**
+   * Update app configuration, including permissions and build commands.
+   */
+  static async updateApp(
+    appIdOrPath: string,
+    options?: {
+      permissions?: string;
+      devCommand?: string;
+      buildCommand?: string;
+      outputDir?: string;
+      cwd?: string;
+    },
+  ) {
+    const args = ["update", appIdOrPath];
+    if (options?.permissions) args.push("--permissions", options.permissions);
+    if (options?.devCommand) args.push("--dev-command", options.devCommand);
+    if (options?.buildCommand) args.push("--build-command", options.buildCommand);
+    if (options?.outputDir) args.push("--output-dir", options.outputDir);
+    return this.executeCommand("app", args, options?.cwd);
+  }
 }
+

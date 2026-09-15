@@ -1,6 +1,6 @@
 {
   "name": "fusebase-mcp",
-  "description": "MCP server for FuseBase (formerly Nimbus Note) — 143 tools (34 Core, 109 Extended), 7 native resources & 13 prompts for full-stack AI-powered workspace, portal lifecycle, vibe coding apps, automations, swarm orchestration, and AI assistant threads",
+  "description": "MCP server for FuseBase (formerly Nimbus Note) — 165 tools (34 Core, 131 Extended), 8 native resources & 17 prompts for full-stack AI-powered workspace, portal lifecycle, vibe coding apps, automations, swarm orchestration, and AI assistant threads",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -12,9 +12,12 @@
     "dev": "tsc --watch",
     "start": "node dist/index.js",
     "test": "npx tsx scripts/test-mcp-e2e.ts",
+    "test:flow": "npx tsx scripts/test-cli-and-flow.ts",
+    "test:database": "npx tsx scripts/test-database-e2e.ts",
     "test:data-validation": "npx tsx scripts/test-data-validation.ts",
     "test:audit": "npx tsx scripts/audit-tools.ts",
     "test:regression": "npx tsx scripts/test-regression.ts",
+    "test:all": "npx tsx scripts/test-all.ts",
     "deploy:status": "npx tsx scripts/deploy-status-dashboard.ts",
     "deploy:page": "npx tsx scripts/deploy-workspace-page.ts",
     "postinstall": "npx playwright install chromium || true"

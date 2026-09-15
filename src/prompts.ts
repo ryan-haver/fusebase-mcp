@@ -564,4 +564,169 @@ Provide:
       };
     },
   );
+
+  // ─── 14. CRM Seed Demo Data (Flow Recipe) ───
+  server.prompt(
+    "crm-seed-demo-data",
+    "Guide the AI assistant in seeding a complete demo CRM (Companies, Deals, Contacts) using canonical batchPutDashboardData and row relation linking.",
+    {
+      industry: z.string().optional().describe("Industry or business domain (e.g., 'B2B SaaS', 'Healthcare IT', 'Cybersecurity')"),
+      companyCount: z.number().optional().describe("Number of demo companies to create (default 3)"),
+      dealsPerCompany: z.number().optional().describe("Number of deals per company (default 2)"),
+    },
+    async ({ industry, companyCount = 3, dealsPerCompany = 2 }) => {
+      const ind = industry || "B2B Technology";
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Please plan and execute seeding demo CRM data for a ${ind} business in FuseBase.
+
+Follow the FuseBase Flow CRM seeding recipe:
+1. **Alias Resolution**:
+   - Call 'resolve_database_alias' for 'companies_db' and 'deals_db'.
+   - Note the dashboard IDs and primary view IDs (e.g. 'deals_pipeline' for Kanban or 'deals_all' for table).
+2. **Schema & Key Discovery**:
+   - Call 'get_database_schema' for both tables to map friendly column names to opaque item_keys (e.g. 'Company Name', 'ARR', 'Deal Name', 'Deal Stage', 'Value').
+   - Note the nanoid label IDs for the 'Deal Stage' single-select column.
+3. **Batch Creation of Companies**:
+   - Use 'batch_put_database_data' with 'create_new_row: true' to insert ${companyCount} realistic demo companies.
+4. **Batch Creation of Deals**:
+   - Use 'batch_put_database_data' with 'create_new_row: true' to insert ${companyCount * dealsPerCompany} deals with realistic stages and values.
+5. **Bidirectional Relation Linking**:
+   - Call 'list_database_relations' to find the relation linking Companies and Deals.
+   - Call 'link_database_rows' to associate each deal to its parent company.
+6. **Verification**:
+   - Call 'get_database_rows' with 'resolveNames: true' to verify that companies show their linked deals and populated fields.`,
+            },
+          },
+        ],
+      };
+    },
+  );
+
+  // ─── 15. Portal-Embedded App Architecture ───
+  server.prompt(
+    "portal-embedded-app",
+    "Guide the AI assistant in architecting and developing an app embedded in a FuseBase Client Portal with {{CurrentPortal}} dynamic view filters.",
+    {
+      appName: z.string().describe("Name and purpose of the embedded portal app"),
+      portalDomain: z.string().optional().describe("Target portal domain or slug (e.g. 'acme-portal')"),
+      features: z.string().optional().describe("Key capabilities of the portal app (e.g., 'Ticket submission', 'Document requests', 'Approval status')"),
+    },
+    async ({ appName, portalDomain, features }) => {
+      const featText = features ? `\n- **Features**: ${features}` : "";
+      const domainText = portalDomain ? `\n- **Target Portal**: ${portalDomain}` : "";
+
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Please design and architect a portal-embedded application for: "${appName}".${domainText}${featText}
+
+Follow FuseBase portal app runtime conventions:
+1. **Dynamic Scoping via {{CurrentPortal}}**:
+   - Do NOT require a hardcoded portal ID parameter.
+   - Configure table views with a dynamic filter where 'Portal == {{CurrentPortal}}'. The FuseBase proxy automatically injects the active portal context.
+2. **Runtime Context Detection**:
+   - In frontend code, use '/auth/context' to check 'runtimeContext.portalId'.
+   - If present, render the portal-customized view; if absent, render an administrative or preview mode.
+3. **Data Mutation Isolation**:
+   - When creating rows via 'batch_put_database_data' or 'add_database_row', populate the portal column with 'runtimeContext.portalId'.
+4. **Embedding in Portal Pages**:
+   - Use 'get_portal' and 'get_portal_pages' to identify target publication pages.
+   - Use 'publish_page_to_portal' to make the container note visible to external portal guests.`,
+            },
+          },
+        ],
+      };
+    },
+  );
+
+  // ─── 16. Fullstack Hosted App with Sidecars ───
+  server.prompt(
+    "fullstack-app-architecture",
+    "Architect a fullstack FuseBase hosted application with Node.js backend, Docker sidecars (Chromium/Redis), App Secrets, and PostgreSQL Gate.",
+    {
+      appName: z.string().describe("Name of the fullstack application"),
+      sidecars: z.string().optional().describe("Auxiliary services needed (e.g. 'headless-browser', 'redis-cache', 'image-processor')"),
+      needsDatabase: z.boolean().optional().describe("Whether the app requires an isolated PostgreSQL database (default true)"),
+    },
+    async ({ appName, sidecars, needsDatabase = true }) => {
+      const sidecarText = sidecars ? `\n- **Sidecars Requested**: ${sidecars}` : "";
+      const dbText = needsDatabase ? "\n- **Database**: FuseBase Gate Isolated PostgreSQL Store" : "";
+
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Please architect a full-stack FuseBase Web Application for: "${appName}".${sidecarText}${dbText}
+
+Include a complete production architecture covering:
+1. **Project Scaffold & fusebase.json**:
+   - Declarative manifest structure (frontend 'apps/web' + backend 'apps/backend').
+   - Dev, build, and start commands.
+2. **Sidecar Container Configuration**:
+   - Use 'fusebase_cli_sidecar_add' to specify Docker images (e.g. 'browserless/chrome:latest' port 9222, 'redis:7-alpine' port 6379).
+   - Configure resource tiers ('small', 'medium', 'large') and secret whitelists.
+3. **Secret Management**:
+   - Outline required keys and register them using 'fusebase_cli_secret_create' (e.g. 'DB_PASSWORD', 'EXTERNAL_API_KEY').
+4. **Data Layer (PostgreSQL Gate)**:
+   - Use 'create_isolated_store' to provision an isolated Postgres database.
+   - Prepare versioned DDL migrations using 'apply_isolated_sql_migrations'.
+5. **Permissions & Deploy Gate**:
+   - Configure dashboard view permissions using 'fusebase_cli_app_update'.
+   - Deploy using 'fusebase_cli_deploy' and verify with 'fusebase_cli_logs'.`,
+            },
+          },
+        ],
+      };
+    },
+  );
+
+  // ─── 17. Token & Context Waste Audit (Flow Practice) ───
+  server.prompt(
+    "token-waste-audit",
+    "Audit agent session tool calls, data payloads, and context management for token efficiency based on FuseBase Flow standards.",
+    {
+      focusArea: z.enum(["general", "databases", "pages", "automations"]).optional().describe("Primary domain to audit (default 'general')"),
+    },
+    async ({ focusArea = "general" }) => {
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Please conduct a Token & Context Efficiency Audit for this session (Focus: ${focusArea}).
+
+Audit against the FuseBase Flow token economy rules:
+1. **Tool Output Sizing**:
+   - Are we using 'get_database_rows' with pagination ('limit: 20') and 'resolveNames: true', instead of reading thousands of unindexed raw cells?
+   - Are we using 'get_page_content' with 'format: "markdown"' instead of massive raw HTML DOM dumps?
+2. **Mutation Efficiency**:
+   - Are we batching row creation/updates with 'batch_put_database_data', instead of firing 50 serial individual cell updates?
+   - Are we appending content non-destructively via 'append_page_content' (Y.js WebSockets) rather than overwriting full document trees?
+3. **Discovery Caching**:
+   - Are we caching column mappings from 'get_database_schema' rather than repeatedly requesting schemas in every turn?
+   - Are we using 'resolve_database_alias' to quickly resolve CRM tables?
+4. **Liveness & Polling**:
+   - Are we avoiding tight polling loops and relying on event triggers or bounded checks?
+
+Provide a concise report with:
+- Identified token-waste anti-patterns.
+- Concrete tool-level optimizations.
+- Estimated context window savings.`,
+            },
+          },
+        ],
+      };
+    },
+  );
 }

@@ -8,8 +8,6 @@
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
-import * as http from "http";
-import * as https from "https";
 import { ProxyAgent } from "undici";
 
 export interface FusebaseConfig {
@@ -50,6 +48,11 @@ import type {
   FusebasePortal,
   FusebasePortalPage,
   FusebaseDatabaseViewData,
+  DashboardViewColumn,
+  BatchPutDashboardRow,
+  DatabaseAliasResolution,
+  IsolatedStore,
+  IsolatedStoreSqlResult,
   NotesListResponse,
   RecentNotesResponse,
   OrgUsageResponse,
@@ -59,13 +62,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.resolve(__dirname, "..", "data");
 const LOG_PATH = path.join(DATA_DIR, "api_log.jsonl");
 const CACHE_PATH = path.join(DATA_DIR, "workspace_cache.json");
-
-/** Reusable keepalive agent — holds TCP connections open between requests */
-const keepAliveAgent = new https.Agent({
-  keepAlive: true,
-  keepAliveMsecs: 30_000,
-  maxSockets: 4,
-});
 
 /** Default timeouts (ms) */
 const TIMEOUT_GET = 10_000;
@@ -101,6 +97,11 @@ export class FusebaseClient {
   private proxyDispatcher?: ProxyAgent;
   private automationToken?: string;
   private automationProjectId?: string;
+  private viewSchemaCache = new Map<string, {
+    columns: DashboardViewColumn[];
+    keyByName: Map<string, string>;
+    nameByKey: Map<string, string>;
+  }>();
 
   constructor(config: FusebaseConfig) {
     this.host = config.host;
@@ -1245,12 +1246,13 @@ export class FusebaseClient {
   async getDatabaseData(
     dashboardId: string,
     viewId: string,
-    options?: { page?: number; limit?: number },
+    options?: { page?: number; limit?: number; cacheStrategy?: "use" | "reset" | "bypass" },
   ): Promise<FusebaseDatabaseViewData> {
     const params = new URLSearchParams();
     if (options?.page) params.set("page", String(options.page));
     if (options?.limit) params.set("limit", String(options.limit));
     params.set("exclude_async_items", "true");
+    if (options?.cacheStrategy) params.set("cacheStrategy", options.cacheStrategy);
     const qs = params.toString();
     return this.request<FusebaseDatabaseViewData>(
       `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/data${qs ? `?${qs}` : ""}`,
@@ -1258,21 +1260,143 @@ export class FusebaseClient {
   }
 
   /**
-   * List all databases/dashboards by probing known entity types in the Tables UI.
+   * Resolve and cache column keys for a dashboard view.
+   * Maps opaque column item_key (e.g. "B9pYbJFk") to human-readable names and vice-versa.
+   */
+  async resolveColumnKeys(dashboardId: string, viewId: string): Promise<{
+    columns: DashboardViewColumn[];
+    keyByName: Map<string, string>;
+    nameByKey: Map<string, string>;
+  }> {
+    const cacheKey = `${dashboardId}:${viewId}`;
+    const cached = this.viewSchemaCache.get(cacheKey);
+    if (cached) return cached;
+
+    const { columns } = await this.getViewSchema(dashboardId, viewId);
+    const keyByName = new Map<string, string>();
+    const nameByKey = new Map<string, string>();
+
+    for (const col of columns) {
+      keyByName.set(col.name.toLowerCase(), col.key);
+      keyByName.set(col.name, col.key);
+      nameByKey.set(col.key, col.name);
+    }
+
+    const mapping = { columns, keyByName, nameByKey };
+    this.viewSchemaCache.set(cacheKey, mapping);
+    return mapping;
+  }
+
+  /**
+   * Batch create, update, or patch dashboard rows and cell values.
    *
-   * FuseBase Tables is a Next.js SSR app — entity names are rendered client-side
-   * and not available in the initial HTML. Instead, we probe a known set of entity
-   * types (spaces, clients) plus any user-supplied custom entities.
-   *
-   * For each entity, the page HTML contains embedded dashboard/view UUIDs in the
-   * React Server Component data. We extract these by:
-   * 1. Fetching the databases listing page to collect the "layout" UUID (common to all pages)
-   * 2. Fetching each entity page and finding UUIDs not in the layout set
-   * 3. The first two unique UUIDs are the dashboardId and viewId
-   *
-   * @param orgId - Organization ID (defaults to env FUSEBASE_ORG_ID)
-   * @param customEntities - Additional entity types to probe beyond the defaults
-   * @returns Array of { dashboardId, viewId, entity } objects for use with getDatabaseData
+   * Endpoint: PUT /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/views/{viewId}/data/batch
+   * Canonical read/write API for FuseBase Dashboards & Tables.
+   */
+  async batchPutDashboardData(
+    dashboardId: string,
+    viewId: string,
+    rows: Array<BatchPutDashboardRow>,
+  ): Promise<any> {
+    return this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/data/batch`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ rows }),
+      },
+    );
+  }
+
+  /**
+   * Resolve a system managed database alias (e.g. "companies_db", "deals_db", "meetings", "clients", "spaces").
+   * Supports Flow canonical aliases including "deals_table", "deals_pipeline", "deals_all", and "trackers".
+   */
+  async resolveDatabaseAlias(alias: string): Promise<DatabaseAliasResolution> {
+    const normalized = alias.toLowerCase().trim();
+    try {
+      const all = await this.listAllDatabases();
+      const dbs = all?.data ?? [];
+
+      for (const db of dbs) {
+        const dashboards = db.dashboards ?? [];
+        for (const dash of dashboards) {
+          const rootEntity = (dash.root_entity ?? "").toLowerCase();
+          const dashName = (dash.name ?? "").toLowerCase();
+          const dbTitle = (db.title ?? "").toLowerCase();
+
+          // Check for exact view names / aliases too (e.g. deals_pipeline, deals_all)
+          const matchedView = (dash.views ?? []).find((v: any) => {
+            const vName = (v.name ?? "").toLowerCase();
+            return vName === normalized || (v.global_id && v.global_id === normalized);
+          });
+
+          const match =
+            ((normalized === "companies" || normalized === "companies_db") && (dashName.includes("compan") || rootEntity.includes("compan"))) ||
+            ((normalized === "deals" || normalized === "deals_db" || normalized === "deals_table") && (dashName.includes("deal") || rootEntity.includes("deal"))) ||
+            ((normalized === "deals_pipeline" || normalized === "deals_all") && (dashName.includes("deal") || rootEntity.includes("deal"))) ||
+            ((normalized === "meetings" || normalized === "meetings_db") && (dashName.includes("meet") || rootEntity.includes("meet"))) ||
+            ((normalized === "trackers" || normalized === "meeting_trackers") && (dashName.includes("track") || rootEntity.includes("track"))) ||
+            ((normalized === "members" || normalized === "members_db") && (dashName.includes("member") || rootEntity.includes("member"))) ||
+            ((normalized === "clients" || normalized === "clients_db") && (rootEntity === "client" || dashName.includes("client"))) ||
+            ((normalized === "spaces" || normalized === "spaces_db") && (rootEntity === "space" || dashName.includes("space"))) ||
+            Boolean(matchedView) ||
+            dashName === normalized ||
+            dbTitle === normalized;
+
+          if (match) {
+            // Build views list
+            const views = (dash.views ?? []).map((v: any, idx: number) => ({
+              id: v.global_id || v.id,
+              name: v.name || `View ${idx + 1}`,
+              type: v.representation_type || v.type,
+              isDefault: idx === 0,
+            }));
+
+            // Determine primary view ID: if specific view was requested, prioritize it
+            let selectedViewId = dash.views?.[0]?.global_id;
+            if (normalized === "deals_pipeline") {
+              const pipelineView = views.find((v: any) => v.name.toLowerCase().includes("pipeline") || v.type === "kanban");
+              if (pipelineView) selectedViewId = pipelineView.id;
+            } else if (normalized === "deals_all") {
+              const allView = views.find((v: any) => v.name.toLowerCase().includes("all") || v.type === "table" || v.type === "grid");
+              if (allView) selectedViewId = allView.id;
+            } else if (matchedView) {
+              selectedViewId = (matchedView as any).global_id || (matchedView as any).id;
+            }
+
+            // Identify child tables in the same database (e.g. trackers for meetings)
+            const childTables = dashboards
+              .filter((d: any) => d.global_id !== dash.global_id)
+              .map((d: any) => ({
+                dashboardId: d.global_id,
+                name: d.name || "Child Table",
+                alias: (d.name || "").toLowerCase().replace(/\s+/g, "_"),
+              }));
+
+            return {
+              alias,
+              found: true,
+              databaseId: db.global_id,
+              dashboardId: dash.global_id,
+              dashboardName: dash.name,
+              viewId: selectedViewId,
+              title: dash.name || db.title,
+              views,
+              childTables: childTables.length > 0 ? childTables : undefined,
+            };
+          }
+        }
+      }
+    } catch {
+      // Non-blocking fallback
+    }
+
+    return { alias, found: false };
+  }
+
+  /**
+   * List all databases and dashboards in the organization.
+   * Uses direct dashboard-service REST API with legacy probe fallback.
    */
   async listDatabases(
     orgId?: string,
@@ -1281,66 +1405,89 @@ export class FusebaseClient {
     dashboardId: string;
     viewId: string;
     entity: string;
+    databaseId?: string;
+    title?: string;
   }>> {
+    try {
+      const allDbs = await this.listAllDatabases();
+      const results: Array<{
+        dashboardId: string;
+        viewId: string;
+        entity: string;
+        databaseId?: string;
+        title?: string;
+      }> = [];
+
+      for (const db of allDbs?.data ?? []) {
+        for (const dash of db.dashboards ?? []) {
+          const viewId = dash.views?.[0]?.global_id || "";
+          if (dash.global_id && viewId) {
+            results.push({
+              databaseId: db.global_id,
+              dashboardId: dash.global_id,
+              viewId,
+              entity: dash.root_entity || dash.name || db.title,
+              title: db.title,
+            });
+          }
+        }
+      }
+
+      if (results.length > 0) {
+        return results;
+      }
+    } catch {
+      // Fallback to legacy probe below
+    }
+
+    // Fallback: probe known entities
     const org = orgId || this.orgId;
     const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
-
-    // Known FuseBase entity types (discovered via Playwright network capture)
     const KNOWN_ENTITIES = ["spaces", "clients"];
     const entities = [
       ...KNOWN_ENTITIES,
       ...(customEntities || []).filter((e) => !KNOWN_ENTITIES.includes(e)),
     ];
 
-    // Step 1: Fetch databases listing page to collect the "layout" UUID
-    const dbRes = await fetch(`${this.baseUrl}/dashboard/${org}/tables/databases`, {
-      headers: { cookie: this.cookie },
-      signal: AbortSignal.timeout(TIMEOUT_GET),
-    });
-    if (!dbRes.ok) {
-      throw new Error(`Failed to fetch tables page: ${dbRes.status} ${dbRes.statusText}`);
-    }
-    const dbHtml = await dbRes.text();
+    try {
+      const dbRes = await fetch(`${this.baseUrl}/dashboard/${org}/tables/databases`, {
+        headers: { cookie: this.cookie },
+        signal: AbortSignal.timeout(TIMEOUT_GET),
+      });
+      if (!dbRes.ok) return [];
+      const dbHtml = await dbRes.text();
+      const layoutUuids = new Set(
+        [...new Set(dbHtml.match(UUID_RE) || [])].map((u) => u.toLowerCase()),
+      );
 
-    // Collect the "layout" UUID(s) that appear on ALL pages (not entity-specific)
-    const layoutUuids = new Set(
-      [...new Set(dbHtml.match(UUID_RE) || [])].map((u) => u.toLowerCase()),
-    );
-
-    // Step 2: Fetch each entity page and extract its unique UUIDs
-    const results: Array<{ dashboardId: string; viewId: string; entity: string }> = [];
-
-    for (const entity of entities) {
-      try {
-        const entRes = await fetch(
-          `${this.baseUrl}/dashboard/${org}/tables/entity/${entity}`,
-          {
-            headers: { cookie: this.cookie },
-            signal: AbortSignal.timeout(TIMEOUT_GET),
-          },
-        );
-        if (!entRes.ok) continue;
-        const entHtml = await entRes.text();
-
-        // Get all UUIDs unique to this entity page (not in the layout set)
-        const pageUuids = [...new Set(entHtml.match(UUID_RE) || [])]
-          .map((u) => u.toLowerCase())
-          .filter((u) => !layoutUuids.has(u));
-
-        // The first two unique UUIDs are dashboardId and viewId
-        if (pageUuids.length >= 2) {
-          results.push({
-            dashboardId: pageUuids[0],
-            viewId: pageUuids[1],
-            entity,
-          });
-        }
-      } catch {
-        // Skip entities that fail to load
+      const fallbackResults: Array<{ dashboardId: string; viewId: string; entity: string }> = [];
+      for (const entity of entities) {
+        try {
+          const entRes = await fetch(
+            `${this.baseUrl}/dashboard/${org}/tables/entity/${entity}`,
+            {
+              headers: { cookie: this.cookie },
+              signal: AbortSignal.timeout(TIMEOUT_GET),
+            },
+          );
+          if (!entRes.ok) continue;
+          const entHtml = await entRes.text();
+          const pageUuids = [...new Set(entHtml.match(UUID_RE) || [])]
+            .map((u) => u.toLowerCase())
+            .filter((u) => !layoutUuids.has(u));
+          if (pageUuids.length >= 2) {
+            fallbackResults.push({
+              dashboardId: pageUuids[0],
+              viewId: pageUuids[1],
+              entity,
+            });
+          }
+        } catch {}
       }
+      return fallbackResults;
+    } catch {
+      return [];
     }
-
-    return results;
   }
 
   /**
@@ -1353,12 +1500,16 @@ export class FusebaseClient {
     options?: { page?: number; limit?: number },
     orgId?: string,
   ): Promise<FusebaseDatabaseViewData> {
-    // First, discover dashboard/view UUIDs
+    // First, check alias resolution
+    const resolved = await this.resolveDatabaseAlias(entity);
+    if (resolved?.dashboardId && resolved?.viewId) {
+      return this.getDatabaseData(resolved.dashboardId, resolved.viewId, options);
+    }
+
     const databases = await this.listDatabases(orgId);
-    const db = databases.find(d => d.entity === entity);
+    const db = databases.find(d => d.entity.toLowerCase() === entity.toLowerCase());
 
     if (!db) {
-      // If we can't match by entity name, try to fetch each and return the first non-empty
       throw new Error(
         `Entity '${entity}' not found. Available entities: ${databases.map(d => d.entity).join(", ") || "none found"}. ` +
         `Tip: Use list_databases first to see available dashboard/view IDs, then call get_database_data directly.`
@@ -1429,57 +1580,114 @@ export class FusebaseClient {
   /**
    * Add a new row to a database entity table.
    *
-   * Discovered via Playwright capture: this uses a Next.js server action,
-   * not a standard REST API. The POST goes to the entity page URL with
-   * a `next-action` header identifying the server-side function.
+   * Uses canonical batchPutDashboardData with create_new_row: true.
+   * Automatically resolves column names to opaque item_key IDs.
    *
-   * @param entity - Entity type (e.g. 'clients', 'spaces', 'custom')
-   * @param options - Optional databaseId/dashboardId for custom databases
+   * @param entity - Entity type or table name
+   * @param options - Optional databaseId/dashboardId/viewId and initial row values
    */
   async addDatabaseRow(
     entity: string,
     options?: {
       databaseId?: string;
       dashboardId?: string;
+      viewId?: string;
       orgId?: string;
+      values?: Record<string, unknown>;
     },
-  ): Promise<unknown> {
-    const org = options?.orgId || this.orgId;
+  ): Promise<{
+    success: boolean;
+    rowUuid?: string;
+    data?: unknown;
+    dashboardId: string;
+    viewId: string;
+    entity: string;
+  }> {
+    let dashboardId = options?.dashboardId;
+    let viewId = options?.viewId;
 
-    // Build the entity page URL (different for built-in vs custom entities)
-    let entityUrl: string;
-    const body: Record<string, string> = { orgId: org, entity };
-
-    if (options?.databaseId && options?.dashboardId) {
-      // Custom database entity
-      entityUrl = `${this.baseUrl}/dashboard/${org}/tables/databases/${options.databaseId}/dashboard/${options.dashboardId}/entity/${entity}`;
-      body.databaseId = options.databaseId;
-      body.dashboardId = options.dashboardId;
-    } else {
-      // Built-in entity (clients, spaces)
-      entityUrl = `${this.baseUrl}/dashboard/${org}/tables/entity/${entity}`;
+    if (dashboardId && !viewId) {
+      try {
+        const detail = await this.getDashboardDetail(dashboardId);
+        const views = (detail as any)?.data?.views ?? (detail as any)?.views;
+        if (Array.isArray(views) && views.length > 0) {
+          viewId = views[0].global_id || views[0].id;
+        }
+      } catch {
+        // Fallback to searching database list
+      }
     }
 
-    // This is a Next.js server action — requires the next-action header
-    // The action ID was discovered from the JS bundle hash
-    const res = await fetch(entityUrl, {
-      method: "POST",
-      headers: {
-        cookie: this.cookie,
-        "content-type": "text/plain;charset=UTF-8",
-        accept: "text/x-component",
-        "next-action": "a6bff18e5522fbea54d7a97bf0a4f0979a1771ce",
+    if (!dashboardId || !viewId) {
+      const resolved = await this.resolveDatabaseAlias(entity);
+      if (resolved?.dashboardId && resolved?.viewId) {
+        dashboardId = dashboardId || resolved.dashboardId;
+        viewId = viewId || resolved.viewId;
+      } else {
+        const databases = await this.listDatabases(options?.orgId);
+        let match = dashboardId ? databases.find((d) => d.dashboardId === dashboardId) : undefined;
+        if (!match) {
+          match = databases.find(
+            (d) =>
+              d.entity.toLowerCase() === entity.toLowerCase() ||
+              d.title?.toLowerCase() === entity.toLowerCase() ||
+              (options?.databaseId && d.databaseId === options.databaseId),
+          );
+        }
+        if (match) {
+          dashboardId = dashboardId || match.dashboardId;
+          viewId = viewId || match.viewId;
+        }
+      }
+    }
+
+    if (!dashboardId || !viewId) {
+      throw new Error(
+        `Could not resolve dashboardId and viewId for entity '${entity}'. Please provide dashboardId and viewId explicitly.`,
+      );
+    }
+
+    // Resolve column keys if values were provided
+    const rowValues: Array<{ item_key: string; value: unknown }> = [];
+    if (options?.values && Object.keys(options.values).length > 0) {
+      const mapping = await this.resolveColumnKeys(dashboardId, viewId);
+      for (const [keyOrName, val] of Object.entries(options.values)) {
+        if (mapping.nameByKey.has(keyOrName)) {
+          rowValues.push({ item_key: keyOrName, value: val });
+        } else {
+          const resolvedKey =
+            mapping.keyByName.get(keyOrName) ||
+            mapping.keyByName.get(keyOrName.toLowerCase());
+          if (resolvedKey) {
+            rowValues.push({ item_key: resolvedKey, value: val });
+          } else {
+            rowValues.push({ item_key: keyOrName, value: val });
+          }
+        }
+      }
+    }
+
+    // Canonical row creation via batchPutDashboardData with create_new_row: true
+    const res = await this.batchPutDashboardData(dashboardId, viewId, [
+      {
+        create_new_row: true,
+        values: rowValues,
       },
-      body: JSON.stringify([body]),
-      signal: AbortSignal.timeout(TIMEOUT_GET),
-    });
+    ]);
 
-    if (!res.ok) {
-      throw new Error(`addDatabaseRow failed: ${res.status} ${res.statusText}`);
-    }
+    const items = Array.isArray(res) ? res : (res?.data ?? res?.rows ?? []);
+    const createdItem = items[0];
+    const rowUuid =
+      createdItem?.root_index_value ?? createdItem?.id ?? createdItem?.global_id;
 
-    // Response is RSC flight data, not JSON
-    return { success: true, status: res.status, entity };
+    return {
+      success: true,
+      rowUuid,
+      data: res,
+      dashboardId,
+      viewId,
+      entity,
+    };
   }
 
   /**
@@ -1571,6 +1779,85 @@ export class FusebaseClient {
       `/v4/api/proxy/dashboard-service/v1/relations/${relationId}`,
       { method: "DELETE" },
     );
+  }
+
+  /**
+   * Add row mappings to a relation (linking a row in source table to a row in target table).
+   *
+   * Endpoint: POST /v4/api/proxy/dashboard-service/v1/relations/{relationId}/rows
+   */
+  async addRelationRows(
+    relationId: string,
+    rows: Array<{ source_index: string; target_index: string }>,
+  ): Promise<{ success: boolean; data: unknown }> {
+    const result = await this.request<unknown>(
+      `/v4/api/proxy/dashboard-service/v1/relations/${relationId}/rows`,
+      {
+        method: "POST",
+        body: JSON.stringify({ rows }),
+      },
+    );
+    return { success: true, data: result };
+  }
+
+  /**
+   * Remove row mappings from a relation.
+   *
+   * Endpoint: DELETE /v4/api/proxy/dashboard-service/v1/relations/{relationId}/rows
+   */
+  async deleteRelationRows(
+    relationId: string,
+    options?: { source_index?: string; target_index?: string },
+  ): Promise<{ success: boolean; message?: string }> {
+    const params = new URLSearchParams();
+    if (options?.source_index) params.set("source_index", options.source_index);
+    if (options?.target_index) params.set("target_index", options.target_index);
+    const qs = params.toString() ? `?${params.toString()}` : "";
+
+    await this.request(
+      `/v4/api/proxy/dashboard-service/v1/relations/${relationId}/rows${qs}`,
+      { method: "DELETE" },
+    );
+    return { success: true, message: "Relation row(s) removed successfully" };
+  }
+
+  /**
+   * Get relation metadata and optionally active row mappings.
+   *
+   * Endpoint: GET /v4/api/proxy/dashboard-service/v1/relations/{relationId}?include_rows={includeRows}
+   */
+  async getRelationDetails(
+    relationId: string,
+    includeRows: boolean = true,
+  ): Promise<{ success: boolean; data: unknown }> {
+    const result = await this.request<unknown>(
+      `/v4/api/proxy/dashboard-service/v1/relations/${relationId}?include_rows=${includeRows}`,
+    );
+    return { success: true, data: result };
+  }
+
+  /**
+   * Update row ordering for a dashboard view/section.
+   *
+   * Endpoint: PUT /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/row-orders
+   */
+  async updateDashboardRowOrder(
+    dashboardId: string,
+    viewId: string,
+    rowOrders: Array<{ row_uuid: string; order: number }>,
+    options?: { section_type?: string; section_key?: string; section_value?: string },
+  ): Promise<{ success: boolean; message?: string }> {
+    const sectionType = options?.section_type ?? "view";
+    const sectionKey = options?.section_key ?? "view";
+    const sectionValue = options?.section_value ?? viewId;
+    await this.request(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/rows/order?view_id=${viewId}&section_type=${sectionType}&section_key=${sectionKey}&section_value=${sectionValue}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ row_orders: rowOrders }),
+      },
+    );
+    return { success: true, message: "Row orders updated successfully" };
   }
 
   // ────────────────────────────────────────────────────
@@ -3015,91 +3302,280 @@ export class FusebaseClient {
   /**
    * Update a single cell value in a database row.
    *
-   * Endpoint: PUT /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/views/{viewId}/data
-   *
-   * The rowUuid and columnKey can be obtained via getDatabaseRows or getDatabaseData.
-   * Column keys are short opaque strings (e.g. "eoZSNDPy") from the database schema.
-   *
-   * Note: Rich-text / relation / file columns may not accept plain string values.
+   * Automatically resolves friendly column name to opaque item_key and uses
+   * canonical batchPutDashboardData with create_new_row: false.
    */
   async updateDatabaseCell(
     dashboardId: string,
     viewId: string,
     rowUuid: string,
-    columnKey: string,
+    columnKeyOrName: string,
     value: unknown,
   ): Promise<{ success: boolean; message: string; data?: unknown }> {
-    return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/data`,
+    const mapping = await this.resolveColumnKeys(dashboardId, viewId);
+    let effectiveKey = columnKeyOrName;
+    if (!mapping.nameByKey.has(columnKeyOrName)) {
+      const resolved =
+        mapping.keyByName.get(columnKeyOrName) ||
+        mapping.keyByName.get(columnKeyOrName.toLowerCase());
+      if (resolved) {
+        effectiveKey = resolved;
+      }
+    }
+
+    const res = await this.batchPutDashboardData(dashboardId, viewId, [
       {
-        method: "PUT",
-        body: JSON.stringify({
-          root_index_key: "rowUuid",
-          root_index_value: rowUuid,
-          item_key: columnKey,
-          data: { value },
-        }),
+        create_new_row: false,
+        root_index_value: rowUuid,
+        values: [{ item_key: effectiveKey, value }],
       },
-    );
+    ]);
+
+    return {
+      success: true,
+      message: `Cell updated for row ${rowUuid}, column ${effectiveKey}`,
+      data: res,
+    };
   }
 
   /**
    * Get rows from a database view, formatted for easy agent consumption.
    *
+   * Optionally resolves opaque column keys to human-readable names via schema.
+   *
    * Each row includes:
-   *   - rowUuid: the row's unique ID (the `root_index_value` field from the API, needed for updateDatabaseCell)
-   *   - cells: flat map of { columnKey: value } — columnKey is an opaque short string like "eoZSNDPy"
-   *
-   * The columnKeys array lists all column keys found in the first row, so the caller
-   * can identify which key to use when calling updateDatabaseCell.
-   *
-   * NOTE: The FuseBase API does not return human-readable column names in the data response.
-   * To see column names alongside keys, use get_database_data which may include schema
-   * in some database configurations.
-   *
-   * @param page - Page number (default 1)
-   * @param limit - Rows per page (default 50)
+   *   - rowUuid: the row's unique ID (the `root_index_value` field)
+   *   - cells: flat map of { columnKey: value }
+   *   - namedCells: flat map of { "Column Name": value } (when resolveNames is true)
    */
   async getDatabaseRows(
     dashboardId: string,
     viewId: string,
-    options: { page?: number; limit?: number } = {},
+    options: { page?: number; limit?: number; resolveNames?: boolean } = {},
   ): Promise<{
     rows: Array<{
       rowUuid: string;
-      cells: Record<string, unknown>;  // { columnKey: value }
+      cells: Record<string, unknown>;
+      namedCells?: Record<string, unknown>;
     }>;
-    columnKeys: string[];   // column key list from first row
+    columnKeys: string[];
+    columns?: Array<{ key: string; name: string; type: string }>;
     meta: { total: number; page: number; limit: number; total_pages: number };
   }> {
-    const raw = await this.getDatabaseData(dashboardId, viewId, options) as any;
-
+    const raw = (await this.getDatabaseData(dashboardId, viewId, options)) as any;
     const dataRows: Array<Record<string, unknown>> = raw.data ?? raw.rows ?? [];
 
+    let nameByKey: Map<string, string> | null = null;
+    let schemaColumns: DashboardViewColumn[] = [];
+    if (options.resolveNames !== false) {
+      try {
+        const mapping = await this.resolveColumnKeys(dashboardId, viewId);
+        nameByKey = mapping.nameByKey;
+        schemaColumns = mapping.columns;
+      } catch {
+        // Schema resolution is non-blocking
+      }
+    }
+
     const rows = dataRows.map((row) => {
-      // The row UUID is stored in the `root_index_value` field
       const rowUuid = String(row.root_index_value ?? "");
       const cells: Record<string, unknown> = {};
+      const namedCells: Record<string, unknown> = {};
 
       for (const [k, v] of Object.entries(row)) {
-        if (k === "root_index_value") continue; // skip the UUID field
+        if (k === "root_index_value") continue;
         cells[k] = v;
+        if (nameByKey && nameByKey.has(k)) {
+          namedCells[nameByKey.get(k)!] = v;
+        } else {
+          namedCells[k] = v;
+        }
       }
 
-      return { rowUuid, cells };
+      return {
+        rowUuid,
+        cells,
+        ...(options.resolveNames !== false ? { namedCells } : {}),
+      };
     });
 
-    // Derive column keys from the first row (if any)
     const firstRow = dataRows[0];
     const columnKeys = firstRow
-      ? Object.keys(firstRow).filter(k => k !== "root_index_value")
+      ? Object.keys(firstRow).filter((k) => k !== "root_index_value")
       : [];
 
     const meta = raw.meta ?? {
-      total: rows.length, page: 1, limit: rows.length, total_pages: 1,
+      total: rows.length,
+      page: options.page ?? 1,
+      limit: options.limit ?? rows.length,
+      total_pages: 1,
     };
 
-    return { rows, columnKeys, meta };
+    return {
+      rows,
+      columnKeys,
+      ...(schemaColumns.length > 0
+        ? { columns: schemaColumns.map((c) => ({ key: c.key, name: c.name, type: c.type })) }
+        : {}),
+      meta,
+    };
+  }
+
+  // === Gate Isolated SQL Store Methods ===
+
+  /** List all isolated SQL stores in the organization */
+  async listIsolatedStores(orgId?: string): Promise<IsolatedStore[]> {
+    const org = orgId || this.orgId;
+    return this.request<IsolatedStore[]>(
+      `/v4/api/proxy/gate-service/v1/orgs/${org}/isolated-stores`,
+    );
+  }
+
+  /** Create an isolated PostgreSQL database */
+  async createIsolatedStore(
+    alias: string,
+    options?: {
+      engine?: string;
+      storeType?: string;
+      orgId?: string;
+      sourceType?: string;
+      sourceId?: string;
+    },
+  ): Promise<IsolatedStore> {
+    const org = options?.orgId || this.orgId;
+    return this.request<IsolatedStore>(
+      `/v4/api/proxy/gate-service/v1/orgs/${org}/isolated-stores`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          alias,
+          engine: options?.engine ?? "postgres",
+          storeType: options?.storeType ?? "sql",
+          source: {
+            sourceType: options?.sourceType ?? "org",
+            sourceId: options?.sourceId ?? org,
+          },
+        }),
+      },
+    );
+  }
+
+  /** Query an isolated SQL store (read-only SELECT) */
+  async queryIsolatedStoreSql(
+    storeId: string,
+    sql: string,
+    params: unknown[] = [],
+    stage: "dev" | "prod" = "prod",
+  ): Promise<IsolatedStoreSqlResult> {
+    return this.request<IsolatedStoreSqlResult>(
+      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/query`,
+      {
+        method: "POST",
+        body: JSON.stringify({ sql, params, stage }),
+      },
+    );
+  }
+
+  /** Execute a DML statement in an isolated SQL store (INSERT/UPDATE/DELETE) */
+  async executeIsolatedStoreSql(
+    storeId: string,
+    sql: string,
+    params: unknown[] = [],
+    stage: "dev" | "prod" = "prod",
+  ): Promise<{ rowCount: number; message?: string }> {
+    return this.request<{ rowCount: number; message?: string }>(
+      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/execute`,
+      {
+        method: "POST",
+        body: JSON.stringify({ sql, params, stage }),
+      },
+    );
+  }
+
+  /** List tables in an isolated SQL store */
+  async listIsolatedStoreSqlTables(
+    storeId: string,
+    stage: "dev" | "prod" = "prod",
+  ): Promise<Array<{ tableName: string; schema?: string }>> {
+    return this.request<Array<{ tableName: string; schema?: string }>>(
+      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/tables?stage=${stage}`,
+    );
+  }
+
+  /** Select rows using structured parameters */
+  async selectIsolatedStoreSqlRows(
+    storeId: string,
+    table: string,
+    options?: {
+      where?: Record<string, unknown>;
+      limit?: number;
+      offset?: number;
+      order?: string[];
+      stage?: "dev" | "prod";
+    },
+  ): Promise<{ rows: Array<Record<string, unknown>>; total?: number }> {
+    return this.request<{ rows: Array<Record<string, unknown>>; total?: number }>(
+      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/select`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          table,
+          where: options?.where,
+          limit: options?.limit ?? 100,
+          offset: options?.offset ?? 0,
+          order: options?.order,
+          stage: options?.stage ?? "prod",
+        }),
+      },
+    );
+  }
+
+  /** Insert a single row into an isolated SQL store */
+  async insertIsolatedStoreSqlRow(
+    storeId: string,
+    table: string,
+    row: Record<string, unknown>,
+    stage: "dev" | "prod" = "prod",
+  ): Promise<{ success: boolean; row?: Record<string, unknown> }> {
+    return this.request<{ success: boolean; row?: Record<string, unknown> }>(
+      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/insert`,
+      {
+        method: "POST",
+        body: JSON.stringify({ table, row, stage }),
+      },
+    );
+  }
+
+  /** Batch insert rows into an isolated SQL store */
+  async batchInsertIsolatedStoreSqlRows(
+    storeId: string,
+    table: string,
+    rows: Array<Record<string, unknown>>,
+    stage: "dev" | "prod" = "prod",
+  ): Promise<{ success: boolean; insertedCount: number }> {
+    return this.request<{ success: boolean; insertedCount: number }>(
+      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/batch-insert`,
+      {
+        method: "POST",
+        body: JSON.stringify({ table, rows, stage }),
+      },
+    );
+  }
+
+  /** Apply SQL schema migrations bundle to an isolated store */
+  async applyIsolatedStoreSqlMigrations(
+    storeId: string,
+    bundle: Record<string, unknown>,
+    stage: "dev" | "prod" = "prod",
+    dryRun: boolean = false,
+  ): Promise<{ success: boolean; appliedVersions?: string[]; message?: string }> {
+    return this.request<{ success: boolean; appliedVersions?: string[]; message?: string }>(
+      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/migrations/apply`,
+      {
+        method: "POST",
+        body: JSON.stringify({ bundle, stage, dryRun }),
+      },
+    );
   }
 
   async getOrgLimits(): Promise<FusebaseOrgLimits> {

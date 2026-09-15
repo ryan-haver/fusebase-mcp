@@ -317,6 +317,124 @@ export interface FusebaseDatabaseViewData {
   [key: string]: unknown;
 }
 
+// === Database & Dashboard Service Types ===
+
+export interface DashboardViewColumn {
+  key: string;
+  name: string;
+  type: string;
+  editType: string;
+  hidden: boolean;
+  readonly: boolean;
+  required: boolean;
+  description: string;
+  metadata: Record<string, unknown>;
+}
+
+export interface DashboardViewSchema {
+  columns: DashboardViewColumn[];
+  rawSchema: Record<string, unknown>;
+}
+
+export interface BatchPutDashboardRowValue {
+  item_key: string;
+  value: unknown;
+}
+
+export interface BatchPutDashboardRow {
+  create_new_row?: boolean;
+  root_index_value?: string;
+  values: BatchPutDashboardRowValue[];
+}
+
+export interface BatchPutDashboardDataRequest {
+  rows: BatchPutDashboardRow[];
+}
+
+export interface BatchPutDashboardDataResponse {
+  data?: unknown[];
+  success?: boolean;
+  [key: string]: unknown;
+}
+
+export interface FormattedDatabaseRow {
+  rowUuid: string;
+  cells: Record<string, unknown>;
+  namedCells?: Record<string, unknown>;
+}
+
+// === Relation Types ===
+
+export interface RelationRowMapping {
+  source_index: string;
+  target_index: string;
+}
+
+export interface AddRelationRowsRequest {
+  rows: RelationRowMapping[];
+}
+
+export interface RelationDetailResponse {
+  global_id: string;
+  source_dashboard_id: string;
+  target_dashboard_id: string;
+  relation_type: "one_to_one" | "one_to_many" | "many_to_many" | string;
+  relation_rows?: RelationRowMapping[];
+  [key: string]: unknown;
+}
+
+export interface DatabaseAliasResolution {
+  alias: string;
+  found: boolean;
+  databaseId?: string;
+  dashboardId?: string;
+  dashboardName?: string;
+  viewId?: string;
+  title?: string;
+  views?: Array<{ id: string; name: string; type?: string; isDefault?: boolean }>;
+  childTables?: Array<{ dashboardId: string; name: string; alias: string }>;
+}
+
+// === Gate Isolated SQL Store Types ===
+
+export interface IsolatedStore {
+  id: string;
+  alias: string;
+  engine: "postgres" | string;
+  storeType: "sql" | string;
+  source?: {
+    sourceType: string;
+    sourceId: string;
+  };
+  stages?: {
+    dev?: Record<string, unknown>;
+    prod?: Record<string, unknown>;
+  };
+  createdAt?: string | number;
+  updatedAt?: string | number;
+  [key: string]: unknown;
+}
+
+export interface IsolatedStoreSqlResult {
+  rows: Array<Record<string, unknown>>;
+  rowCount?: number;
+  fields?: Array<{ name: string; dataType?: string }>;
+  [key: string]: unknown;
+}
+
+export interface IsolatedStoreMigrationBundle {
+  version: string;
+  name?: string;
+  migrations: Array<{
+    version: string;
+    name: string;
+    sql: string;
+    checksum?: string;
+  }>;
+  stage?: "dev" | "prod";
+  rlsManifest?: Record<string, unknown>;
+}
+
 // === API Response Wrappers ===
 
 export interface NotesListResponse {

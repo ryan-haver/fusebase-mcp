@@ -110,15 +110,19 @@ async function main() {
     "build-relational-database",
     "import-knowledge-base",
     "configure-ai-persona",
+    "crm-seed-demo-data",
+    "portal-embedded-app",
+    "fullstack-app-architecture",
+    "token-waste-audit",
   ]) {
     if (!promptNames.includes(expected)) {
       throw new Error(`Expected prompt '${expected}' not found!`);
     }
   }
-  if (promptsRes.prompts.length !== 13) {
-    throw new Error(`Expected exactly 13 prompts, found ${promptsRes.prompts.length}!`);
+  if (promptsRes.prompts.length !== 17) {
+    throw new Error(`Expected exactly 17 prompts, found ${promptsRes.prompts.length}!`);
   }
-  console.log("✅ All 13 prompts listed successfully");
+  console.log("✅ All 17 prompts listed successfully");
 
   console.log("Calling prompt 'create-sop'...");
   await client.getPrompt({ name: "create-sop", arguments: { title: "API Deployment SOP" } });
@@ -131,37 +135,33 @@ async function main() {
   });
   console.log("✅ Prompt 'orchestrate-multi-agent-swarm' passed");
 
-  console.log("Calling prompt 'launch-client-portal'...");
+  console.log("Calling prompt 'crm-seed-demo-data'...");
   await client.getPrompt({
-    name: "launch-client-portal",
-    arguments: {
-      portalName: "Acme Client Hub",
-      clientCompany: "Acme Corp",
-      workspaceId: targetWsId,
-    },
+    name: "crm-seed-demo-data",
+    arguments: { industry: "CyberSecurity", recordCount: "10" },
   });
-  console.log("✅ Prompt 'launch-client-portal' passed");
+  console.log("✅ Prompt 'crm-seed-demo-data' passed");
 
-  console.log("Calling prompt 'build-relational-database'...");
+  console.log("Calling prompt 'portal-embedded-app'...");
   await client.getPrompt({
-    name: "build-relational-database",
-    arguments: {
-      databaseTitle: "Enterprise CRM",
-      primaryEntity: "Accounts",
-      relatedEntity: "Contacts",
-    },
+    name: "portal-embedded-app",
+    arguments: { appName: "Customer Invoicing Portal" },
   });
-  console.log("✅ Prompt 'build-relational-database' passed");
+  console.log("✅ Prompt 'portal-embedded-app' passed");
 
-  console.log("Calling prompt 'configure-ai-persona'...");
+  console.log("Calling prompt 'fullstack-app-architecture'...");
   await client.getPrompt({
-    name: "configure-ai-persona",
-    arguments: {
-      personaName: "Lead Software Architect",
-      specialization: "TypeScript, MCP protocols, and distributed systems",
-    },
+    name: "fullstack-app-architecture",
+    arguments: { appName: "Realtime Analytics Dashboard" },
   });
-  console.log("✅ Prompt 'configure-ai-persona' passed");
+  console.log("✅ Prompt 'fullstack-app-architecture' passed");
+
+  console.log("Calling prompt 'token-waste-audit'...");
+  await client.getPrompt({
+    name: "token-waste-audit",
+    arguments: { contextScope: "all" },
+  });
+  console.log("✅ Prompt 'token-waste-audit' passed");
 
   // ─── 3. Tool Listing & Tier Switching ──────────────────────────
   console.log("\n--- Testing Tool Listing (Core Tier) ---");
@@ -252,15 +252,26 @@ async function main() {
     "get_workspace_premium_status",
     "get_active_import_status",
     "get_org_trials",
+    "fusebase_cli_sidecar_add",
+    "fusebase_cli_sidecar_list",
+    "fusebase_cli_sidecar_remove",
+    "fusebase_cli_secret_create",
+    "fusebase_cli_secret_list",
+    "fusebase_cli_logs",
+    "fusebase_cli_app_update",
+    "resolve_database_alias",
+    "batch_put_database_data",
+    "link_database_rows",
+    "list_isolated_stores",
   ]) {
     if (!allNames.has(expected)) {
       throw new Error(`Expected extended tool '${expected}' not found!`);
     }
   }
-  if (allToolsRes.tools.length !== 143) {
-    throw new Error(`Expected exactly 143 tools, found ${allToolsRes.tools.length}!`);
+  if (allToolsRes.tools.length !== 165) {
+    throw new Error(`Expected exactly 165 tools, found ${allToolsRes.tools.length}!`);
   }
-  console.log(`✅ All ${allToolsRes.tools.length} tools registered successfully (expected 143)`);
+  console.log(`✅ All ${allToolsRes.tools.length} tools registered successfully (expected 165)`);
 
   // ─── 4. Agent Profiles ─────────────────────────────────────────
   console.log("\n--- Testing Agent Profiles ---");
