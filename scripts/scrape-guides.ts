@@ -228,9 +228,10 @@ async function discoverLinks(): Promise<GuideLink[]> {
 
                 const parsed = parseGuideUrl(fullUrl);
                 if (!parsed) return;
+                const canonicalUrl = `https://thefusebase.com/guides/${parsed.section}/${parsed.slug}/`;
 
                 // Skip category-level pages (they're not individual guides)
-                if (CATEGORY_URLS.some((cu) => fullUrl === cu || fullUrl === cu.replace(/\/$/, ''))) return;
+                if (CATEGORY_URLS.some((cu) => canonicalUrl === cu || canonicalUrl === cu.replace(/\/$/, "") + "/")) return;
                 // Also skip if it exactly matches one of the known section roots
                 const sectionRoots = CATEGORY_URLS.map(u => {
                     const m = u.match(/\/guides\/([^/]+)\/?$/);
@@ -238,9 +239,9 @@ async function discoverLinks(): Promise<GuideLink[]> {
                 }).filter(Boolean);
                 if (sectionRoots.includes(parsed.slug)) return;
 
-                if (!allLinks.has(fullUrl)) {
-                    allLinks.set(fullUrl, {
-                        url: fullUrl,
+                if (!allLinks.has(canonicalUrl)) {
+                    allLinks.set(canonicalUrl, {
+                        url: canonicalUrl,
                         section: parsed.section,
                         slug: parsed.slug,
                     });

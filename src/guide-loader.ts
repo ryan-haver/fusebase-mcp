@@ -51,6 +51,7 @@ export function loadGuideIndex(): GuideEntry[] {
         const content = fs.readFileSync(indexPath, "utf-8");
         let currentSection = "";
 
+        const seenPaths = new Set<string>();
         for (const line of content.split("\n")) {
             // Section headers: "## basics (36)"
             const sectionMatch = line.match(/^## (\S+)\s*\(\d+\)/);
@@ -67,7 +68,8 @@ export function loadGuideIndex(): GuideEntry[] {
                 const slug = path.basename(relativePath, ".md");
                 const absolutePath = path.join(GUIDES_DIR, relativePath);
 
-                if (fs.existsSync(absolutePath)) {
+                if (!seenPaths.has(absolutePath) && fs.existsSync(absolutePath)) {
+                    seenPaths.add(absolutePath);
                     entries.push({ section: currentSection, title, slug, relativePath, absolutePath });
                 }
             }

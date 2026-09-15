@@ -1482,7 +1482,7 @@ export function registerCoreTools(
 
   server.tool(
     "list_guide_sections",
-    "List all 17 FuseBase guide sections with the number of guides in each. Use this to browse available documentation categories before searching for specific topics.",
+    "List all 19 FuseBase guide sections with the number of guides in each. Use this to browse available documentation categories before searching for specific topics.",
     {}, async () => {
       try {
         const { listGuideSections, loadGuideIndex } = await import("../guide-loader.js");
