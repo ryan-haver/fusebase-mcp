@@ -324,18 +324,35 @@ export class FusebaseGateBridge {
 
     // Auto-inject org scope if opId is a scoped operation and caller omitted it
     if (identity.orgId) {
-      if (!mergedArgs.orgId && (opId === "listIsolatedStores" || opId === "createIsolatedStore" || opId.startsWith("isolatedStore") || opId.startsWith("listIsolated"))) {
-        mergedArgs.orgId = identity.orgId;
-      }
-      if (!mergedArgs.scope_id && !mergedArgs.scope_type && !mergedArgs.orgId) {
-        if (
-          opId === "listTokens" ||
-          opId === "createToken" ||
-          opId === "listOrgUsers"
-        ) {
-          mergedArgs.scope_type = "org";
-          mergedArgs.scope_id = identity.orgId;
+      if (
+        opId === "getAllDatabases" ||
+        opId === "getDashboards" ||
+        opId === "listTokens" ||
+        opId === "createToken" ||
+        opId === "listOrgUsers"
+      ) {
+        if (!mergedArgs.scope_type) mergedArgs.scope_type = "org";
+        if (!mergedArgs.scope_id) mergedArgs.scope_id = identity.orgId;
+      } else if (opId === "listPermissionCatalog") {
+        // No orgId or scope required
+      } else {
+        if (effectiveTarget === "gate" && !mergedArgs.orgId) {
+          mergedArgs.orgId = identity.orgId;
         }
+        if (!mergedArgs.orgId && (opId === "listIsolatedStores" || opId === "createIsolatedStore" || opId.startsWith("isolatedStore") || opId.startsWith("listIsolated"))) {
+          mergedArgs.orgId = identity.orgId;
+        }
+      }
+
+      // If workspaceId is omitted for workspace-scoped Gate operations, provide default
+      if (
+        effectiveTarget === "gate" &&
+        !mergedArgs.workspaceId &&
+        (opId.includes("Workspace") || opId.includes("Note") || opId.includes("Folder")) &&
+        opId !== "listWorkspaces" &&
+        opId !== "createWorkspace"
+      ) {
+        mergedArgs.workspaceId = identity.defaultWorkspaceId || "default";
       }
     }
 
@@ -362,8 +379,13 @@ export class FusebaseGateBridge {
 
     if (contentText) {
       try {
-        return JSON.parse(contentText);
-      } catch {
+        const parsed = JSON.parse(contentText);
+        if (parsed && typeof parsed === "object" && parsed.ok === false && parsed.error) {
+          throw new Error(`Upstream FuseBase [${opId}] failed: ${parsed.error.message || JSON.stringify(parsed.error)}`);
+        }
+        return parsed;
+      } catch (err: any) {
+        if (err.message.startsWith("Upstream FuseBase")) throw err;
         return contentText;
       }
     }

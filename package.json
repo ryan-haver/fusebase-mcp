@@ -17,6 +17,8 @@
     "test:data-validation": "npx tsx scripts/test-data-validation.ts",
     "test:audit": "npx tsx scripts/audit-tools.ts",
     "test:regression": "npx tsx scripts/test-regression.ts",
+    "test:token": "npx tsx scripts/test-token-direct-connection.ts",
+    "test:parity": "npx tsx scripts/test-token-parity.ts",
     "test:all": "npx tsx scripts/test-all.ts",
     "scrape:guides": "npx tsx scripts/scrape-guides.ts",
     "deploy:status": "npx tsx scripts/deploy-status-dashboard.ts",

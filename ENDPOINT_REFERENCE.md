@@ -380,3 +380,41 @@ These are the automation building blocks available in Fusebase:
 | `piece-file-helper` | File manipulation |
 | `piece-math-helper` | Math operations |
 | `piece-text-helper` | Text manipulation |
+
+---
+
+## 16. Authentication Modes: Tokens vs. Cookies Feature Parity Matrix
+
+The MCP server supports three production authentication modes:
+- **Pure Token Mode**: `FUSEBASE_GATE_TOKEN` + `FUSEBASE_DASHBOARDS_TOKEN` (or `FUSEBASE_TOKEN`). Connects directly to upstream Gate & Dashboards MCP gateways over Streamable HTTP. Zero browser or cookies required.
+- **Session Cookie Mode**: `FUSEBASE_COOKIE` (`eversessionid` session cookie). Interacts with internal web client REST APIs and Y.js collaborative servers.
+- **Hybrid Mode (Recommended)**: Both tokens and cookies loaded simultaneously, achieving 100% full-spectrum platform coverage.
+
+### Empirical Validation Matrix
+
+| Platform Domain | Capability / Operation | Pure Token Mode | Cookie / Session Mode | Parity Classification | Notes & Technical Routing |
+|---|---|:---:|:---:|:---:|---|
+| **Identity** | Gate Tenant Identity (`whoami`) | ✅ PASS | ➖ N/A | **Token Superpower** | Upstream Gate resolves `orgId`, custom domain, default workspace, and user permissions without requiring user credentials. |
+| **Identity** | Session Profile & Quotas | ➖ N/A | ✅ PASS | **Full Parity** | Both modes resolve complete identity; session mode queries `/gwapi2/ft:tasks/workspace-infos`. |
+| **Workspaces** | List Workspaces (`list_workspaces`) | ✅ PASS | ✅ PASS | **Full Parity** | Token mode invokes Gate `listWorkspaces`; Session mode queries `/gwapi2/ft:tasks/workspace-infos`. Both return workspace IDs, titles, and admin roles. |
+| **Pages & Notes** | List Pages (`list_pages`) | ✅ PASS | ✅ PASS | **Full Parity** | Token mode maps Gate `listWorkspaceNotes`; Session mode queries `/v2/api/workspaces/{wid}/notes`. |
+| **Pages & Notes** | Create Page (`create_page`) | ✅ PASS | ✅ PASS | **Full Parity** | Token mode calls Gate `createWorkspaceNote`; Session mode calls `/v2/api/web-editor/notes/create`. |
+| **Pages & Notes** | Read Page Content (`get_page_content`) | ✅ PASS | ✅ PASS | **Full Parity** | Token mode reads clean Markdown via Gate `getWorkspaceNote`; Session mode decodes collaborative HTML via Y.js WebSocket reader. |
+| **Pages & Notes** | Append Page Content (`append_page_content`) | ✅ PASS | ✅ PASS | **Full Parity** | Token mode calls Gate `appendWorkspaceNoteContent`; Session mode applies delta blocks via Y.js WebSocket writer. |
+| **Folders** | List & Create Folders (`list_folders`, `create_folder`) | ✅ PASS | ✅ PASS | **Full Parity** | Token mode calls Gate `listWorkspaceNoteFolders` & `createWorkspaceNoteFolder`; Session mode calls `/gwapi2/ft:notes/menu`. |
+| **Databases** | Database Discovery & Schema Queries | ✅ PASS | ✅ PASS | **Full Parity** | Token mode queries Dashboards MCP `getAllDatabases` & `getDashboardViewData`; Session mode queries `/v1/dashboards/databases`. |
+| **Isolated Stores** | PostgreSQL Control & Migration Bundles | ✅ PASS | ➖ N/A | **Token Superpower** | Exclusive to Gate MCP Bearer Token: Isolated PostgreSQL management (`listIsolatedStores`, `queryIsolatedSql`, migrations). |
+| **Token Lifecycle** | Programmatic Token Creation & Revocation | ✅ PASS | ➖ N/A | **Token Superpower** | Exclusive to Gate MCP: Direct generation, revocation, and catalog inspection of API tokens (`listTokens`, `createToken`, `revokeToken`). |
+| **CRDT Collaboration** | Live Collaborative WebSocket (`wss://text.nimbusweb.me`) | 🔒 RESTRICTED | ✅ PASS | **Cookie Exclusive** | Collaborative WebSocket handshake validates `eversessionid` cookie in HTTP upgrade; bearer tokens are unsupported by the WS gateway. |
+| **Automations** | ActivePieces Embedded Platform (`/automation/api/v1/...`) | 🔒 RESTRICTED | ✅ PASS | **Cookie Exclusive** | Internal ActivePieces auth bridge requires `eversessionid` cookie to issue project JWT. Webhook automations work across modes via FuseBase Work. |
+| **Binary Files** | Web Editor Multipart Uploads (`/v3/api/web-editor/...`) | 🔒 RESTRICTED | ✅ PASS | **Cookie Exclusive** | Legacy web editor attachment upload handler expects active browser session state. URL downloads and asset links work across all modes. |
+| **UI State** | Sidebar collapse & Web UI Preferences | 🔒 RESTRICTED | ✅ PASS | **Cookie Exclusive** | UI state toggles are stored in user session variables (`/v2/api/users/vars/...`). Headless agents are unaffected. |
+
+### Architectural Boundary Explanations
+
+1. **Why Y.js Collaborative WebSockets require cookies:**  
+   `wss://text.nimbusweb.me` is an internal collaborative sync service that decodes real-time Y.js document states. It relies on cookie-based session verification during the initial HTTP upgrade request (`Upgrade: websocket`). In Pure Token Mode, the MCP server automatically bypasses the WebSocket layer and routes document reads and appends through Gate MCP's HTTP REST endpoints (`getWorkspaceNote` and `appendWorkspaceNoteContent`).
+2. **Why ActivePieces internal engine requires cookies:**  
+   The endpoint `/automation/api/v1/authentication/fusebase-auth` generates an internal ActivePieces user token by verifying the browser's `eversessionid` cookie. In Pure Token Mode, external workflow automations can still be triggered via FuseBase Work connectors (`fusebase_work_trigger_n8n`).
+3. **Why legacy binary uploads require cookies:**  
+   The multipart form endpoint `/v3/api/web-editor/file/v2-upload` relies on legacy session middleware. Modern asset downloads (`download_attachment`) and URL-based assets function seamlessly across all authentication modes.

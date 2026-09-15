@@ -71,9 +71,23 @@ npm install
 
 ### 2. Configure & Authenticate
 
-FuseBase MCP supports two authentication methods:
+FuseBase MCP provides three production authentication modes:
 
-#### Method A: Direct Token Connection (Zero-Browser / Recommended)
+```
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                             Authentication Modes                                 │
+├───────────────────────┬──────────────────────────┬───────────────────────────────┤
+│ Mode 1: Pure Token    │ Mode 2: Session Cookie   │ Mode 3: Hybrid (Recommended)  │
+│ (Zero-Browser / Gate) │ (Interactive / Headless) │ (Full-Spectrum Dual Engine)   │
+├───────────────────────┼──────────────────────────┼───────────────────────────────┤
+│ • Official Gate MCP   │ • Browser session cookie │ • Both Token & Cookie loaded  │
+│ • Official Dashboards │ • Interactive Chromium   │ • Pure Token for Gate/DB ops  │
+│ • No browser needed   │ • Y.js collaborative WS  │ • Cookie for real-time Y.js   │
+│ • Auto whoami config  │ • ActivePieces automations│• 100% full platform coverage │
+└───────────────────────┴──────────────────────────┴───────────────────────────────┘
+```
+
+#### Mode 1: Pure Token Mode (Direct Remote MCP Gateways — Zero-Browser)
 Connect directly via official FuseBase Gate & Dashboards MCP gateways as specified in the official guides:
 - [Connect AI Agents to Fusebase Dashboards with MCP](https://thefusebase.com/guides/table-database/connect-ai-agents-to-fusebase-dashboards-with-mcp/)
 - [Connect external AI Agents to Fusebase with MCP](https://thefusebase.com/guides/fusebase-ai/connect-external-ai-agents-to-fusebase-with-mcp/)
@@ -87,21 +101,21 @@ cp .env.example .env
 # Direct Token Authentication (No cookies or browser needed)
 FUSEBASE_GATE_TOKEN=your_gate_mcp_token
 FUSEBASE_DASHBOARDS_TOKEN=your_dashboards_mcp_token
-# or unified token:
+# or unified platform token:
 # FUSEBASE_TOKEN=your_api_token
 ```
 
-> **Zero Configuration**: When tokens are provided, the server automatically resolves your tenant organization ID (`orgId`), custom domain (`FUSEBASE_HOST`), and default workspace via upstream `whoami`.
-> 
-> You can also save tokens securely encrypted at rest:
+> **Zero Configuration:** When tokens are provided, the server automatically connects to upstream Gate (`https://gate-mcp.thefusebase.com/mcp`) and Dashboards (`https://dashboards-mcp.thefusebase.com/mcp`), auto-discovering your tenant organization ID (`orgId`), custom domain (`FUSEBASE_HOST`), and default workspace via upstream `whoami`.
+>
+> You can also save tokens securely encrypted at rest (AES-256-GCM):
 > ```bash
 > npx tsx scripts/auth.ts --token <your_token>
 > # or for named multi-agent profiles:
 > npx tsx scripts/auth.ts --profile agent-architect --token <token>
 > ```
 
-#### Method B: Browser Session Cookies (Interactive / Headless)
-For direct Y.js CRDT WebSocket collaboration, you can capture your session cookies:
+#### Mode 2: Browser Session Cookie Mode (Interactive / Headless)
+For direct Y.js CRDT WebSocket live synchronization and internal ActivePieces engine integration:
 
 ```bash
 npx tsx scripts/auth.ts
@@ -109,15 +123,68 @@ npx tsx scripts/auth.ts
 
 This opens a browser window → log into Fusebase → cookies are automatically captured and saved **encrypted** (AES-256-GCM) to `data/cookie.enc`.
 
-> **Headless mode:** After the first login, you can re-authenticate without a browser window:
+> **Headless mode:** After initial login, you can re-authenticate without a browser window:
 > ```bash
 > npx tsx scripts/auth.ts --headless
 > ```
 >
-> **Multi-Agent Profiles:** Authenticate a specific profile:
+> **Multi-Agent Profiles:** Authenticate a specific named profile:
 > ```bash
 > npx tsx scripts/auth.ts --profile agent-architect
 > ```
+
+#### Mode 3: Hybrid Mode (Recommended for Full-Spectrum Agents)
+Supply both tokens (`FUSEBASE_GATE_TOKEN`, `FUSEBASE_DASHBOARDS_TOKEN`) and a session cookie (`FUSEBASE_COOKIE` or `data/cookie.enc`). The server intelligently routes:
+- **Gate & Dashboards MCP:** Uses high-speed Bearer tokens for tenant discovery, isolated PostgreSQL stores, databases, and token management.
+- **Notes Engine Fallback:** Automatically serves note/page/folder CRUD via Gate when session cookie is absent, and leverages real-time Y.js CRDT WebSocket sync when cookies are present.
+- **Automation Engine:** Exchanges session cookie for ActivePieces project JWTs while allowing external webhook triggers via FuseBase Work.
+
+---
+
+### 3. Authentication Modes Feature Parity & Empirical Comparison
+
+The table below reflects **100% empirical validation results** obtained by running `npm run test:parity` (`scripts/test-token-parity.ts`) against live FuseBase production infrastructure:
+
+| Domain | Feature | Pure Token Mode | Cookie / Session Mode | Parity Category | Technical Notes |
+|---|---|:---:|:---:|:---:|---|
+| **Identity** | Gate Tenant Identity (`whoami`) | ✅ PASS | ➖ N/A | **Token Superpower** | Gate resolves `orgId`, domain, user ID, default workspace, and granted permissions with zero browser login. |
+| **Identity** | Session Org Usage & Quotas | ➖ N/A | ✅ PASS | **Full Parity** | Both modes provide full identity resolution; session cookies query `/gwapi2/ft:tasks/workspace-infos`. |
+| **Workspaces** | List Workspaces (`list_workspaces`) | ✅ PASS | ✅ PASS | **Full Parity** | Pure Token maps Gate `listWorkspaces`; Cookie queries task workspace infos. Both yield real workspace IDs and roles. |
+| **Pages & Notes** | List Pages (`list_pages`) | ✅ PASS | ✅ PASS | **Full Parity** | Pure Token uses Gate `listWorkspaceNotes`; Cookie uses `/v2/api/workspaces/{wid}/notes`. |
+| **Pages & Notes** | Create Page (`create_page`) | ✅ PASS | ✅ PASS | **Full Parity** | Pure Token uses Gate `createWorkspaceNote`; Cookie uses `/v2/api/web-editor/notes/create`. |
+| **Pages & Notes** | Read Page Content (`get_page_content`) | ✅ PASS | ✅ PASS | **Full Parity** | Pure Token reads Markdown via Gate `getWorkspaceNote`; Cookie syncs HTML via Y.js WebSocket decoder. |
+| **Pages & Notes** | Append Page Content (`append_page_content`) | ✅ PASS | ✅ PASS | **Full Parity** | Pure Token uses Gate `appendWorkspaceNoteContent`; Cookie syncs delta blocks via Y.js WebSocket writer. |
+| **Folders** | Folder List & Create (`list_folders`, `create_folder`) | ✅ PASS | ✅ PASS | **Full Parity** | Pure Token calls Gate `listWorkspaceNoteFolders` & `createWorkspaceNoteFolder`; Cookie calls `/gwapi2/ft:notes/menu`. |
+| **Databases** | Database Discovery & Schema Queries | ✅ PASS | ✅ PASS | **Full Parity** | Pure Token queries Dashboards MCP `getAllDatabases`; Cookie queries `/v1/dashboards/databases`. |
+| **Isolated Stores** | PostgreSQL Control & Migrations | ✅ PASS | ➖ N/A | **Token Superpower** | Exclusive to Gate MCP Bearer Token (`listIsolatedStores`, `queryIsolatedSql`, apply migrations). |
+| **Token Lifecycle** | Programmatic Token Creation & Revocation | ✅ PASS | ➖ N/A | **Token Superpower** | Exclusive to Gate MCP: Programmatic API token generation, revocation, and catalog inspection (`listTokens`, `createToken`). |
+| **CRDT Collaboration** | Live Y.js WebSocket Sync (`wss://text.nimbusweb.me`) | 🔒 RESTRICTED | ✅ PASS | **Cookie Exclusive** | Y.js collaborative gateway validates `eversessionid` during HTTP WebSocket upgrade. *(See Architectural Note 1)* |
+| **Automations** | ActivePieces Internal Engine (`/automation/api/v1/...`) | 🔒 RESTRICTED | ✅ PASS | **Cookie Exclusive** | Internal ActivePieces auth exchanges `eversessionid` for project JWT. *(See Architectural Note 2)* |
+| **Binary Files** | Web Editor Multipart Uploads (`/v3/api/web-editor/...`) | 🔒 RESTRICTED | ✅ PASS | **Cookie Exclusive** | Legacy web editor file upload multipart handler validates browser session state. *(See Architectural Note 3)* |
+| **UI State** | Sidebar collapse & Web UI Preferences | 🔒 RESTRICTED | ✅ PASS | **Cookie Exclusive** | UI state toggles are stored in user session variables (`/v2/api/users/vars/...`). *(See Architectural Note 4)* |
+
+#### Architectural Notes on Cookie-Dependent Services
+
+1. **Real-time Y.js CRDT Collaborative WebSocket Sync (`wss://text.nimbusweb.me`):**  
+   The real-time collaborative editing service uses Y.js binary sync protocols over WebSockets. The WebSocket handshake endpoint validates the `eversessionid` cookie header during HTTP upgrade and rejects unauthenticated or bearer-token-only connections with HTTP 401. In Pure Token Mode, the client automatically routes page content reads and appends through Gate MCP (`getWorkspaceNote` and `appendWorkspaceNoteContent`), allowing complete page manipulation without opening a WebSocket connection.
+
+2. **Internal ActivePieces Workflow Engine (`/automation/api/v1/...`):**  
+   FuseBase's embedded ActivePieces automation platform relies on an authentication bridge (`/automation/api/v1/authentication/fusebase-auth`) that requires an active `eversessionid` cookie to mint a temporary project JWT and resolve the tenant's automation `projectId`. In Pure Token Mode, external automations can be triggered via FuseBase Work connectors (`fusebase_work_trigger_n8n` or webhook endpoints) without invoking the internal ActivePieces session bridge.
+
+3. **Legacy Web Editor Multi-Part File Uploads (`/v3/api/web-editor/file/v2-upload`):**  
+   The legacy web editor attachment route specifically checks for browser session cookies in multi-part form submissions. File downloads, asset links, and URL-based attachments operate without restrictions across all modes, while raw binary uploads through the legacy editor form route require a session cookie.
+
+4. **Web UI State & Session Preferences:**  
+   Preferences like `set_sidebar_collapsed` and last-opened workspace lists exist only in the web client's session state variables (`/v2/api/users/vars/...`). Because headless AI agents interact programmatically via MCP tools rather than a visual UI layout, this restriction does not affect automation workflows.
+
+#### Operational Recommendation: Which Mode Should You Use?
+
+- **Use Pure Token Mode (`FUSEBASE_GATE_TOKEN` + `FUSEBASE_DASHBOARDS_TOKEN`):**  
+  Best for CI/CD pipelines, autonomous Docker containers, headless cloud workers, and multi-tenant AI agents where browser login is impossible or undesirable. Provides 100% of workspace, page CRUD, folder, database, and isolated store capabilities with zero maintenance.
+- **Use Hybrid Mode (Tokens + Cached Cookie):**  
+  Best for local developer environments, rich interactive pair programming, and full-spectrum swarm orchestration where live Y.js WebSocket document collaboration and ActivePieces workflow creation are utilized alongside Gate MCP's PostgreSQL stores.
+
+---
 
 ### 4. Connect to Your AI Assistant
 
