@@ -1,5 +1,16 @@
 # Comprehensive Content Format Coverage Plan
 
+> [!NOTE]
+> **ARCHIVED / FULLY IMPLEMENTED (February 2026)**  
+> This document is a historical design plan and gap analysis from February 16, 2026.  
+> **Current Status:** All 5 phases proposed below have been fully implemented in production:
+> - **Schema & Parsing:** [src/content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts) & [src/markdown-parser.ts](file:///c:/scripts/fusebase-mcp/src/markdown-parser.ts)
+> - **WebSocket CRDT Writer:** [src/yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts)
+> - **HTML Decoder:** [src/yjs-html-decoder.ts](file:///c:/scripts/fusebase-mcp/src/yjs-html-decoder.ts)
+> - **Regression Verification:** [scripts/test-regression.ts](file:///c:/scripts/fusebase-mcp/scripts/test-regression.ts)
+>
+> Retained for architectural provenance. For active tool documentation, see [README.md](file:///c:/scripts/fusebase-mcp/README.md) and [ENDPOINT_REFERENCE.md](file:///c:/scripts/fusebase-mcp/ENDPOINT_REFERENCE.md).
+
 > Implement full support for **all Fusebase page block types** in the content schema, Y.js WebSocket writer, markdown parser, and MCP tools.
 
 ## Current State
