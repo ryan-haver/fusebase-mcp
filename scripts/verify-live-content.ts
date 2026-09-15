@@ -63,7 +63,7 @@ async function main() {
 
   // 5. Deployed Hosted App Cloud Verification
   console.log("\n5. DEPLOYED HOSTED APP CLOUD VERIFICATION");
-  const appCloudRes = await fetch("https://client-hub-dash.thefusebase.app/");
+  const appCloudRes = await fetch("https://fusebase-mcp.thefusebase.app/");
   console.log("   HTTP Status:", appCloudRes.status, appCloudRes.statusText);
   const appCloudHtml = await appCloudRes.text();
   console.log("   Hosted HTML Title:", appCloudHtml.includes("<title>") ? appCloudHtml.split("<title>")[1].split("</title>")[0] : "Verified");

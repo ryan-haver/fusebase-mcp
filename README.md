@@ -24,6 +24,7 @@ An [MCP](https://modelcontextprotocol.io/) server that lets AI assistants manage
 - **Auto auth retry** — detects 401/403 and refreshes session automatically
 - **Encrypted secrets** — cookies stored encrypted at rest (AES-256-GCM)
 - **Version checking** — built-in update detection from GitHub
+- **Live Cloud Status Dashboard** — real-time engineering and validation status dashboard hosted directly on FuseBase Cloud at [fusebase-mcp.thefusebase.app](https://fusebase-mcp.thefusebase.app/)
 - **API logging** — all requests logged for debugging
 
 ## 🚀 Quick Start
@@ -360,6 +361,9 @@ npm run test:audit
 
 # 4. Y.js Block Schema & Inline Format Regression Suite
 npm run test:regression
+
+# 5. Live Status Dashboard Build & Deployment Pipeline (Deploy prior to commit & push)
+npm run deploy:status
 ```
 
 | Test Command | Coverage Area |
@@ -368,6 +372,16 @@ npm run test:regression
 | `npm test` | Exercises all 15 platform subsystems: resources, templates, prompts, core/extended switching, Y.js WebSocket sync, CLI status, ActivePieces, portals, and swarms |
 | `npm run test:audit` | Validates that all 143 tools have descriptions, schemas, parameter docs, and 100% documentation coverage in README.md |
 | `npm run test:regression` | Validates round-trip Y.js WebSocket write → read fidelity across all 25+ block types and inline formats |
+| `npm run deploy:status` | Synchronizes latest project metrics & git commit details, compiles the dashboard SPA, deploys to `https://fusebase-mcp.thefusebase.app/`, and verifies live HTTP 200 health |
+
+### Pre-Commit & Push Workflow Checklist
+
+Before any commit and push to git:
+1. **Validate All Tools**: `npm run test:data-validation` (guarantees 100% data assertion pass rate and zero resource leaks).
+2. **Audit & Lint**: `npm run test:audit` (guarantees schema descriptions and 100% README documentation coverage).
+3. **Verify Regression**: `npm test` (guarantees 15-stage integration pass).
+4. **Deploy Status Dashboard**: `npm run deploy:status` (deploys latest project state & git hash to `https://fusebase-mcp.thefusebase.app/`).
+5. **Commit & Push**: Commit clean changes and push to `origin/master`.
 
 ## 🤝 Contributing
 

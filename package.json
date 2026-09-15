@@ -15,6 +15,7 @@
     "test:data-validation": "npx tsx scripts/test-data-validation.ts",
     "test:audit": "npx tsx scripts/audit-tools.ts",
     "test:regression": "npx tsx scripts/test-regression.ts",
+    "deploy:status": "npx tsx scripts/deploy-status-dashboard.ts",
     "postinstall": "npx playwright install chromium || true"
   },
   "dependencies": {

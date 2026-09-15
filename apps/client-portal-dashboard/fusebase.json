@@ -4,10 +4,10 @@
   "env": "prod",
   "apps": [
     {
-      "id": "ptx2az8amwwfrtvb",
-      "subdomain": "client-hub-dash",
-      "name": "Client Hub Dashboard",
-      "path": "apps/dashboard",
+      "id": "n5ztefbfocrdqizq",
+      "subdomain": "fusebase-mcp",
+      "name": "FuseBase MCP Status Dashboard",
+      "path": "apps/status-dashboard",
       "dev": {
         "command": "npm run dev"
       },
@@ -17,5 +17,5 @@
       }
     }
   ],
-  "firstAppSub": "client-hub-dash"
+  "firstAppSub": "fusebase-mcp"
 }

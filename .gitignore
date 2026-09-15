@@ -9,7 +9,7 @@ dist/
 *.enc
 
 # Runtime Data
-data/
+/data/
 *.db
 *.sqlite
 

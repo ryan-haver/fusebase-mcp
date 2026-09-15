@@ -1,0 +1,1776 @@
+{
+  "project": "FuseBase MCP Server",
+  "version": "0.0.0",
+  "lastUpdated": "2026-09-15T01:41:55.715Z",
+  "git": {
+    "commit": "c70e079",
+    "branch": "master",
+    "commitDate": "2026-09-14T19:28:39-06:00"
+  },
+  "environment": {
+    "cloudHost": "inkabeam.nimbusweb.me",
+    "organizationId": "u268r1",
+    "primaryWorkspaceId": "45h7lom5ryjak34u",
+    "status": "HEALTHY"
+  },
+  "summary": {
+    "totalTools": 143,
+    "coreTools": 34,
+    "extendedTools": 109,
+    "totalSuites": 12,
+    "totalAssertions": 162,
+    "passedAssertions": 162,
+    "passRatePercent": 100
+  },
+  "testSuites": [
+    {
+      "id": 1,
+      "name": "Workspaces & Organizations",
+      "toolsCount": 12,
+      "assertionsCount": 12,
+      "status": "passed",
+      "description": "Workspace metadata, membership catalogs, org limits, features, and billing usage"
+    },
+    {
+      "id": 2,
+      "name": "Folders & Taxonomy",
+      "toolsCount": 3,
+      "assertionsCount": 3,
+      "status": "passed",
+      "description": "Folder tree query, folder creation with root normalization, and tag labels"
+    },
+    {
+      "id": 3,
+      "name": "Pages & Collaborative Y.js Content",
+      "toolsCount": 11,
+      "assertionsCount": 15,
+      "status": "passed",
+      "description": "Page creation, HTML/Markdown reading, append_page_content, move_page, deletion"
+    },
+    {
+      "id": 4,
+      "name": "Tags, Files & Attachments",
+      "toolsCount": 8,
+      "assertionsCount": 9,
+      "status": "passed",
+      "description": "Tag assignments, file counting, multipart uploads, attachment binary downloads"
+    },
+    {
+      "id": 5,
+      "name": "Comments, Threads & Mentions",
+      "toolsCount": 7,
+      "assertionsCount": 8,
+      "status": "passed",
+      "description": "Live activity stream, entity mention queries, comment threads, replies, resolution"
+    },
+    {
+      "id": 6,
+      "name": "Tasks & Project Management",
+      "toolsCount": 10,
+      "assertionsCount": 11,
+      "status": "passed",
+      "description": "Task creation with globalId, task search, time tracking, summary, update, delete"
+    },
+    {
+      "id": 7,
+      "name": "Databases, Views & Relations",
+      "toolsCount": 28,
+      "assertionsCount": 34,
+      "status": "passed",
+      "description": "Full table lifecycle, column CRUD, rows, cell edits, kanban views, relations, CSV"
+    },
+    {
+      "id": 8,
+      "name": "Client Portals & Clients",
+      "toolsCount": 9,
+      "assertionsCount": 10,
+      "status": "passed",
+      "description": "Portal availability, themes, navigation trees, client access, magic links, page publishing"
+    },
+    {
+      "id": 9,
+      "name": "ActivePieces Workflow Automations",
+      "toolsCount": 12,
+      "assertionsCount": 14,
+      "status": "passed",
+      "description": "Community Edition flags, JWT auth, piece catalog, flow creation, execution, deletion"
+    },
+    {
+      "id": 10,
+      "name": "AI Assistant, Personas & Swarm",
+      "toolsCount": 10,
+      "assertionsCount": 12,
+      "status": "passed",
+      "description": "32 AI personas, taxonomy categories, usage inspection, swarm state machine, kanban transitions"
+    },
+    {
+      "id": 11,
+      "name": "Developer CLI & Hosted Vibe Apps",
+      "toolsCount": 5,
+      "assertionsCount": 7,
+      "status": "passed",
+      "description": "Native CLI status, vibe coding app list, scaffolding generator, interactive app pages"
+    },
+    {
+      "id": 12,
+      "name": "Diagnostics, Preferences & Offline Guides",
+      "toolsCount": 16,
+      "assertionsCount": 27,
+      "status": "passed",
+      "description": "Version check, headless cookie refresh, session health, preferences, templates, 277 offline guides"
+    }
+  ],
+  "milestones": [
+    {
+      "id": "m1",
+      "title": "Reverse-Engineered Core Protocol Architecture",
+      "status": "completed",
+      "date": "Sept 2026",
+      "description": "Wire protocol analysis, SOCKS5 proxy relay, AES-256-GCM cookie storage, and automated re-auth"
+    },
+    {
+      "id": "m2",
+      "title": "Collaborative Y.js WebSocket Engine",
+      "status": "completed",
+      "date": "Sept 2026",
+      "description": "Real-time non-destructive document append, subType 2 incremental updates, HTML/Markdown conversion"
+    },
+    {
+      "id": "m3",
+      "title": "Relational Database & Managed Templates",
+      "status": "completed",
+      "date": "Sept 2026",
+      "description": "Complete database engine: Kanban boards, cross-table relations, lookup columns, and CSV data pipelines"
+    },
+    {
+      "id": "m4",
+      "title": "Client Portal Hub Platform",
+      "status": "completed",
+      "date": "Sept 2026",
+      "description": "Whitelabel client portals, theme configuration, navigation trees, passwordless magic links"
+    },
+    {
+      "id": "m5",
+      "title": "ActivePieces Automations Integration",
+      "status": "completed",
+      "date": "Sept 2026",
+      "description": "72-piece automation connector library, flow execution trigger engine, and folder organization"
+    },
+    {
+      "id": "m6",
+      "title": "Multi-Agent Swarm Orchestration Engine",
+      "status": "completed",
+      "date": "Sept 2026",
+      "description": "Kanban state machine database for 6 agent roles (PM, Architect, Dev, QA, Review, DevOps)"
+    },
+    {
+      "id": "m7",
+      "title": "182-Route Exhaustive Discovery & Error Diagnostic",
+      "status": "completed",
+      "date": "Sept 2026",
+      "description": "Full API crawl cataloging live vs decommissioned endpoints, container root-cause diagnostics, and move_page promotion"
+    },
+    {
+      "id": "m8",
+      "title": "Full-Spectrum 143-Tool Deep Data Validation",
+      "status": "completed",
+      "date": "Sept 2026",
+      "description": "100% live data assertion test harness: 143/143 tools, 162/162 passed data assertions, 0 leaks"
+    }
+  ],
+  "tools": [
+    {
+      "name": "refresh_auth",
+      "description": "Refresh Fusebase authentication cookies by re-launching a Playwright browser session. Use this when other tools return 401/auth errors. Set interactive=true to open a visible browser window for manual login. Returns cookie age and expiry info.",
+      "tier": "core",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "interactive",
+        "profile"
+      ]
+    },
+    {
+      "name": "list_agent_profiles",
+      "description": "List all configured agent authentication profiles found in the local data directory, showing profile names, cookie age in hours, and status.",
+      "tier": "core",
+      "category": "Tags, Files & Attachments",
+      "parameters": []
+    },
+    {
+      "name": "switch_active_profile",
+      "description": "Switch the active default agent authentication profile for subsequent tool calls in this session.",
+      "tier": "core",
+      "category": "Tags, Files & Attachments",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "check_session_health",
+      "description": "Inspect the health, age, validity, and organization access of the current session or a specific agent profile without launching a browser. Returns status (HEALTHY/WARNING/EXPIRED), cookie age in hours, and active workspaces.",
+      "tier": "core",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "list_workspaces",
+      "description": "List all workspaces in your Fusebase organization with their IDs, titles, and colors. Use this first to discover workspace IDs needed by most other tools.",
+      "tier": "core",
+      "category": "Workspaces & Org",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "list_pages",
+      "description": "List pages (notes) in a Fusebase workspace with titles, types, and metadata. Supports pagination and filtering by folder. Returns compact summaries — use get_page for full details on a specific page.",
+      "tier": "core",
+      "category": "Pages & Collaborative Y.js",
+      "parameters": [
+        "workspaceId",
+        "folderId",
+        "parentId",
+        "limit",
+        "offset",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_page",
+      "description": "Get detailed metadata for a specific page including title, dates, size, sharing status, and emoji. Returns all properties — use this when you need full page info beyond what list_pages provides.",
+      "tier": "core",
+      "category": "Pages & Collaborative Y.js",
+      "parameters": [
+        "workspaceId",
+        "pageId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_recent_pages",
+      "description": "Get recently accessed pages in a workspace, sorted by last access time. Useful for finding what the user was last working on. Returns up to the specified limit (default 10).",
+      "tier": "core",
+      "category": "Pages & Collaborative Y.js",
+      "parameters": [
+        "workspaceId",
+        "limit",
+        "profile"
+      ]
+    },
+    {
+      "name": "create_page",
+      "description": "Create a new page in a Fusebase workspace with the given title. Optionally provide initial content via 'markdown' (recommended) or structured 'blocks'. Optionally specify a folderId to place it in a specific folder (defaults to root). Returns the created page's metadata including its new globalId.",
+      "tier": "core",
+      "category": "Pages & Collaborative Y.js",
+      "parameters": [
+        "workspaceId",
+        "title",
+        "folderId",
+        "parentId",
+        "markdown",
+        "blocks",
+        "profile"
+      ]
+    },
+    {
+      "name": "update_page",
+      "description": "Update a page or folder's properties — rename it, move it to a different folder, or both. Uses the upsert endpoint so partial updates are safe.",
+      "tier": "core",
+      "category": "Pages & Collaborative Y.js",
+      "parameters": [
+        "workspaceId",
+        "pageId",
+        "title",
+        "parentId",
+        "folderId",
+        "profile"
+      ]
+    },
+    {
+      "name": "delete_page",
+      "description": "[DESTRUCTIVE] Delete a page permanently from a workspace. This action is irreversible — the page and its content will be lost. Use get_page first to verify you have the correct page before deleting.",
+      "tier": "core",
+      "category": "Pages & Collaborative Y.js",
+      "parameters": [
+        "workspaceId",
+        "pageId",
+        "profile"
+      ]
+    },
+    {
+      "name": "move_page",
+      "description": "Move a page to a different folder within the workspace, move it back to workspace root, or migrate it to an entirely different workspace. Specify targetWorkspaceId to migrate across workspaces, and/or folderId (or parentId) to move between folders.",
+      "tier": "core",
+      "category": "Pages & Collaborative Y.js",
+      "parameters": [
+        "workspaceId",
+        "pageId",
+        "targetWorkspaceId",
+        "folderId",
+        "parentId",
+        "profile"
+      ]
+    },
+    {
+      "name": "list_folders",
+      "description": "List all folders in a Fusebase workspace as a nested tree structure. Each folder includes its children, icons, and sharing status. Use folder IDs to filter list_pages or as parentId when creating pages.",
+      "tier": "core",
+      "category": "Folders & Taxonomy",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "create_folder",
+      "description": "Create a new folder in a Fusebase workspace for organizing pages. Can be created at the root or nested inside an existing parent folder.",
+      "tier": "core",
+      "category": "Folders & Taxonomy",
+      "parameters": [
+        "workspaceId",
+        "title",
+        "parentId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_page_attachments",
+      "description": "Get all attachments (images, files, audio recordings) embedded in a specific page. Returns file names, MIME types, sizes, and UUIDs. Useful for auditing media content or finding downloadable assets.",
+      "tier": "core",
+      "category": "Pages & Collaborative Y.js",
+      "parameters": [
+        "workspaceId",
+        "pageId",
+        "profile"
+      ]
+    },
+    {
+      "name": "list_files",
+      "description": "List all uploaded files across a workspace with names, sizes, formats, and URLs. Supports pagination with limit and offset. Different from get_page_attachments — this covers workspace-wide file storage.",
+      "tier": "core",
+      "category": "Tags, Files & Attachments",
+      "parameters": [
+        "workspaceId",
+        "limit",
+        "offset",
+        "profile"
+      ]
+    },
+    {
+      "name": "upload_file",
+      "description": "Upload a file to a FuseBase page. The file content must be provided as base64-encoded data. Returns the attachment ID and URL path. Use get_page_attachments to list existing attachments.",
+      "tier": "core",
+      "category": "Tags, Files & Attachments",
+      "parameters": [
+        "workspaceId",
+        "pageId",
+        "content",
+        "filename",
+        "mime",
+        "role",
+        "profile"
+      ]
+    },
+    {
+      "name": "download_attachment",
+      "description": "Download a file attachment from a FuseBase page. Supports native MCP image rendering, local file downloading to disk (saving LLM context), or base64 data. Use get_page_attachments to find attachment IDs first.",
+      "tier": "core",
+      "category": "Tags, Files & Attachments",
+      "parameters": [
+        "workspaceId",
+        "attachmentId",
+        "filename",
+        "saveToDisk",
+        "outputPath",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_tags",
+      "description": "Get all tags in a workspace, or tags for a specific page if pageId is provided. Workspace tags return the full tag vocabulary; page tags return only tags applied to that page. Use update_page_tags to modify a page's tags.",
+      "tier": "core",
+      "category": "Tags, Files & Attachments",
+      "parameters": [
+        "workspaceId",
+        "pageId",
+        "profile"
+      ]
+    },
+    {
+      "name": "update_page_tags",
+      "description": "Set tags on a specific page, replacing any existing tags entirely. Pass an array of tag strings to apply. To remove all tags, pass an empty array.",
+      "tier": "core",
+      "category": "Pages & Collaborative Y.js",
+      "parameters": [
+        "workspaceId",
+        "pageId",
+        "tags",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_members",
+      "description": "Get members of a workspace or the entire organization if workspaceId is omitted. Workspace members include roles and privileges; org members include user profiles with emails. Useful for finding collaborators or checking permissions.",
+      "tier": "core",
+      "category": "Workspaces & Org",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_page_content",
+      "description": "Get the content of a page decoded from its Y.js document via WebSocket sync. By default returns semantic HTML. Set format='markdown' for clean, compact markdown that uses ~50% fewer tokens.",
+      "tier": "core",
+      "category": "Pages & Collaborative Y.js",
+      "parameters": [
+        "workspaceId",
+        "pageId",
+        "format",
+        "maxLength",
+        "profile"
+      ]
+    },
+    {
+      "name": "append_page_content",
+      "description": "Append new content (markdown or structured blocks) to an existing FuseBase page without overwriting existing content. Uses real-time Y.js WebSocket synchronization. Great for adding meeting notes, research updates, log entries, or checklists.",
+      "tier": "core",
+      "category": "Pages & Collaborative Y.js",
+      "parameters": [
+        "workspaceId",
+        "pageId",
+        "markdown",
+        "blocks",
+        "profile"
+      ]
+    },
+    {
+      "name": "update_page_content",
+      "description": "Write or replace content on a page using the native Y.js WebSocket protocol. Accepts markdown (recommended) or structured content blocks. Supports: headings (H1/H2/H3), paragraphs, bold, italic, strikethrough, underline, inline code, links, highlight, bullet/numbered/checkbox lists, dividers, blockquotes, code blocks (with language), toggles, hints/callouts, collapsible headings, images, files, bookmarks, remote frames, outlines, buttons, steps, tables, and grid layouts.",
+      "tier": "core",
+      "category": "Pages & Collaborative Y.js",
+      "parameters": [
+        "workspaceId",
+        "pageId",
+        "markdown",
+        "blocks",
+        "replace",
+        "profile"
+      ]
+    },
+    {
+      "name": "search_tasks",
+      "description": "Search tasks in a workspace with full task details, assignees, labels, and board info. Optionally filter by page to see only tasks linked to a specific note. Supports pagination with offset and limit.",
+      "tier": "core",
+      "category": "Tasks & Projects",
+      "parameters": [
+        "workspaceId",
+        "pageId",
+        "limit",
+        "offset",
+        "profile"
+      ]
+    },
+    {
+      "name": "list_task_lists",
+      "description": "List task lists (kanban boards) in a workspace with their associated tasks, assignees, and reminders. Optionally filter to a specific task list by ID. Task list IDs are needed for create_task.",
+      "tier": "core",
+      "category": "Tasks & Projects",
+      "parameters": [
+        "workspaceId",
+        "taskListId",
+        "profile"
+      ]
+    },
+    {
+      "name": "create_task",
+      "description": "Create a new task in a workspace within a specified task list. Supports title, description, priority, due date, assignees, and labels. Use list_task_lists first to get valid taskListId values.",
+      "tier": "core",
+      "category": "Tasks & Projects",
+      "parameters": [
+        "workspaceId",
+        "title",
+        "taskListId",
+        "description",
+        "priority",
+        "profile"
+      ]
+    },
+    {
+      "name": "update_task",
+      "description": "Update a task's properties — change status, priority, title, description, assignees, or due date. Uses PATCH semantics so only specified fields are changed.",
+      "tier": "core",
+      "category": "Tasks & Projects",
+      "parameters": [
+        "workspaceId",
+        "taskId",
+        "title",
+        "description",
+        "priority",
+        "completed",
+        "profile"
+      ]
+    },
+    {
+      "name": "delete_task",
+      "description": "[DESTRUCTIVE] Delete a task permanently from a workspace. This action is irreversible.",
+      "tier": "core",
+      "category": "Tasks & Projects",
+      "parameters": [
+        "workspaceId",
+        "taskId",
+        "profile"
+      ]
+    },
+    {
+      "name": "check_version",
+      "description": "Get server version and check for updates from GitHub. Returns the current installed version, latest available version, whether an update is available, and the command to update. If update_available is true, inform the user that a new version is available and suggest updating.",
+      "tier": "core",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "search_guides",
+      "description": "Search the local FuseBase guide documentation (231 guides across 17 sections). Returns matching guide titles, sections, and slugs. Use get_guide to read the full content of a specific result. Great for looking up how any FuseBase feature works.",
+      "tier": "core",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "query",
+        "limit"
+      ]
+    },
+    {
+      "name": "get_guide",
+      "description": "Get the full markdown content of a specific FuseBase guide by section and slug. Use search_guides first to find the right section/slug values. Returns the complete guide including instructions, screenshots, and hotkeys.",
+      "tier": "core",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "section",
+        "slug"
+      ]
+    },
+    {
+      "name": "list_guide_sections",
+      "description": "List all 17 FuseBase guide sections with the number of guides in each. Use this to browse available documentation categories before searching for specific topics.",
+      "tier": "core",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": []
+    },
+    {
+      "name": "set_tool_tier",
+      "description": "Enable extended Fusebase tools for this session. By default only core tools (33) are loaded for performance. Call this with tier 'all' to dynamically register 103 additional tools (136 total) for admin, analytics, database CRUD, portals, ActivePieces automations, and CLI operations.",
+      "tier": "core",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "tier",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_labels",
+      "description": "Get all labels (colored categories) defined in a workspace. Labels have titles, colors, and styles, and can be applied to tasks for visual organization. Returns label IDs usable in task creation.",
+      "tier": "extended",
+      "category": "Folders & Taxonomy",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_org_usage",
+      "description": "Get organization-wide usage statistics including storage, traffic, member counts, AI credits, and workspace quotas. Each metric shows current vs max values. Useful for monitoring plan limits and resource consumption.",
+      "tier": "extended",
+      "category": "Workspaces & Org",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "get_comment_threads",
+      "description": "Get all comment threads on a specific page, including thread status (resolved/open) and nested comments. Useful for reviewing feedback, discussions, or collaborative annotations on a page.",
+      "tier": "extended",
+      "category": "Comments, Threads & Mentions",
+      "parameters": [
+        "workspaceId",
+        "pageId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_task_description",
+      "description": "Get the full rich-text description and detailed properties of a specific task. Use this when search_tasks provides insufficient detail. Returns the task's complete content including formatted description.",
+      "tier": "extended",
+      "category": "Tasks & Projects",
+      "parameters": [
+        "workspaceId",
+        "taskId",
+        "profile"
+      ]
+    },
+    {
+      "name": "list_agents",
+      "description": "List all AI agents configured in the organization with their titles, descriptions, and types. AI agents are custom assistants created in Fusebase's AI features. Returns agent IDs and metadata.",
+      "tier": "extended",
+      "category": "AI Assistant, Personas & Swarm",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "get_ai_assistant_state",
+      "description": "Get the workspace AI assistant state, prompt suggestions, assistant preferences, and recent chat threads.",
+      "tier": "extended",
+      "category": "AI Assistant, Personas & Swarm",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "list_ai_agent_threads",
+      "description": "List active conversation threads and history for a specific AI agent in the organization.",
+      "tier": "extended",
+      "category": "AI Assistant, Personas & Swarm",
+      "parameters": [
+        "agentId",
+        "orgId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_ai_agent_favorites",
+      "description": "Get favorited or bookmarked AI agents configured in the organization.",
+      "tier": "extended",
+      "category": "AI Assistant, Personas & Swarm",
+      "parameters": [
+        "orgId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_agent_public_profile",
+      "description": "Get the public profile (title, description, avatar URL, workspace binding) for a specific AI agent model by its global ID.",
+      "tier": "extended",
+      "category": "Tags, Files & Attachments",
+      "parameters": [
+        "agentGlobalId",
+        "orgId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_mention_entities",
+      "description": "Get all mentionable entities (users, pages, folders) in a workspace for @-mention autocomplete. Includes member counts, workspace structure overview, and owner info. Useful for understanding workspace scope at a glance.",
+      "tier": "extended",
+      "category": "Comments, Threads & Mentions",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_navigation_menu",
+      "description": "Get the full sidebar navigation tree showing all pages, folders, and their hierarchy across workspaces. Includes parent-child relationships, icons, and timestamps. Best way to get a complete structural overview of all content.",
+      "tier": "extended",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_activity_stream",
+      "description": "Get the activity feed for a workspace showing recent comments, @mentions, and content changes. Includes user avatars and note references for each activity item. Useful for monitoring workspace activity and collaboration.",
+      "tier": "extended",
+      "category": "Comments, Threads & Mentions",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "fusebase_poll_mentions",
+      "description": "Poll the Fusebase activity stream for new @mentions or comments directed at this profile. Use filterText to narrow results to only items mentioning a specific display name.",
+      "tier": "extended",
+      "category": "Comments, Threads & Mentions",
+      "parameters": [
+        "workspaceId",
+        "since",
+        "filterText",
+        "profile"
+      ]
+    },
+    {
+      "name": "fusebase_post_comment",
+      "description": "Create a new comment thread on a Fusebase page. The comment is anchored to a specific block (targetId) or to the page itself. Use this to leave feedback, ask questions, or communicate with human collaborators.",
+      "tier": "extended",
+      "category": "Comments, Threads & Mentions",
+      "parameters": [
+        "workspaceId",
+        "noteId",
+        "pageId",
+        "text",
+        "targetId",
+        "profile"
+      ]
+    },
+    {
+      "name": "fusebase_reply_comment",
+      "description": "Reply to an existing comment thread on a Fusebase page. Use get_comment_threads first to find the thread ID, then reply to continue the conversation.",
+      "tier": "extended",
+      "category": "Comments, Threads & Mentions",
+      "parameters": [
+        "workspaceId",
+        "threadId",
+        "text",
+        "profile"
+      ]
+    },
+    {
+      "name": "fusebase_resolve_thread",
+      "description": "Resolve (close) a comment thread after it has been addressed. Use get_comment_threads to find thread IDs.",
+      "tier": "extended",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "workspaceId",
+        "threadId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_task_usage",
+      "description": "Get task usage statistics for a workspace, including upcoming deadline dates and active reminders. Useful for understanding task workload and scheduling pressure in a workspace.",
+      "tier": "extended",
+      "category": "Workspaces & Org",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_recently_updated_notes",
+      "description": "Get recently updated notes across the entire organization, not limited to a single workspace. Returns notes sorted by last modification time with pagination support. Useful for finding the latest activity org-wide.",
+      "tier": "extended",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "get_task_count",
+      "description": "Get the total number of tasks in a workspace as a single count. Lightweight alternative to search_tasks when you only need the quantity, not the task details.",
+      "tier": "extended",
+      "category": "Tasks & Projects",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_workspace_detail",
+      "description": "Get full workspace metadata including internal IDs, organization binding, creator userId, and creation/update timestamps. Provides deeper detail than list_workspaces. Useful for debugging or workspace administration.",
+      "tier": "extended",
+      "category": "Workspaces & Org",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_workspace_emails",
+      "description": "Get the email-to-note addresses for a workspace. Sending emails to these addresses automatically creates pages in the workspace. Returns the dedicated email address and associated user.",
+      "tier": "extended",
+      "category": "Workspaces & Org",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_file_count",
+      "description": "Get the total count of files stored across all workspaces in the organization, or in a specific workspace. Lightweight check for storage auditing — use list_files for detailed file listings.",
+      "tier": "extended",
+      "category": "Tags, Files & Attachments",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_ai_usage",
+      "description": "Get AI feature usage for the organization showing current consumption vs maximum allowed. Tracks AI credits used across all workspaces. Useful for monitoring AI quota before heavy AI operations.",
+      "tier": "extended",
+      "category": "Workspaces & Org",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "get_org_permissions",
+      "description": "Get comprehensive organization permissions including all workspace memberships, role assignments, user avatars, and per-member usage data. More detailed than get_members — includes cross-workspace permission mapping.",
+      "tier": "extended",
+      "category": "Workspaces & Org",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "get_workspace_info",
+      "description": "Get workspace billing info including quota reset dates and plan details. Shows when usage counters reset and the organization's current billing cycle. Useful for understanding rate limits and renewal timing.",
+      "tier": "extended",
+      "category": "Workspaces & Org",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_note_tags",
+      "description": "Get tags applied to a specific page/note. Unlike get_tags which returns workspace-wide tag vocabulary, this returns only the tags on one particular page. Use for checking a page's categorization.",
+      "tier": "extended",
+      "category": "Pages & Collaborative Y.js",
+      "parameters": [
+        "workspaceId",
+        "pageId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_database_data",
+      "description": "Get structured data from a Fusebase database/table view. Requires the dashboard UUID and view UUID, which can be found in the URL when viewing a database in the Fusebase UI. Supports pagination via page and limit parameters.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "page",
+        "limit",
+        "profile"
+      ]
+    },
+    {
+      "name": "list_databases",
+      "description": "List all databases/dashboards in the organization. Returns dashboard and view UUIDs that can be used with get_database_data. Probes known entity types (spaces, clients) plus any custom entities you specify.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "orgId",
+        "customEntities",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_database_entity",
+      "description": "Get data from a specific database entity type (e.g. clients, spaces). Automatically discovers the correct dashboard/view UUIDs for the entity. Supports pagination.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "entity",
+        "page",
+        "limit",
+        "orgId",
+        "profile"
+      ]
+    },
+    {
+      "name": "create_database",
+      "description": "Create a new database (table or kanban view) in the organization. Returns the new database, dashboard, and view UUIDs. The database is created with a default table representation. Use list_databases afterwards to see it.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "title",
+        "description",
+        "icon",
+        "color",
+        "isPublic",
+        "profile"
+      ]
+    },
+    {
+      "name": "add_database_row",
+      "description": "Add a new row to a database entity table. For built-in entities (clients, spaces), only entity name is needed. For custom databases, also provide databaseId and dashboardId (from list_databases or create_database). Uses Next.js server action internally.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "entity",
+        "databaseId",
+        "dashboardId",
+        "orgId",
+        "profile"
+      ]
+    },
+    {
+      "name": "delete_database_row",
+      "description": "[DESTRUCTIVE] Delete a row from a database. Requires the dashboard ID and the row ID. Use get_database_rows to find row IDs.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "rowId",
+        "profile"
+      ]
+    },
+    {
+      "name": "move_kanban_card",
+      "description": "Move a kanban card to a different column by updating the grouped column's cell value. Equivalent to update_database_cell but semantically describes moving a card. Use get_database_schema to find the groupBy column key, and get_database_rows to find the row UUID.",
+      "tier": "extended",
+      "category": "AI Assistant, Personas & Swarm",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "rowId",
+        "groupByColumnKey",
+        "newValue",
+        "profile"
+      ]
+    },
+    {
+      "name": "list_database_relations",
+      "description": "List available relation targets and existing lookups for a dashboard. Returns linked tables/views that can be used for creating relation or lookup columns.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "profile"
+      ]
+    },
+    {
+      "name": "create_dashboard_table",
+      "description": "Create a new table (dashboard) within an existing database. Returns the new dashboard UUID and its default view UUID. Use list_all_databases to find the parent database ID.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "title",
+        "profile"
+      ]
+    },
+    {
+      "name": "delete_relation",
+      "description": "[DESTRUCTIVE] Delete a relation by its ID. This removes the link between two database tables. Use list_database_relations to find relation IDs.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "relationId",
+        "profile"
+      ]
+    },
+    {
+      "name": "list_all_databases",
+      "description": "List all databases in the organization via the dashboard-service REST API. Returns database metadata, dashboard (table) UUIDs, and view UUIDs. More comprehensive than list_databases — returns full database objects with nested dashboards.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "get_database_detail",
+      "description": "Get detailed information about a specific database including all its dashboards (tables) and views. Use the database ID from list_all_databases or create_database.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "databaseId",
+        "dashboardId",
+        "profile"
+      ]
+    },
+    {
+      "name": "update_database",
+      "description": "Update a database's title, description, icon, color, favorite status, or public visibility. Uses PUT (PATCH is not supported by this API).",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "databaseId",
+        "dashboardId",
+        "title",
+        "description",
+        "icon",
+        "color",
+        "isPublic",
+        "favorite",
+        "profile"
+      ]
+    },
+    {
+      "name": "delete_database",
+      "description": "[DESTRUCTIVE] Delete a database and ALL its dashboards (tables), views, and data. This action is irreversible. Returns 204 on success.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "databaseId",
+        "dashboardId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_dashboard_detail",
+      "description": "Get detailed information about a dashboard (table within a database). Returns the dashboard's views array (including custom views), metadata, root entity, and scopes. Use the dashboard ID from list_all_databases or get_database_detail.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "profile"
+      ]
+    },
+    {
+      "name": "delete_dashboard",
+      "description": "[DESTRUCTIVE] Delete a dashboard (table) within a database. Removes the table and its data. Use get_database_detail first to see available dashboards.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "profile"
+      ]
+    },
+    {
+      "name": "update_view",
+      "description": "Update a custom view's name, filters, sorts, or hidden columns. Use get_dashboard_detail to find available views. Uses PUT (PATCH is not supported).",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "name",
+        "filters",
+        "sorts",
+        "hidden_columns",
+        "profile"
+      ]
+    },
+    {
+      "name": "set_view_representation",
+      "description": "Switch a view's display mode. Supports 8 types: table (default spreadsheet), kanban (card columns), board, calendar, timeline, gallery, list, grid. Table and kanban use the representations endpoint; the rest use PUT with default_representation_template_id. Use get_dashboard_detail to find dashboard and view UUIDs.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "representationType",
+        "profile"
+      ]
+    },
+    {
+      "name": "duplicate_database",
+      "description": "Duplicate (copy) an entire database, including tables, views, relations, and optionally data. Returns the new database with its UUIDs. Discovered via captured API: POST /databases/copy-from/database.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "sourceDbId",
+        "databaseId",
+        "dashboardId",
+        "copyData",
+        "profile"
+      ]
+    },
+    {
+      "name": "create_view",
+      "description": "Create a new view within a dashboard (table). Each view can have its own filters, sorts, grouping, column visibility, and display mode. Use set_view_representation afterwards to change the view type.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "name",
+        "profile"
+      ]
+    },
+    {
+      "name": "delete_view",
+      "description": "[DESTRUCTIVE] Delete a view from a dashboard. Cannot delete the default (first) view. Use get_dashboard_detail to find view UUIDs.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "profile"
+      ]
+    },
+    {
+      "name": "export_csv",
+      "description": "Export a database view as CSV text. Returns the raw CSV content. Supports 5 delimiter options: comma, semicolon, pipe, tab, or caret. Use get_dashboard_detail to find dashboard and view UUIDs.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "delimiter",
+        "profile"
+      ]
+    },
+    {
+      "name": "duplicate_view",
+      "description": "Duplicate an existing view within a dashboard. Creates a copy with the same schema, filters, and configuration. Use get_dashboard_detail to find dashboard and view UUIDs.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "sourceViewId",
+        "name",
+        "profile"
+      ]
+    },
+    {
+      "name": "import_csv",
+      "description": "Import CSV data into an existing database table/view. Provide the CSV content, the database ID, dashboard (table) ID, and the view ID. The server will import the rows into the database. Column mapping is auto-generated from CSV headers (all imported as 'Single line text').",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "csvContent",
+        "databaseId",
+        "dashboardId",
+        "viewId",
+        "delimiter",
+        "profile"
+      ]
+    },
+    {
+      "name": "set_view_grouping",
+      "description": "Set the grouping column for a kanban or board view. Groups cards/rows by the specified column. Requires the dashboard ID, view ID, and the column key to group by. Use get_database_schema first to find column keys.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "groupByColumnKey",
+        "representationType",
+        "profile"
+      ]
+    },
+    {
+      "name": "set_column_width",
+      "description": "Set the width of a column in a database view. Use get_database_schema first to find column keys. Width is in pixels.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "columnKey",
+        "width",
+        "profile"
+      ]
+    },
+    {
+      "name": "rename_database_column",
+      "description": "Rename a column in a database view. Updates the column's name in the view schema. Use get_database_schema first to find the column key.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "columnKey",
+        "newName",
+        "profile"
+      ]
+    },
+    {
+      "name": "reorder_database_columns",
+      "description": "Reorder columns in a database view. Provide an array of column keys in the desired order. Columns not in the array are appended at the end. Use get_database_schema first to see current column keys and order.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "orderedKeys",
+        "profile"
+      ]
+    },
+    {
+      "name": "update_database_cell",
+      "description": "Set the value of a specific cell in a database row. Use get_database_rows or get_database_data first to obtain the rowUuid and the column key (short opaque string like 'eoZSNDPy'). The get_database_rows tool returns a schema array mapping column names to keys for easy lookup. Note: rich-text (Description), file, and relation columns may not accept plain string values.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "rowUuid",
+        "columnKey",
+        "value",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_database_rows",
+      "description": "Get rows from a database view in a structured format optimised for agent use. Each row includes: rowUuid (needed for update_database_cell), cells (column name → value map), and rawCells (column key → value map). Also returns the schema (column name, key, type) so you can look up the correct column key before calling update_database_cell. Wraps get_database_data with friendly field names.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "page",
+        "limit",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_database_schema",
+      "description": "Get the column schema for a database view. Returns an array of column definitions with key (opaque 8-char ID, needed for update_database_cell), name (human-readable), type (string, number, date, label, checkbox, etc.), and edit settings. Use this to understand a database's structure before reading or writing cells.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "profile"
+      ]
+    },
+    {
+      "name": "add_database_column",
+      "description": "Add a new column to a database view. Supported types: string (single-line text), multiline (multi-line text), number, date, label/status/select (with optional custom labels and colors), checkbox/boolean, email, phone, link/url, currency, files, user/assignee (assign org members), subtable/child-table-link (nested table). For relation columns use add_relation_column, for lookup columns use add_lookup_column. Returns the new column's key which is needed for update_database_cell. Use get_database_schema to verify the column was added.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "name",
+        "columnType",
+        "labels",
+        "multiSelect",
+        "description",
+        "profile"
+      ]
+    },
+    {
+      "name": "delete_database_column",
+      "description": "[DESTRUCTIVE] Delete a column from a database view by its key. Use get_database_schema first to find the column key. This removes the column definition from the schema — existing cell data for that column key will no longer be visible. This action cannot be undone.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "columnKey",
+        "profile"
+      ]
+    },
+    {
+      "name": "add_relation_column",
+      "description": "Add a Relation column that links this database to another database table. This creates a cross-database relation (via POST /relations) and adds a lookup-source column. The column shows linked records from the target table. Use get_database_schema on the target table first to get its dashboardId and viewId.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "name",
+        "targetDashboardId",
+        "targetViewId",
+        "relationType",
+        "profile"
+      ]
+    },
+    {
+      "name": "add_lookup_column",
+      "description": "Add a Lookup column that displays data from a related table through an existing Relation column. The lookup column is read-only and automatically pulls data from the linked records. You must have an existing relation column first (created via add_relation_column). Use get_database_schema to find the relation column key.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "name",
+        "relationColumnKey",
+        "lookupFieldKey",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_org_limits",
+      "description": "Get the organization's plan limits including maximum members, storage, traffic, AI credits, workspaces, and other quotas. Use alongside get_org_usage or get_usage_summary to compare current consumption against plan caps.",
+      "tier": "extended",
+      "category": "Workspaces & Org",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "get_usage_summary",
+      "description": "Get a condensed snapshot of organization usage vs limits — lighter than get_org_usage. Returns current/max for overall usage, storage, and blots in a single response.",
+      "tier": "extended",
+      "category": "Workspaces & Org",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "list_portals",
+      "description": "List client portals for the organization. Optionally filter by workspace. Client portals are shared, branded pages published externally for clients or stakeholders.",
+      "tier": "extended",
+      "category": "Client Portals & Clients",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_portal_pages",
+      "description": "Get pages published to a client portal. Returns the portal page tree for a given workspace, optionally filtered to a specific page. Use list_portals first to find active portals.",
+      "tier": "extended",
+      "category": "Pages & Collaborative Y.js",
+      "parameters": [
+        "workspaceId",
+        "noteId",
+        "pageId",
+        "profile"
+      ]
+    },
+    {
+      "name": "create_portal",
+      "description": "Create a new client portal for a workspace. Client portals are external, branded spaces where external clients view published pages, widgets, and dashboards.",
+      "tier": "extended",
+      "category": "Client Portals & Clients",
+      "parameters": [
+        "workspaceId",
+        "name",
+        "domain",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_portal",
+      "description": "Get detailed portal configuration, custom branding, access rules, greeting messages, and custom injected scripts for a portal.",
+      "tier": "extended",
+      "category": "Client Portals & Clients",
+      "parameters": [
+        "portalId",
+        "profile"
+      ]
+    },
+    {
+      "name": "publish_page_to_portal",
+      "description": "Publish or unpublish an internal workspace page to the client portal by updating its is_portal_share flag.",
+      "tier": "extended",
+      "category": "Pages & Collaborative Y.js",
+      "parameters": [
+        "workspaceId",
+        "pageId",
+        "publish",
+        "profile"
+      ]
+    },
+    {
+      "name": "check_portal_availability",
+      "description": "Check whether the organization account has the client portal feature enabled and available.",
+      "tier": "extended",
+      "category": "Client Portals & Clients",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "get_portal_theme",
+      "description": "Get client portal UI visual theme, dark/light branding colors, hero greeting banner, search bar settings, and sidebar options.",
+      "tier": "extended",
+      "category": "Client Portals & Clients",
+      "parameters": [
+        "workspaceId",
+        "portalId",
+        "portalDomain",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_portal_navigation_menu",
+      "description": "Get the complete hierarchical sidebar navigation tree and page entities published in a workspace's client portal.",
+      "tier": "extended",
+      "category": "Client Portals & Clients",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_workspace_portal",
+      "description": "Resolve the primary client portal object bound to a workspace (portal ID, global ID, domain, creation timestamp).",
+      "tier": "extended",
+      "category": "Workspaces & Org",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_org_features",
+      "description": "Get feature flags enabled for the organization. Each feature has an ID, name, and enabled status. Useful for checking what capabilities are available on the current plan.",
+      "tier": "extended",
+      "category": "Workspaces & Org",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "create_interactive_app_page",
+      "description": "Create a new FuseBase page embedding a full-width interactive web application, widget, or dashboard (FuseBase Vibe Coding/Apps). Uses a remote-frame block with allowOverWidth=true.",
+      "tier": "extended",
+      "category": "Pages & Collaborative Y.js",
+      "parameters": [
+        "workspaceId",
+        "title",
+        "appUrl",
+        "description",
+        "folderId",
+        "profile"
+      ]
+    },
+    {
+      "name": "list_automation_flows",
+      "description": "List ActivePieces automation workflows configured in the FuseBase organization. Shows workflow IDs, names, status (enabled/disabled), and triggers.",
+      "tier": "extended",
+      "category": "ActivePieces Automations",
+      "parameters": [
+        "projectId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_automation_flow",
+      "description": "Get detailed configuration and step definitions of an ActivePieces automation workflow.",
+      "tier": "extended",
+      "category": "ActivePieces Automations",
+      "parameters": [
+        "flowId",
+        "profile"
+      ]
+    },
+    {
+      "name": "list_flow_runs",
+      "description": "List execution history of ActivePieces automation flow runs, including status, execution duration, and trigger timestamps.",
+      "tier": "extended",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "projectId",
+        "limit",
+        "profile"
+      ]
+    },
+    {
+      "name": "list_automation_pieces",
+      "description": "List available ActivePieces connectors, actions, and trigger pieces (e.g. piece-fusebase, piece-smtp, piece-webhook, piece-csv).",
+      "tier": "extended",
+      "category": "ActivePieces Automations",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "fusebase_cli_status",
+      "description": "Check if the official FuseBase developer CLI (`fusebase`) is installed, detect its version, binary path, and authentication state.",
+      "tier": "extended",
+      "category": "Developer CLI & Hosted Apps",
+      "parameters": []
+    },
+    {
+      "name": "fusebase_cli_init",
+      "description": "Initialize a new FuseBase hosted app product in the specified directory using the official FuseBase CLI.",
+      "tier": "extended",
+      "category": "Developer CLI & Hosted Apps",
+      "parameters": [
+        "name",
+        "orgId",
+        "cwd",
+        "forceDirty"
+      ]
+    },
+    {
+      "name": "fusebase_cli_list_apps",
+      "description": "List configured FuseBase hosted web applications and their URLs.",
+      "tier": "extended",
+      "category": "Developer CLI & Hosted Apps",
+      "parameters": [
+        "cwd"
+      ]
+    },
+    {
+      "name": "fusebase_cli_deploy",
+      "description": "Deploy a FuseBase web application to production hosting via the FuseBase CLI.",
+      "tier": "extended",
+      "category": "Developer CLI & Hosted Apps",
+      "parameters": [
+        "cwd"
+      ]
+    },
+    {
+      "name": "create_automation_flow",
+      "description": "Create a new ActivePieces workflow automation in FuseBase.",
+      "tier": "extended",
+      "category": "ActivePieces Automations",
+      "parameters": [
+        "displayName",
+        "folderId",
+        "projectId",
+        "profile"
+      ]
+    },
+    {
+      "name": "update_automation_flow",
+      "description": "Update an existing ActivePieces workflow automation (rename or toggle status ENABLED/DISABLED).",
+      "tier": "extended",
+      "category": "ActivePieces Automations",
+      "parameters": [
+        "flowId",
+        "type",
+        "status",
+        "displayName",
+        "profile"
+      ]
+    },
+    {
+      "name": "delete_automation_flow",
+      "description": "[DESTRUCTIVE] Delete an ActivePieces workflow automation by flow ID.",
+      "tier": "extended",
+      "category": "ActivePieces Automations",
+      "parameters": [
+        "flowId",
+        "profile"
+      ]
+    },
+    {
+      "name": "trigger_automation_flow",
+      "description": "Test-run or trigger an ActivePieces workflow automation with a custom JSON payload.",
+      "tier": "extended",
+      "category": "ActivePieces Automations",
+      "parameters": [
+        "flowId",
+        "payload",
+        "profile"
+      ]
+    },
+    {
+      "name": "list_portal_clients",
+      "description": "List invited external clients and members with portal access across the organization or for a specific portal.",
+      "tier": "extended",
+      "category": "Client Portals & Clients",
+      "parameters": [
+        "portalId",
+        "profile"
+      ]
+    },
+    {
+      "name": "invite_portal_client",
+      "description": "Invite a customer or client into a FuseBase client portal with the Client Role.",
+      "tier": "extended",
+      "category": "Client Portals & Clients",
+      "parameters": [
+        "portalId",
+        "email",
+        "name",
+        "profile"
+      ]
+    },
+    {
+      "name": "create_portal_magic_link",
+      "description": "Generate a 24-hour passwordless magic access link for a portal client.",
+      "tier": "extended",
+      "category": "Client Portals & Clients",
+      "parameters": [
+        "portalId",
+        "email",
+        "profile"
+      ]
+    },
+    {
+      "name": "fusebase_swarm_init",
+      "description": "Initialize a multi-agent swarm state machine database in FuseBase. Creates a Kanban board structured with roles (agent-pm, agent-architect, agent-dev, agent-qa), task statuses (Backlog, In Progress, Review, Done), and audit trails.",
+      "tier": "extended",
+      "category": "AI Assistant, Personas & Swarm",
+      "parameters": [
+        "title",
+        "description",
+        "profile"
+      ]
+    },
+    {
+      "name": "fusebase_swarm_task_transition",
+      "description": "Transition a swarm task across lifecycle stages (Backlog -> In Progress -> Review -> Done), record agent audit comments, and trigger next-agent handover.",
+      "tier": "extended",
+      "category": "Tasks & Projects",
+      "parameters": [
+        "dashboardId",
+        "viewId",
+        "rowId",
+        "groupByColumnKey",
+        "newStatus",
+        "comment",
+        "nextRole",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_dashboard_templates",
+      "description": "Get managed dashboard and view representation templates (e.g. Kanban, Table) used for database representations.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "orgId",
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_member_roles",
+      "description": "List user ID to role mappings across the organization (e.g. member, admin).",
+      "tier": "extended",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "orgId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_workspace_members_v1",
+      "description": "Get granular v1 workspace member entities including globalId, addedByUserId, and creation/update timestamps.",
+      "tier": "extended",
+      "category": "Workspaces & Org",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_tasks_workspace_summary",
+      "description": "Get cross-workspace task overview and summary statistics across all accessible workspaces in the organization.",
+      "tier": "extended",
+      "category": "Workspaces & Org",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "get_billing_info",
+      "description": "Inspect billing credit balance, active coupon code redemptions (e.g. AppSumo), and redeemed coupon token history.",
+      "tier": "extended",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "orgId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_user_preferences",
+      "description": "Retrieve user notification options (email and push triggers), web editor state variables, and last-opened workspaces.",
+      "tier": "extended",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "set_sidebar_collapsed",
+      "description": "Toggle or set the FuseBase web editor sidebar collapsed state.",
+      "tier": "extended",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "collapsed",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_task_time_tracking",
+      "description": "Get time tracking estimates and recorded time history for a specific task in a workspace.",
+      "tier": "extended",
+      "category": "Tasks & Projects",
+      "parameters": [
+        "workspaceId",
+        "taskId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_automation_flags",
+      "description": "Get ActivePieces automation platform system configuration, version, edition (ce/ee), webhook prefix, and feature flags.",
+      "tier": "extended",
+      "category": "ActivePieces Automations",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "get_workspace_premium_status",
+      "description": "Inspect workspace subscription tier, status, and plan expiration date.",
+      "tier": "extended",
+      "category": "Workspaces & Org",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_active_import_status",
+      "description": "Check the status and progress of ongoing data migration or import operations into a workspace.",
+      "tier": "extended",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "workspaceId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_org_trials",
+      "description": "List active feature trial subscriptions and trial expiration records for the organization.",
+      "tier": "extended",
+      "category": "Workspaces & Org",
+      "parameters": [
+        "orgId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_database_entity_templates",
+      "description": "Get all master database and dashboard entity templates available in the organization (including All workspaces, All portals, All forms, Custom table, and All clients). Shows root_entity mappings and complete JSON schema definitions.",
+      "tier": "extended",
+      "category": "Databases & Relations",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "list_ai_agent_categories",
+      "description": "List all available AI agent categories defined in the organization (such as Sales, Support, Development, Content, etc.). Returns category names, descriptions, and global IDs.",
+      "tier": "extended",
+      "category": "AI Assistant, Personas & Swarm",
+      "parameters": [
+        "orgId",
+        "profile"
+      ]
+    },
+    {
+      "name": "list_automation_folders",
+      "description": "List all automation workflow folders configured in ActivePieces. Returns folder IDs, names, badge colors, and project associations.",
+      "tier": "extended",
+      "category": "Folders & Taxonomy",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "create_automation_folder",
+      "description": "Create a new workflow organization folder in the ActivePieces automation engine to categorize and group automation flows.",
+      "tier": "extended",
+      "category": "Folders & Taxonomy",
+      "parameters": [
+        "displayName",
+        "color",
+        "profile"
+      ]
+    },
+    {
+      "name": "delete_automation_folder",
+      "description": "[DESTRUCTIVE] Delete an automation workflow folder from ActivePieces. This unassigns any flows contained within the folder without deleting the flows themselves.",
+      "tier": "extended",
+      "category": "Folders & Taxonomy",
+      "parameters": [
+        "folderId",
+        "profile"
+      ]
+    },
+    {
+      "name": "get_automation_user",
+      "description": "Get the profile and identity details of the authenticated ActivePieces automation engine user (email, name, ID, platform associations).",
+      "tier": "extended",
+      "category": "ActivePieces Automations",
+      "parameters": [
+        "profile"
+      ]
+    }
+  ]
+}
