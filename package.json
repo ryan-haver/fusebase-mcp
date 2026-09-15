@@ -1,5 +1,6 @@
 {
   "name": "fusebase-mcp",
+  "version": "1.0.0",
   "description": "MCP server for FuseBase (formerly Nimbus Note) — 175 tools (34 Core, 141 Extended), 8 native resources & 17 prompts for full-stack AI-powered workspace, portal lifecycle, vibe coding apps, automations, swarm orchestration, direct Gate & Dashboards MCP token connection, and AI assistant threads",
   "type": "module",
   "main": "dist/index.js",

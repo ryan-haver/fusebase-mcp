@@ -116,9 +116,12 @@ const milestones = [
   { id: "m10", title: "Authentication Feature Parity & Gate CRUD Fallbacks", status: "completed", date: "Sept 2026", description: "Full empirical parity test suite validating Pure Token Mode vs Cookie Session Mode across 11 core domains, seamless Gate MCP page/note/folder CRUD fallback in client, and comprehensive architectural documentation" },
 ];
 
+const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../package.json"), "utf-8"));
+const appVersion = pkg.version || "1.0.0";
+
 const projectStatusData = {
   project: "FuseBase MCP Server",
-  version: "0.0.0",
+  version: appVersion,
   lastUpdated: new Date().toISOString(),
   git: {
     commit: gitCommit,
