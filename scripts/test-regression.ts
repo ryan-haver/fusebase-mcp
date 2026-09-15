@@ -5,6 +5,7 @@
 import { writeContentViaWebSocket, readContentViaWebSocket } from "../src/yjs-ws-writer.js";
 import { loadEncryptedCookie } from "../src/crypto.js";
 import type { ContentBlock } from "../src/content-schema.js";
+import { markdownToSchema, parseInline } from "../src/markdown-parser.js";
 import * as path from "path";
 import * as fs from "fs";
 import { fileURLToPath } from "url";
@@ -204,13 +205,66 @@ async function main() {
         ["grid right col", html.includes("Right column")],
     ];
 
-    console.log("\n=== Verification ===");
+    console.log("\n=== Y.js Block & HTML Decoder Verification ===");
     let pass = 0, fail = 0;
     for (const [name, ok] of checks) {
         console.log(`  ${ok ? "✅" : "❌"} ${name}`);
         if (ok) pass++; else fail++;
     }
-    console.log(`\n${fail === 0 ? "✅ ALL PASS" : "❌ SOME FAILED"} (${pass}/${checks.length})`);
+
+    // ─── Markdown Parser Validation ───
+    console.log("\n=== Markdown Ingestion Parser Verification ===");
+    const mdTableSample = `| Name | Role | Salary | Active |
+|:-----|:----:|-------:|:------:|
+| Alice | Eng | $140,000 | [x] |
+| Bob | Ops | $90,000 | [ ] |`;
+    const parsedBlocks = markdownToSchema(mdTableSample);
+    const tableBlock = parsedBlocks.find((b) => b.type === "table") as any;
+
+    const mdCallout = `> [!WARNING]
+> Critical system update needed`;
+    const calloutBlocks = markdownToSchema(mdCallout);
+    const hintBlock = calloutBlocks.find((b) => b.type === "hint") as any;
+
+    const mdImage = `![Network Architecture](https://example.com/net.png "Topology")`;
+    const imgBlocks = markdownToSchema(mdImage);
+    const imageBlock = imgBlocks.find((b) => b.type === "image") as any;
+
+    const mdToggle = `<details>
+<summary>Database Secrets</summary>
+Password is hidden
+</details>`;
+    const toggleBlocks = markdownToSchema(mdToggle);
+    const toggleBlock = toggleBlocks.find((b) => b.type === "toggle") as any;
+
+    const mdInline = `Word with <u>underlined text</u> and ==yellow highlight==`;
+    const inlineSegs = parseInline(mdInline);
+
+    const parserChecks: [string, boolean][] = [
+        ["GFM table parsed to TableBlock", !!tableBlock],
+        ["GFM table columns detected (4 columns)", tableBlock?.columns?.length === 4],
+        ["GFM table currency column inferred", tableBlock?.columns?.[2]?.type === "currency"],
+        ["GFM table checkbox column inferred", tableBlock?.columns?.[3]?.type === "checkbox"],
+        ["GFM table row count (2 rows)", tableBlock?.rows?.length === 2],
+        ["GFM table currency cell parsed numerically", tableBlock?.rows?.[0]?.cells?.[2]?.value === 140000],
+        ["GFM table checkbox cell parsed to boolean", tableBlock?.rows?.[0]?.cells?.[3]?.checked === true],
+        ["GitHub callout parsed to HintBlock", !!hintBlock],
+        ["GitHub callout warning mapped to yellow color", hintBlock?.color === "yellow"],
+        ["Markdown image parsed to ImageBlock", !!imageBlock && imageBlock.src === "https://example.com/net.png"],
+        ["Markdown image caption extracted", imageBlock?.caption?.[0]?.text === "Topology"],
+        ["HTML <details> parsed to ToggleBlock", !!toggleBlock],
+        ["Toggle summary extracted from <summary>", toggleBlock?.summary?.[0]?.text === "Database Secrets"],
+        ["HTML <u> parsed to underline: true", inlineSegs.some((s) => s.underline && s.text === "underlined text")],
+        ["== parsed to highlight: yellow", inlineSegs.some((s) => !!s.highlight && s.text === "yellow highlight")],
+    ];
+
+    for (const [name, ok] of parserChecks) {
+        console.log(`  ${ok ? "✅" : "❌"} ${name}`);
+        if (ok) pass++; else fail++;
+    }
+
+    const totalAssertions = checks.length + parserChecks.length;
+    console.log(`\n${fail === 0 ? "✅ ALL PASS" : "❌ SOME FAILED"} (${pass}/${totalAssertions})`);
     console.log(`  https://${HOST}/space/${WS_ID}/page/${noteId}`);
 
     if (fail > 0) process.exit(1);

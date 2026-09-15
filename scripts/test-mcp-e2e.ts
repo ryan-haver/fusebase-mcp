@@ -263,15 +263,18 @@ async function main() {
     "batch_put_database_data",
     "link_database_rows",
     "list_isolated_stores",
+    "fusebase_work_run_agent",
+    "fusebase_work_scrape_url",
+    "fusebase_work_trigger_n8n",
   ]) {
     if (!allNames.has(expected)) {
       throw new Error(`Expected extended tool '${expected}' not found!`);
     }
   }
-  if (allToolsRes.tools.length !== 165) {
-    throw new Error(`Expected exactly 165 tools, found ${allToolsRes.tools.length}!`);
+  if (allToolsRes.tools.length !== 168) {
+    throw new Error(`Expected exactly 168 tools, found ${allToolsRes.tools.length}!`);
   }
-  console.log(`✅ All ${allToolsRes.tools.length} tools registered successfully (expected 165)`);
+  console.log(`✅ All ${allToolsRes.tools.length} tools registered successfully (expected 168)`);
 
   // ─── 4. Agent Profiles ─────────────────────────────────────────
   console.log("\n--- Testing Agent Profiles ---");

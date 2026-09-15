@@ -30,7 +30,7 @@
 import * as Y from "yjs";
 import * as encoding from "lib0/encoding";
 import { WebSocket } from "ws";
-import type { ContentBlock } from "./content-schema.js";
+import type { ContentBlock, InlineSegment } from "./content-schema.js";
 import { decodeYDocToHtml } from "./yjs-html-decoder.js";
 
 
@@ -135,7 +135,7 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
   const blocksMap = doc.getMap("blocks");
   const rootChildren = doc.getArray<string>("rootChildren");
 
-  function insertInlineText(ytext: Y.Text, offset: number, segments: { text?: string; embed?: any; bold?: boolean; italic?: boolean; strikethrough?: boolean; underline?: boolean; code?: boolean; link?: string }[]): number {
+  function insertInlineText(ytext: Y.Text, offset: number, segments: InlineSegment[]): number {
     for (const seg of segments) {
       const attrs: Record<string, any> = {};
       if (seg.bold) attrs.bold = true;
@@ -144,10 +144,11 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
       if (seg.underline) attrs.underline = true;
       if (seg.code) attrs.code = true;
       if (seg.link) attrs.link = seg.link;
+      if (seg.highlight) attrs.highlight = typeof seg.highlight === "string" ? { color: seg.highlight } : seg.highlight;
       const hasAttrs = Object.keys(attrs).length > 0;
 
       if (seg.embed) {
-        ytext.insert(offset, seg.embed, hasAttrs ? attrs : undefined);
+        ytext.insertEmbed(offset, seg.embed as any, hasAttrs ? attrs : undefined);
         offset += 1; // object embed takes 1 unit of length
       } else if (seg.text) {
         ytext.insert(offset, seg.text, hasAttrs ? attrs : undefined);

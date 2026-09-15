@@ -68,6 +68,7 @@ function deltaToHtml(delta: DeltaOp[]): string {
     if (attrs.strikethrough) segment = `<del>${segment}</del>`;
     if (attrs.underline) segment = `<u>${segment}</u>`;
     if (attrs.link) segment = `<a href="${escapeHtml(String(attrs.link))}">${segment}</a>`;
+    if (attrs.highlight) segment = `<mark>${segment}</mark>`;
 
     html += segment;
   }
