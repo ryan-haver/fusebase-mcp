@@ -520,6 +520,22 @@ export class FusebaseClient {
 
   /** List all workspaces in the organization */
   async listWorkspaces(): Promise<FusebaseWorkspace[]> {
+    if (!this.cookie && this.gateBridge?.hasGate) {
+      try {
+        const res = await this.gateBridge.toolCall("listWorkspaces", {});
+        const workspaces = (res.data?.workspaces || []).map((ws: any) => ({
+          id: ws.id,
+          title: ws.title || ws.id,
+          is_default: Boolean(ws.isDefault),
+          color: ws.color,
+          role: ws.role,
+        }));
+        this.updateWorkspaceCache(workspaces as FusebaseWorkspace[]);
+        return workspaces as FusebaseWorkspace[];
+      } catch (err: any) {
+        console.error(`[client] Gate fallback listWorkspaces failed: ${err.message}`);
+      }
+    }
     const workspaces = await this.request<FusebaseWorkspace[]>(
       `/gwapi2/ft%3Atasks/workspace-infos?orgId=${this.orgId}`,
     );
@@ -541,6 +557,22 @@ export class FusebaseClient {
       orderDir?: "ASC" | "DESC";
     },
   ): Promise<NotesListResponse> {
+    if (!this.cookie && this.gateBridge?.hasGate) {
+      try {
+        const res = await this.gateBridge.toolCall("listWorkspaceNotes", { workspaceId });
+        const rawNotes = res.data?.notes || [];
+        const notes = rawNotes.map((n: any) => ({
+          globalId: n.globalId,
+          title: n.title,
+          parentId: n.parentId,
+          createdAt: 0,
+          updatedAt: 0,
+        }));
+        return { items: notes as unknown as FusebaseNote[], total: notes.length };
+      } catch (err: any) {
+        console.error(`[client] Gate fallback listPages failed: ${err.message}`);
+      }
+    }
     const opts = {
       offset: 0,
       limit: 100,
@@ -566,6 +598,24 @@ export class FusebaseClient {
 
   /** Get a specific page's metadata */
   async getPage(workspaceId: string, noteId: string): Promise<FusebaseNote> {
+    if (!this.cookie && this.gateBridge?.hasGate) {
+      try {
+        const res = await this.gateBridge.toolCall("getWorkspaceNote", { workspaceId, noteId });
+        const note = res.data?.note || res.data;
+        if (note) {
+          return {
+            globalId: note.globalId || noteId,
+            title: note.title || "",
+            parentId: note.parentId || "default",
+            createdAt: 0,
+            updatedAt: 0,
+            isPortalShare: false,
+          } as unknown as FusebaseNote;
+        }
+      } catch (err: any) {
+        console.error(`[client] Gate fallback getPage failed: ${err.message}`);
+      }
+    }
     return this.request<FusebaseNote>(
       `/v2/api/web-editor/space/${workspaceId}/note/${noteId}`,
     );
@@ -587,6 +637,30 @@ export class FusebaseClient {
     title: string,
     parentId = "default",
   ): Promise<FusebaseNote> {
+    if (!this.cookie && this.gateBridge?.hasGate) {
+      try {
+        const res = await this.gateBridge.toolCall("createWorkspaceNote", {
+          workspaceId,
+          body: {
+            title,
+            parentId: parentId || "default",
+          },
+        });
+        const note = res.data?.note || res.data;
+        if (note?.globalId) {
+          return {
+            globalId: note.globalId,
+            title: note.title,
+            parentId: note.parentId,
+            createdAt: 0,
+            updatedAt: 0,
+            isPortalShare: false,
+          } as unknown as FusebaseNote;
+        }
+      } catch (err: any) {
+        console.error(`[client] Gate fallback createPage failed: ${err.message}`);
+      }
+    }
     const noteId = this.generateId();
     return this.request<FusebaseNote>("/v2/api/web-editor/notes/create", {
       method: "POST",
@@ -609,6 +683,31 @@ export class FusebaseClient {
     title: string,
     parentId?: string,
   ): Promise<FusebaseNote> {
+    if (!this.cookie && this.gateBridge?.hasGate) {
+      try {
+        const res = await this.gateBridge.toolCall("createWorkspaceNoteFolder", {
+          workspaceId,
+          body: {
+            title,
+            parentId: parentId || "default",
+          },
+        });
+        const folder = res.data?.folder || res.data;
+        if (folder?.globalId) {
+          return {
+            globalId: folder.globalId,
+            title: folder.title,
+            parentId: folder.parentId,
+            createdAt: 0,
+            updatedAt: 0,
+            type: "folder",
+            isPortalShare: false,
+          } as unknown as FusebaseNote;
+        }
+      } catch (err: any) {
+        console.error(`[client] Gate fallback createFolder failed: ${err.message}`);
+      }
+    }
     const noteId = this.generateId();
     const effectiveParentId = !parentId || parentId === "default" || parentId === "root" ? "" : parentId;
     return this.request<FusebaseNote>("/v2/api/web-editor/notes/create", {
@@ -674,6 +773,21 @@ export class FusebaseClient {
 
   /** List folders in a workspace */
   async listFolders(workspaceId: string): Promise<FusebaseFolder[]> {
+    if (!this.cookie && this.gateBridge?.hasGate) {
+      try {
+        const res = await this.gateBridge.toolCall("listWorkspaceNoteFolders", { workspaceId });
+        const folders = (res.data?.folders || []).map((f: any) => ({
+          global_id: f.globalId,
+          title: f.title,
+          parent_id: f.parentId,
+          type: "folder" as const,
+        }));
+        this.updateFolderCache(workspaceId, folders as FusebaseFolder[]);
+        return folders as FusebaseFolder[];
+      } catch (err: any) {
+        console.error(`[client] Gate fallback listFolders failed: ${err.message}`);
+      }
+    }
     const folders = await this.request<FusebaseFolder[]>(
       `/gwapi2/ft:notes/menu?workspace=${workspaceId}&depth=-1&type=folder&orderBy=title&orderDirection=ASC`,
     );
@@ -1357,8 +1471,19 @@ export class FusebaseClient {
 
   // ─── High-Value Gap Endpoints ──────────────────────────────────
 
-  /** Get page content as HTML via Y.js WebSocket sync + decoder */
+  /** Get page content as HTML/MD via Gate MCP or Y.js WebSocket sync + decoder */
   async getPageContent(workspaceId: string, noteId: string): Promise<string> {
+    if (!this.cookie && this.gateBridge?.hasGate) {
+      try {
+        const res = await this.gateBridge.toolCall("getWorkspaceNote", { workspaceId, noteId });
+        const md = res.data?.note?.md ?? res.data?.md;
+        if (typeof md === "string") {
+          return md;
+        }
+      } catch (err: any) {
+        console.error(`[client] Gate fallback getPageContent failed: ${err.message}`);
+      }
+    }
     const { readContentViaWebSocket } = await import("./yjs-ws-writer.js");
     const result = await readContentViaWebSocket(this.host, workspaceId, noteId, this.cookie);
     if (!result.success) {
@@ -1373,6 +1498,21 @@ export class FusebaseClient {
     noteId: string,
     content: { markdown?: string; blocks?: unknown[] },
   ): Promise<{ success: boolean; error?: string }> {
+    if (!this.cookie && this.gateBridge?.hasGate && content.markdown) {
+      try {
+        await this.gateBridge.toolCall("appendWorkspaceNoteContent", {
+          workspaceId,
+          noteId,
+          body: {
+            content: content.markdown,
+            format: "text",
+          },
+        });
+        return { success: true };
+      } catch (err: any) {
+        return { success: false, error: err.message };
+      }
+    }
     const { appendContentViaWebSocket } = await import("./yjs-ws-writer.js");
     const { markdownToSchema } = await import("./markdown-parser.js");
 

@@ -68,6 +68,12 @@ const STEPS: TestStep[] = [
     args: ["tsx", "scripts/test-data-validation.ts"],
     description: "Executes and deeply validates data structures across all 175 tools against live FuseBase infrastructure",
   },
+  {
+    name: "Authentication Modes Feature Parity Empirical Test",
+    command: "npx",
+    args: ["tsx", "scripts/test-token-parity.ts"],
+    description: "Empirically validates Pure Token Mode vs Cookie Session Mode parity across all 11 core domains",
+  },
 ];
 
 async function runStep(step: TestStep, index: number, total: number): Promise<boolean> {
@@ -143,7 +149,7 @@ async function main() {
     process.exit(1);
   }
 
-  console.log("🎉 ALL 7 VERIFICATION STAGES COMPLETED WITH 100% PASS RATE!\n");
+  console.log(`🎉 ALL ${STEPS.length} VERIFICATION STAGES COMPLETED WITH 100% PASS RATE!\n`);
 }
 
 main().catch((err) => {
