@@ -1,5 +1,15 @@
 # Y.js Binary → HTML Decoder
 
+> [!NOTE]
+> **ARCHIVED / FULLY IMPLEMENTED (February 2026)**  
+> This document is the original architectural RFC from February 16, 2026 proposing the server-side Y.js binary-to-HTML decoder to replace raw `/dump/` octet-stream responses.  
+> **Current Status:** Fully implemented and running in production:
+> - **Decoder Implementation:** [src/yjs-html-decoder.ts](file:///c:/scripts/fusebase-mcp/src/yjs-html-decoder.ts)
+> - **WebSocket Integration:** [src/yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts) (`readContentViaWebSocket`)
+> - **MCP Tool:** `get_page_content` in [src/index.ts](file:///c:/scripts/fusebase-mcp/src/index.ts)
+>
+> Retained for architectural provenance. For active tool documentation, see [README.md](file:///c:/scripts/fusebase-mcp/README.md) and [ENDPOINT_REFERENCE.md](file:///c:/scripts/fusebase-mcp/ENDPOINT_REFERENCE.md).
+
 ## Overview
 
 **Problem:** The `get_page_content` MCP tool currently returns raw Y.js binary (`application/octet-stream`) from the `/dump/{wsId}/{noteId}` endpoint. This binary is unreadable to both users and AI agents.
