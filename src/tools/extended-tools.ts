@@ -995,7 +995,7 @@ export function registerExtendedTools(
       viewId: z.string().describe("View ID"),
       rowId: z.string().describe("Row UUID of the card to move"),
       groupByColumnKey: z.string().describe("Column key of the kanban grouping column"),
-      newValue: z.string().describe("New value for the grouped column (moves card to that group)"),
+      newValue: z.any().describe("New value for the grouped column (moves card to that group)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     }, async ({ dashboardId, viewId, rowId, groupByColumnKey, newValue, profile }) => {
       const client = getClient(profile);
@@ -1038,13 +1038,18 @@ export function registerExtendedTools(
     "create_dashboard_table",
     "Create a new table (dashboard) within an existing database. Returns the new dashboard UUID and its default view UUID. Use list_all_databases to find the parent database ID.",
     {
-      dashboardId: z.string().describe("Parent database UUID (called dashboardId in the API)"),
+      databaseId: z.string().optional().describe("Parent database UUID"),
+      dashboardId: z.string().optional().describe("Parent database UUID (alias for databaseId)"),
       title: z.string().describe("Table title"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ dashboardId, title, profile }) => {
+    }, async ({ databaseId, dashboardId, title, profile }) => {
+      const parentId = databaseId || dashboardId;
+      if (!parentId) {
+        return errorResult(new Error("Either databaseId or dashboardId must be provided"));
+      }
       const client = getClient(profile);
       try {
-        const result = await client.createDashboardTable(dashboardId, title);
+        const result = await client.createDashboardTable(parentId, title);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
@@ -1061,6 +1066,7 @@ export function registerExtendedTools(
     "[DESTRUCTIVE] Delete a relation by its ID. This removes the link between two database tables. Use list_database_relations to find relation IDs.",
     {
       relationId: z.string().describe("Relation ID to delete"),
+      dashboardId: z.string().optional().describe("Dashboard ID (optional)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     }, async ({ relationId, profile }) => {
       const client = getClient(profile);
@@ -1398,17 +1404,22 @@ export function registerExtendedTools(
     "Duplicate an existing view within a dashboard. Creates a copy with the same schema, filters, and configuration. Use get_dashboard_detail to find dashboard and view UUIDs.",
     {
       dashboardId: z.string().describe("Dashboard UUID"),
-      sourceViewId: z.string().describe("Source view UUID to duplicate"),
+      sourceViewId: z.string().optional().describe("Source view UUID to duplicate"),
+      viewId: z.string().optional().describe("Source view UUID to duplicate (alias for sourceViewId)"),
       name: z.string().optional().describe("Name for the new view (defaults to 'Copy of View')"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ dashboardId, sourceViewId, name, profile }) => {
+    }, async ({ dashboardId, sourceViewId, viewId, name, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.duplicateView(dashboardId, sourceViewId, name);
-        const viewId = (result as any)?.data?.global_id || (result as any)?.global_id;
+        const targetViewId = sourceViewId || viewId;
+        if (!targetViewId) {
+          return errorResult(new Error("Either sourceViewId or viewId must be provided"));
+        }
+        const result = await client.duplicateView(dashboardId, targetViewId, name);
+        const duplicatedViewId = (result as any)?.data?.global_id || (result as any)?.global_id;
         return {
           content: [
-            { type: "text" as const, text: JSON.stringify({ ...result, viewId }, null, 2) },
+            { type: "text" as const, text: JSON.stringify({ ...result, viewId: duplicatedViewId }, null, 2) },
           ],
         };
       } catch (error) {
@@ -1421,16 +1432,21 @@ export function registerExtendedTools(
     "import_csv",
     "Import CSV data into an existing database table/view. Provide the CSV content, the database ID, dashboard (table) ID, and the view ID. The server will import the rows into the database. Column mapping is auto-generated from CSV headers (all imported as 'Single line text').",
     {
-      csvContent: z.string().describe("CSV content as a string"),
-      databaseId: z.string().describe("Database ID"),
+      csvContent: z.string().optional().describe("CSV content as a string"),
+      csv: z.string().optional().describe("CSV content as a string (alias for csvContent)"),
+      databaseId: z.string().optional().describe("Database ID"),
       dashboardId: z.string().describe("Dashboard (table) ID to import into"),
       viewId: z.string().describe("View ID to import into"),
       delimiter: z.enum([",", ";", "|", "\t", "^"]).optional().describe("CSV delimiter (default comma)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ csvContent, databaseId, dashboardId, viewId, delimiter, profile }) => {
+    }, async ({ csvContent, csv, databaseId, dashboardId, viewId, delimiter, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.importCSV(csvContent, databaseId, dashboardId, viewId, { delimiter });
+        const content = csvContent || csv;
+        if (!content) {
+          return errorResult(new Error("Either csvContent or csv must be provided"));
+        }
+        const result = await client.importCSV(content, databaseId || "", dashboardId, viewId, { delimiter });
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
@@ -1545,7 +1561,7 @@ export function registerExtendedTools(
       viewId: z.string().describe("View ID"),
       rowUuid: z.string().describe("Row UUID (from get_database_rows or get_database_data response)"),
       columnKey: z.string().describe("Column key — the short opaque ID for the column (e.g. 'eoZSNDPy'), found in schema returned by get_database_rows"),
-      value: z.string().describe("New cell value as a string"),
+      value: z.any().describe("New cell value (string, number, boolean, array, or object depending on column type)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
     async ({ dashboardId, viewId, rowUuid, columnKey, value, profile }) => {

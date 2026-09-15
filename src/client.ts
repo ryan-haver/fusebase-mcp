@@ -1288,6 +1288,23 @@ export class FusebaseClient {
   }
 
   /**
+   * Invalidate cached column schema resolution for a view, dashboard, or globally.
+   */
+  invalidateViewSchemaCache(dashboardId?: string, viewId?: string): void {
+    if (dashboardId && viewId) {
+      this.viewSchemaCache.delete(`${dashboardId}:${viewId}`);
+    } else if (dashboardId) {
+      for (const key of this.viewSchemaCache.keys()) {
+        if (key.startsWith(`${dashboardId}:`)) {
+          this.viewSchemaCache.delete(key);
+        }
+      }
+    } else {
+      this.viewSchemaCache.clear();
+    }
+  }
+
+  /**
    * Batch create, update, or patch dashboard rows and cell values.
    *
    * Endpoint: PUT /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/views/{viewId}/data/batch
@@ -2237,13 +2254,15 @@ export class FusebaseClient {
     targetItem.metadata.width = width;
 
     // PUT the updated schema back
-    return this.request(
+    const res = await this.request(
       `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       {
         method: "PUT",
         body: JSON.stringify({ schema: { items } }),
       },
     );
+    this.invalidateViewSchemaCache(dashboardId, viewId);
+    return res as any;
   }
 
   /**
@@ -2480,6 +2499,7 @@ export class FusebaseClient {
       `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
+    this.invalidateViewSchemaCache(dashboardId, viewId);
 
     return { success: true, message: `Column "${columnKey}" renamed to "${newName}"` };
   }
@@ -2533,6 +2553,7 @@ export class FusebaseClient {
       `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
+    this.invalidateViewSchemaCache(dashboardId, viewId);
 
     return { success: true, message: `Columns reordered: ${orderedKeys.join(", ")}` };
   }
@@ -2662,6 +2683,7 @@ export class FusebaseClient {
       `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
+    this.invalidateViewSchemaCache(dashboardId, viewId);
 
     return {
       success: true,
@@ -2703,6 +2725,7 @@ export class FusebaseClient {
       `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
+    this.invalidateViewSchemaCache(dashboardId, viewId);
 
     return {
       success: true,
@@ -2842,6 +2865,7 @@ export class FusebaseClient {
       `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
+    this.invalidateViewSchemaCache(dashboardId, viewId);
 
     return {
       success: true,
@@ -2979,6 +3003,7 @@ export class FusebaseClient {
       `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
+    this.invalidateViewSchemaCache(dashboardId, viewId);
 
     return {
       success: true,
@@ -3323,11 +3348,27 @@ export class FusebaseClient {
       }
     }
 
+    const colDef = mapping.columns.find((c) => c.key === effectiveKey);
+    let effectiveValue = value;
+    if (colDef) {
+      if (colDef.type === "number" && typeof value === "string") {
+        const trimmed = value.trim();
+        const parsed = Number(trimmed);
+        if (!isNaN(parsed) && trimmed !== "") {
+          effectiveValue = parsed;
+        }
+      } else if (colDef.type === "boolean" && typeof value === "string") {
+        const lower = value.trim().toLowerCase();
+        if (lower === "true") effectiveValue = true;
+        else if (lower === "false") effectiveValue = false;
+      }
+    }
+
     const res = await this.batchPutDashboardData(dashboardId, viewId, [
       {
         create_new_row: false,
         root_index_value: rowUuid,
-        values: [{ item_key: effectiveKey, value }],
+        values: [{ item_key: effectiveKey, value: effectiveValue }],
       },
     ]);
 
