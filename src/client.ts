@@ -520,7 +520,19 @@ export class FusebaseClient {
 
   /** List all workspaces in the organization */
   async listWorkspaces(): Promise<FusebaseWorkspace[]> {
-    if (!this.cookie && this.gateBridge?.hasGate) {
+    if (this.cookie) {
+      try {
+        const workspaces = await this.request<FusebaseWorkspace[]>(
+          `/gwapi2/ft%3Atasks/workspace-infos?orgId=${this.orgId}`,
+        );
+        this.updateWorkspaceCache(workspaces);
+        return workspaces;
+      } catch (err: any) {
+        if (!this.gateBridge?.hasGate) throw err;
+        console.warn(`[client] Web API listWorkspaces failed (${err.message}), falling back to Gate bridge...`);
+      }
+    }
+    if (this.gateBridge?.hasGate) {
       try {
         const res = await this.gateBridge.toolCall("listWorkspaces", {});
         const workspaces = (res.data?.workspaces || []).map((ws: any) => ({
@@ -534,13 +546,10 @@ export class FusebaseClient {
         return workspaces as FusebaseWorkspace[];
       } catch (err: any) {
         console.error(`[client] Gate fallback listWorkspaces failed: ${err.message}`);
+        throw err;
       }
     }
-    const workspaces = await this.request<FusebaseWorkspace[]>(
-      `/gwapi2/ft%3Atasks/workspace-infos?orgId=${this.orgId}`,
-    );
-    this.updateWorkspaceCache(workspaces);
-    return workspaces;
+    throw new Error("No authentication configured (neither session cookie nor Gate token).");
   }
 
   // ─── Pages (Notes) ────────────────────────────────────────────
@@ -557,7 +566,35 @@ export class FusebaseClient {
       orderDir?: "ASC" | "DESC";
     },
   ): Promise<NotesListResponse> {
-    if (!this.cookie && this.gateBridge?.hasGate) {
+    if (this.cookie) {
+      try {
+        const opts = {
+          offset: 0,
+          limit: 100,
+          type: "note",
+          orderBy: "createdAt",
+          orderDir: "ASC",
+          ...options,
+          rootId: options?.rootId || "root",
+        };
+        const filter = encodeURIComponent(
+          JSON.stringify({ type: opts.type, is_portal_share: false }),
+        );
+        const range = encodeURIComponent(
+          JSON.stringify({ offset: opts.offset, limit: opts.limit }),
+        );
+        const order = encodeURIComponent(
+          JSON.stringify([opts.orderBy, opts.orderDir]),
+        );
+        return await this.request<NotesListResponse>(
+          `/v2/api/workspaces/${workspaceId}/notes?filter=${filter}&range=${range}&rootId=${opts.rootId}&order=${order}`,
+        );
+      } catch (err: any) {
+        if (!this.gateBridge?.hasGate) throw err;
+        console.warn(`[client] Web API listPages failed (${err.message}), falling back to Gate bridge...`);
+      }
+    }
+    if (this.gateBridge?.hasGate) {
       try {
         const res = await this.gateBridge.toolCall("listWorkspaceNotes", { workspaceId });
         const rawNotes = res.data?.notes || [];
@@ -571,34 +608,25 @@ export class FusebaseClient {
         return { items: notes as unknown as FusebaseNote[], total: notes.length };
       } catch (err: any) {
         console.error(`[client] Gate fallback listPages failed: ${err.message}`);
+        throw err;
       }
     }
-    const opts = {
-      offset: 0,
-      limit: 100,
-      type: "note",
-      orderBy: "createdAt",
-      orderDir: "ASC",
-      ...options,
-      rootId: options?.rootId || "root",
-    };
-    const filter = encodeURIComponent(
-      JSON.stringify({ type: opts.type, is_portal_share: false }),
-    );
-    const range = encodeURIComponent(
-      JSON.stringify({ offset: opts.offset, limit: opts.limit }),
-    );
-    const order = encodeURIComponent(
-      JSON.stringify([opts.orderBy, opts.orderDir]),
-    );
-    return this.request<NotesListResponse>(
-      `/v2/api/workspaces/${workspaceId}/notes?filter=${filter}&range=${range}&rootId=${opts.rootId}&order=${order}`,
-    );
+    throw new Error("No authentication configured (neither session cookie nor Gate token).");
   }
 
   /** Get a specific page's metadata */
   async getPage(workspaceId: string, noteId: string): Promise<FusebaseNote> {
-    if (!this.cookie && this.gateBridge?.hasGate) {
+    if (this.cookie) {
+      try {
+        return await this.request<FusebaseNote>(
+          `/v2/api/web-editor/space/${workspaceId}/note/${noteId}`,
+        );
+      } catch (err: any) {
+        if (!this.gateBridge?.hasGate) throw err;
+        console.warn(`[client] Web API getPage failed (${err.message}), falling back to Gate bridge...`);
+      }
+    }
+    if (this.gateBridge?.hasGate) {
       try {
         const res = await this.gateBridge.toolCall("getWorkspaceNote", { workspaceId, noteId });
         const note = res.data?.note || res.data;
@@ -614,11 +642,10 @@ export class FusebaseClient {
         }
       } catch (err: any) {
         console.error(`[client] Gate fallback getPage failed: ${err.message}`);
+        throw err;
       }
     }
-    return this.request<FusebaseNote>(
-      `/v2/api/web-editor/space/${workspaceId}/note/${noteId}`,
-    );
+    throw new Error("No authentication configured (neither session cookie nor Gate token).");
   }
 
   /** Get recent pages in a workspace */
@@ -637,7 +664,28 @@ export class FusebaseClient {
     title: string,
     parentId = "default",
   ): Promise<FusebaseNote> {
-    if (!this.cookie && this.gateBridge?.hasGate) {
+    if (this.cookie) {
+      try {
+        const noteId = this.generateId();
+        return await this.request<FusebaseNote>("/v2/api/web-editor/notes/create", {
+          method: "POST",
+          body: JSON.stringify({
+            workspaceId,
+            noteId,
+            note: {
+              textVersion: 2,
+              title,
+              parentId,
+              is_portal_share: false,
+            },
+          }),
+        });
+      } catch (err: any) {
+        if (!this.gateBridge?.hasGate) throw err;
+        console.warn(`[client] Web API createPage failed (${err.message}), falling back to Gate bridge...`);
+      }
+    }
+    if (this.gateBridge?.hasGate) {
       try {
         const res = await this.gateBridge.toolCall("createWorkspaceNote", {
           workspaceId,
@@ -659,22 +707,10 @@ export class FusebaseClient {
         }
       } catch (err: any) {
         console.error(`[client] Gate fallback createPage failed: ${err.message}`);
+        throw err;
       }
     }
-    const noteId = this.generateId();
-    return this.request<FusebaseNote>("/v2/api/web-editor/notes/create", {
-      method: "POST",
-      body: JSON.stringify({
-        workspaceId,
-        noteId,
-        note: {
-          textVersion: 2,
-          title,
-          parentId,
-          is_portal_share: false,
-        },
-      }),
-    });
+    throw new Error("No authentication configured (neither session cookie nor Gate token).");
   }
 
   /** Create a new folder */
@@ -683,7 +719,30 @@ export class FusebaseClient {
     title: string,
     parentId?: string,
   ): Promise<FusebaseNote> {
-    if (!this.cookie && this.gateBridge?.hasGate) {
+    if (this.cookie) {
+      try {
+        const noteId = this.generateId();
+        const effectiveParentId = !parentId || parentId === "default" || parentId === "root" ? "" : parentId;
+        return await this.request<FusebaseNote>("/v2/api/web-editor/notes/create", {
+          method: "POST",
+          body: JSON.stringify({
+            workspaceId,
+            noteId,
+            note: {
+              textVersion: 2,
+              title,
+              parentId: effectiveParentId,
+              type: "folder",
+              is_portal_share: false,
+            },
+          }),
+        });
+      } catch (err: any) {
+        if (!this.gateBridge?.hasGate) throw err;
+        console.warn(`[client] Web API createFolder failed (${err.message}), falling back to Gate bridge...`);
+      }
+    }
+    if (this.gateBridge?.hasGate) {
       try {
         const res = await this.gateBridge.toolCall("createWorkspaceNoteFolder", {
           workspaceId,
@@ -706,24 +765,10 @@ export class FusebaseClient {
         }
       } catch (err: any) {
         console.error(`[client] Gate fallback createFolder failed: ${err.message}`);
+        throw err;
       }
     }
-    const noteId = this.generateId();
-    const effectiveParentId = !parentId || parentId === "default" || parentId === "root" ? "" : parentId;
-    return this.request<FusebaseNote>("/v2/api/web-editor/notes/create", {
-      method: "POST",
-      body: JSON.stringify({
-        workspaceId,
-        noteId,
-        note: {
-          textVersion: 2,
-          title,
-          parentId: effectiveParentId,
-          type: "folder",
-          is_portal_share: false,
-        },
-      }),
-    });
+    throw new Error("No authentication configured (neither session cookie nor Gate token).");
   }
 
   /** Update page/folder properties (rename, move, etc.) */
@@ -773,7 +818,19 @@ export class FusebaseClient {
 
   /** List folders in a workspace */
   async listFolders(workspaceId: string): Promise<FusebaseFolder[]> {
-    if (!this.cookie && this.gateBridge?.hasGate) {
+    if (this.cookie) {
+      try {
+        const folders = await this.request<FusebaseFolder[]>(
+          `/gwapi2/ft:notes/menu?workspace=${workspaceId}&depth=-1&type=folder&orderBy=title&orderDirection=ASC`,
+        );
+        this.updateFolderCache(workspaceId, folders);
+        return folders;
+      } catch (err: any) {
+        if (!this.gateBridge?.hasGate) throw err;
+        console.warn(`[client] Web API listFolders failed (${err.message}), falling back to Gate bridge...`);
+      }
+    }
+    if (this.gateBridge?.hasGate) {
       try {
         const res = await this.gateBridge.toolCall("listWorkspaceNoteFolders", { workspaceId });
         const folders = (res.data?.folders || []).map((f: any) => ({
@@ -786,13 +843,10 @@ export class FusebaseClient {
         return folders as FusebaseFolder[];
       } catch (err: any) {
         console.error(`[client] Gate fallback listFolders failed: ${err.message}`);
+        throw err;
       }
     }
-    const folders = await this.request<FusebaseFolder[]>(
-      `/gwapi2/ft:notes/menu?workspace=${workspaceId}&depth=-1&type=folder&orderBy=title&orderDirection=ASC`,
-    );
-    this.updateFolderCache(workspaceId, folders);
-    return folders;
+    throw new Error("No authentication configured (neither session cookie nor Gate token).");
   }
 
   // ─── Attachments & Files ──────────────────────────────────────
@@ -1473,7 +1527,19 @@ export class FusebaseClient {
 
   /** Get page content as HTML/MD via Gate MCP or Y.js WebSocket sync + decoder */
   async getPageContent(workspaceId: string, noteId: string): Promise<string> {
-    if (!this.cookie && this.gateBridge?.hasGate) {
+    if (this.cookie) {
+      try {
+        const { readContentViaWebSocket } = await import("./yjs-ws-writer.js");
+        const result = await readContentViaWebSocket(this.host, workspaceId, noteId, this.cookie);
+        if (result.success && result.html) {
+          return result.html;
+        }
+      } catch (err: any) {
+        if (!this.gateBridge?.hasGate) throw err;
+        console.warn(`[client] WebSocket getPageContent failed (${err.message}), falling back to Gate bridge...`);
+      }
+    }
+    if (this.gateBridge?.hasGate) {
       try {
         const res = await this.gateBridge.toolCall("getWorkspaceNote", { workspaceId, noteId });
         const md = res.data?.note?.md ?? res.data?.md;
@@ -1482,14 +1548,10 @@ export class FusebaseClient {
         }
       } catch (err: any) {
         console.error(`[client] Gate fallback getPageContent failed: ${err.message}`);
+        throw err;
       }
     }
-    const { readContentViaWebSocket } = await import("./yjs-ws-writer.js");
-    const result = await readContentViaWebSocket(this.host, workspaceId, noteId, this.cookie);
-    if (!result.success) {
-      throw new Error(`Page content read failed: ${result.error}`);
-    }
-    return result.html || "";
+    throw new Error("Page content read failed: neither WebSocket nor Gate bridge available.");
   }
 
   /** Append markdown or blocks to an existing page without overwriting previous content */
@@ -1498,7 +1560,29 @@ export class FusebaseClient {
     noteId: string,
     content: { markdown?: string; blocks?: unknown[] },
   ): Promise<{ success: boolean; error?: string }> {
-    if (!this.cookie && this.gateBridge?.hasGate && content.markdown) {
+    if (this.cookie && content.markdown) {
+      try {
+        const { appendContentViaWebSocket } = await import("./yjs-ws-writer.js");
+        const { markdownToSchema } = await import("./markdown-parser.js");
+        const blocks = markdownToSchema(content.markdown);
+        const result = await appendContentViaWebSocket(this.host, workspaceId, noteId, this.cookie, blocks);
+        if (result.success) return result;
+      } catch (err: any) {
+        if (!this.gateBridge?.hasGate) throw err;
+        console.warn(`[client] WebSocket appendPageContent failed (${err.message}), falling back to Gate bridge...`);
+      }
+    } else if (this.cookie && content.blocks) {
+      try {
+        const { appendContentViaWebSocket } = await import("./yjs-ws-writer.js");
+        const result = await appendContentViaWebSocket(this.host, workspaceId, noteId, this.cookie, content.blocks as any);
+        if (result.success) return result;
+      } catch (err: any) {
+        if (!this.gateBridge?.hasGate) throw err;
+        console.warn(`[client] WebSocket appendPageContent failed (${err.message}), falling back to Gate bridge...`);
+      }
+    }
+
+    if (this.gateBridge?.hasGate && content.markdown) {
       try {
         await this.gateBridge.toolCall("appendWorkspaceNoteContent", {
           workspaceId,
@@ -1510,22 +1594,12 @@ export class FusebaseClient {
         });
         return { success: true };
       } catch (err: any) {
+        console.error(`[client] Gate fallback appendPageContent failed: ${err.message}`);
         return { success: false, error: err.message };
       }
     }
-    const { appendContentViaWebSocket } = await import("./yjs-ws-writer.js");
-    const { markdownToSchema } = await import("./markdown-parser.js");
 
-    let blocks: any[];
-    if (content.markdown) {
-      blocks = markdownToSchema(content.markdown);
-    } else if (content.blocks) {
-      blocks = content.blocks;
-    } else {
-      throw new Error("Either 'markdown' or 'blocks' must be provided.");
-    }
-
-    return appendContentViaWebSocket(this.host, workspaceId, noteId, this.cookie, blocks);
+    return { success: false, error: "Neither active cookie session nor Gate bridge available for content append." };
   }
 
   /** Get database/table view data */
@@ -3821,11 +3895,15 @@ export class FusebaseClient {
   ): Promise<IsolatedStoreSqlResult> {
     if (this.gateBridge) {
       try {
+        const identity = await this.gateBridge.getIdentity();
         const res = await this.gateBridge.toolCall("queryIsolatedStoreSql", {
+          orgId: identity.orgId || this.orgId,
           storeId,
-          sql,
-          params,
           stage,
+          body: {
+            sql,
+            params: params && params.length > 0 ? params : null,
+          },
         });
         return (res?.data || res) as IsolatedStoreSqlResult;
       } catch (err: any) {
@@ -3850,11 +3928,15 @@ export class FusebaseClient {
   ): Promise<{ rowCount: number; message?: string }> {
     if (this.gateBridge) {
       try {
+        const identity = await this.gateBridge.getIdentity();
         const res = await this.gateBridge.toolCall("executeIsolatedStoreSql", {
+          orgId: identity.orgId || this.orgId,
           storeId,
-          sql,
-          params,
           stage,
+          body: {
+            sql,
+            params: params && params.length > 0 ? params : null,
+          },
         });
         return (res?.data || res) as { rowCount: number; message?: string };
       } catch (err: any) {
@@ -3877,7 +3959,9 @@ export class FusebaseClient {
   ): Promise<Array<{ tableName: string; schema?: string }>> {
     if (this.gateBridge) {
       try {
+        const identity = await this.gateBridge.getIdentity();
         const res = await this.gateBridge.toolCall("listIsolatedStoreSqlTables", {
+          orgId: identity.orgId || this.orgId,
           storeId,
           stage,
         });
@@ -3905,14 +3989,33 @@ export class FusebaseClient {
   ): Promise<{ rows: Array<Record<string, unknown>>; total?: number }> {
     if (this.gateBridge) {
       try {
+        const identity = await this.gateBridge.getIdentity();
+        const filters = options?.where
+          ? Object.entries(options.where).map(([column, value]) => ({
+              column,
+              operator: "eq",
+              value,
+            }))
+          : null;
+        const sort = options?.order?.map((o) => {
+          const parts = o.trim().split(/\s+/);
+          return {
+            column: parts[0],
+            direction: (parts[1]?.toLowerCase() === "desc" ? "desc" : "asc") as "asc" | "desc",
+          };
+        }) || null;
+
         const res = await this.gateBridge.toolCall("selectIsolatedStoreSqlRows", {
+          orgId: identity.orgId || this.orgId,
           storeId,
-          table,
-          where: options?.where,
-          limit: options?.limit ?? 100,
-          offset: options?.offset ?? 0,
-          order: options?.order,
           stage: options?.stage ?? "prod",
+          body: {
+            tableName: table,
+            limit: options?.limit ?? 100,
+            offset: options?.offset ?? 0,
+            filters,
+            sort,
+          },
         });
         return (res?.data || res) as { rows: Array<Record<string, unknown>>; total?: number };
       } catch (err: any) {
@@ -3944,11 +4047,16 @@ export class FusebaseClient {
   ): Promise<{ success: boolean; row?: Record<string, unknown> }> {
     if (this.gateBridge) {
       try {
+        const identity = await this.gateBridge.getIdentity();
         const res = await this.gateBridge.toolCall("insertIsolatedStoreSqlRow", {
+          orgId: identity.orgId || this.orgId,
           storeId,
-          table,
-          row,
           stage,
+          body: {
+            tableName: table,
+            values: row,
+            returning: ["*"],
+          },
         });
         return (res?.data || res) as { success: boolean; row?: Record<string, unknown> };
       } catch (err: any) {
@@ -3973,11 +4081,16 @@ export class FusebaseClient {
   ): Promise<{ success: boolean; insertedCount: number }> {
     if (this.gateBridge) {
       try {
+        const identity = await this.gateBridge.getIdentity();
         const res = await this.gateBridge.toolCall("batchInsertIsolatedStoreSqlRows", {
+          orgId: identity.orgId || this.orgId,
           storeId,
-          table,
-          rows,
           stage,
+          body: {
+            tableName: table,
+            rows,
+            returning: ["*"],
+          },
         });
         return (res?.data || res) as { success: boolean; insertedCount: number };
       } catch (err: any) {
@@ -4040,14 +4153,36 @@ export class FusebaseClient {
   }
 
   /** Create a new API token with specified scopes and permissions */
-  async createToken(body: {
+  async createToken(params: {
     name: string;
-    scopes: Array<{ scope_type: string; scope_id: string }>;
+    scopes?: Array<{ scope_type: string; scope_id: string }>;
     permissions: string[];
+    resource_scope?: {
+      allow?: Array<{ resource_type: string; ids: string[] }>;
+      deny?: Array<{ resource_type: string; ids: string[] }>;
+    };
     expires_at?: string | null;
   }): Promise<any> {
     if (this.gateBridge) {
-      return this.gateBridge.toolCall("createToken", body);
+      const identity = await this.gateBridge.getIdentity();
+      const orgId = identity.orgId || this.orgId;
+      const effectiveScopes = params.scopes && params.scopes.length > 0
+        ? params.scopes
+        : (orgId ? [{ scope_type: "org", scope_id: orgId }] : []);
+      const effectiveResourceScope = params.resource_scope || {
+        allow: [{ resource_type: "org", ids: orgId ? [orgId] : ["*"] }],
+      };
+
+      const payload = {
+        body: {
+          name: params.name,
+          scopes: effectiveScopes,
+          permissions: params.permissions,
+          resource_scope: effectiveResourceScope,
+          expires_at: params.expires_at || null,
+        },
+      };
+      return this.gateBridge.toolCall("createToken", payload);
     }
     throw new Error("Token creation requires Gate MCP bridge. Configure FUSEBASE_GATE_TOKEN or FUSEBASE_TOKEN.");
   }

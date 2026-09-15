@@ -169,9 +169,10 @@ export class FusebaseCliManager {
 
     return new Promise((resolve) => {
       const fullArgs = [subcommand, ...args];
+      const isBatch = process.platform === "win32" && (cliPath.endsWith(".cmd") || cliPath.endsWith(".bat"));
       const child = spawn(cliPath, fullArgs, {
         cwd,
-        shell: true,
+        shell: isBatch,
         env: { ...process.env, FUSEBASE_AGENT: "1" },
       });
 

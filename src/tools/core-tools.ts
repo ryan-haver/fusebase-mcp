@@ -972,10 +972,14 @@ export function registerCoreTools(
     }, async ({ workspaceId, pageId, format, maxLength, profile }) => {
       const client = getClient(profile);
       try {
-        const html = await client.getPageContent(workspaceId, pageId);
-        let text = html;
+        const rawContent = await client.getPageContent(workspaceId, pageId);
+        let text = rawContent;
+        const looksLikeHtml = /<[a-z][\s\S]*>/i.test(rawContent);
+
         if (format === "markdown") {
-          text = htmlToMarkdown(html);
+          text = looksLikeHtml ? htmlToMarkdown(rawContent) : rawContent;
+        } else if (format === "html" && !looksLikeHtml) {
+          text = `<div class="fusebase-markdown-content">\n${rawContent}\n</div>`;
         }
         if (maxLength && text.length > maxLength) {
           const omitted = text.length - maxLength;

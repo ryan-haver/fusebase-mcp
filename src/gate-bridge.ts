@@ -328,13 +328,17 @@ export class FusebaseGateBridge {
         opId === "getAllDatabases" ||
         opId === "getDashboards" ||
         opId === "listTokens" ||
-        opId === "createToken" ||
         opId === "listOrgUsers"
       ) {
         if (!mergedArgs.scope_type) mergedArgs.scope_type = "org";
         if (!mergedArgs.scope_id) mergedArgs.scope_id = identity.orgId;
-      } else if (opId === "listPermissionCatalog") {
-        // No orgId or scope required
+      } else if (
+        opId === "listPermissionCatalog" ||
+        opId === "createToken" ||
+        opId === "getToken" ||
+        opId === "revokeToken"
+      ) {
+        // Strict Gate schemas: reject root orgId or scope parameters
       } else {
         if (effectiveTarget === "gate" && !mergedArgs.orgId) {
           mergedArgs.orgId = identity.orgId;

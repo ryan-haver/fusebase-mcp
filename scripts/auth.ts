@@ -20,6 +20,9 @@
 import { chromium, type BrowserContext, type Cookie } from "playwright";
 import * as fs from "fs";
 import * as path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ─── Config ─────────────────────────────────────────────────────
 
@@ -35,20 +38,19 @@ export interface AuthConfig {
 }
 
 const DEFAULT_USER_DATA_DIR = path.resolve(
-  import.meta.dirname ?? ".",
+  __dirname,
   "..",
   ".browser-data",
 );
 
 const DEFAULT_ENV_FILE = path.resolve(
-  import.meta.dirname ?? ".",
+  __dirname,
   "..",
   ".env",
 );
 
 function getCryptoUrl(): string {
-  const dir = import.meta.dirname ?? ".";
-  const distPath = path.resolve(dir, "..", "dist", "crypto.js");
+  const distPath = path.resolve(__dirname, "..", "dist", "crypto.js");
   if (fs.existsSync(distPath)) {
     return new URL("../dist/crypto.js", import.meta.url).href;
   }
@@ -69,7 +71,7 @@ export async function refreshCookies(config: AuthConfig): Promise<string> {
   const userDataDir =
     config.userDataDir ??
     path.resolve(
-      import.meta.dirname ?? ".",
+      __dirname,
       "..",
       ".browser-data" + (profile ? `_${profile}` : "")
     );

@@ -28,7 +28,6 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "@types/turndown": "^5.0.6",
     "cheerio": "^1.2.0",
     "playwright": "^1.58.2",
     "socket.io-client": "^4.8.3",
@@ -41,6 +40,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/turndown": "^5.0.6",
     "@types/ws": "^8.18.1",
     "typescript": "^5.7.0"
   }
