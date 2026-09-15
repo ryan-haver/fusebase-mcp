@@ -1,11 +1,11 @@
 {
   "project": "FuseBase MCP Server",
   "version": "0.0.0",
-  "lastUpdated": "2026-09-15T05:44:43.887Z",
+  "lastUpdated": "2026-09-15T17:17:06.040Z",
   "git": {
-    "commit": "a730d88",
+    "commit": "47a83a4",
     "branch": "master",
-    "commitDate": "2026-09-14T23:41:41-06:00"
+    "commitDate": "2026-09-14T23:45:29-06:00"
   },
   "protocol": {
     "specification": "JSON-RPC 2.0",
@@ -13,12 +13,12 @@
     "status": "HEALTHY"
   },
   "summary": {
-    "totalTools": 168,
+    "totalTools": 175,
     "coreTools": 34,
-    "extendedTools": 134,
-    "totalSuites": 14,
-    "totalAssertions": 184,
-    "passedAssertions": 184,
+    "extendedTools": 141,
+    "totalSuites": 15,
+    "totalAssertions": 191,
+    "passedAssertions": 191,
     "passRatePercent": 100,
     "documentationGuides": 278
   },
@@ -134,6 +134,14 @@
       "assertionsCount": 3,
       "status": "passed",
       "description": "AI agent prompt dispatch, Firecrawl web content extraction, and n8n workflow triggers"
+    },
+    {
+      "id": 15,
+      "name": "Direct Gate Bridge & Token Management",
+      "toolsCount": 7,
+      "assertionsCount": 7,
+      "status": "passed",
+      "description": "Direct token connection, whoami tenant resolution, scoped token creation, revocation, and direct MCP tool calls"
     }
   ],
   "milestones": [
@@ -188,10 +196,17 @@
     },
     {
       "id": "m8",
-      "title": "Full-Spectrum 143-Tool Deep Data Validation",
+      "title": "Full-Spectrum 175-Tool Deep Data Validation",
       "status": "completed",
       "date": "Sept 2026",
-      "description": "100% live data assertion test harness: 143/143 tools, 162/162 passed data assertions, 0 leaks"
+      "description": "100% live data assertion test harness: 175/175 tools, 172/172 passed data assertions, 0 leaks"
+    },
+    {
+      "id": "m9",
+      "title": "Official Remote Gate & Dashboards MCP Token Bridge",
+      "status": "completed",
+      "date": "Sept 2026",
+      "description": "Zero-browser direct API token connection to gate-mcp and dashboards-mcp over Streamable HTTP SSE with automatic tenant identity discovery and first-class token lifecycle management"
     }
   ],
   "tools": [
@@ -223,7 +238,7 @@
     },
     {
       "name": "check_session_health",
-      "description": "Inspect the health, age, validity, and organization access of the current session or a specific agent profile without launching a browser. Returns status (HEALTHY/WARNING/EXPIRED), cookie age in hours, and active workspaces.",
+      "description": "Inspect the health, age, validity, and organization access of the current session or a specific agent profile without launching a browser. Returns status (HEALTHY/WARNING/EXPIRED), auth mode (DIRECT_TOKEN/HYBRID/SESSION_COOKIE), and active workspaces.",
       "tier": "core",
       "category": "Diagnostics, Preferences & Guides",
       "parameters": [
@@ -2099,6 +2114,83 @@
       "parameters": [
         "flowId",
         "payload",
+        "profile"
+      ]
+    },
+    {
+      "name": "fusebase_token_list",
+      "description": "List all FuseBase API tokens belonging to the organization / user with scopes, provisioning source, and expiry via FuseBase Gate.",
+      "tier": "extended",
+      "category": "Direct Gate & Dashboards Tokens",
+      "parameters": [
+        "tokenSource",
+        "includeExpired",
+        "page",
+        "limit",
+        "profile"
+      ]
+    },
+    {
+      "name": "fusebase_token_create",
+      "description": "Create a new FuseBase API token with specified scopes and permissions (secret token returned only once) via FuseBase Gate.",
+      "tier": "extended",
+      "category": "Direct Gate & Dashboards Tokens",
+      "parameters": [
+        "name",
+        "scopes",
+        "permissions",
+        "expiresAt",
+        "profile"
+      ]
+    },
+    {
+      "name": "fusebase_token_get",
+      "description": "Retrieve details of a specific FuseBase API token by its global ID via FuseBase Gate.",
+      "tier": "extended",
+      "category": "Direct Gate & Dashboards Tokens",
+      "parameters": [
+        "tokenId",
+        "profile"
+      ]
+    },
+    {
+      "name": "fusebase_token_revoke",
+      "description": "Permanently revoke (soft delete) a FuseBase API token so it can no longer be used for authentication.",
+      "tier": "extended",
+      "category": "Direct Gate & Dashboards Tokens",
+      "parameters": [
+        "tokenId",
+        "profile"
+      ]
+    },
+    {
+      "name": "fusebase_token_permission_catalog",
+      "description": "List all platform base permissions and service-owned permissions registered on the FuseBase Gate platform.",
+      "tier": "extended",
+      "category": "Direct Gate & Dashboards Tokens",
+      "parameters": [
+        "profile"
+      ]
+    },
+    {
+      "name": "fusebase_gate_whoami",
+      "description": "Query the authenticated token identity, tenant organization ID, custom domain, default workspace, and granted scopes/permissions from FuseBase Gate or Dashboards MCP.",
+      "tier": "extended",
+      "category": "Direct Gate & Dashboards Tokens",
+      "parameters": [
+        "target",
+        "profile"
+      ]
+    },
+    {
+      "name": "fusebase_direct_tool_call",
+      "description": "Execute any official upstream FuseBase Gate or Dashboards operation directly via the Streamable HTTP MCP bridge.",
+      "tier": "extended",
+      "category": "Direct Gate & Dashboards Tokens",
+      "parameters": [
+        "opId",
+        "args",
+        "target",
         "profile"
       ]
     }

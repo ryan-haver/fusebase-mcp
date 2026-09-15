@@ -248,12 +248,50 @@ async function main() {
   const noProxy = args.includes("--no-proxy");
   const headless = autoMode || args.includes("--headless");
 
-  // Host resolution: CLI flag > env var > credential store > hardcoded default
   let host = getArg("--host") || process.env.FUSEBASE_HOST || "";
   const profile = getArg("--profile");
+  const token = getArg("--token");
+  const gateToken = getArg("--gate-token");
+  const dashboardsToken = getArg("--dashboards-token");
 
   // Load credential store — use URL href for ESM compatibility on Windows
   const cryptoUrl = getCryptoUrl();
+
+  // Direct Token Authentication Mode
+  if (token || gateToken || dashboardsToken) {
+    const bridgeUrl = new URL("../src/gate-bridge.js", import.meta.url).href;
+    const { FusebaseGateBridge } = await import(bridgeUrl);
+    const bridge = new FusebaseGateBridge({
+      token,
+      gateToken,
+      dashboardsToken,
+    });
+
+    console.error("[auth] Connecting to FuseBase Gate & Dashboards via token...");
+    try {
+      const identity = await bridge.init();
+      console.error(`[auth] ✅ Token verified successfully!`);
+      console.error(`[auth] Organization: ${identity.orgId}`);
+      console.error(`[auth] Domain:       ${identity.orgDomain || "cloud"}`);
+      console.error(`[auth] User ID:      ${identity.userId || "unknown"}`);
+      console.error(`[auth] Permissions:  ${identity.permissions.length} operations granted`);
+
+      const { saveEncryptedToken } = await import(cryptoUrl);
+      saveEncryptedToken({
+        token,
+        gateToken,
+        dashboardsToken,
+        orgId: identity.orgId,
+        host: identity.orgDomain,
+      }, profile);
+
+      console.log(`AUTHENTICATED_TOKEN: ${identity.orgId} (${identity.orgDomain || "cloud"})`);
+      process.exit(0);
+    } catch (err: any) {
+      console.error(`[auth] ❌ Token verification failed: ${err.message}`);
+      process.exit(1);
+    }
+  }
 
   let autoCredentials: { email: string; password: string } | undefined;
   let proxyForBrowser: { server: string; username: string; password: string } | undefined;

@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { FusebaseClient } from "../client.js";
 import type { FusebaseMember, FusebaseOrgMember } from "../types.js";
-import { loadEncryptedCookie, listConfiguredProfiles } from "../crypto.js";
+import { loadEncryptedCookie, loadEncryptedToken, listConfiguredProfiles } from "../crypto.js";
 import { markdownToSchema } from "../markdown-parser.js";
 import type { ContentBlock } from "../content-schema.js";
 import { writeContentViaWebSocket } from "../yjs-ws-writer.js";
@@ -131,14 +131,20 @@ export function registerCoreTools(
 
   server.tool(
     "check_session_health",
-    "Inspect the health, age, validity, and organization access of the current session or a specific agent profile without launching a browser. Returns status (HEALTHY/WARNING/EXPIRED), cookie age in hours, and active workspaces.",
+    "Inspect the health, age, validity, and organization access of the current session or a specific agent profile without launching a browser. Returns status (HEALTHY/WARNING/EXPIRED), auth mode (DIRECT_TOKEN/HYBRID/SESSION_COOKIE), and active workspaces.",
     {
       profile: z.string().optional().describe("Optional agent profile name to check (e.g. 'default', 'agent-pm')"),
     },
     async ({ profile }) => {
       const activeProfile = profile || (options.getActiveProfile ? options.getActiveProfile() : undefined);
       const stored = loadEncryptedCookie(activeProfile);
-      if (!stored) {
+      const storedToken = loadEncryptedToken(activeProfile);
+      const client = getClient(activeProfile);
+
+      const hasToken = Boolean(client.gateBridge?.isConfigured || storedToken);
+      const hasCookie = Boolean(stored?.cookie);
+
+      if (!hasCookie && !hasToken) {
         return {
           content: [
             {
@@ -146,8 +152,8 @@ export function registerCoreTools(
               text: JSON.stringify({
                 status: "MISSING",
                 profile: activeProfile || "default",
-                error: "No encrypted credentials found for this profile.",
-                recommendation: `Run: npx tsx scripts/auth.ts${activeProfile ? ` --profile=${activeProfile}` : ""}`,
+                error: "No encrypted credentials or API tokens found for this profile.",
+                recommendation: `Run: npx tsx scripts/auth.ts${activeProfile ? ` --profile=${activeProfile}` : ""} --token <YOUR_TOKEN>`,
               }, null, 2),
             },
           ],
@@ -155,24 +161,29 @@ export function registerCoreTools(
         };
       }
 
-      const ageMs = stored.savedAt ? Date.now() - new Date(stored.savedAt).getTime() : 0;
+      const authMode = hasToken && hasCookie ? "HYBRID" : hasToken ? "DIRECT_TOKEN" : "SESSION_COOKIE";
+      const ageMs = stored?.savedAt ? Date.now() - new Date(stored.savedAt).getTime() : 0;
       const ageHours = Math.round(ageMs / 3600000);
 
       // Verify active connectivity
-      const client = getClient(activeProfile);
       let isValid = false;
       let workspaceCount = 0;
+      let gateIdentity: any;
       let errorMsg: string | undefined;
 
       try {
+        if (client.gateBridge?.isConfigured) {
+          gateIdentity = await client.gateBridge.getIdentity();
+          isValid = true;
+        }
         const ws = await client.listWorkspaces();
         isValid = true;
         workspaceCount = ws.length;
       } catch (err: any) {
-        errorMsg = err.message;
+        if (!isValid) errorMsg = err.message;
       }
 
-      const status = !isValid ? "EXPIRED" : ageHours > 100 ? "WARNING" : "HEALTHY";
+      const status = !isValid ? "EXPIRED" : (!hasCookie && hasToken) ? "HEALTHY" : ageHours > 100 ? "WARNING" : "HEALTHY";
 
       return {
         content: [
@@ -181,30 +192,33 @@ export function registerCoreTools(
             text: JSON.stringify(
               {
                 status,
+                authMode,
                 profile: activeProfile || "default",
                 authenticated: isValid,
-                ageHours,
-                savedAt: stored.savedAt,
-                host: stored.meta?.host || client["host"],
-                cookiesStored: stored.meta?.cookieCount || 0,
+                ageHours: hasCookie ? ageHours : null,
+                gateConnected: Boolean(client.gateBridge?.isConfigured),
+                gateOrgId: gateIdentity?.orgId,
+                gateDomain: gateIdentity?.orgDomain,
+                permissionsCount: gateIdentity?.permissions?.length,
+                host: client["host"] || stored?.meta?.host,
+                cookiesStored: stored?.meta?.cookieCount || 0,
                 workspaceCount,
                 liveDashboard: "https://fusebase-mcp.thefusebase.app/",
                 error: errorMsg,
                 recommendation:
                   status === "HEALTHY"
-                    ? "Session is active and healthy."
+                    ? `Session is active and healthy (${authMode} mode).`
                     : status === "WARNING"
                     ? `Cookie is ${ageHours}h old. Still valid, but consider refreshing soon: npx tsx scripts/auth.ts${activeProfile ? ` --profile=${activeProfile}` : ""}`
                     : `Session expired or invalid. Re-authenticate: npx tsx scripts/auth.ts${activeProfile ? ` --profile=${activeProfile}` : ""}`,
               },
               null,
-              2,
+              2
             ),
           },
         ],
-        isError: !isValid,
       };
-    },
+    }
   );
 
   // === Workspaces ===
@@ -402,7 +416,7 @@ export function registerCoreTools(
             client["host"],
             workspaceId,
             page.globalId,
-            client["cookie"],
+            client.getCookie(),
             contentBlocks,
             { replace: true, timeout: 20000 },
           );
@@ -1075,7 +1089,7 @@ export function registerCoreTools(
           client["host"],
           workspaceId,
           pageId,
-          client["cookie"],
+          client.getCookie(),
           contentBlocks,
           { replace: replace !== false, timeout: 20000 },
         );
@@ -1526,7 +1540,7 @@ export function registerCoreTools(
             content: [
               {
                 type: "text" as const,
-                text: "Extended tools are already enabled for this session (168 total tools active).",
+                text: "Extended tools are already enabled for this session (175 total tools active).",
               },
             ],
           };
@@ -1536,7 +1550,7 @@ export function registerCoreTools(
           content: [
             {
               type: "text" as const,
-              text: "Extended tools enabled! 134 additional tools are now available (168 total). New tools: fusebase_work_run_agent, fusebase_work_scrape_url, fusebase_work_trigger_n8n, fusebase_cli_sidecar_add, fusebase_cli_sidecar_list, fusebase_cli_sidecar_remove, fusebase_cli_secret_create, fusebase_cli_secret_list, fusebase_cli_logs, fusebase_cli_app_update, batch_put_database_data, resolve_database_alias, link_database_rows, unlink_database_rows, get_relation_rows, reorder_database_rows, list_isolated_stores, create_isolated_store, query_isolated_sql, execute_isolated_sql, select_isolated_sql_rows, insert_isolated_sql_row, batch_insert_isolated_sql_rows, list_isolated_sql_tables, apply_isolated_sql_migrations, get_task_time_tracking, get_automation_flags, get_workspace_premium_status, get_active_import_status, get_org_trials, get_portal_theme, get_portal_navigation_menu, get_workspace_portal, get_agent_public_profile, get_dashboard_templates, get_member_roles, get_workspace_members_v1, get_tasks_workspace_summary, get_billing_info, get_user_preferences, set_sidebar_collapsed, get_ai_assistant_state, list_ai_agent_threads, get_ai_agent_favorites, fusebase_swarm_init, fusebase_swarm_task_transition, trigger_automation_flow, create_portal, get_portal, publish_page_to_portal, check_portal_availability, fusebase_cli_status, fusebase_cli_init, fusebase_cli_list_apps, fusebase_cli_deploy, create_automation_flow, update_automation_flow, delete_automation_flow, list_portal_clients, invite_portal_client, create_portal_magic_link, create_interactive_app_page, list_automation_flows, get_automation_flow, list_flow_runs, list_automation_pieces, get_labels, get_org_usage, get_comment_threads, get_task_description, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, fusebase_poll_mentions, fusebase_post_comment, fusebase_reply_comment, fusebase_resolve_thread, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database, add_database_row, delete_database_row, move_kanban_card, list_database_relations, create_dashboard_table, delete_relation, list_all_databases, get_database_detail, update_database, delete_database, get_dashboard_detail, delete_dashboard, update_view, set_view_representation, duplicate_database, create_view, delete_view, export_csv, duplicate_view, import_csv, set_view_grouping, set_column_width, rename_database_column, reorder_database_columns, update_database_cell, get_database_rows, get_database_schema, add_database_column, delete_database_column, add_relation_column, add_lookup_column, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
+              text: "Extended tools enabled! 141 additional tools are now available (175 total). New tools: fusebase_token_list, fusebase_token_create, fusebase_token_get, fusebase_token_revoke, fusebase_token_permission_catalog, fusebase_gate_whoami, fusebase_direct_tool_call, fusebase_work_run_agent, fusebase_work_scrape_url, fusebase_work_trigger_n8n, fusebase_cli_sidecar_add, fusebase_cli_sidecar_list, fusebase_cli_sidecar_remove, fusebase_cli_secret_create, fusebase_cli_secret_list, fusebase_cli_logs, fusebase_cli_app_update, batch_put_database_data, resolve_database_alias, link_database_rows, unlink_database_rows, get_relation_rows, reorder_database_rows, list_isolated_stores, create_isolated_store, query_isolated_sql, execute_isolated_sql, select_isolated_sql_rows, insert_isolated_sql_row, batch_insert_isolated_sql_rows, list_isolated_sql_tables, apply_isolated_sql_migrations, get_task_time_tracking, get_automation_flags, get_workspace_premium_status, get_active_import_status, get_org_trials, get_portal_theme, get_portal_navigation_menu, get_workspace_portal, get_agent_public_profile, get_dashboard_templates, get_member_roles, get_workspace_members_v1, get_tasks_workspace_summary, get_billing_info, get_user_preferences, set_sidebar_collapsed, get_ai_assistant_state, list_ai_agent_threads, get_ai_agent_favorites, fusebase_swarm_init, fusebase_swarm_task_transition, trigger_automation_flow, create_portal, get_portal, publish_page_to_portal, check_portal_availability, fusebase_cli_status, fusebase_cli_init, fusebase_cli_list_apps, fusebase_cli_deploy, create_automation_flow, update_automation_flow, delete_automation_flow, list_portal_clients, invite_portal_client, create_portal_magic_link, create_interactive_app_page, list_automation_flows, get_automation_flow, list_flow_runs, list_automation_pieces, get_labels, get_org_usage, get_comment_threads, get_task_description, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, fusebase_poll_mentions, fusebase_post_comment, fusebase_reply_comment, fusebase_resolve_thread, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database, add_database_row, delete_database_row, move_kanban_card, list_database_relations, create_dashboard_table, delete_relation, list_all_databases, get_database_detail, update_database, delete_database, get_dashboard_detail, delete_dashboard, update_view, set_view_representation, duplicate_database, create_view, delete_view, export_csv, duplicate_view, import_csv, set_view_grouping, set_column_width, rename_database_column, reorder_database_columns, update_database_cell, get_database_rows, get_database_schema, add_database_column, delete_database_column, add_relation_column, add_lookup_column, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
             },
           ],
         };
@@ -1546,8 +1560,8 @@ export function registerCoreTools(
           {
             type: "text" as const,
             text: options.isExtendedToolsEnabled()
-              ? "Current tier: all (168 tools active). To revert to core-only, restart the MCP server."
-              : "Current tier: core (34 tools active). Call set_tool_tier with tier='all' to enable 134 extended tools.",
+              ? "Current tier: all (175 tools active). To revert to core-only, restart the MCP server."
+              : "Current tier: core (34 tools active). Call set_tool_tier with tier='all' to enable 141 extended tools.",
           },
         ],
       };

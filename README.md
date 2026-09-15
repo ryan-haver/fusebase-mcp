@@ -1,8 +1,8 @@
 # FuseBase MCP Server
 
 [![Live Status Dashboard](https://img.shields.io/badge/Live%20Status-Operational-10b981?style=for-the-badge&logo=googlecloud&logoColor=white)](https://fusebase-mcp.thefusebase.app/)
-[![Production Tools](https://img.shields.io/badge/Production%20Tools-168%20Verified-6366f1?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
-[![Automated Assertions](https://img.shields.io/badge/Automated%20Assertions-171%20Passing-10b981?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
+[![Production Tools](https://img.shields.io/badge/Production%20Tools-175%20Verified-6366f1?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
+[![Automated Assertions](https://img.shields.io/badge/Automated%20Assertions-172%20Passing-10b981?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 [![Deep Data Validation](https://img.shields.io/badge/Deep%20Data%20Validation-100%25%20Verified-0ea5e9?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 
 An enterprise-grade [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server enabling autonomous AI coding agents and developers to programmatically manage [FuseBase](https://www.fusebase.com/) (formerly Nimbus Note) workspaces - collaborative Y.js documents, relational tables, ActivePieces automations, client portals, hosted web apps, and multi-agent swarm boards with 100% deep data validation.
@@ -12,16 +12,17 @@ An enterprise-grade [Model Context Protocol (MCP)](https://modelcontextprotocol.
 ### Official Web Dashboard
 
 > **Production Status & Interactive Architecture Dashboard**: **[fusebase-mcp.thefusebase.app](https://fusebase-mcp.thefusebase.app/)**  
-> *Real-time engineering status, interactive searchable directory of all 168 MCP tools with schema parameters, 12 test suite validation metrics, system architecture, and milestone chronology.*
+> *Real-time engineering status, interactive searchable directory of all 175 MCP tools with schema parameters, 15 test suite validation metrics, system architecture, and milestone chronology.*
 
 ---
 
 ## Capabilities
 
-- **168 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, FuseBase Work (Firecrawl & n8n), billing, user preferences, multi-agent profiles, and swarm orchestration
+- **175 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, FuseBase Work (Firecrawl & n8n), direct Gate & Dashboards MCP tokens, billing, user preferences, multi-agent profiles, and swarm orchestration
+- **Direct Gate & Dashboards MCP Token Mode**: Connect zero-browser directly to FuseBase Gate (`https://gate-mcp.thefusebase.com/mcp`) and Dashboards (`https://dashboards-mcp.thefusebase.com/mcp`) with auto-discovered tenant identity, scopes, and default workspace.
 - **Advanced Markdown Ingestion**: Automatic parsing of GFM tables into interactive `TableBlock` objects, markdown images (`![alt](url)`), GitHub callouts (`> [!NOTE]`, `> [!WARNING]`, etc.), HTML underline/highlight, and `<details><summary>` toggles
 - **FuseBase Work, Firecrawl & n8n**: Native tools to invoke any of 32 organization AI agents, crawl/parse web pages via hosted Firecrawl, and trigger n8n automation flows
-- **Two-tier system** — 34 core tools load by default (complete CRUD suite); 134 extended tools on demand
+- **Two-tier system** — 34 core tools load by default (complete CRUD suite); 141 extended tools on demand
 - **Token Economics & Markdown Conversion** — retrieve page content as clean Markdown (`get_page_content(format: "markdown")`) for ~50% token reduction via built-in `htmlToMarkdown` converter
 - **Binary Payload Safety & Native Images** — `download_attachment` renders images as native MCP `image` blocks and streams large files directly to local disk (`data/downloads/`)
 - **Safety Annotations (`[DESTRUCTIVE]`)** — permanent deletion tools are explicitly tagged so AI clients and human supervisors can prompt for confirmation
@@ -68,39 +69,52 @@ npm install
 
 > `npm install` automatically builds the project and installs Playwright's Chromium via the `prepare` and `postinstall` scripts.
 
-### 2. Configure
+### 2. Configure & Authenticate
 
-Copy `.env.example` to `.env` and set your Fusebase details:
+FuseBase MCP supports two authentication methods:
 
+#### Method A: Direct Token Connection (Zero-Browser / Recommended)
+Connect directly via official FuseBase Gate & Dashboards MCP gateways as specified in the official guides:
+- [Connect AI Agents to Fusebase Dashboards with MCP](https://thefusebase.com/guides/table-database/connect-ai-agents-to-fusebase-dashboards-with-mcp/)
+- [Connect external AI Agents to Fusebase with MCP](https://thefusebase.com/guides/fusebase-ai/connect-external-ai-agents-to-fusebase-with-mcp/)
+
+Copy `.env.example` to `.env`:
 ```bash
 cp .env.example .env
 ```
 
 ```env
-FUSEBASE_HOST=yourorg.nimbusweb.me     # Your org's Fusebase hostname
-FUSEBASE_ORG_ID=your_org_id            # Found in Fusebase URL or API responses
+# Direct Token Authentication (No cookies or browser needed)
+FUSEBASE_GATE_TOKEN=your_gate_mcp_token
+FUSEBASE_DASHBOARDS_TOKEN=your_dashboards_mcp_token
+# or unified token:
+# FUSEBASE_TOKEN=your_api_token
 ```
 
-> **Where to find these:** Log into Fusebase → look at the URL bar. Your hostname is `<something>.nimbusweb.me`. The org ID appears in API requests (open browser DevTools → Network tab → look for `/v2/api/` requests).
+> **Zero Configuration**: When tokens are provided, the server automatically resolves your tenant organization ID (`orgId`), custom domain (`FUSEBASE_HOST`), and default workspace via upstream `whoami`.
+> 
+> You can also save tokens securely encrypted at rest:
+> ```bash
+> npx tsx scripts/auth.ts --token <your_token>
+> # or for named multi-agent profiles:
+> npx tsx scripts/auth.ts --profile agent-architect --token <token>
+> ```
 
-### 3. Authenticate
-
-Run the auth script to capture your session cookies securely:
+#### Method B: Browser Session Cookies (Interactive / Headless)
+For direct Y.js CRDT WebSocket collaboration, you can capture your session cookies:
 
 ```bash
 npx tsx scripts/auth.ts
 ```
 
-This opens a browser window → log into Fusebase → cookies are automatically captured and saved **encrypted** to `data/cookie.enc`.
+This opens a browser window → log into Fusebase → cookies are automatically captured and saved **encrypted** (AES-256-GCM) to `data/cookie.enc`.
 
 > **Headless mode:** After the first login, you can re-authenticate without a browser window:
->
 > ```bash
 > npx tsx scripts/auth.ts --headless
 > ```
 >
 > **Multi-Agent Profiles:** Authenticate a specific profile:
->
 > ```bash
 > npx tsx scripts/auth.ts --profile agent-architect
 > ```
@@ -280,7 +294,7 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Tier | Tools | Description |
 | --- | --- | --- |
 | **Core** (default) | 34 | Day-to-day: full CRUD and organization for pages, folders, content, tasks, tags, attachments, members, guides, session health, profiles |
-| **Extended** | +134 | Admin, CLI apps, automations, portal lifecycle, databases, relations, batch mutations, isolated SQL stores, templates, swarm state machines, billing, preferences |
+| **Extended** | +141 | Admin, CLI apps, automations, portal lifecycle, databases, relations, batch mutations, isolated SQL stores, Gate tokens, templates, swarm state machines, billing, preferences |
 
 **Enable extended tools:**
 
@@ -348,6 +362,7 @@ Enable with `set_tool_tier(tier: "all")` or set `FUSEBASE_TOOLS=all` in `.env`:
 - **Views**: `update_view`, `set_view_representation`, `create_view`, `delete_view`, `duplicate_view`, `set_view_grouping`
 - **Columns**: `add_database_column`, `delete_database_column`, `rename_database_column`, `reorder_database_columns`, `set_column_width`, `add_relation_column`, `add_lookup_column`
 - **Cells & Rows**: `update_database_cell`, `get_database_rows`, `get_database_schema`, `reorder_database_rows`
+- **Direct Gate & Dashboards Tokens**: `fusebase_token_list`, `fusebase_token_create`, `fusebase_token_get`, `fusebase_token_revoke`, `fusebase_token_permission_catalog`, `fusebase_gate_whoami`, `fusebase_direct_tool_call`
 - **Row-Level Relations**: `link_database_rows`, `unlink_database_rows`, `get_relation_rows`
 - **Gate PostgreSQL Isolated SQL Stores**: `list_isolated_stores`, `create_isolated_store`, `query_isolated_sql`, `execute_isolated_sql`, `select_isolated_sql_rows`, `insert_isolated_sql_row`, `batch_insert_isolated_sql_rows`, `list_isolated_sql_tables`, `apply_isolated_sql_migrations`
 - **Billing & User Preferences**: `get_billing_info`, `get_user_preferences`, `set_sidebar_collapsed`
@@ -364,9 +379,10 @@ Enable with `set_tool_tier(tier: "all")` or set `FUSEBASE_TOOLS=all` in `.env`:
 
 ```text
 src/
-  index.ts              → MCP server (165 tools, stdio transport, tier system, instructions)
+  index.ts              → MCP server (175 tools, stdio transport, tier system, instructions)
   client.ts             → HTTP client (cookie auth, ActivePieces token exchange, 401 auto-retry, logging)
-  crypto.ts             → AES-256-GCM encryption for multi-profile secrets at rest
+  gate-bridge.ts        → Streamable HTTP MCP client for official Gate & Dashboards endpoints
+  crypto.ts             → AES-256-GCM encryption for multi-profile secrets and API tokens at rest
   types.ts              → TypeScript interfaces for API responses
   resources.ts          → Native MCP resources & RFC 6570 templates
   prompts.ts            → Native MCP pre-engineered workflow prompts
@@ -374,7 +390,7 @@ src/
   guide-loader.ts       → Guide search index (278 guides, 19 sections)
   tools/
     core-tools.ts       → 34 Core tools (full CRUD and organization for pages, tasks, folders, content, profiles)
-    extended-tools.ts   → 134 Extended tools (databases, views, relations, batch mutations, SQL stores, automations, portals, admin, CLI, FuseBase Work)
+    extended-tools.ts   → 141 Extended tools (databases, views, relations, batch mutations, SQL stores, automations, portals, admin, CLI, Gate tokens, FuseBase Work)
     helpers.ts          → HTML-to-markdown converter, MIME detection, error formatting
   yjs-ws-writer.ts      → Y.js WebSocket writer (write + read via WS sync)
   yjs-html-decoder.ts   → Y.js document → HTML decoder (20+ block types)

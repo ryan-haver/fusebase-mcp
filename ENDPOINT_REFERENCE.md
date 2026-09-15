@@ -4,8 +4,8 @@
 > Update this document when new endpoints are discovered or new tools are implemented.
 >
 > Source: API discovery crawl & comprehensive method probe (182 method/route probes).
-> Cross-referenced against 168 implemented MCP tools (34 Core, 134 Extended).
-> Last updated: 2026-09-14
+> Cross-referenced against 175 implemented MCP tools (34 Core, 141 Extended).
+> Last updated: 2026-09-15
 
 ---
 
@@ -329,15 +329,33 @@
 | **Auth & Navigation** | 0 | **0** | 14 | 3 | 0 |
 | **TOTAL** | **121** | **0 (100% Viable Coverage)** | **28** | **6** | **3** |
 
-> **Coverage Milestone**: Every single viable endpoint identified across all probes has been fully wrapped into the 168-tool MCP ecosystem (34 Core, 134 Extended). Zero unmapped viable endpoints remain.
+## 15. Official Remote Gate & Dashboards MCP Gateway Endpoints (Streamable HTTP / SSE)
+
+Official MCP endpoints supporting direct bearer token authentication as defined in:
+- [Connect AI Agents to Fusebase Dashboards with MCP](https://thefusebase.com/guides/table-database/connect-ai-agents-to-fusebase-dashboards-with-mcp/)
+- [Connect external AI Agents to Fusebase with MCP](https://thefusebase.com/guides/fusebase-ai/connect-external-ai-agents-to-fusebase-with-mcp/)
+
+| Status | Method | Endpoint | Tool / Description | Value |
+|---|---|---|---|---|
+| ✅ | POST | `https://gate-mcp.thefusebase.com/mcp` | `fusebase_gate_whoami` — Query authenticated tenant identity, scopes, and default workspace | ⭐⭐⭐⭐⭐ |
+| ✅ | POST | `https://gate-mcp.thefusebase.com/mcp` | `fusebase_token_list` — List organization API tokens via Gate `listTokens` | ⭐⭐⭐⭐ |
+| ✅ | POST | `https://gate-mcp.thefusebase.com/mcp` | `fusebase_token_create` — Create scoped API tokens with specific permissions via `createToken` | ⭐⭐⭐⭐ |
+| ✅ | POST | `https://gate-mcp.thefusebase.com/mcp` | `fusebase_token_get` — Retrieve token details via `getToken` | ⭐⭐⭐ |
+| ✅ | POST | `https://gate-mcp.thefusebase.com/mcp` | `fusebase_token_revoke` — Permanently revoke API tokens via `revokeToken` | ⭐⭐⭐ |
+| ✅ | POST | `https://gate-mcp.thefusebase.com/mcp` | `fusebase_token_permission_catalog` — List all registered system permissions via `listPermissionCatalog` | ⭐⭐⭐⭐ |
+| ✅ | POST | `https://gate-mcp.thefusebase.com/mcp` | `fusebase_direct_tool_call` — Bridge any upstream Gate or Dashboards tool call directly over Streamable HTTP | ⭐⭐⭐⭐⭐ |
+
+---
+
+> **Coverage Milestone**: Every single viable endpoint identified across all probes has been fully wrapped into the 175-tool MCP ecosystem (34 Core, 141 Extended). Zero unmapped viable endpoints remain.
 
 ### Implementation Breakdown
 
 | Tool Tier | Total Tools | Description |
 |---|---|---|
 | **Core Tier** | 34 tools | Essential day-to-day workspace, page, block, task, folder, profile, and session management tools. Complete self-contained CRUD and organization suite with lightweight context footprint. |
-| **Extended Tier** | 134 tools | Exhaustive administrative, automation, database, entity template, portal, task, time tracking, billing, CLI lifecycle, hosted web apps, Docker sidecars, secrets, FuseBase Work (Firecrawl & n8n), and AI management tools. Activated dynamically via `set_tool_tier("all")` or `FUSEBASE_TOOLS=all`. |
-| **Total Suite** | **168 tools** | Complete coverage of the FuseBase API surface with zero viable endpoints left unmapped. |
+| **Extended Tier** | 141 tools | Exhaustive administrative, automation, database, entity template, portal, task, time tracking, billing, CLI lifecycle, hosted web apps, Docker sidecars, secrets, direct Gate & Dashboards MCP tokens, FuseBase Work (Firecrawl & n8n), and AI management tools. Activated dynamically via `set_tool_tier("all")` or `FUSEBASE_TOOLS=all`. |
+| **Total Suite** | **175 tools** | Complete coverage of the FuseBase API surface with zero viable endpoints left unmapped. |
 
 ---
 

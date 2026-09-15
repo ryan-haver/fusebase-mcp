@@ -9,11 +9,16 @@ import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import { ProxyAgent } from "undici";
+import { FusebaseGateBridge } from "./gate-bridge.js";
 
 export interface FusebaseConfig {
   host: string;
   orgId: string;
-  cookie: string;
+  cookie?: string;
+  token?: string;
+  gateToken?: string;
+  dashboardsToken?: string;
+  gateBridge?: FusebaseGateBridge;
   autoRefresh?: boolean;
   profile?: string;
   proxyRelayUrl?: string; // e.g. "http://127.0.0.1:<port>" — local HTTP CONNECT relay
@@ -88,6 +93,10 @@ export class FusebaseClient {
   private baseUrl: string;
   private orgId: string;
   private cookie: string;
+  private token?: string;
+  private gateToken?: string;
+  private dashboardsToken?: string;
+  public gateBridge?: FusebaseGateBridge;
   private host: string;
   private autoRefresh: boolean;
   private profile?: string;
@@ -103,11 +112,27 @@ export class FusebaseClient {
     nameByKey: Map<string, string>;
   }>();
 
+  public getCookie(): string {
+    return this.cookie;
+  }
+
+  public getTokens(): { token?: string; gateToken?: string; dashboardsToken?: string } {
+    return {
+      token: this.token,
+      gateToken: this.gateToken,
+      dashboardsToken: this.dashboardsToken,
+    };
+  }
+
   constructor(config: FusebaseConfig) {
     this.host = config.host;
     this.baseUrl = `https://${config.host}`;
     this.orgId = config.orgId;
-    this.cookie = config.cookie;
+    this.cookie = config.cookie || "";
+    this.token = config.token;
+    this.gateToken = config.gateToken;
+    this.dashboardsToken = config.dashboardsToken;
+    this.gateBridge = config.gateBridge;
     this.autoRefresh = config.autoRefresh ?? true;
     this.profile = config.profile;
     this.sessionId = crypto.randomUUID().replace(/-/g, "");
@@ -123,6 +148,9 @@ export class FusebaseClient {
     if (this.automationToken && this.automationProjectId) {
       return { token: this.automationToken, projectId: this.automationProjectId };
     }
+    if (!this.cookie) {
+      return { token: "", projectId: "" };
+    }
     const match = this.cookie.match(/eversessionid=([^;]+)/);
     const sessionId = match ? match[1].trim() : this.sessionId;
     try {
@@ -133,7 +161,8 @@ export class FusebaseClient {
           Cookie: this.cookie,
         },
         body: JSON.stringify({ sessionId }),
-      });
+        ...(this.proxyDispatcher ? { dispatcher: this.proxyDispatcher } : {}),
+      } as RequestInit);
       if (res.ok) {
         const data = (await res.json()) as { token?: string; projectId?: string };
         if (data.token) this.automationToken = data.token;
@@ -149,11 +178,18 @@ export class FusebaseClient {
   }
 
   private get headers(): Record<string, string> {
-    return {
+    const h: Record<string, string> = {
       accept: "application/json, text/plain, */*",
       "content-type": "application/json",
-      cookie: this.cookie,
     };
+    if (this.cookie) {
+      h["cookie"] = this.cookie;
+    }
+    const token = this.token || this.gateToken;
+    if (token) {
+      h["authorization"] = `Bearer ${token}`;
+    }
+    return h;
   }
 
   // ─── HTTP Layer ───────────────────────────────────────────────
@@ -191,8 +227,8 @@ export class FusebaseClient {
     }
 
     if (path.startsWith("/automation/") && !path.includes("/authentication/fusebase-auth")) {
-      const match = this.cookie.match(/eversessionid=([^;]+)/);
-      if (match) {
+      const match = this.cookie ? this.cookie.match(/eversessionid=([^;]+)/) : null;
+      if (match && match[1]) {
         reqHeaders["FBS-Session-ID"] = match[1].trim();
       }
       if (this.automationToken) {
@@ -209,36 +245,66 @@ export class FusebaseClient {
 
     let res = await fetch(url, fetchOpts);
 
-    // Auto-retry on auth failure (skip 403 on automation endpoints since 403 there indicates missing privilege, not expired session)
-    const isAutomationForbidden = res.status === 403 && path.includes("/automation/");
-    if ((res.status === 401 || (res.status === 403 && !isAutomationForbidden)) && this.autoRefresh) {
-      // Log cookie age before attempting refresh
-      try {
-        const { loadEncryptedCookie } = await import("./crypto.js");
-        const stored = loadEncryptedCookie(this.profile);
-        if (stored?.savedAt) {
-          const ageMs = Date.now() - new Date(stored.savedAt).getTime();
-          const ageHours = (ageMs / 3_600_000).toFixed(1);
-          console.error(`[client] Cookie age: ${ageHours}h old`);
-          if (ageMs > 20 * 3_600_000) {
-            console.error(`[client] ⚠ Cookie is >20h old — may need manual re-auth: npx tsx scripts/auth.ts`);
-          }
+    // Auto-retry on auth failure (skip on automation endpoints since automation uses JWT tokens, not main browser session)
+    const isAutomation = path.includes("/automation/");
+    if (res.status === 401 || (res.status === 403 && !isAutomation)) {
+      // If automation token failed with 401, re-fetch automation auth first
+      if (res.status === 401 && isAutomation && !path.includes("/authentication/fusebase-auth")) {
+        this.automationToken = undefined;
+        this.automationProjectId = undefined;
+        await this.ensureAutomationAuth();
+        if (this.automationToken) {
+          reqHeaders["Authorization"] = `Bearer ${this.automationToken}`;
+          res = await fetch(url, {
+            ...fetchOpts,
+            headers: reqHeaders,
+            signal: AbortSignal.timeout(timeout),
+          });
         }
-      } catch { /* crypto unavailable */ }
+      }
 
-      console.error(
-        `[client] Got ${res.status} — attempting cookie refresh...`,
-      );
-      const refreshed = await this.refreshAuth();
-      if (refreshed) {
-        res = await fetch(url, {
-          ...fetchOpts,
-          headers: {
+      if (!isAutomation && !res.ok && (res.status === 401 || res.status === 403) && this.autoRefresh && Boolean(this.cookie)) {
+        // Log cookie age before attempting refresh
+        try {
+          const { loadEncryptedCookie } = await import("./crypto.js");
+          const stored = loadEncryptedCookie(this.profile);
+          if (stored?.savedAt) {
+            const ageMs = Date.now() - new Date(stored.savedAt).getTime();
+            const ageHours = (ageMs / 3_600_000).toFixed(1);
+            console.error(`[client] Cookie age: ${ageHours}h old`);
+            if (ageMs > 20 * 3_600_000) {
+              console.error(`[client] ⚠ Cookie is >20h old — may need manual re-auth: npx tsx scripts/auth.ts`);
+            }
+          }
+        } catch { /* crypto unavailable */ }
+
+        console.error(
+          `[client] Got ${res.status} — attempting cookie refresh...`,
+        );
+        const refreshed = await this.refreshAuth();
+        if (refreshed) {
+          this.automationToken = undefined;
+          this.automationProjectId = undefined;
+          const retryHeaders: Record<string, string> = {
             ...this.headers,
             ...((options.headers as Record<string, string>) || {}),
-          },
-          signal: AbortSignal.timeout(timeout),
-        });
+          };
+          if (path.startsWith("/automation/") && !path.includes("/authentication/fusebase-auth")) {
+            await this.ensureAutomationAuth();
+            const match = this.cookie ? this.cookie.match(/eversessionid=([^;]+)/) : null;
+            if (match && match[1]) {
+              retryHeaders["FBS-Session-ID"] = match[1].trim();
+            }
+            if (this.automationToken) {
+              retryHeaders["Authorization"] = `Bearer ${this.automationToken}`;
+            }
+          }
+          res = await fetch(url, {
+            ...fetchOpts,
+            headers: retryHeaders,
+            signal: AbortSignal.timeout(timeout),
+          });
+        }
       }
     }
 
@@ -3547,6 +3613,14 @@ export class FusebaseClient {
   /** List all isolated SQL stores in the organization */
   async listIsolatedStores(orgId?: string): Promise<IsolatedStore[]> {
     const org = orgId || this.orgId;
+    if (this.gateBridge) {
+      try {
+        const res = await this.gateBridge.toolCall("listIsolatedStores", { orgId: org });
+        return (res?.data?.stores || res?.stores || []) as IsolatedStore[];
+      } catch (err: any) {
+        console.error(`[client] gateBridge.listIsolatedStores fallback: ${err.message}`);
+      }
+    }
     return this.request<IsolatedStore[]>(
       `/v4/api/proxy/gate-service/v1/orgs/${org}/isolated-stores`,
     );
@@ -3564,6 +3638,23 @@ export class FusebaseClient {
     },
   ): Promise<IsolatedStore> {
     const org = options?.orgId || this.orgId;
+    if (this.gateBridge) {
+      try {
+        const res = await this.gateBridge.toolCall("createIsolatedStore", {
+          alias,
+          engine: options?.engine ?? "postgres",
+          storeType: options?.storeType ?? "sql",
+          orgId: org,
+          source: {
+            sourceType: options?.sourceType ?? "org",
+            sourceId: options?.sourceId ?? org,
+          },
+        });
+        return (res?.data?.store || res?.store || res) as IsolatedStore;
+      } catch (err: any) {
+        console.error(`[client] gateBridge.createIsolatedStore fallback: ${err.message}`);
+      }
+    }
     return this.request<IsolatedStore>(
       `/v4/api/proxy/gate-service/v1/orgs/${org}/isolated-stores`,
       {
@@ -3588,6 +3679,19 @@ export class FusebaseClient {
     params: unknown[] = [],
     stage: "dev" | "prod" = "prod",
   ): Promise<IsolatedStoreSqlResult> {
+    if (this.gateBridge) {
+      try {
+        const res = await this.gateBridge.toolCall("queryIsolatedStoreSql", {
+          storeId,
+          sql,
+          params,
+          stage,
+        });
+        return (res?.data || res) as IsolatedStoreSqlResult;
+      } catch (err: any) {
+        console.error(`[client] gateBridge.queryIsolatedStoreSql fallback: ${err.message}`);
+      }
+    }
     return this.request<IsolatedStoreSqlResult>(
       `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/query`,
       {
@@ -3604,6 +3708,19 @@ export class FusebaseClient {
     params: unknown[] = [],
     stage: "dev" | "prod" = "prod",
   ): Promise<{ rowCount: number; message?: string }> {
+    if (this.gateBridge) {
+      try {
+        const res = await this.gateBridge.toolCall("executeIsolatedStoreSql", {
+          storeId,
+          sql,
+          params,
+          stage,
+        });
+        return (res?.data || res) as { rowCount: number; message?: string };
+      } catch (err: any) {
+        console.error(`[client] gateBridge.executeIsolatedStoreSql fallback: ${err.message}`);
+      }
+    }
     return this.request<{ rowCount: number; message?: string }>(
       `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/execute`,
       {
@@ -3618,6 +3735,17 @@ export class FusebaseClient {
     storeId: string,
     stage: "dev" | "prod" = "prod",
   ): Promise<Array<{ tableName: string; schema?: string }>> {
+    if (this.gateBridge) {
+      try {
+        const res = await this.gateBridge.toolCall("listIsolatedStoreSqlTables", {
+          storeId,
+          stage,
+        });
+        return (res?.data?.tables || res?.tables || []) as Array<{ tableName: string; schema?: string }>;
+      } catch (err: any) {
+        console.error(`[client] gateBridge.listIsolatedStoreSqlTables fallback: ${err.message}`);
+      }
+    }
     return this.request<Array<{ tableName: string; schema?: string }>>(
       `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/tables?stage=${stage}`,
     );
@@ -3635,6 +3763,22 @@ export class FusebaseClient {
       stage?: "dev" | "prod";
     },
   ): Promise<{ rows: Array<Record<string, unknown>>; total?: number }> {
+    if (this.gateBridge) {
+      try {
+        const res = await this.gateBridge.toolCall("selectIsolatedStoreSqlRows", {
+          storeId,
+          table,
+          where: options?.where,
+          limit: options?.limit ?? 100,
+          offset: options?.offset ?? 0,
+          order: options?.order,
+          stage: options?.stage ?? "prod",
+        });
+        return (res?.data || res) as { rows: Array<Record<string, unknown>>; total?: number };
+      } catch (err: any) {
+        console.error(`[client] gateBridge.selectIsolatedStoreSqlRows fallback: ${err.message}`);
+      }
+    }
     return this.request<{ rows: Array<Record<string, unknown>>; total?: number }>(
       `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/select`,
       {
@@ -3658,6 +3802,19 @@ export class FusebaseClient {
     row: Record<string, unknown>,
     stage: "dev" | "prod" = "prod",
   ): Promise<{ success: boolean; row?: Record<string, unknown> }> {
+    if (this.gateBridge) {
+      try {
+        const res = await this.gateBridge.toolCall("insertIsolatedStoreSqlRow", {
+          storeId,
+          table,
+          row,
+          stage,
+        });
+        return (res?.data || res) as { success: boolean; row?: Record<string, unknown> };
+      } catch (err: any) {
+        console.error(`[client] gateBridge.insertIsolatedStoreSqlRow fallback: ${err.message}`);
+      }
+    }
     return this.request<{ success: boolean; row?: Record<string, unknown> }>(
       `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/insert`,
       {
@@ -3674,6 +3831,19 @@ export class FusebaseClient {
     rows: Array<Record<string, unknown>>,
     stage: "dev" | "prod" = "prod",
   ): Promise<{ success: boolean; insertedCount: number }> {
+    if (this.gateBridge) {
+      try {
+        const res = await this.gateBridge.toolCall("batchInsertIsolatedStoreSqlRows", {
+          storeId,
+          table,
+          rows,
+          stage,
+        });
+        return (res?.data || res) as { success: boolean; insertedCount: number };
+      } catch (err: any) {
+        console.error(`[client] gateBridge.batchInsertIsolatedStoreSqlRows fallback: ${err.message}`);
+      }
+    }
     return this.request<{ success: boolean; insertedCount: number }>(
       `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/batch-insert`,
       {
@@ -3690,6 +3860,19 @@ export class FusebaseClient {
     stage: "dev" | "prod" = "prod",
     dryRun: boolean = false,
   ): Promise<{ success: boolean; appliedVersions?: string[]; message?: string }> {
+    if (this.gateBridge) {
+      try {
+        const res = await this.gateBridge.toolCall("applyIsolatedStoreSqlMigrations", {
+          storeId,
+          bundle,
+          stage,
+          dryRun,
+        });
+        return (res?.data || res) as { success: boolean; appliedVersions?: string[]; message?: string };
+      } catch (err: any) {
+        console.error(`[client] gateBridge.applyIsolatedStoreSqlMigrations fallback: ${err.message}`);
+      }
+    }
     return this.request<{ success: boolean; appliedVersions?: string[]; message?: string }>(
       `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/migrations/apply`,
       {
@@ -3697,6 +3880,76 @@ export class FusebaseClient {
         body: JSON.stringify({ bundle, stage, dryRun }),
       },
     );
+  }
+
+  // === Gate Token Management Methods ===
+
+  /** List API tokens belonging to the organization / user */
+  async listTokens(query?: {
+    scope_type?: string;
+    scope_id?: string;
+    token_source?: string;
+    include_expired?: boolean;
+    page?: number;
+    limit?: number;
+  }): Promise<any> {
+    if (this.gateBridge) {
+      return this.gateBridge.toolCall("listTokens", query || {});
+    }
+    throw new Error("Token management requires Gate MCP bridge. Configure FUSEBASE_GATE_TOKEN or FUSEBASE_TOKEN.");
+  }
+
+  /** Create a new API token with specified scopes and permissions */
+  async createToken(body: {
+    name: string;
+    scopes: Array<{ scope_type: string; scope_id: string }>;
+    permissions: string[];
+    expires_at?: string | null;
+  }): Promise<any> {
+    if (this.gateBridge) {
+      return this.gateBridge.toolCall("createToken", body);
+    }
+    throw new Error("Token creation requires Gate MCP bridge. Configure FUSEBASE_GATE_TOKEN or FUSEBASE_TOKEN.");
+  }
+
+  /** Look up details of a specific token by its ID */
+  async getToken(tokenId: string): Promise<any> {
+    if (this.gateBridge) {
+      return this.gateBridge.toolCall("getToken", { tokenId });
+    }
+    throw new Error("Token lookup requires Gate MCP bridge. Configure FUSEBASE_GATE_TOKEN or FUSEBASE_TOKEN.");
+  }
+
+  /** Permanently revoke an API token */
+  async revokeToken(tokenId: string): Promise<any> {
+    if (this.gateBridge) {
+      return this.gateBridge.toolCall("revokeToken", { tokenId });
+    }
+    throw new Error("Token revocation requires Gate MCP bridge. Configure FUSEBASE_GATE_TOKEN or FUSEBASE_TOKEN.");
+  }
+
+  /** List all permissions registered on the Gate platform */
+  async listPermissionCatalog(): Promise<any> {
+    if (this.gateBridge) {
+      return this.gateBridge.toolCall("listPermissionCatalog", {});
+    }
+    throw new Error("Permission catalog lookup requires Gate MCP bridge. Configure FUSEBASE_GATE_TOKEN or FUSEBASE_TOKEN.");
+  }
+
+  /** Resolve required permissions for specific operations */
+  async resolveOperationPermissions(operations: string[]): Promise<any> {
+    if (this.gateBridge) {
+      return this.gateBridge.toolCall("resolveOperationPermissions", { operations });
+    }
+    throw new Error("Operation permission resolution requires Gate MCP bridge. Configure FUSEBASE_GATE_TOKEN or FUSEBASE_TOKEN.");
+  }
+
+  /** Query whoami on Gate or Dashboards gateway */
+  async gateWhoami(target?: "gate" | "dashboards"): Promise<any> {
+    if (this.gateBridge) {
+      return this.gateBridge.whoami(target);
+    }
+    throw new Error("whoami requires Gate MCP bridge. Configure FUSEBASE_GATE_TOKEN or FUSEBASE_TOKEN.");
   }
 
   async getOrgLimits(): Promise<FusebaseOrgLimits> {
