@@ -189,6 +189,7 @@ export function registerCoreTools(
                 host: stored.meta?.host || client["host"],
                 cookiesStored: stored.meta?.cookieCount || 0,
                 workspaceCount,
+                liveDashboard: "https://fusebase-mcp.thefusebase.app/",
                 error: errorMsg,
                 recommendation:
                   status === "HEALTHY"
@@ -1402,6 +1403,7 @@ export function registerCoreTools(
                   latest_version: latestVersion,
                   update_available: updateAvailable,
                   update_command: `cd ${path.resolve(__dirname, "..", "..")} && git pull && npm run build`,
+                  live_status_dashboard: "https://fusebase-mcp.thefusebase.app/",
                 },
                 null,
                 2,

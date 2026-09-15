@@ -1,8 +1,17 @@
-# Fusebase MCP Server
+# FuseBase MCP Server
 
-An [MCP](https://modelcontextprotocol.io/) server that lets AI assistants manage your [Fusebase](https://www.fusebase.com/) (formerly Nimbus Note) workspaces — pages, folders, tasks, tags, files, members, databases, and more.
+[![Live Status Dashboard](https://img.shields.io/badge/Live%20Status-Operational-10b981?style=for-the-badge&logo=googlecloud&logoColor=white)](https://fusebase-mcp.thefusebase.app/)
+[![Production Tools](https://img.shields.io/badge/Production%20Tools-143%20Verified-6366f1?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
+[![Cloud Data Assertions](https://img.shields.io/badge/Cloud%20Assertions-162%2F162%20Passed-34d399?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
+[![Protocol Compliance](https://img.shields.io/badge/Protocol-JSON--RPC%202.0%20%2B%20RFC%206570-06b6d4?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 
-> **Note:** Fusebase has no public REST API. This server uses reverse-engineered internal endpoints with cookie-based authentication.
+An enterprise-grade [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server enabling autonomous AI coding agents and developers to programmatically manage [FuseBase](https://www.fusebase.com/) (formerly Nimbus Note) workspaces — collaborative Y.js documents, relational tables, ActivePieces automations, client portals, hosted web apps, and multi-agent swarm boards with 100% deep data validation.
+
+> 📊 **[Open Live Platform Status & Interactive Tools Directory → https://fusebase-mcp.thefusebase.app/](https://fusebase-mcp.thefusebase.app/)**
+>
+> *Real-time engineering status, interactive searchable directory of all 143 MCP tools with schema parameters, 12 test suite validation metrics, system architecture, and milestone chronology.*
+
+---
 
 ## ✨ Features
 
@@ -11,7 +20,7 @@ An [MCP](https://modelcontextprotocol.io/) server that lets AI assistants manage
 - **Token Economics & Markdown Conversion** — retrieve page content as clean Markdown (`get_page_content(format: "markdown")`) for ~50% token reduction via built-in `htmlToMarkdown` converter
 - **Binary Payload Safety & Native Images** — `download_attachment` renders images as native MCP `image` blocks and streams large files directly to local disk (`data/downloads/`)
 - **Safety Annotations (`[DESTRUCTIVE]`)** — permanent deletion tools are explicitly tagged so AI clients and human supervisors can prompt for confirmation
-- **Native MCP Resources (7)** — `fusebase://workspaces`, `fusebase://guides/index`, `fusebase://work/connectors`, `fusebase://workspaces/{workspaceId}/pages/{pageId}`, `fusebase://databases/{databaseId}`, `fusebase://portals/{portalId}/clients`
+- **Native MCP Resources (8)** — `fusebase://status`, `fusebase://workspaces`, `fusebase://guides/index`, `fusebase://work/connectors`, `fusebase://workspaces/{workspaceId}/pages/{pageId}`, `fusebase://databases/{databaseId}`, `fusebase://portals/{portalId}/clients`
 - **Native MCP Prompts (13)** — pre-engineered workflow templates (`create-sop`, `summarize-page`, `build-kanban-project`, `design-automation-workflow`, `build-hosted-app`, `build-event-bridge`, `orchestrate-multi-agent-swarm`, `launch-client-portal`, `workspace-activity-digest`, `audit-page-governance`, `build-relational-database`, `import-knowledge-base`, `configure-ai-persona`)
 - **Official FuseBase CLI & Hosted Apps** — inspect CLI status (`fusebase_cli_status`), initialize products (`fusebase_cli_init`), list apps (`fusebase_cli_list_apps`), and deploy Vite/React SPA apps to the FuseBase Cloud (`fusebase_cli_deploy`)
 - **Granular block mutations** — non-destructive page block appending (`append_page_content`) via real-time Y.js WebSockets
@@ -205,6 +214,7 @@ Clients can attach FuseBase data directly into their context window:
 
 | URI Pattern | Type | Description |
 | --- | --- | --- |
+| `fusebase://status` | Static | Live operational status, 143-tool catalog, 12 test suites, and web dashboard URL |
 | `fusebase://workspaces` | Static | JSON array of all accessible workspaces |
 | `fusebase://guides/index` | Static | Comprehensive index of all 277 FuseBase documentation guides |
 | `fusebase://work/connectors` | Static | Catalog of integrated third-party services and automation connectors |

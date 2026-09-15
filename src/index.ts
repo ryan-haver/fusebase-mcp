@@ -156,6 +156,7 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("Fusebase MCP server running on stdio");
+  console.error("📊 Live Platform Status: https://fusebase-mcp.thefusebase.app/");
 }
 
 main().catch((err) => {
