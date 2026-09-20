@@ -16,6 +16,9 @@ dist/
 # Scratch / Analysis Artifacts
 artifacts/
 scratch/
+local/
+temp/
+tmp/
 *.har
 *.log
 *.txt
