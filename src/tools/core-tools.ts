@@ -1009,7 +1009,7 @@ export function registerCoreTools(
       blocks: z
         .array(z.unknown())
         .optional()
-        .describe("Structured ContentBlock[] array to append"),
+        .describe("Structured ContentBlock[] array to append. Supports all block types including table (with text titles, progress bars, singleselect badges, date timestamps), toggle, hint, code, etc."),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
     async ({ workspaceId, pageId, markdown, blocks, profile }) => {
@@ -1061,7 +1061,7 @@ export function registerCoreTools(
       blocks: z
         .array(z.unknown())
         .optional()
-        .describe("Structured ContentBlock[] array for programmatic control. Supports all block types: paragraph, heading, list, code, blockquote, divider, toggle, hint, collapsible-heading, image, file, bookmark, remote-frame, outline, button, step, step-aggregator, table, and grid."),
+        .describe("Structured ContentBlock[] array for programmatic control. Supports all block types: paragraph, heading, list, code, blockquote, divider, toggle, hint, collapsible-heading, image, file, bookmark, remote-frame, outline, button, step, step-aggregator, table, and grid. For tables, support columns with text title, columnType ('text', 'progress', 'singleselect', 'multiselect', 'date', 'checkbox', 'rating', 'number', 'currency') and dbSelect options."),
       replace: z
         .boolean()
         .optional()
