@@ -7,6 +7,12 @@
   "bin": {
     "fusebase-mcp": "dist/index.js"
   },
+  "files": [
+    "dist",
+    "docs/guides",
+    "README.md",
+    "ENDPOINT_REFERENCE.md"
+  ],
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
