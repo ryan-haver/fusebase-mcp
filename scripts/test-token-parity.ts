@@ -9,7 +9,7 @@
 
 import { FusebaseClient } from "../src/client.js";
 import { FusebaseGateBridge } from "../src/gate-bridge.js";
-import { loadEncryptedCookie } from "../src/crypto.js";
+import { loadEncryptedCookie, loadEncryptedToken } from "../src/crypto.js";
 import * as assert from "assert";
 
 interface ParityResult {
@@ -29,8 +29,9 @@ async function runParityValidation() {
   const results: ParityResult[] = [];
 
   // Setup credentials
-  const gateToken = process.env.FUSEBASE_GATE_TOKEN || "REDACTED_GATE_TOKEN";
-  const dashboardsToken = process.env.FUSEBASE_DASHBOARDS_TOKEN || "REDACTED_DASHBOARDS_TOKEN";
+  const loadedToken = loadEncryptedToken();
+  const gateToken = process.env.FUSEBASE_GATE_TOKEN || loadedToken?.gateToken || "";
+  const dashboardsToken = process.env.FUSEBASE_DASHBOARDS_TOKEN || loadedToken?.dashboardsToken || "";
   const cookie = process.env.FUSEBASE_COOKIE || loadEncryptedCookie()?.cookie || "";
 
   console.log(`[Config] Gate Token: ${gateToken ? "Present (" + gateToken.slice(0, 8) + "...)" : "Missing"}`);
