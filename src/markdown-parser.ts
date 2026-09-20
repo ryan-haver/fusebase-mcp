@@ -193,7 +193,7 @@ function inferCellType(val: string): TableCellType {
   if (!trimmed) return "text";
   if (/^[-+]?\$[\d,]+(\.\d+)?$/.test(trimmed)) return "currency";
   if (/^[-+]?[\d,]+(\.\d+)?%?$/.test(trimmed) && !isNaN(Number(trimmed.replace(/[,%]/g, "")))) return "number";
-  if (/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d+)?Z?)?$/.test(trimmed) && !isNaN(Date.parse(trimmed))) return "date";
+  if (/^(\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[-/]\d{1,2}[-/]\d{4})(T\d{2}:\d{2}:\d{2}(\.\d+)?Z?)?$/.test(trimmed) && !isNaN(Date.parse(trimmed))) return "date";
   if (/^\[[ xX]\]$/.test(trimmed) || /^(true|false)$/i.test(trimmed)) return "checkbox";
   return "text";
 }

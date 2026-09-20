@@ -410,6 +410,9 @@ function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
           const cm = new Y.Map();
           cm.set("id", colId);
           cm.set("type", "column");
+          if (col.text) {
+            cm.set("text", col.text);
+          }
           // Only set columnType for non-text columns (text is the default)
           if (col.type && col.type !== "text") {
             cm.set("columnType", col.type);
