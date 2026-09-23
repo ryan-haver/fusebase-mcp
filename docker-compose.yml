@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  fusebase-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: fusebase-mcp:latest
+    container_name: fusebase-mcp
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - MCP_TRANSPORT=sse
+      - PORT=3000
+      - FUSEBASE_TOOLS=${FUSEBASE_TOOLS:-core}
+      - FUSEBASE_GATE_TOKEN=${FUSEBASE_GATE_TOKEN}
+      - FUSEBASE_DASHBOARDS_TOKEN=${FUSEBASE_DASHBOARDS_TOKEN}
+      - FUSEBASE_TOKEN=${FUSEBASE_TOKEN}
+      - FUSEBASE_HOST=${FUSEBASE_HOST}
+      - FUSEBASE_ORG_ID=${FUSEBASE_ORG_ID}
+      - FUSEBASE_COOKIE=${FUSEBASE_COOKIE}
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

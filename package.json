@@ -30,6 +30,11 @@
     "scrape:guides": "npx tsx scripts/scrape-guides.ts",
     "deploy:status": "npx tsx scripts/deploy-status-dashboard.ts",
     "deploy:page": "npx tsx scripts/deploy-workspace-page.ts",
+    "docker:build": "docker build -t fusebase-mcp:latest .",
+    "docker:run": "docker run -i --rm -e FUSEBASE_TOOLS=all fusebase-mcp:latest",
+    "docker:sse": "docker run -d --name fusebase-mcp -p 3000:3000 -e MCP_TRANSPORT=sse fusebase-mcp:latest",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
     "postinstall": "npx playwright install chromium || true"
   },
   "dependencies": {

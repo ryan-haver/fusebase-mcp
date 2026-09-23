@@ -101,6 +101,7 @@ const testSuites = [
   { id: 14, name: "FuseBase Work, Firecrawl & n8n Integration", toolsCount: 3, assertionsCount: 3, status: "passed", description: "AI agent prompt dispatch, Firecrawl web content extraction, and n8n workflow triggers" },
   { id: 15, name: "Direct Gate Bridge & Token Management", toolsCount: 7, assertionsCount: 7, status: "passed", description: "Direct token connection, whoami tenant resolution, scoped token creation, revocation, and direct MCP tool calls" },
   { id: 16, name: "Authentication Modes & Feature Parity Validation", toolsCount: 11, assertionsCount: 15, status: "passed", description: "Empirical side-by-side validation of Pure Token Mode vs Session Cookie Mode across all 11 platform domains" },
+  { id: 17, name: "Containerization & Dual Transport Validation", toolsCount: 2, assertionsCount: 6, status: "passed", description: "Local Stdio JSON-RPC protocol initialization, multi-stage Docker build, container Stdio execution, and network SSE streaming with health check" },
 ];
 
 const milestones = [
@@ -114,6 +115,7 @@ const milestones = [
   { id: "m8", title: "Full-Spectrum 175-Tool Deep Data Validation", status: "completed", date: "Sept 2026", description: "100% live data assertion test harness: 175/175 tools, 172/172 passed data assertions, 0 leaks" },
   { id: "m9", title: "Official Remote Gate & Dashboards MCP Token Bridge", status: "completed", date: "Sept 2026", description: "Zero-browser direct API token connection to gate-mcp and dashboards-mcp over Streamable HTTP SSE with automatic tenant identity discovery and first-class token lifecycle management" },
   { id: "m10", title: "Authentication Feature Parity & Gate CRUD Fallbacks", status: "completed", date: "Sept 2026", description: "Full empirical parity test suite validating Pure Token Mode vs Cookie Session Mode across 11 core domains, seamless Gate MCP page/note/folder CRUD fallback in client, and comprehensive architectural documentation" },
+  { id: "m11", title: "Universal Agent Guidance, Dual Stdio/SSE & Docker Containerization", status: "completed", date: "Sept 2026", description: "Standardized AGENTS.md & CLAUDE.md for zero context clutter, portable relative MCP configs, dual Stdio + HTTP/SSE network transports with /health endpoint, and lightweight multi-stage Docker packaging" },
 ];
 
 const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../package.json"), "utf-8"));

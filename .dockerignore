@@ -1,0 +1,15 @@
+node_modules
+dist
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+.browser-data*
+scratch
+artifacts
+_archive
+apps
+*.log
+.DS_Store
+Thumbs.db

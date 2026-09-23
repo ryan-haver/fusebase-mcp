@@ -1,11 +1,11 @@
 {
   "project": "FuseBase MCP Server",
   "version": "1.0.0",
-  "lastUpdated": "2026-09-15T20:39:53.642Z",
+  "lastUpdated": "2026-09-23T04:48:21.524Z",
   "git": {
-    "commit": "c21bf5a",
+    "commit": "0100d69",
     "branch": "master",
-    "commitDate": "2026-09-15T13:57:28-06:00"
+    "commitDate": "2026-09-19T19:34:17-06:00"
   },
   "protocol": {
     "specification": "JSON-RPC 2.0",
@@ -16,9 +16,9 @@
     "totalTools": 175,
     "coreTools": 34,
     "extendedTools": 141,
-    "totalSuites": 16,
-    "totalAssertions": 206,
-    "passedAssertions": 206,
+    "totalSuites": 17,
+    "totalAssertions": 212,
+    "passedAssertions": 212,
     "passRatePercent": 100,
     "documentationGuides": 278
   },
@@ -150,6 +150,14 @@
       "assertionsCount": 15,
       "status": "passed",
       "description": "Empirical side-by-side validation of Pure Token Mode vs Session Cookie Mode across all 11 platform domains"
+    },
+    {
+      "id": 17,
+      "name": "Containerization & Dual Transport Validation",
+      "toolsCount": 2,
+      "assertionsCount": 6,
+      "status": "passed",
+      "description": "Local Stdio JSON-RPC protocol initialization, multi-stage Docker build, container Stdio execution, and network SSE streaming with health check"
     }
   ],
   "milestones": [
@@ -222,6 +230,13 @@
       "status": "completed",
       "date": "Sept 2026",
       "description": "Full empirical parity test suite validating Pure Token Mode vs Cookie Session Mode across 11 core domains, seamless Gate MCP page/note/folder CRUD fallback in client, and comprehensive architectural documentation"
+    },
+    {
+      "id": "m11",
+      "title": "Universal Agent Guidance, Dual Stdio/SSE & Docker Containerization",
+      "status": "completed",
+      "date": "Sept 2026",
+      "description": "Standardized AGENTS.md & CLAUDE.md for zero context clutter, portable relative MCP configs, dual Stdio + HTTP/SSE network transports with /health endpoint, and lightweight multi-stage Docker packaging"
     }
   ],
   "tools": [

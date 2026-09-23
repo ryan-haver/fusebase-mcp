@@ -3,7 +3,8 @@
 [![Version](https://img.shields.io/badge/Version-v1.0.0-3b82f6?style=for-the-badge)](https://github.com/ryan-haver/fusebase-mcp)
 [![Live Status Dashboard](https://img.shields.io/badge/Live%20Status-Operational-10b981?style=for-the-badge&logo=googlecloud&logoColor=white)](https://fusebase-mcp.thefusebase.app/)
 [![Production Tools](https://img.shields.io/badge/Production%20Tools-175%20Verified-6366f1?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
-[![Automated Assertions](https://img.shields.io/badge/Automated%20Assertions-206%20Passing-10b981?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
+[![Automated Assertions](https://img.shields.io/badge/Automated%20Assertions-212%20Passing-10b981?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
+[![Docker Ready](https://img.shields.io/badge/Docker-Stdio%20%26%20SSE-2496ed?style=for-the-badge&logo=docker&logoColor=white)](https://github.com/ryan-haver/fusebase-mcp)
 [![Feature Parity](https://img.shields.io/badge/Token%20vs%20Cookie%20Parity-100%25%20Verified-8b5cf6?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 [![Deep Data Validation](https://img.shields.io/badge/Deep%20Data%20Validation-100%25%20Verified-0ea5e9?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 
@@ -51,7 +52,9 @@ An enterprise-grade [Model Context Protocol (MCP)](https://modelcontextprotocol.
 - [Node.js](https://nodejs.org/) 18+
 - A [Fusebase](https://www.fusebase.com/) account
 
-### 1. Install
+### 1. Install & Run
+
+> 🤖 **AI Coding Agents:** See [AGENTS.md](file:///c:/scripts/fusebase-mcp/AGENTS.md) and [CLAUDE.md](file:///c:/scripts/fusebase-mcp/CLAUDE.md) for optimized instructions on zero-context-clutter tool tiering and zero-browser token authentication.
 
 **Option A — Install from GitHub (recommended):**
 
@@ -67,9 +70,30 @@ This automatically installs dependencies, compiles TypeScript, and downloads Chr
 git clone https://github.com/ryan-haver/fusebase-mcp.git
 cd fusebase-mcp
 npm install
+npm run build
 ```
 
-> `npm install` automatically builds the project and installs Playwright's Chromium via the `prepare` and `postinstall` scripts.
+**Option C — Docker (Zero-Install Container):**
+
+Run locally via **Stdio** (for Cursor, Claude Desktop):
+```bash
+docker run -i --rm \
+  -e FUSEBASE_GATE_TOKEN="your_token" \
+  -e FUSEBASE_DASHBOARDS_TOKEN="your_token" \
+  -e FUSEBASE_TOOLS="all" \
+  fusebase-mcp:latest
+```
+
+Or run as a standing **HTTP / SSE Network Server** (for remote agents, swarms, and webhooks):
+```bash
+docker run -d --name fusebase-mcp -p 3000:3000 \
+  -e FUSEBASE_GATE_TOKEN="your_token" \
+  -e FUSEBASE_DASHBOARDS_TOKEN="your_token" \
+  -e MCP_TRANSPORT="sse" \
+  fusebase-mcp:latest
+# Endpoint: http://localhost:3000/sse | Health: http://localhost:3000/health
+```
+*(Or simply run `docker compose up -d`)*
 
 ### 2. Configure & Authenticate
 
@@ -192,9 +216,9 @@ The table below reflects **100% empirical validation results** obtained by runni
 
 #### Single-System Credential Architecture
 FuseBase MCP is built for multi-agent environments sharing a single machine. Once you configure credentials on your machine (via `.env`, `npx tsx scripts/auth.ts --token <token>`, or browser login):
-1. **Zero-Config Agent Discovery:** Any coding agent installed on the same system running `node c:/scripts/fusebase-mcp/dist/index.js` automatically reads the local encrypted credentials and connects immediately without needing tokens or cookies hardcoded in the agent's JSON config.
+1. **Zero-Config Agent Discovery:** Any coding agent running `node dist/index.js` in the workspace root automatically reads the local encrypted credentials and connects immediately without needing tokens or cookies hardcoded in the agent's JSON config.
 2. **Multi-Agent Profile Isolation:** When running multi-agent swarms (e.g. PM, Architect, Developer, QA), each agent can use its own distinct encrypted identity simply by setting `"FUSEBASE_PROFILE": "agent-architect"`.
-3. **Explicit Token Pass-Through:** For remote runners or Docker containers, you can pass `FUSEBASE_GATE_TOKEN` and `FUSEBASE_DASHBOARDS_TOKEN` directly in the agent's `env` block.
+3. **Docker Execution:** For containers or remote runners, you can pass `FUSEBASE_GATE_TOKEN` and `FUSEBASE_DASHBOARDS_TOKEN` directly in the container `env` block.
 
 ---
 
@@ -209,7 +233,7 @@ FuseBase MCP is built for multi-agent environments sharing a single machine. Onc
   "mcpServers": {
     "fusebase": {
       "command": "node",
-      "args": ["c:/scripts/fusebase-mcp/dist/index.js"],
+      "args": ["dist/index.js"],
       "env": {
         "FUSEBASE_TOOLS": "all"
       }
@@ -218,14 +242,32 @@ FuseBase MCP is built for multi-agent environments sharing a single machine. Onc
 }
 ```
 
+Or via Docker (Zero-Install):
+```json
+{
+  "mcpServers": {
+    "fusebase": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-e", "FUSEBASE_GATE_TOKEN",
+        "-e", "FUSEBASE_DASHBOARDS_TOKEN",
+        "-e", "FUSEBASE_TOOLS=all",
+        "fusebase-mcp:latest"
+      ]
+    }
+  }
+}
+```
+
 **Claude Code CLI:**
 ```bash
 # Add as a local plugin using native .claude-plugin/plugin.json
-claude plugin add c:/scripts/fusebase-mcp
+claude plugin add .
 ```
 Or run directly via stdio:
 ```bash
-claude mcp add fusebase -- node c:/scripts/fusebase-mcp/dist/index.js
+claude mcp add fusebase -- node dist/index.js
 ```
 
 </details>
@@ -239,7 +281,7 @@ In your workspace root, create or edit `.cursor/mcp.json` (or add via **Cursor S
   "mcpServers": {
     "fusebase": {
       "command": "node",
-      "args": ["c:/scripts/fusebase-mcp/dist/index.js"],
+      "args": ["dist/index.js"],
       "env": {
         "FUSEBASE_TOOLS": "all"
       }
@@ -248,18 +290,36 @@ In your workspace root, create or edit `.cursor/mcp.json` (or add via **Cursor S
 }
 ```
 
+Or via Docker:
+```json
+{
+  "mcpServers": {
+    "fusebase": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-e", "FUSEBASE_GATE_TOKEN",
+        "-e", "FUSEBASE_DASHBOARDS_TOKEN",
+        "-e", "FUSEBASE_TOOLS=all",
+        "fusebase-mcp:latest"
+      ]
+    }
+  }
+}
+```
+
 </details>
 
 <details open>
-<summary><strong>3. Google Antigravity IDE</strong> — <code>~/.gemini/antigravity-ide/mcp/</code> or <code>.agent/mcp_config.json</code></summary>
+<summary><strong>3. Google Antigravity IDE</strong> — <code>~/.gemini/antigravity-ide/mcp_config.json</code> or <code>.agent/mcp_config.json</code></summary>
 
-Add to your global Antigravity MCP configuration (`~/.gemini/antigravity-ide/mcp_config.json`) or workspace `.agent/mcp_config.json`:
+Add to your global Antigravity MCP configuration or workspace `.agent/mcp_config.json`:
 ```json
 {
   "mcpServers": {
     "fusebase": {
       "command": "node",
-      "args": ["c:/scripts/fusebase-mcp/dist/index.js"],
+      "args": ["dist/index.js"],
       "env": {
         "FUSEBASE_TOOLS": "all"
       }
@@ -277,7 +337,7 @@ This repository includes native `.codex-plugin/plugin.json` for OpenAI Codex age
 
 Add via Codex CLI:
 ```bash
-codex mcp add fusebase --command node --args c:/scripts/fusebase-mcp/dist/index.js
+codex mcp add fusebase --command node --args dist/index.js
 ```
 Or in your Codex configuration:
 ```json
@@ -285,7 +345,7 @@ Or in your Codex configuration:
   "mcp": {
     "fusebase": {
       "command": "node",
-      "args": ["c:/scripts/fusebase-mcp/dist/index.js"],
+      "args": ["dist/index.js"],
       "env": {
         "FUSEBASE_TOOLS": "all"
       }
@@ -299,7 +359,7 @@ Or in your Codex configuration:
 <details open>
 <summary><strong>5. OpenCode</strong> — <code>opencode.json</code></summary>
 
-OpenCode supports both local stdio execution and direct upstream HTTP Gate connection. Place `opencode.json` in your project root:
+OpenCode supports local stdio execution, Docker, and direct upstream HTTP Gate connection:
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
@@ -307,7 +367,7 @@ OpenCode supports both local stdio execution and direct upstream HTTP Gate conne
     "fusebase": {
       "type": "stdio",
       "command": "node",
-      "args": ["c:/scripts/fusebase-mcp/dist/index.js"],
+      "args": ["dist/index.js"],
       "env": {
         "FUSEBASE_TOOLS": "all"
       }
@@ -327,7 +387,7 @@ OpenCode supports both local stdio execution and direct upstream HTTP Gate conne
     "servers": {
       "fusebase": {
         "command": "node",
-        "args": ["c:/scripts/fusebase-mcp/dist/index.js"],
+        "args": ["dist/index.js"],
         "env": {
           "FUSEBASE_TOOLS": "all"
         }
@@ -339,7 +399,7 @@ OpenCode supports both local stdio execution and direct upstream HTTP Gate conne
 
 </details>
 
-> **Note:** On Windows, paths can use forward slashes (`"c:/scripts/fusebase-mcp/dist/index.js"`) or escaped backslashes (`"C:\\scripts\\fusebase-mcp\\dist\\index.js"`). If credentials are saved in `.env` or `data/tokens.enc`, no auth environment variables are required in the client JSON!
+> **Note:** If running outside the repository root directory, you can specify the full path to `dist/index.js` or use `${workspaceFolder}/dist/index.js`. If credentials are saved in `.env` or `data/tokens.enc`, no auth environment variables are required in the client JSON!
 
 ### 5. Verify
 
