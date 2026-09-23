@@ -122,8 +122,16 @@ describe("download_attachment (SEC-2)", () => {
     fs.rmSync(downloads, { recursive: true, force: true });
   });
 
+  // Mirrors FusebaseClient.downloadAttachment: with toFile it streams to disk and returns no base64.
   const client = () => fakeClient({
-    downloadAttachment: async () => ({ base64: Buffer.from("payload").toString("base64"), mime: "application/octet-stream", size: 7 }),
+    downloadAttachment: async (_ws: string, _att: string, _name: string, opts: { toFile?: string } = {}) => {
+      if (opts.toFile) {
+        fs.mkdirSync(path.dirname(opts.toFile), { recursive: true });
+        fs.writeFileSync(opts.toFile, "payload");
+        return { base64: "", mime: "application/octet-stream", size: 7, savedPath: opts.toFile };
+      }
+      return { base64: Buffer.from("payload").toString("base64"), mime: "application/octet-stream", size: 7 };
+    },
   });
 
   it("refuses an outputPath outside the download directory", async () => {

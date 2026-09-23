@@ -44,7 +44,13 @@ describe("FusebaseClient.importCSV (COR-3)", () => {
 
   // COR-3 regression: .json() then .text() on the same body threw "Body is unusable".
   it("handles a non-JSON 200 response body", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => new Response("<html>ok</html>", { status: 200 })));
-    await expect(client().importCSV(CSV, "db", "dash", "view")).resolves.toMatchObject({ success: true });
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("import queued", { status: 200 })));
+    await expect(client().importCSV(CSV, "db", "dash", "view")).resolves.toMatchObject({ success: true, data: "import queued" });
+  });
+
+  // COR-8: an HTML page (e.g. a login page after the session expired) is not API data.
+  it("reports an HTML page as an error instead of data", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("<!DOCTYPE html><html>Sign in</html>", { status: 200, headers: { "content-type": "text/html" } })));
+    await expect(client().importCSV(CSV, "db", "dash", "view")).rejects.toThrow(/HTML page instead of data/);
   });
 });

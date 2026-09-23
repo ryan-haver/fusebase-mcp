@@ -3,7 +3,7 @@
  * Handles detection, installation guidance, and execution of the official FuseBase CLI (`fusebase`).
  */
 
-import { execSync, spawn } from "node:child_process";
+import { execSync, spawn, type ChildProcess } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { delimiter, dirname, isAbsolute, join, parse, relative, resolve } from "node:path";
@@ -237,7 +237,8 @@ export class FusebaseCliManager {
       return { success: false, stdout: "", stderr: err instanceof Error ? err.message : String(err), exitCode: -4 };
     }
 
-    return new Promise((resolve) => {
+    type Result = { success: boolean; stdout: string; stderr: string; exitCode: number | null };
+    return new Promise<Result>((resolve) => {
       const child = spawn(invocation.command, invocation.args, {
         cwd: workingDir,
         shell: invocation.shell,
@@ -246,18 +247,35 @@ export class FusebaseCliManager {
 
       let stdout = "";
       let stderr = "";
+      let settled = false;
 
-      child.stdout?.on("data", (data) => {
-        stdout += data.toString();
-      });
+      const onStdout = (data: Buffer | string) => { stdout += data.toString(); };
+      const onStderr = (data: Buffer | string) => { stderr += data.toString(); };
 
-      child.stderr?.on("data", (data) => {
-        stderr += data.toString();
-      });
+      /** Resolve exactly once, then detach every listener this call added. */
+      const finish = (result: Result) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        child.stdout?.off("data", onStdout);
+        child.stderr?.off("data", onStderr);
+        child.off("close", onClose);
+        child.off("error", onError);
+        // Keep swallowing late errors (e.g. from killing it) so they can't crash the server.
+        child.on("error", () => {});
+        resolve(result);
+      };
+
+      const onClose = (code: number | null) => {
+        finish({ success: code === 0, stdout: stdout.trim(), stderr: stderr.trim(), exitCode: code });
+      };
+      const onError = (err: Error) => {
+        finish({ success: false, stdout, stderr: err.message, exitCode: -3 });
+      };
 
       const timer = setTimeout(() => {
-        child.kill();
-        resolve({
+        this.killProcessTree(child);
+        finish({
           success: false,
           stdout,
           stderr: stderr + `\nCommand timed out after ${timeoutMs}ms.`,
@@ -265,26 +283,31 @@ export class FusebaseCliManager {
         });
       }, timeoutMs);
 
-      child.on("close", (code) => {
-        clearTimeout(timer);
-        resolve({
-          success: code === 0,
-          stdout: stdout.trim(),
-          stderr: stderr.trim(),
-          exitCode: code,
-        });
-      });
-
-      child.on("error", (err) => {
-        clearTimeout(timer);
-        resolve({
-          success: false,
-          stdout,
-          stderr: err.message,
-          exitCode: -3,
-        });
-      });
+      child.stdout?.on("data", onStdout);
+      child.stderr?.on("data", onStderr);
+      child.on("close", onClose);
+      child.on("error", onError);
     });
+  }
+
+  /**
+   * Kill a CLI process and everything it started. On Windows `child.kill()` only ends the
+   * process we spawned (cmd.exe for a shim, or the fusebase.exe launcher), leaving the real
+   * CLI running, so the whole tree is ended with taskkill (run directly, never via a shell).
+   */
+  static killProcessTree(child: ChildProcess): void {
+    if (child.pid === undefined || child.exitCode !== null || child.signalCode !== null) return;
+    if (process.platform !== "win32") {
+      child.kill();
+      return;
+    }
+    const taskkill = join(process.env.SystemRoot || "C:\\Windows", "System32", "taskkill.exe");
+    try {
+      const killer = spawn(taskkill, ["/pid", String(child.pid), "/T", "/F"], { shell: false, stdio: "ignore", windowsHide: true });
+      killer.on("error", () => child.kill());
+    } catch {
+      child.kill();
+    }
   }
 
   /**
@@ -348,16 +371,31 @@ export class FusebaseCliManager {
   }
 
   /**
-   * Retrieve remote deployment logs or local dev logs.
+   * Retrieve logs for a deployed app. The CLI has no `logs` command; it has
+   * `remote-logs runtime <featureId> [--tail N]` and `remote-logs build <featureId>`.
+   * Local dev-server output is only printed by `fusebase dev start`, so "dev" can't be fetched.
    */
   static async getLogs(
-    appPath?: string,
-    options?: { lines?: number; type?: "remote" | "dev"; cwd?: string },
-  ) {
-    const args = ["logs"];
-    if (appPath) args.push("--app", appPath);
-    if (options?.lines) args.push("--lines", String(options.lines));
-    return this.executeCommand("logs", args.slice(1), options?.cwd, 15000);
+    appId?: string,
+    options?: { lines?: number; type?: "remote" | "build" | "dev"; cwd?: string },
+  ): Promise<{ success: boolean; stdout: string; stderr: string; exitCode: number | null }> {
+    const type = options?.type ?? "remote";
+    if (type === "dev") {
+      return {
+        success: false,
+        stdout: "",
+        stderr: "The FuseBase CLI has no command to fetch local dev logs; they are printed by `fusebase dev start` in the terminal running it. Use type \"remote\" (runtime) or \"build\" for a deployed app.",
+        exitCode: -5,
+      };
+    }
+    if (!appId) {
+      return { success: false, stdout: "", stderr: "An app ID is required to fetch remote logs.", exitCode: -5 };
+    }
+    if (type === "build") return this.executeCommand("remote-logs", ["build", appId], options?.cwd, 15000);
+
+    const args = ["runtime", appId];
+    if (options?.lines) args.push("--tail", String(Math.min(1000, Math.max(1, Math.floor(options.lines)))));
+    return this.executeCommand("remote-logs", args, options?.cwd, 15000);
   }
 
   /**

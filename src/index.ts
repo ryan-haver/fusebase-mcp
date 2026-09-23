@@ -23,159 +23,32 @@
  *     access controls (MCP_AUTH_TOKEN, MCP_ALLOWED_HOSTS, MCP_ALLOWED_ORIGINS).
  */
 
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { FusebaseClient } from "./client.js";
-import { FusebaseGateBridge } from "./gate-bridge.js";
-import { loadEncryptedCookie, loadCredentialStore } from "./crypto.js";
-import { loadDotEnv, resolveTokens, hasAnyToken } from "./config.js";
+import { loadCredentialStore } from "./crypto.js";
+import { loadDotEnv, resolveTokens } from "./config.js";
 import { startProxyRelay } from "./proxy-relay.js";
 import { resolveHttpOptions, startHttpServer } from "./http-server.js";
-import { registerCoreTools } from "./tools/core-tools.js";
-import { registerExtendedTools } from "./tools/extended-tools.js";
-import { registerResources } from "./resources.js";
-import { registerPrompts } from "./prompts.js";
-
-// ─── Config ─────────────────────────────────────────────────────
+import { bridgeFor, buildClient, setProxyRelayUrl } from "./client-factory.js";
+import { createFusebaseServer, SERVER_VERSION } from "./server.js";
 
 // Load env vars at startup
 loadDotEnv();
 
-// ─── Server Setup ───────────────────────────────────────────────
-
-let _proxyRelayUrl: string | undefined;
-let _activeProfile: string | undefined = process.env.FUSEBASE_PROFILE;
-let _gateBridge: FusebaseGateBridge | undefined;
-
-function getClient(profile?: string): FusebaseClient {
-  const effectiveProfile = profile || _activeProfile;
-
-  // 1. Resolve tokens
-  const { gateToken, dashboardsToken, token } = resolveTokens(effectiveProfile);
-
-  // 2. Resolve or reuse bridge
-  if (hasAnyToken({ gateToken, dashboardsToken, token }) && !_gateBridge) {
-    _gateBridge = new FusebaseGateBridge({
-      gateToken,
-      dashboardsToken,
-      token,
-    });
-  }
-
-  const host = process.env.FUSEBASE_HOST;
-  const orgId = process.env.FUSEBASE_ORG_ID;
-
-  let cookie = process.env.FUSEBASE_COOKIE || "";
-  // If a profile is requested, or if no default cookie was provided in env, load from disk
-  if (!cookie || effectiveProfile) {
-    const stored = loadEncryptedCookie(effectiveProfile);
-    if (stored?.cookie) {
-      cookie = stored.cookie;
-    }
-  }
-
-  if (!host || !orgId) {
-    // Throw rather than exit: this runs inside tool calls, and the SDK turns a thrown
-    // error into an isError result instead of killing the server (COR-10).
-    throw new Error(
-      "FuseBase is not configured: FUSEBASE_HOST and FUSEBASE_ORG_ID are missing. " +
-      "Set them in .env, or provide valid FUSEBASE_GATE_TOKEN / FUSEBASE_DASHBOARDS_TOKEN so they can be discovered.",
-    );
-  }
-
-  if (!cookie && !_gateBridge?.isConfigured) {
-    console.error(`[fusebase] Warning: Neither cookie nor token found. Run 'npx tsx scripts/auth.ts${effectiveProfile ? ` --profile ${effectiveProfile}` : ""}' to authenticate.`);
-  }
-
-  // Use proxy relay URL if started in main()
-  return new FusebaseClient({
-    host,
-    orgId,
-    cookie: cookie || undefined,
-    token,
-    gateToken,
-    dashboardsToken,
-    gateBridge: _gateBridge,
-    autoRefresh: Boolean(cookie),
-    profile: effectiveProfile,
-    proxyRelayUrl: _proxyRelayUrl,
+/** A new MCP server for one client session; each session keeps its own active profile. */
+function newSessionServer() {
+  return createFusebaseServer({
+    buildClient,
+    initialProfile: process.env.FUSEBASE_PROFILE,
+    allTools: process.env.FUSEBASE_TOOLS === "all",
   });
 }
-
-/**
- * Creates and configures a new McpServer instance with core tools,
- * resources, prompts, and tool tier management.
- */
-function createFusebaseServer() {
-  const server = new McpServer(
-    {
-      name: "fusebase",
-      version: "1.0.0",
-    },
-    {
-      instructions: `FuseBase MCP Server provides programmatic access to the FuseBase collaborative workspace platform.
-
-Entity Hierarchy:
-- Organization (Tenant) -> Workspaces
-- Workspaces -> Folders -> Pages (Notes)
-- Workspaces -> Databases (Tables) -> Views & Records (Rows) / Relations
-
-Tool Tiers:
-- Starts in Core Tier (34 tools) covering full CRUD and organization for pages, folders, content, comments, tasks, attachments, and profile management.
-- Call 'set_tool_tier' with tier="all" to unlock all 175 tools (databases, views, relations, permissions, automations, portals, webhooks, Gate PostgreSQL, tokens).
-
-Content & Sync Guidelines:
-- Pages are collaborative documents backed by Y.js CRDT state. Use 'append_page_content' or 'update_page_content' to edit. Real-time updates propagate via WebSocket.
-- When retrieving page content, 'format: "markdown"' reduces token consumption by ~50% compared to raw HTML.
-- For attachments, 'download_attachment' returns images natively or saves large files to disk via 'saveToDisk: true'.
-- Destructive actions (deleting pages, databases, rows, relations, columns) are marked with [DESTRUCTIVE] and cannot be undone.`,
-    }
-  );
-
-  let extendedToolsRegistered = false;
-
-  function enableExtendedTools(): void {
-    if (extendedToolsRegistered) return;
-    registerExtendedTools(server, getClient);
-    extendedToolsRegistered = true;
-    console.error(`[fusebase] Extended tools registered`);
-  }
-
-  // Register core tools, resources, and prompts
-  registerCoreTools(server, getClient, {
-    enableExtendedTools,
-    isExtendedToolsEnabled: () => extendedToolsRegistered,
-    setActiveProfile: (p) => { _activeProfile = p; },
-    getActiveProfile: () => _activeProfile,
-  });
-  registerResources(server, getClient);
-  registerPrompts(server, getClient);
-
-  // Register extended tools at startup if FUSEBASE_TOOLS=all
-  if (process.env.FUSEBASE_TOOLS === "all") {
-    enableExtendedTools();
-  } else {
-    console.error("[fusebase] Running in core mode (34 tools). Set FUSEBASE_TOOLS=all or call set_tool_tier to enable all 175.");
-  }
-
-  return { server, enableExtendedTools, isExtendedToolsRegistered: () => extendedToolsRegistered };
-}
-
-// ─── Start ──────────────────────────────────────────────────────
 
 async function main() {
   // Check for tokens and auto-discover identity
-  const { gateToken, dashboardsToken, token } = resolveTokens(_activeProfile);
-
-  if (hasAnyToken({ gateToken, dashboardsToken, token })) {
-    _gateBridge = new FusebaseGateBridge({
-      gateToken,
-      dashboardsToken,
-      token,
-    });
-
+  const bridge = bridgeFor(resolveTokens(process.env.FUSEBASE_PROFILE));
+  if (bridge) {
     try {
-      const identity = await _gateBridge.init();
+      const identity = await bridge.init();
       if (!process.env.FUSEBASE_ORG_ID && identity.orgId) {
         process.env.FUSEBASE_ORG_ID = identity.orgId;
       }
@@ -183,7 +56,7 @@ async function main() {
         process.env.FUSEBASE_HOST = identity.orgDomain;
       }
       console.error(
-        `[fusebase] Connected via Direct Token Mode to FuseBase Gate (${_gateBridge.hasGate ? "✓ Gate" : ""}${_gateBridge.hasDashboards ? " ✓ Dashboards" : ""})\n` +
+        `[fusebase] Connected via Direct Token Mode to FuseBase Gate (${bridge.hasGate ? "✓ Gate" : ""}${bridge.hasDashboards ? " ✓ Dashboards" : ""})\n` +
         `[fusebase] Tenant: ${identity.orgId} (${identity.orgDomain || "cloud"}) — Default Workspace: ${identity.defaultWorkspaceId || "none"}`
       );
     } catch (err: any) {
@@ -196,7 +69,7 @@ async function main() {
   if (credStore?.proxy) {
     try {
       const relay = await startProxyRelay(credStore.proxy);
-      _proxyRelayUrl = relay.url;
+      setProxyRelayUrl(relay.url);
       process.on("exit", () => relay.stop());
     } catch (err) {
       console.error(`[fusebase] Warning: Failed to start proxy relay: ${err instanceof Error ? err.message : err}`);
@@ -212,7 +85,7 @@ async function main() {
 
   if (isHttpMode) {
     const options = resolveHttpOptions(process.argv, process.env);
-    const handle = await startHttpServer(options, () => createFusebaseServer().server, { version: "1.0.0" });
+    const handle = await startHttpServer(options, () => newSessionServer().server, { version: SERVER_VERSION });
     const base = `http://${options.host.includes(":") ? `[${options.host}]` : options.host}:${handle.port}`;
     console.error(`[fusebase] MCP server listening on ${base}`);
     console.error(`[fusebase]   Streamable HTTP: ${base}/mcp   Legacy SSE: ${base}/sse   Health: ${base}/health`);
@@ -224,7 +97,7 @@ async function main() {
     process.once("SIGTERM", shutdown);
   } else {
     // Default: Stdio Transport for local desktop & CLI clients
-    const { server } = createFusebaseServer();
+    const { server } = newSessionServer();
     const transport = new StdioServerTransport();
     await server.connect(transport);
     console.error("Fusebase MCP server running on stdio");

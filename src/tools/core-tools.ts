@@ -797,12 +797,11 @@ export function registerCoreTools(
       try {
         // Validate the destination before downloading anything.
         const targetFile = saveToDisk || outputPath ? resolveDownloadPath(filename, outputPath) : undefined;
-        const result = await client.downloadAttachment(workspaceId, attachmentId, filename);
+        // Saving streams straight to disk, so large files never sit in memory.
+        const result = await client.downloadAttachment(workspaceId, attachmentId, filename, { toFile: targetFile });
 
         // Safe local disk saving to prevent context blowup
         if (targetFile) {
-          fs.mkdirSync(path.dirname(targetFile), { recursive: true });
-          fs.writeFileSync(targetFile, Buffer.from(result.base64, "base64"));
           return {
             content: [{
               type: "text" as const,

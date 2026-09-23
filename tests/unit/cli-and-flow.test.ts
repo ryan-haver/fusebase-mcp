@@ -55,19 +55,20 @@ describe("FusebaseCliManager argument building", () => {
     expect(args).toEqual(expect.arrayContaining(["create", "--app", "apps/my-app", "--secret", "STRIPE_KEY:sk_test_123"]));
   });
 
-  it("getLogs passes --app and --lines", async () => {
+  // The real CLI has no `logs` command: runtime logs are `remote-logs runtime <featureId> --tail N`.
+  it("getLogs runs remote-logs runtime with the app ID and --tail", async () => {
     const exec = capture();
     await FusebaseCliManager.getLogs("apps/my-app", { lines: 50 });
     const [sub, args] = exec.mock.calls[0];
-    expect(sub).toBe("logs");
-    expect(args).toEqual(expect.arrayContaining(["--app", "apps/my-app", "--lines", "50"]));
+    expect(sub).toBe("remote-logs");
+    expect(args).toEqual(["runtime", "apps/my-app", "--tail", "50"]);
   });
 
-  // COR-14: the `type` option is accepted but never passed to the CLI.
-  it.fails("getLogs passes the log type (COR-14)", async () => {
+  // COR-14: the `type` option used to be accepted but never passed to the CLI.
+  it("getLogs passes the log type (COR-14)", async () => {
     const exec = capture();
-    await FusebaseCliManager.getLogs("apps/my-app", { type: "build" } as any);
-    expect(exec.mock.calls[0][1]).toContain("build");
+    await FusebaseCliManager.getLogs("apps/my-app", { type: "build" });
+    expect(exec.mock.calls[0].slice(0, 2)).toEqual(["remote-logs", ["build", "apps/my-app"]]);
   });
 
   it("updateApp passes update and --permissions", async () => {

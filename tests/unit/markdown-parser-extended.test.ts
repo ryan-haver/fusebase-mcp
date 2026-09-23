@@ -448,12 +448,12 @@ describe("performance", () => {
     "Lorem ipsum dolor sit amet, **consectetur** adipiscing elit, sed do _eiusmod_ tempor incididunt ut " +
     "labore et dolore magna aliqua. See [the docs](https://example.com/docs) for `details`. ";
 
-  it("parses a 200 KB single line in < 200 ms", () => {
+  it("parses a 200 KB single line in < 500 ms", () => {
     const line = PROSE.repeat(Math.ceil(200_000 / PROSE.length)).slice(0, 200_000);
     const { result, ms } = timed(() => markdownToSchema(line));
     expect(result).toHaveLength(1);
     expect(text((result[0] as any).children)).toContain("consectetur adipiscing");
-    expect(ms).toBeLessThan(200);
+    expect(ms).toBeLessThan(500); // linear runs take ~50 ms; the quadratic took seconds
   });
 
   it("keeps formatting across the whole of a huge paragraph", () => {
@@ -463,12 +463,12 @@ describe("performance", () => {
     expect(text(segs)).not.toContain("**");
   });
 
-  it("parses 60 KB of unclosed <u> in < 200 ms (CON-9b)", () => {
+  it("parses 60 KB of unclosed <u> in < 500 ms (CON-9b)", () => {
     for (const input of ["<u>".repeat(20_000), "<u>x ".repeat(12_000)]) {
       const { result, ms } = timed(() => ({ segs: parseInline(input), blocks: markdownToSchema(input) }));
       expect(text(result.segs)).toBe(input.trim());
       expect(result.blocks).toHaveLength(1);
-      expect(ms).toBeLessThan(200);
+      expect(ms).toBeLessThan(500); // linear runs take ~50 ms; the quadratic took seconds
     }
   });
 

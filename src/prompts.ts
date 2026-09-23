@@ -286,10 +286,8 @@ Provide:
       const client = getClient();
       let workspacePages: Array<{ id: string; title: string }> = [];
       try {
-        const pages = await client.listPages(workspaceId, { limit: 15 });
-        if (Array.isArray(pages)) {
-          workspacePages = pages.map((p: any) => ({ id: p.id, title: p.title || "Untitled" }));
-        }
+        const { items } = await client.listPages(workspaceId, { limit: 15, type: "note" });
+        workspacePages = (items ?? []).map((p) => ({ id: p.globalId, title: p.title || "Untitled" }));
       } catch {
         // non-blocking
       }
@@ -354,8 +352,11 @@ Provide:
         if (taskSummary.status === "fulfilled" && taskSummary.value) {
           taskSummarySnippet = `\nTask Summary:\n${untrustedBlock("tasks", JSON.stringify(taskSummary.value, null, 2), 1000)}`;
         }
-        if (recentPages.status === "fulfilled" && Array.isArray(recentPages.value)) {
-          recentPagesSnippet = `\nRecently Updated Pages:\n${untrustedBlock("page-titles", recentPages.value.map((p: any) => `- "${p.title}" (${p.id})`).join("\n"), 2000)}`;
+        // The client returns { notes, count }; accept a bare array too.
+        const recent: any[] = recentPages.status !== "fulfilled" ? []
+          : Array.isArray(recentPages.value) ? recentPages.value : recentPages.value?.notes ?? [];
+        if (recent.length > 0) {
+          recentPagesSnippet = `\nRecently Updated Pages:\n${untrustedBlock("page-titles", recent.map((p) => `- "${p.title}" (${p.globalId ?? p.id})`).join("\n"), 2000)}`;
         }
       } catch {
         // non-blocking
@@ -407,9 +408,10 @@ Please synthesize:
         if (content.status === "fulfilled") {
           pageContent = content.value;
         }
-        if (tags.status === "fulfilled" && Array.isArray(tags.value)) {
-          workspaceTags = tags.value.map((t: any) => t.title || t.name || String(t));
-        }
+        // The client returns { workspaceId, tags: string[] }; accept a bare array too.
+        const tagList: any[] = tags.status !== "fulfilled" ? []
+          : Array.isArray(tags.value) ? tags.value : tags.value?.tags ?? [];
+        workspaceTags = tagList.map((t) => (typeof t === "string" ? t : t.title || t.name || String(t)));
       } catch (err) {
         pageContent = `(Failed to fetch page: ${err instanceof Error ? err.message : err})`;
       }

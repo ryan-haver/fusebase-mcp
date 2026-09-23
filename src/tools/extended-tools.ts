@@ -2212,10 +2212,11 @@ export function registerExtendedTools(
     },
     async ({ name, orgId, cwd, forceDirty }) => {
       try {
-        const args = ["init", "--name", `"${name}"`];
+        // Pass the name as-is: spawn already delivers it as one argument.
+        const args = ["--name", name];
         if (orgId) args.push("--org", orgId);
         if (forceDirty) args.push("--force-dirty");
-        const res = await FusebaseCliManager.executeCommand("init", args.slice(1), cwd);
+        const res = await FusebaseCliManager.executeCommand("init", args, cwd);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(res, null, 2) },
@@ -2383,11 +2384,11 @@ export function registerExtendedTools(
 
   server.tool(
     "fusebase_cli_logs",
-    "Retrieve remote deployment logs or local dev logs for a FuseBase app.",
+    "Retrieve runtime or build logs for a deployed FuseBase app (fusebase remote-logs).",
     {
-      appPath: z.string().optional().describe("Relative path or ID of the app"),
-      lines: z.number().optional().describe("Number of log lines to retrieve (default 50)"),
-      type: z.enum(["remote", "dev"]).optional().describe("Log source: 'remote' production logs or 'dev' local server logs"),
+      appPath: z.string().optional().describe("App (feature) ID of the deployed app; required for 'remote' and 'build'"),
+      lines: z.number().optional().describe("Number of runtime log entries to retrieve (1-1000; CLI default 100)"),
+      type: z.enum(["remote", "build", "dev"]).optional().describe("Log source: 'remote' runtime logs (default), 'build' build logs. 'dev' is not available from the CLI (local dev output is printed by `fusebase dev start`)"),
       cwd: z.string().optional().describe("Project directory path"),
     },
     async ({ appPath, lines, type, cwd }) => {
@@ -3050,15 +3051,14 @@ export function registerExtendedTools(
 
   server.tool(
     "get_org_trials",
-    "List active feature trial subscriptions and trial expiration records for the organization.",
+    "List active feature trial subscriptions and trial expiration records for the signed-in organization.",
     {
-      orgId: z.string().optional().describe("Optional organization ID"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
-    async ({ orgId, profile }) => {
+    async ({ profile }) => {
       const client = getClient(profile);
       try {
-        const trials = await client.getOrgTrials(orgId);
+        const trials = await client.getOrgTrials();
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(trials, null, 2) },

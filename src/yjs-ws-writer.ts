@@ -32,6 +32,7 @@ import * as encoding from "lib0/encoding";
 import { WebSocket } from "ws";
 import type { ContentBlock, InlineSegment } from "./content-schema.js";
 import { applyYjsUpdate, decodeYDocToHtml } from "./yjs-html-decoder.js";
+import { randomId, LOWER_ALPHANUMERIC, HEX } from "./ids.js";
 
 
 // ─── Configuration ───
@@ -60,8 +61,7 @@ function readVarUint(data: Uint8Array, offset: number): [number, number] {
 }
 
 function randomAlphaNum(len: number): string {
-  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-  return Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  return randomId(len, LOWER_ALPHANUMERIC);
 }
 
 // ─── Y.js message builders ───
@@ -594,7 +594,7 @@ export function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
                 const menChars = new Y.Text();
                 const m = cell.mention;
                 // Generate a short hex ID for the embed
-                const embedId = Math.random().toString(16).slice(2, 8);
+                const embedId = randomId(6, HEX);
                 if (m.mentionType === "date") {
                   menChars.insertEmbed(0, {
                     date: {
@@ -658,7 +658,7 @@ export function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
                 tm2.set("id", textId);
                 tm2.set("type", "tableText");
                 const collabChars = new Y.Text();
-                const embedId = Math.random().toString(16).slice(2, 8);
+                const embedId = randomId(6, HEX);
                 collabChars.insertEmbed(0, {
                   mention: {
                     type: "user",

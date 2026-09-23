@@ -8,9 +8,26 @@
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
+import { Readable } from "stream";
+import { pipeline } from "stream/promises";
 import { ProxyAgent } from "undici";
-import { FusebaseGateBridge } from "./gate-bridge.js";
+import {
+  FusebaseGateBridge,
+  gateFoldersToFusebase,
+  gateItem,
+  gateList,
+  gateNoteToFusebase,
+  gateWorkspaceToFusebase,
+  toGateNote,
+  toGateWorkspace,
+  type GateNoteSummary,
+  type GateWorkspace,
+} from "./gate-bridge.js";
 import { apiPath } from "./url-path.js";
+import { randomId, LOWER_ALPHANUMERIC } from "./ids.js";
+
+/** Column keys are 8-char nanoid-style ids that may include "_" and "-". */
+const COLUMN_KEY_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
 import { FusebaseApiError, isSafeToRetryElsewhere, wsWriteNeverSent } from "./write-safety.js";
 
 export interface FusebaseConfig {
@@ -38,7 +55,7 @@ import type {
   FusebaseTag,
   FusebaseTaskSearchResult,
   FusebaseCommentThread,
-  FusebaseTaskList,
+  FusebaseTaskListsResponse,
   FusebaseCreateTaskPayload,
   FusebaseAgent,
   FusebaseMentionEntity,
@@ -73,22 +90,63 @@ const CACHE_PATH = path.join(DATA_DIR, "workspace_cache.json");
 /** Default timeouts (ms) */
 const TIMEOUT_GET = 10_000;
 const TIMEOUT_WRITE = 20_000;
+/** Attachment downloads can be large; allow longer than a normal GET. */
+const TIMEOUT_DOWNLOAD = 120_000;
+/** Largest attachment returned inline as base64; bigger files must be saved to disk. */
+const MAX_INLINE_DOWNLOAD_BYTES = 10 * 1024 * 1024;
+/** RequestInit plus client options. */
+type RequestOptions = RequestInit & {
+  /** Override the default timeout (GET 15 s / writes longer). */
+  timeoutMs?: number;
+  /** "text": return the body as-is without JSON/HTML checks. */
+  responseType?: "json" | "text";
+};
+
+/** Minimum spacing between requests to the same host, across all client instances. */
+const MIN_REQUEST_INTERVAL_MS = 200;
+const nextRequestSlot = new Map<string, number>();
+
 /**
- * Attempt to repair JSON truncated by upstream proxy serialization limits.
- * Strips dangling unclosed keys or trailing commas and closes brackets.
+ * Reserve the next request slot for a host synchronously, so concurrent requests queue up
+ * instead of all reading the same "last request" time (COR-16).
  */
-function tryRepairTruncatedJson(text: string): Record<string, unknown> | null {
-  let sanitized = text.trim();
-  sanitized = sanitized.replace(/,\s*"[^"]*"?\s*$/, "");
-  sanitized = sanitized.replace(/,\s*$/, "");
-  if (!sanitized.endsWith("}")) {
-    sanitized += "}";
+async function reserveRequestSlot(host: string): Promise<void> {
+  const now = Date.now();
+  const slot = Math.max(now, nextRequestSlot.get(host) ?? 0);
+  nextRequestSlot.set(host, slot + MIN_REQUEST_INTERVAL_MS);
+  if (slot > now) await new Promise((r) => setTimeout(r, slot - now));
+}
+
+/** One cookie refresh at a time per host+profile (COR-5). */
+const refreshesInFlight = new Map<string, Promise<boolean>>();
+
+/**
+ * From a JSON object cut off part-way, keep the top-level fields that arrived complete:
+ * cut at the last top-level comma and close the object. Returns null if nothing survives.
+ */
+export function completeTopLevelFields(text: string): Record<string, unknown> | null {
+  const cuts: number[] = [];
+  let depth = 0;
+  let inString = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inString) {
+      if (ch === "\\") i++;
+      else if (ch === '"') inString = false;
+    } else if (ch === '"') inString = true;
+    else if (ch === "{" || ch === "[") depth++;
+    else if (ch === "}" || ch === "]") depth--;
+    else if (ch === "," && depth === 1) cuts.push(i);
   }
-  try {
-    return JSON.parse(sanitized);
-  } catch {
-    return null;
+  for (const cut of cuts.reverse()) {
+    try {
+      const parsed = JSON.parse(text.slice(0, cut) + "}");
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed;
+    } catch {
+      // try an earlier cut
+    }
   }
+  return null;
 }
 
 /**
@@ -122,8 +180,6 @@ export class FusebaseClient {
   private autoRefresh: boolean;
   private profile?: string;
   private sessionId: string;
-  private lastRequestTime: number = 0;
-  private static readonly MIN_REQUEST_INTERVAL_MS = 200;
   private proxyDispatcher?: ProxyAgent;
   private automationToken?: string;
   private automationProjectId?: string;
@@ -175,6 +231,8 @@ export class FusebaseClient {
     const match = this.cookie.match(/eversessionid=([^;]+)/);
     const sessionId = match ? match[1].trim() : this.sessionId;
     try {
+      // Deliberately a direct fetch: this bootstrap must send only the session cookie, not
+      // the Gate bearer token that send() would add.
       const res = await fetch(`${this.baseUrl}/automation/api/v1/authentication/fusebase-auth`, {
         method: "POST",
         headers: {
@@ -182,15 +240,19 @@ export class FusebaseClient {
           Cookie: this.cookie,
         },
         body: JSON.stringify({ sessionId }),
+        signal: AbortSignal.timeout(TIMEOUT_GET),
         ...(this.proxyDispatcher ? { dispatcher: this.proxyDispatcher } : {}),
       } as RequestInit);
       if (res.ok) {
         const data = (await res.json()) as { token?: string; projectId?: string };
         if (data.token) this.automationToken = data.token;
         if (data.projectId) this.automationProjectId = data.projectId;
+      } else {
+        console.error(`[client] automation auth failed: HTTP ${res.status}`);
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      // Automation calls will then fail with 401 and a clear error; log the root cause (COR-16).
+      console.error(`[client] automation auth failed: ${err instanceof Error ? err.message : err}`);
     }
     return {
       token: this.automationToken || "",
@@ -215,130 +277,84 @@ export class FusebaseClient {
 
   // ─── HTTP Layer ───────────────────────────────────────────────
 
-  private async request<T>(
-    path: string,
-    options: RequestInit = {},
-  ): Promise<T> {
-    // Rate limiting: enforce minimum interval between requests
-    const sinceLastReq = Date.now() - this.lastRequestTime;
-    if (sinceLastReq < FusebaseClient.MIN_REQUEST_INTERVAL_MS) {
-      await new Promise(r => setTimeout(r, FusebaseClient.MIN_REQUEST_INTERVAL_MS - sinceLastReq));
-    }
-    this.lastRequestTime = Date.now();
+  /**
+   * Send a request with the shared auth, proxy, timeout, rate-limit, refresh and logging
+   * behaviour, and return the successful Response (COR-4: every call goes through here).
+   * Throws FusebaseApiError for non-2xx responses.
+   */
+  private async send(path: string, options: RequestOptions = {}): Promise<Response> {
+    await reserveRequestSlot(this.host);
 
     const url = `${this.baseUrl}${path}`;
     const method = (options.method || "GET").toUpperCase();
     const startTime = Date.now();
-    const timeout = method === "GET" ? TIMEOUT_GET : TIMEOUT_WRITE;
+    const timeout = options.timeoutMs ?? (method === "GET" ? TIMEOUT_GET : TIMEOUT_WRITE);
+    const isAutomation = path.startsWith("/automation/") && !path.includes("/authentication/fusebase-auth");
 
     // For automation endpoints, resolve bearer token and projectId
-    if (path.startsWith("/automation/") && !path.includes("/authentication/fusebase-auth")) {
-      if (!this.automationToken) {
-        await this.ensureAutomationAuth();
-      }
+    if (isAutomation && !this.automationToken) {
+      await this.ensureAutomationAuth();
     }
 
-    const reqHeaders: Record<string, string> = {
-      ...this.headers,
-      ...((options.headers as Record<string, string>) || {}),
+    const buildHeaders = (): Record<string, string> => {
+      const h: Record<string, string> = {
+        ...this.headers,
+        ...((options.headers as Record<string, string>) || {}),
+      };
+      if (method === "DELETE" && !options.body) delete h["content-type"];
+      // Let fetch set the multipart boundary for form uploads.
+      if (options.body instanceof FormData) delete h["content-type"];
+      if (isAutomation) {
+        const match = this.cookie ? this.cookie.match(/eversessionid=([^;]+)/) : null;
+        if (match && match[1]) h["FBS-Session-ID"] = match[1].trim();
+        // Automation endpoints use their own JWT. Drop the generic Gate/API token header,
+        // otherwise fetch merges both into "Bearer a, Bearer b" and the call gets 401 (COR-5).
+        delete h["authorization"];
+        if (this.automationToken) h["Authorization"] = `Bearer ${this.automationToken}`;
+      }
+      return h;
     };
 
-    if (method === "DELETE" && !options.body) {
-      delete reqHeaders["content-type"];
-    }
-    // Let fetch set the multipart boundary for form uploads.
-    if (options.body instanceof FormData) {
-      delete reqHeaders["content-type"];
-    }
-
-    if (path.startsWith("/automation/") && !path.includes("/authentication/fusebase-auth")) {
-      const match = this.cookie ? this.cookie.match(/eversessionid=([^;]+)/) : null;
-      if (match && match[1]) {
-        reqHeaders["FBS-Session-ID"] = match[1].trim();
-      }
-      // Automation endpoints use their own JWT. Drop the generic Gate/API token header,
-      // otherwise fetch merges both into "Bearer a, Bearer b" and the call gets 401 (COR-5).
-      delete reqHeaders["authorization"];
-      if (this.automationToken) {
-        reqHeaders["Authorization"] = `Bearer ${this.automationToken}`;
-      }
-    }
-
-    const fetchOpts: RequestInit & { dispatcher?: unknown } = {
-      ...options,
-      headers: reqHeaders,
-      signal: AbortSignal.timeout(timeout),
-      ...(this.proxyDispatcher ? { dispatcher: this.proxyDispatcher } : {}),
+    const doFetch = () => {
+      const { timeoutMs: _timeoutMs, responseType: _responseType, ...init } = options;
+      return fetch(url, {
+        ...init,
+        headers: buildHeaders(),
+        signal: AbortSignal.timeout(timeout),
+        ...(this.proxyDispatcher ? { dispatcher: this.proxyDispatcher } : {}),
+      } as RequestInit);
     };
 
-    let res = await fetch(url, fetchOpts);
+    let res = await doFetch();
 
-    // Auto-retry on auth failure (skip on automation endpoints since automation uses JWT tokens, not main browser session)
-    const isAutomation = path.includes("/automation/");
-    if (res.status === 401 || (res.status === 403 && !isAutomation)) {
-      // If automation token failed with 401, re-fetch automation auth first
-      if (res.status === 401 && isAutomation && !path.includes("/authentication/fusebase-auth")) {
+    // An expired session is sometimes answered with a redirect to the login page (COR-8).
+    const isLoginRedirect = (r: Response) => r.redirected && /\/(auth|login|signin)\b/i.test(r.url);
+
+    if (isAutomation && res.status === 401) {
+      // The automation JWT expired: fetch a new one and retry once.
+      this.automationToken = undefined;
+      this.automationProjectId = undefined;
+      await this.ensureAutomationAuth();
+      if (this.automationToken) res = await doFetch();
+    } else if (!isAutomation && (res.status === 401 || res.status === 403 || isLoginRedirect(res)) && this.autoRefresh && this.cookie) {
+      console.error(`[client] Got ${res.status}${isLoginRedirect(res) ? " (login redirect)" : ""} — attempting cookie refresh...`);
+      if (await this.refreshAuthShared()) {
         this.automationToken = undefined;
         this.automationProjectId = undefined;
-        await this.ensureAutomationAuth();
-        if (this.automationToken) {
-          reqHeaders["Authorization"] = `Bearer ${this.automationToken}`;
-          res = await fetch(url, {
-            ...fetchOpts,
-            headers: reqHeaders,
-            signal: AbortSignal.timeout(timeout),
-          });
-        }
-      }
-
-      if (!isAutomation && !res.ok && (res.status === 401 || res.status === 403) && this.autoRefresh && Boolean(this.cookie)) {
-        // Log cookie age before attempting refresh
-        try {
-          const { loadEncryptedCookie } = await import("./crypto.js");
-          const stored = loadEncryptedCookie(this.profile);
-          if (stored?.savedAt) {
-            const ageMs = Date.now() - new Date(stored.savedAt).getTime();
-            const ageHours = (ageMs / 3_600_000).toFixed(1);
-            console.error(`[client] Cookie age: ${ageHours}h old`);
-            if (ageMs > 20 * 3_600_000) {
-              console.error(`[client] ⚠ Cookie is >20h old — may need manual re-auth: npx tsx scripts/auth.ts`);
-            }
-          }
-        } catch { /* crypto unavailable */ }
-
-        console.error(
-          `[client] Got ${res.status} — attempting cookie refresh...`,
-        );
-        const refreshed = await this.refreshAuth();
-        if (refreshed) {
-          this.automationToken = undefined;
-          this.automationProjectId = undefined;
-          const retryHeaders: Record<string, string> = {
-            ...this.headers,
-            ...((options.headers as Record<string, string>) || {}),
-          };
-          if (path.startsWith("/automation/") && !path.includes("/authentication/fusebase-auth")) {
-            await this.ensureAutomationAuth();
-            const match = this.cookie ? this.cookie.match(/eversessionid=([^;]+)/) : null;
-            if (match && match[1]) {
-              retryHeaders["FBS-Session-ID"] = match[1].trim();
-            }
-            delete retryHeaders["authorization"];
-            if (this.automationToken) {
-              retryHeaders["Authorization"] = `Bearer ${this.automationToken}`;
-            }
-          }
-          res = await fetch(url, {
-            ...fetchOpts,
-            headers: retryHeaders,
-            signal: AbortSignal.timeout(timeout),
-          });
-        }
+        res = await doFetch();
       }
     }
 
     const elapsed = Date.now() - startTime;
-
+    if (isLoginRedirect(res)) {
+      this.logApiCall(method, path, 401, elapsed, 0, false);
+      throw new FusebaseApiError(
+        `Fusebase API error: 401 session expired (redirected to the login page) — ${url}`,
+        401,
+        url,
+        "",
+      );
+    }
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       this.logApiCall(method, path, res.status, elapsed, text.length, false);
@@ -349,26 +365,74 @@ export class FusebaseClient {
         text,
       );
     }
+    this.logApiCall(method, path, res.status, elapsed, Number(res.headers.get("content-length") ?? 0), true);
+    return res;
+  }
 
+  /**
+   * send() + body parsing. JSON responses are parsed; a malformed or truncated JSON body is
+   * an error rather than "repaired" partial data, and an HTML page where API data was
+   * expected (e.g. a login page) is an error (COR-8). Plain-text bodies are returned as-is.
+   */
+  private async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+    const res = await this.send(path, options);
     const rawText = await res.text();
     const contentType = res.headers.get("content-type") || "";
+    if (options.responseType === "text") return rawText as unknown as T;
+
     if (contentType.includes("application/json")) {
       try {
-        const data = JSON.parse(rawText) as T;
-        this.logApiCall(method, path, res.status, elapsed, rawText.length, true);
-        return data;
-      } catch (jsonErr) {
-        const repaired = tryRepairTruncatedJson(rawText);
-        if (repaired) {
-          this.logApiCall(method, path, res.status, elapsed, rawText.length, true);
-          return repaired as T;
-        }
-        throw jsonErr;
+        return JSON.parse(rawText) as T;
+      } catch {
+        throw new FusebaseApiError(
+          `Fusebase API returned malformed JSON (${rawText.length} bytes; possibly truncated) — ${res.url}`,
+          res.status,
+          res.url,
+          rawText.slice(0, 500),
+        );
       }
     }
-
-    this.logApiCall(method, path, res.status, elapsed, rawText.length, true);
+    // Judge by the body, not the header: some endpoints label JSON as text/html
+    // (e.g. /v1/portals/orgs/{org}/available returns `true` as text/html).
+    if (/^\s*<(?:!doctype|html|head|body|script|meta|title)\b/i.test(rawText)) {
+      throw new FusebaseApiError(
+        `Fusebase API returned an HTML page instead of data (session expired or wrong endpoint?) — ${res.url}`,
+        res.status,
+        res.url,
+        rawText.slice(0, 500),
+      );
+    }
+    if (contentType.includes("text/html")) {
+      try {
+        return JSON.parse(rawText) as T;
+      } catch {
+        // not JSON: fall through to plain text
+      }
+    }
     return rawText as unknown as T;
+  }
+
+  /**
+   * Refresh the session cookie once per host+profile, even when many requests hit 401 at
+   * the same time (COR-5). Clients that didn't run the refresh reload the saved cookie.
+   */
+  private async refreshAuthShared(): Promise<boolean> {
+    const key = `${this.host}|${this.profile ?? "default"}`;
+    let pending = refreshesInFlight.get(key);
+    const ownsRefresh = !pending;
+    if (!pending) {
+      pending = this.refreshAuth().finally(() => refreshesInFlight.delete(key));
+      refreshesInFlight.set(key, pending);
+    }
+    const ok = await pending;
+    if (ok && !ownsRefresh) {
+      try {
+        const { loadEncryptedCookie } = await import("./crypto.js");
+        const stored = loadEncryptedCookie(this.profile);
+        if (stored?.cookie) this.updateCookie(stored.cookie);
+      } catch { /* crypto unavailable: keep the current cookie */ }
+    }
+    return ok;
   }
 
   // ─── Logging ──────────────────────────────────────────────────
@@ -567,15 +631,12 @@ export class FusebaseClient {
     if (this.gateBridge?.hasGate) {
       try {
         const res = await this.gateBridge.toolCall("listWorkspaces", {});
-        const workspaces = (res.data?.workspaces || []).map((ws: any) => ({
-          id: ws.id,
-          title: ws.title || ws.id,
-          is_default: Boolean(ws.isDefault),
-          color: ws.color,
-          role: ws.role,
-        }));
-        this.updateWorkspaceCache(workspaces as FusebaseWorkspace[]);
-        return workspaces as FusebaseWorkspace[];
+        const workspaces: FusebaseWorkspace[] = gateList(res, "workspaces", "listWorkspaces")
+          .map(toGateWorkspace)
+          .filter((ws): ws is GateWorkspace => ws !== undefined)
+          .map((ws) => gateWorkspaceToFusebase(ws, this.orgId));
+        this.updateWorkspaceCache(workspaces);
+        return workspaces;
       } catch (err: any) {
         console.error(`[client] Gate fallback listWorkspaces failed: ${err.message}`);
         throw err;
@@ -630,15 +691,15 @@ export class FusebaseClient {
     if (this.gateBridge?.hasGate) {
       try {
         const res = await this.gateBridge.toolCall("listWorkspaceNotes", { workspaceId });
-        const rawNotes = res.data?.notes || [];
-        const notes = rawNotes.map((n: any) => ({
-          globalId: n.globalId,
-          title: n.title,
-          parentId: n.parentId,
-          createdAt: 0,
-          updatedAt: 0,
-        }));
-        return { items: notes as unknown as FusebaseNote[], total: notes.length };
+        // Gate has no paging, so apply offset/limit here. (It also ignores rootId: Gate
+        // lists the workspace's default folder.)
+        const notes: FusebaseNote[] = gateList(res, "notes", "listWorkspaceNotes")
+          .map(toGateNote)
+          .filter((n): n is GateNoteSummary => n !== undefined)
+          .map((n) => gateNoteToFusebase(n, workspaceId));
+        const offset = options?.offset ?? 0;
+        const limit = options?.limit ?? 100;
+        return { items: notes.slice(offset, offset + limit), total: notes.length };
       } catch (err: any) {
         console.error(`[client] Gate fallback listPages failed: ${err.message}`);
         throw err;
@@ -662,17 +723,9 @@ export class FusebaseClient {
     if (this.gateBridge?.hasGate) {
       try {
         const res = await this.gateBridge.toolCall("getWorkspaceNote", { workspaceId, noteId });
-        const note = res.data?.note || res.data;
-        if (note) {
-          return {
-            globalId: note.globalId || noteId,
-            title: note.title || "",
-            parentId: note.parentId || "default",
-            createdAt: 0,
-            updatedAt: 0,
-            isPortalShare: false,
-          } as unknown as FusebaseNote;
-        }
+        const note = toGateNote(gateItem(res, "note"));
+        if (!note) throw new Error(`Gate getWorkspaceNote returned no note for ${noteId}`);
+        return gateNoteToFusebase(note, workspaceId);
       } catch (err: any) {
         console.error(`[client] Gate fallback getPage failed: ${err.message}`);
         throw err;
@@ -729,17 +782,9 @@ export class FusebaseClient {
             parentId: parentId || "default",
           },
         });
-        const note = res.data?.note || res.data;
-        if (note?.globalId) {
-          return {
-            globalId: note.globalId,
-            title: note.title,
-            parentId: note.parentId,
-            createdAt: 0,
-            updatedAt: 0,
-            isPortalShare: false,
-          } as unknown as FusebaseNote;
-        }
+        const note = toGateNote(gateItem(res, "note"));
+        if (!note) throw new Error(`Gate createWorkspaceNote returned no note id: ${JSON.stringify(res)?.slice(0, 200)}`);
+        return gateNoteToFusebase(note, workspaceId);
       } catch (err: any) {
         console.error(`[client] Gate fallback createPage failed: ${err.message}`);
         throw err;
@@ -787,18 +832,9 @@ export class FusebaseClient {
             parentId: parentId || "default",
           },
         });
-        const folder = res.data?.folder || res.data;
-        if (folder?.globalId) {
-          return {
-            globalId: folder.globalId,
-            title: folder.title,
-            parentId: folder.parentId,
-            createdAt: 0,
-            updatedAt: 0,
-            type: "folder",
-            isPortalShare: false,
-          } as unknown as FusebaseNote;
-        }
+        const folder = toGateNote(gateItem(res, "folder"));
+        if (!folder) throw new Error(`Gate createWorkspaceNoteFolder returned no folder id: ${JSON.stringify(res)?.slice(0, 200)}`);
+        return gateNoteToFusebase(folder, workspaceId, "folder");
       } catch (err: any) {
         console.error(`[client] Gate fallback createFolder failed: ${err.message}`);
         throw err;
@@ -869,14 +905,13 @@ export class FusebaseClient {
     if (this.gateBridge?.hasGate) {
       try {
         const res = await this.gateBridge.toolCall("listWorkspaceNoteFolders", { workspaceId });
-        const folders = (res.data?.folders || []).map((f: any) => ({
-          global_id: f.globalId,
-          title: f.title,
-          parent_id: f.parentId,
-          type: "folder" as const,
-        }));
-        this.updateFolderCache(workspaceId, folders as FusebaseFolder[]);
-        return folders as FusebaseFolder[];
+        const folders = gateFoldersToFusebase(
+          gateList(res, "folders", "listWorkspaceNoteFolders")
+            .map(toGateNote)
+            .filter((f): f is GateNoteSummary => f !== undefined),
+        );
+        this.updateFolderCache(workspaceId, folders);
+        return folders;
       } catch (err: any) {
         console.error(`[client] Gate fallback listFolders failed: ${err.message}`);
         throw err;
@@ -935,29 +970,12 @@ export class FusebaseClient {
     const blob = new Blob([new Uint8Array(fileContent) as BlobPart], { type: mime });
     formData.append("file", blob, filename);
 
-    const uploadRes = await fetch(
-      `${this.baseUrl}/v3/api/web-editor/file/v2-upload`,
-      {
-        method: "POST",
-        headers: { cookie: this.cookie },
-        body: formData,
-        signal: AbortSignal.timeout(TIMEOUT_WRITE),
-      },
-    );
-
-    if (!uploadRes.ok) {
-      const text = await uploadRes.text().catch(() => "");
-      throw new Error(
-        `File upload failed: ${uploadRes.status} ${uploadRes.statusText}\n${text}`,
-      );
-    }
-
-    const uploadResult = (await uploadRes.json()) as {
+    const uploadResult = await this.request<{
       name: string;
       type: string;
       filename: string;
       size: number;
-    };
+    }>("/v3/api/web-editor/file/v2-upload", { method: "POST", body: formData, timeoutMs: TIMEOUT_DOWNLOAD });
 
     // Step 2: Associate the uploaded file with the page as an attachment
     const attachmentId = this.generateId();
@@ -992,24 +1010,36 @@ export class FusebaseClient {
     workspaceId: string,
     attachmentId: string,
     filename: string,
+    options: { toFile?: string } = {},
   ): Promise<{
     base64: string;
     mime: string;
     size: number;
+    savedPath?: string;
   }> {
-    const url = `${this.baseUrl}` + apiPath`/box/attachment/${workspaceId}/${attachmentId}/${filename}`;
-    const res = await fetch(url, {
-      headers: { cookie: this.cookie },
-      signal: AbortSignal.timeout(TIMEOUT_GET),
+    const res = await this.send(apiPath`/box/attachment/${workspaceId}/${attachmentId}/${filename}`, {
+      timeoutMs: TIMEOUT_DOWNLOAD,
     });
-
-    if (!res.ok) {
-      throw new Error(`Download failed: ${res.status} ${res.statusText}`);
-    }
-
-    const buffer = Buffer.from(await res.arrayBuffer());
     const mime = res.headers.get("content-type") || "application/octet-stream";
 
+    // Stream to disk without holding the whole file in memory (COR-4).
+    if (options.toFile) {
+      if (!res.body) throw new Error("Download failed: empty response body");
+      await fs.promises.mkdir(path.dirname(options.toFile), { recursive: true });
+      await pipeline(Readable.fromWeb(res.body as any), fs.createWriteStream(options.toFile));
+      const { size } = await fs.promises.stat(options.toFile);
+      return { base64: "", mime, size, savedPath: options.toFile };
+    }
+
+    const declared = Number(res.headers.get("content-length") ?? 0);
+    if (declared > MAX_INLINE_DOWNLOAD_BYTES) {
+      await res.body?.cancel();
+      throw new Error(`Attachment is ${declared} bytes; too large to return inline. Use saveToDisk: true.`);
+    }
+    const buffer = Buffer.from(await res.arrayBuffer());
+    if (buffer.length > MAX_INLINE_DOWNLOAD_BYTES) {
+      throw new Error(`Attachment is ${buffer.length} bytes; too large to return inline. Use saveToDisk: true.`);
+    }
     return {
       base64: buffer.toString("base64"),
       mime,
@@ -1218,7 +1248,7 @@ export class FusebaseClient {
   async listTaskLists(
     workspaceId: string,
     options?: { taskListId?: string },
-  ): Promise<FusebaseTaskList[]> {
+  ): Promise<FusebaseTaskListsResponse> {
     let path = apiPath`/gwapi2/ft%3Atasks/workspaces/${workspaceId}/taskLists`;
     if (options?.taskListId) {
       const filter = encodeURIComponent(
@@ -1226,7 +1256,7 @@ export class FusebaseClient {
       );
       path += `?filter=${filter}&includeBoardColumns=true`;
     }
-    return this.request<FusebaseTaskList[]>(path);
+    return this.request<FusebaseTaskListsResponse>(path);
   }
 
   /** Create a task in a workspace */
@@ -1236,8 +1266,7 @@ export class FusebaseClient {
   ): Promise<unknown> {
     const globalId =
       task.globalId ||
-      Math.random().toString(36).substring(2, 15) +
-        Math.random().toString(36).substring(2, 15);
+      randomId(26, LOWER_ALPHANUMERIC);
     const body = {
       task: {
         globalId,
@@ -1383,9 +1412,20 @@ export class FusebaseClient {
   /** Get public agent profile by global ID */
   async getAgentPublicProfile(agentGlobalId: string, orgId?: string): Promise<Record<string, unknown>> {
     const org = orgId || this.orgId;
-    return this.request<Record<string, unknown>>(
+    const text = await this.request<string>(
       apiPath`/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentGlobalId}/public`,
+      { responseType: "text" },
     );
+    try {
+      return JSON.parse(text);
+    } catch {
+      // Live, this endpoint sends a JSON body cut off mid-string (Content-Length matches the
+      // cut, so the truncation is server-side). Keep only the top-level fields that arrived
+      // complete, and say so.
+      const partial = completeTopLevelFields(text);
+      if (!partial) throw new FusebaseApiError(`Agent profile response is not valid JSON (${text.length} bytes)`, 200, "", text.slice(0, 500));
+      return { ...partial, _truncated: true, _note: `FuseBase returned a truncated response (${text.length} bytes); only complete top-level fields are included.` };
+    }
   }
 
   /**
@@ -1477,8 +1517,9 @@ export class FusebaseClient {
   async getNavigationMenu(workspaceId?: string): Promise<FusebaseNavMenuItem[]> {
     let ws = workspaceId;
     if (!ws) {
-      const workspaces = await this.listWorkspaces().catch(() => []);
-      ws = workspaces[0]?.workspaceId || "45h7lom5ryjak34u";
+      const workspaces = await this.listWorkspaces();
+      ws = workspaces[0]?.workspaceId;
+      if (!ws) throw new Error("getNavigationMenu: no workspaceId given and the organization has no workspaces to default to.");
     }
     return this.request<FusebaseNavMenuItem[]>(
       `/gwapi2/ft%3Anotes/menu?workspace=${encodeURIComponent(ws)}`,
@@ -1898,12 +1939,8 @@ export class FusebaseClient {
     ];
 
     try {
-      const dbRes = await fetch(`${this.baseUrl}` + apiPath`/dashboard/${org}/tables/databases`, {
-        headers: { cookie: this.cookie },
-        signal: AbortSignal.timeout(TIMEOUT_GET),
-      });
-      if (!dbRes.ok) return [];
-      const dbHtml = await dbRes.text();
+      // Legacy probe: these are web-app HTML pages, scraped for UUIDs.
+      const dbHtml = await this.request<string>(apiPath`/dashboard/${org}/tables/databases`, { responseType: "text" });
       const layoutUuids = new Set(
         [...new Set(dbHtml.match(UUID_RE) || [])].map((u) => u.toLowerCase()),
       );
@@ -1911,15 +1948,7 @@ export class FusebaseClient {
       const fallbackResults: Array<{ dashboardId: string; viewId: string; entity: string }> = [];
       for (const entity of entities) {
         try {
-          const entRes = await fetch(
-            `${this.baseUrl}` + apiPath`/dashboard/${org}/tables/entity/${entity}`,
-            {
-              headers: { cookie: this.cookie },
-              signal: AbortSignal.timeout(TIMEOUT_GET),
-            },
-          );
-          if (!entRes.ok) continue;
-          const entHtml = await entRes.text();
+          const entHtml = await this.request<string>(apiPath`/dashboard/${org}/tables/entity/${entity}`, { responseType: "text" });
           const pageUuids = [...new Set(entHtml.match(UUID_RE) || [])]
             .map((u) => u.toLowerCase())
             .filter((u) => !layoutUuids.has(u));
@@ -1930,12 +1959,14 @@ export class FusebaseClient {
               entity,
             });
           }
-        } catch {
-          // TODO(COR-16): per-entity lookup failures are skipped silently
+        } catch (err) {
+          // One entity not existing in this org is expected; log so real failures are visible.
+          console.error(`[client] legacy entity probe '${entity}' failed: ${err instanceof Error ? err.message.split("\n")[0] : err}`);
         }
       }
       return fallbackResults;
-    } catch {
+    } catch (err) {
+      console.error(`[client] legacy database probe failed: ${err instanceof Error ? err.message.split("\n")[0] : err}`);
       return [];
     }
   }
@@ -2487,18 +2518,8 @@ export class FusebaseClient {
    * Returns 204 No Content on success.
    */
   async deleteDatabase(dbId: string): Promise<{ success: boolean; message: string }> {
-    const res = await fetch(
-      `${this.baseUrl}` + apiPath`/v4/api/proxy/dashboard-service/v1/databases/${dbId}`,
-      {
-        method: "DELETE",
-        headers: { cookie: this.cookie },
-        signal: AbortSignal.timeout(TIMEOUT_GET),
-      },
-    );
-    if (!res.ok && res.status !== 204) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`deleteDatabase failed: ${res.status} ${text}`);
-    }
+    // 204 No Content on success; request() throws FusebaseApiError otherwise.
+    await this.send(apiPath`/v4/api/proxy/dashboard-service/v1/databases/${dbId}`, { method: "DELETE" });
     return { success: true, message: "Database deleted successfully" };
   }
 
@@ -3019,15 +3040,7 @@ export class FusebaseClient {
   ): Promise<{ success: boolean; csv: string }> {
     const url = apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/export/csv` +
       `?view_id=${encodeURIComponent(viewId)}&delimiter=${encodeURIComponent(delimiter)}`;
-    const res = await fetch(`${this.baseUrl}${url}`, {
-      headers: { cookie: this.cookie },
-      signal: AbortSignal.timeout(TIMEOUT_GET),
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`exportCSV failed: ${res.status} ${text}`);
-    }
-    const csv = await res.text();
+    const csv = await this.request<string>(url, { responseType: "text", timeoutMs: TIMEOUT_DOWNLOAD });
     return { success: true, csv };
   }
 
@@ -3119,11 +3132,7 @@ export class FusebaseClient {
     const items: Array<Record<string, unknown>> = [...((schema as any).items ?? [])];
 
     // 2. Generate a unique 8-char column key (nanoid-style)
-    const KEY_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
-    let newKey = "";
-    for (let i = 0; i < 8; i++) {
-      newKey += KEY_CHARS.charAt(Math.floor(Math.random() * KEY_CHARS.length));
-    }
+    const newKey = randomId(8, COLUMN_KEY_CHARS);
 
     // 3. Build column definition based on type
     const colDef = this.buildColumnDefinition(newKey, name, columnType, options);
@@ -3248,9 +3257,7 @@ export class FusebaseClient {
     const schema = { ...(viewData.schema ?? {}) };
     const items: Array<Record<string, unknown>> = [...((schema as any).items ?? [])];
 
-    const KEY_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
-    let newKey = "";
-    for (let i = 0; i < 8; i++) newKey += KEY_CHARS.charAt(Math.floor(Math.random() * KEY_CHARS.length));
+    const newKey = randomId(8, COLUMN_KEY_CHARS);
 
     // Build the lookup-source column definition that references the relation
     const colDef = {
@@ -3387,9 +3394,7 @@ export class FusebaseClient {
       targetItemKey = String(nameCol?.key ?? "");
     }
 
-    const KEY_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
-    let newKey = "";
-    for (let i = 0; i < 8; i++) newKey += KEY_CHARS.charAt(Math.floor(Math.random() * KEY_CHARS.length));
+    const newKey = randomId(8, COLUMN_KEY_CHARS);
 
     const lookupDef = {
       key: newKey,
@@ -3771,12 +3776,7 @@ export class FusebaseClient {
 
   /** Generate a short nanoid-style ID for label items */
   private nanoid(length = 8): string {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let id = "";
-    for (let i = 0; i < length; i++) {
-      id += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return id;
+    return randomId(length);
   }
 
   /**
@@ -4720,9 +4720,8 @@ export class FusebaseClient {
     return this.request<unknown>(apiPath`/v1/workspaces/${workspaceId}/import/activeImport`);
   }
 
-  /** Get active feature trial subscriptions for an organization */
-  // TODO(COR-16): orgId is accepted but not sent; the endpoint is scoped by host.
-  async getOrgTrials(_orgId?: string): Promise<unknown[]> {
+  /** Active feature trials for the signed-in organization (the endpoint takes no org parameter). */
+  async getOrgTrials(): Promise<unknown[]> {
     return this.request<unknown[]>("/v2/api/orgs/trials");
   }
 
@@ -4730,12 +4729,6 @@ export class FusebaseClient {
 
   /** Generate a random ID matching Fusebase's format (16-char alphanumeric) */
   private generateId(): string {
-    const chars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let id = "";
-    for (let i = 0; i < 16; i++) {
-      id += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return id;
+    return randomId(16);
   }
 }
