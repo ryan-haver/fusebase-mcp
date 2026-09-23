@@ -35,7 +35,8 @@ async function main() {
     assertObject(whoami, "whoami");
     const identity = whoami.data ?? whoami;
     assertObject(identity, "whoami identity");
-    assert(Boolean(identity.orgId || identity.org?.id || identity.user), `whoami should identify the org or user, got keys: ${Object.keys(identity).join(", ")}`);
+    // Live shape: { schemaVersion, server, capabilities, auth: { org: { id }, ... }, defaults, usage }
+    assertString(identity.auth?.org?.id, "whoami auth.org.id");
 
     console.log("2. fusebase_token_permission_catalog");
     const catalog = await callTool(client, "fusebase_token_permission_catalog");
@@ -44,7 +45,8 @@ async function main() {
 
     console.log("3. fusebase_token_list");
     const list = await callTool(client, "fusebase_token_list", { limit: 5 });
-    const tokens = list?.data?.tokens ?? list?.tokens ?? list?.data ?? list;
+    // Live shape: { ok, opId, data: { success, data: [...tokens], pagination } }
+    const tokens = list?.data?.data;
     assertArray(tokens, "token list");
 
     console.log("4. fusebase_direct_tool_call (listIsolatedStores)");

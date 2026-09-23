@@ -1395,46 +1395,30 @@ export class FusebaseClient {
   async runAiAgentTask(
     agentId: string,
     prompt: string,
-    options?: { threadId?: string; orgId?: string },
+    options: { workspaceId: string; threadId?: string; orgId?: string },
   ): Promise<Record<string, unknown>> {
-    const org = options?.orgId || this.orgId;
-    if (options?.threadId) {
+    // The API requires workspaceId as a query parameter ("workspaceId is required(in query)").
+    // The old fallback to /v4/api/proxy/ai-service/.../run does not exist on the server and
+    // only hid this error (COR-25).
+    if (!options?.workspaceId) throw new Error("workspaceId is required to run an AI agent task");
+    const org = options.orgId || this.orgId;
+    const qs = `?workspaceId=${encodeURIComponent(options.workspaceId)}`;
+    if (options.threadId) {
       return this.request<Record<string, unknown>>(
-        apiPath`/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads/${options.threadId}/messages`,
+        apiPath`/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads/${options.threadId}/messages` + qs,
         {
           method: "POST",
           body: JSON.stringify({ message: prompt, text: prompt, content: prompt }),
         },
-      ).catch(async (err) => {
-        // Retrying on the second endpoint could run the agent twice.
-        if (!isSafeToRetryElsewhere(err)) throw err;
-        return this.request<Record<string, unknown>>(
-          apiPath`/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentId}/run`,
-          {
-            method: "POST",
-            body: JSON.stringify({ prompt, threadId: options?.threadId }),
-          },
-        );
-      });
+      );
     }
-
     return this.request<Record<string, unknown>>(
-      apiPath`/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads`,
+      apiPath`/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads` + qs,
       {
         method: "POST",
         body: JSON.stringify({ message: prompt, text: prompt, prompt }),
       },
-    ).catch(async (err) => {
-      // Retrying on the second endpoint could run the agent twice.
-      if (!isSafeToRetryElsewhere(err)) throw err;
-      return this.request<Record<string, unknown>>(
-        apiPath`/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentId}/run`,
-        {
-          method: "POST",
-          body: JSON.stringify({ prompt }),
-        },
-      );
-    });
+    );
   }
 
   /**
@@ -1442,24 +1426,28 @@ export class FusebaseClient {
    */
   async scrapeUrlViaFirecrawl(
     url: string,
-    options?: { agentId?: string; formats?: string[]; prompt?: string },
+    options: { workspaceId: string; agentId?: string; formats?: string[]; prompt?: string },
   ): Promise<Record<string, unknown>> {
-    let targetAgentId = options?.agentId;
+    let targetAgentId = options.agentId;
     if (!targetAgentId) {
-      const agents = await this.listAgents().catch(() => []);
+      const agents = await this.listAgents();
       const scraperAgent = agents.find(
         (a) =>
           /firecrawl|scraper|web\s*parser/i.test(a.title || "") ||
           /firecrawl|scraper|web\s*parser/i.test(typeof a.description === "string" ? a.description : ""),
       );
-      targetAgentId = scraperAgent?.globalId || "qMjAPHPS1e6UdoYf";
+      // No hardcoded fallback agent: an ID from another org would never work here (COR-6).
+      if (!scraperAgent?.globalId) {
+        throw new Error("No web-scraping agent (Firecrawl / scraper / web parser) found in this org; pass agentId explicitly.");
+      }
+      targetAgentId = scraperAgent.globalId;
     }
 
-    const extractionPrompt = options?.prompt
+    const extractionPrompt = options.prompt
       ? `${options.prompt}\nTarget URL: ${url}`
-      : `Please scrape and extract the content from the following URL into clean markdown: ${url}\nRequested formats: ${(options?.formats || ["markdown"]).join(", ")}`;
+      : `Please scrape and extract the content from the following URL into clean markdown: ${url}\nRequested formats: ${(options.formats || ["markdown"]).join(", ")}`;
 
-    return this.runAiAgentTask(targetAgentId, extractionPrompt);
+    return this.runAiAgentTask(targetAgentId, extractionPrompt, { workspaceId: options.workspaceId });
   }
 
   /**
@@ -3961,14 +3949,23 @@ export class FusebaseClient {
     const org = options?.orgId || this.orgId;
     if (this.gateBridge) {
       try {
+        // Gate rejects org-sourced stores for token-managed calls ("must use sourceType
+        // 'app'"), so default the source to the app the token was issued for.
+        let source = { sourceType: options?.sourceType ?? "org", sourceId: options?.sourceId ?? org };
+        if (!options?.sourceType) {
+          const who = await this.gateBridge.whoami("gate").catch(() => undefined);
+          const scopes: Array<{ scope_type?: string; scope_id?: string }> = who?.auth?.scopes ?? [];
+          const appScope = scopes.find((s) => s.scope_type === "client" && s.scope_id);
+          if (appScope?.scope_id) source = { sourceType: "app", sourceId: appScope.scope_id };
+        }
+        // Gate SDK contract: orgId is a path param; the store fields go in body (COR-24).
         const res = await this.gateBridge.toolCall("createIsolatedStore", {
-          alias,
-          engine: options?.engine ?? "postgres",
-          storeType: options?.storeType ?? "sql",
           orgId: org,
-          source: {
-            sourceType: options?.sourceType ?? "org",
-            sourceId: options?.sourceId ?? org,
+          body: {
+            alias,
+            storeType: options?.storeType ?? "sql",
+            engine: options?.engine ?? "postgres",
+            source,
           },
         });
         return (res?.data?.store || res?.store || res) as IsolatedStore;
@@ -4226,11 +4223,13 @@ export class FusebaseClient {
   ): Promise<{ success: boolean; appliedVersions?: string[]; message?: string }> {
     if (this.gateBridge) {
       try {
+        // Gate SDK contract: orgId/storeId/stage are path params; bundle and dryRun go in body (COR-24).
+        const identity = await this.gateBridge.getIdentity();
         const res = await this.gateBridge.toolCall("applyIsolatedStoreSqlMigrations", {
+          orgId: identity.orgId || this.orgId,
           storeId,
-          bundle,
           stage,
-          dryRun,
+          body: { bundle, dryRun },
         });
         return (res?.data || res) as { success: boolean; appliedVersions?: string[]; message?: string };
       } catch (err: any) {

@@ -3443,15 +3443,16 @@ export function registerExtendedTools(
     "fusebase_work_run_agent",
     "Run a task or send a prompt to an AI agent in FuseBase Work. Initiates an agent run thread or appends to an existing thread.",
     {
+      workspaceId: z.string().describe("Workspace the agent conversation belongs to (required by the API)"),
       agentId: z.string().describe("FuseBase Work AI agent global ID"),
       prompt: z.string().describe("Task instructions or prompt for the agent"),
       threadId: z.string().optional().describe("Optional existing conversation thread ID to continue"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
-    async ({ agentId, prompt, threadId, profile }) => {
+    async ({ workspaceId, agentId, prompt, threadId, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.runAiAgentTask(agentId, prompt, { threadId });
+        const result = await client.runAiAgentTask(agentId, prompt, { workspaceId, threadId });
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
@@ -3467,16 +3468,17 @@ export function registerExtendedTools(
     "fusebase_work_scrape_url",
     "Scrape and extract clean web content from a URL using FuseBase Work's hosted Firecrawl engine or web parser agent.",
     {
+      workspaceId: z.string().describe("Workspace the scraping agent's conversation belongs to (required by the API)"),
       url: z.string().url().describe("Target website URL to scrape"),
       agentId: z.string().optional().describe("Optional specific Firecrawl/scraper agent global ID"),
       formats: z.array(z.string()).optional().default(["markdown"]).describe("Desired output formats (default: ['markdown'])"),
       prompt: z.string().optional().describe("Optional extraction prompt or instructions (e.g. 'Extract pricing table and features')"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
-    async ({ url, agentId, formats, prompt, profile }) => {
+    async ({ workspaceId, url, agentId, formats, prompt, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.scrapeUrlViaFirecrawl(url, { agentId, formats, prompt });
+        const result = await client.scrapeUrlViaFirecrawl(url, { workspaceId, agentId, formats, prompt });
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },

@@ -21,9 +21,9 @@
 
 | # | Item | Why |
 |---|---|---|
-| P1 | Regenerate the Gate and Dashboards MCP tokens and put them in `.env` | The current tokens return `UNAUTHORIZED: Invalid token` |
-| P2 | Get a fresh session cookie: `cd C:\scripts\fusebase-mcp; npx tsx scripts/auth.ts` (capital `C:`) | `cookie.enc` doesn't decrypt. The key depends on the project path, so the drive-letter casing must match how the tests run (see SEC-10) |
-| P3 | Create a sandbox workspace and set `FUSEBASE_WORKSPACE_ID` in `.env` | So live tests never touch real data |
+| P1 | Regenerate the Gate and Dashboards MCP tokens and put them in `.env` | The current tokens return `UNAUTHORIZED: Invalid token` ✅ done 2026-09-23 |
+| P2 | Get a fresh session cookie: `cd C:\scripts\fusebase-mcp; npx tsx scripts/auth.ts` (capital `C:`) | `cookie.enc` doesn't decrypt. The key depends on the project path, so the drive-letter casing must match how the tests run (see SEC-10) ✅ done 2026-09-23 |
+| P3 | Create a sandbox workspace and set `FUSEBASE_WORKSPACE_ID` in `.env` | So live tests never touch real data ✅ done 2026-09-23 |
 | P4 | Answer the questions in [Decisions](#decisions-needed) | Several fixes change tool behaviour |
 
 The cookie will need refreshing more than once. Before each live run, check that it is less than about 20 hours old.
@@ -119,6 +119,8 @@ The cookie will need refreshing more than once. Before each live run, check that
 | COR-21 | `create_dashboard_table` is broken for any input: with a database ID it posts to `/dashboards/<databaseId>/views` (404); with a table ID it creates a view and fails with 500 "global_id is required". It never created a table. Hidden by a swallowed catch until Phase 0 | ✅ (found live) | Reimplement with `POST /dashboards` (`database_id`, `root_entity: custom`, schema) or `createDashboardFromTemplate`; needs live exploration. Tracked as `knownGap` in both live suites |
 | COR-22 | `update_page_tags` sent the tag array as the body; the endpoint takes `{ tag }` per call, so it stored a literal tag "undefined" and never set the requested tags | ✅ fixed (found live, contract probed) | PUT `{ tag }` adds, DELETE `/tags/{tag}` removes; replace = diff current vs desired |
 | COR-23 | `refresh_auth` launches a browser and can run past the 60 s MCP request timeout, so clients see a timeout even when the refresh succeeds | ✅ (found live) | Return quickly and refresh in the background, or report progress; live suite now runs it only with `FUSEBASE_TEST_REFRESH_AUTH=1` |
+| COR-24 | Gate isolated-store calls didn't follow the Gate SDK contract: `createIsolatedStore` sent its fields flat ("Unrecognized keys: alias, engine, storeType, source") and migrations sent `bundle`/`dryRun` outside `body`. Before COR-1 the Gate error was hidden by a REST retry that 404'd. Token-managed stores must also use `sourceType: "app"` | ✅ fixed (found live) | Wrap request fields in `body` per the SDK; default the store source to the token's app scope from `whoami` |
+| COR-25 | `fusebase_work_run_agent` / `fusebase_work_scrape_url` never worked: the thread endpoint requires `workspaceId` in the query, and the fallback `/v4/api/proxy/ai-service/.../run` doesn't exist (it only masked the real error). The scraper also fell back to a hardcoded agent ID from another org | ✅ partly fixed (found live) | `workspaceId` is now a required tool parameter; dead fallback and hardcoded agent removed. Still open: the POST body the server expects (it answers 500) — capture the web app's request. Tracked as `knownGap` |
 
 **Exit criteria:**
 - Offline test: a markdown → Y.Doc delta test shows no formatting bleed.
@@ -128,17 +130,20 @@ The cookie will need refreshing more than once. Before each live run, check that
 
 ---
 
-## Live verification (2026-09-23, sandbox "Agent Projects", cookie session; Gate tokens still invalid)
+## Live verification (2026-09-23, sandbox "Agent Projects", cookie session + Gate/Dashboards tokens)
 
 | Suite | Result |
 |---|---|
 | Block regression | ✅ 31/31 (known gaps: CON-2 tables, CON-3 collapsible-heading body) |
 | MCP end-to-end | ✅ 189/189, 49 tools |
-| Database & relations | ✅ 138/138, 40 tools (known gap COR-21; isolated stores not provisioned) |
-| Data validation | ✅ suites 1–12 (246 checks); suites 13–15 need valid Gate tokens (P1) |
-| Direct token, parity | ⏳ need valid Gate/Dashboards tokens (P1) |
+| Database & relations | ✅ 138/138, 40 tools (known gap COR-21) |
+| Data validation | ✅ 269/269, 154 of 175 tools; 21 skips with stated reasons (hosted-app CLI mutations, real-email invites, undeletable SQL store, cookie-rewriting refresh); known gaps COR-21, COR-25 |
+| Direct token | ✅ 10/10 |
+| Token vs cookie parity | ✅ every row measured; replace-content, Y.js socket and automation auth verified cookie-only |
 
-Bugs that only showed up live, all now reproduced offline and fixed unless noted: COR-5, COR-19, COR-20, COR-22, the CSV `mapping` format (COR-3), MCP-12 (partly); open: COR-21, COR-23. Also fixed several response shapes the rewritten suites had guessed (task lists, comment threads).
+Bugs that only showed up live, each reproduced offline with a failing test first: COR-5, COR-19, COR-20, COR-22, COR-24, COR-25 (partly), the CSV `mapping` format (COR-3), MCP-12 (partly). Still open: COR-21, COR-23, COR-25 body. Also corrected response shapes the rewritten suites had guessed (task lists, comment threads, whoami, token list/create, isolated stores) and noted that the raw web folder list prefixes ids with `notesFolder#` (the `list_folders` tool strips it; part of COR-6).
+
+**Token audit (same day).** All 22 Gate tokens were traced to a source: 17 app-minted tokens (one per app load/deploy), a CLI-created full-access pair from another agent's project set-up (now reused here), 2 manual Paperclip tokens (confirmed by the owner) and a leftover test token. 11 known-safe tokens were revoked (the leftover test token and never-used duplicate app tokens, keeping the newest per app). Likely cause of the original dead tokens: the FuseBase CLI appears to replace the org's MCP token pair whenever it sets up a project.
 
 ## Phase 3: Content fidelity (L)
 

@@ -171,7 +171,12 @@ async function main() {
       const marker = `parity-replace-${Date.now()}`;
       const res = await writeContentViaWebSocket(host, workspaceId, id, cookie, [{ type: "paragraph", children: [{ text: marker }] }], { replace: true });
       if (!res.success) throw new Error(res.error || "write failed");
-      return (await cookieClient.getPageContent(workspaceId, id)).includes(marker);
+      // The writer reports success without server confirmation (CON-4); give the read a few tries.
+      for (let attempt = 0; attempt < 4; attempt++) {
+        if ((await cookieClient.getPageContent(workspaceId, id)).includes(marker)) return true;
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+      return false;
     });
     // Replacing content goes through the Y.js editor socket, which needs a session cookie;
     // update_page_content reports this clearly in token mode (decision D5). Verify the
@@ -193,8 +198,15 @@ async function main() {
         const folder = await client.createFolder(workspaceId, title);
         if (!folder?.globalId) return false;
         created.push({ id: folder.globalId, kind: `folder (${mode})` });
-        const folders = await client.listFolders(workspaceId);
-        return folders.some((f: any) => (f.id ?? f.globalId ?? f.global_id) === folder.globalId);
+        // The folder list is eventually consistent; allow a few seconds for the new folder.
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const folders = await client.listFolders(workspaceId);
+          // The web menu prefixes ids ("notesFolder#<id>"); the list_folders tool strips it (COR-6).
+          const ids = folders.map((f: any) => String(f.id ?? f.globalId ?? f.global_id).replace(/^notesFolder#/, ""));
+          if (ids.includes(folder.globalId)) return true;
+          await new Promise((r) => setTimeout(r, 1200));
+        }
+        return false;
       });
     }
 
@@ -210,10 +222,7 @@ async function main() {
     // ─── Gate-only capabilities ────────────────────────────────────
     console.log("--- Gate-only ---");
     const storesRow = newRow("Isolated stores", "List isolated SQL stores");
-    await measure(storesRow, "token", async () => {
-      const res = await gateBridge.toolCall("listIsolatedStores", {}, "gate");
-      return Array.isArray(res.data?.isolatedStores ?? res.isolatedStores);
-    });
+    await measure(storesRow, "token", async () => Array.isArray(await tokenClient.listIsolatedStores()));
 
     const tokensRow = newRow("Token management", "List tokens + permission catalog");
     await measure(tokensRow, "token", async () => {

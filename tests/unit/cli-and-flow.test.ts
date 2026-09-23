@@ -121,14 +121,14 @@ describe("Work / Firecrawl helpers", () => {
       return { success: true, threadId: "mock_thread_123" };
     };
 
-    const task = await client.runAiAgentTask("agent_test_1", "Analyze competitor Q3 metrics");
+    const task = await client.runAiAgentTask("agent_test_1", "Analyze competitor Q3 metrics", { workspaceId: "ws1" });
     expect(task.success).toBe(true);
-    expect(calls[0].endpoint).toContain("/agents/agent_test_1/threads");
+    expect(calls[0].endpoint).toContain("/agents/agent_test_1/threads?workspaceId=ws1");
     expect(calls[0].body?.prompt).toBe("Analyze competitor Q3 metrics");
 
-    const scrape = await client.scrapeUrlViaFirecrawl("https://news.ycombinator.com", { agentId: "agent_firecrawl_1", formats: ["markdown", "json"] });
+    const scrape = await client.scrapeUrlViaFirecrawl("https://news.ycombinator.com", { workspaceId: "ws1", agentId: "agent_firecrawl_1", formats: ["markdown", "json"] });
     expect(scrape.success).toBe(true);
-    expect(calls.at(-1)?.endpoint).toContain("/agents/agent_firecrawl_1/threads");
+    expect(calls.at(-1)?.endpoint).toContain("/agents/agent_firecrawl_1/threads?workspaceId=ws1");
     expect(calls.at(-1)?.body?.prompt).toContain("https://news.ycombinator.com");
   });
 });

@@ -49,8 +49,6 @@ import * as path from "path";
 const GATE_UNAVAILABLE =
   /requires Gate MCP bridge|FUSEBASE_GATE_TOKEN|No token configured|not configured with any tokens|\b(402|403)\b|forbidden|not enabled|premium|upgrade/i;
 const AUTOMATION_UNAVAILABLE = /\b(402|403)\b|forbidden|not enabled|not available|premium|upgrade|\bplan\b/i;
-const AI_UNAVAILABLE =
-  /\b(402|403)\b|forbidden|not enabled|not available|premium|upgrade|\bplan\b|quota|insufficient credits?|out of credits/i;
 
 const SANDBOX_STORE_ALIAS = "qa-val-store";
 /** Tests only ever touch the dev stage of the sandbox store. */
@@ -1259,20 +1257,26 @@ async function runAllSuites(client: Client, targetWsId: string) {
     assertArray(stores, "list_isolated_stores");
     ok("list_isolated_stores", `Listed isolated stores (${stores.length})`);
 
-    // There is no delete tool for stores, so the suite owns one stable-alias store and reuses it.
-    let storeId: string;
+    // There is no delete tool for stores (TST-11), and with a token-managed session a new
+    // store is bound to the token's app. So the suite reuses an existing store and only
+    // creates one when explicitly allowed.
+    let storeId: string | undefined;
     const existingStore = stores.find((s: any) => s.alias === SANDBOX_STORE_ALIAS);
     if (existingStore) {
-      storeId = existingStore.id;
+      storeId = existingStore.id ?? existingStore.globalId;
       assertString(storeId, "existing sandbox store id");
       skip("create_isolated_store", `sandbox store '${SANDBOX_STORE_ALIAS}' already exists (no delete tool, so it is reused rather than re-created)`);
-    } else {
+    } else if (process.env.FUSEBASE_TEST_CREATE_SQL_STORE === "1") {
       const createdStore = await callTool(client, "create_isolated_store", { alias: SANDBOX_STORE_ALIAS, engine: "postgres", storeType: "sql", orgId });
       assertObject(createdStore, "create_isolated_store");
-      storeId = createdStore.id;
+      storeId = createdStore.id ?? createdStore.globalId;
       assertString(storeId, "create_isolated_store.id");
       ok("create_isolated_store", `Provisioned sandbox store '${SANDBOX_STORE_ALIAS}' (${storeId}); it persists for reuse`);
+    } else {
+      skipAll(sqlTools, `no '${SANDBOX_STORE_ALIAS}' store and stores can't be deleted; set FUSEBASE_TEST_CREATE_SQL_STORE=1 to create one`);
     }
+
+    if (storeId) {
 
     const table = "qa_validation_events";
     const bundle = {
@@ -1333,6 +1337,7 @@ async function runAllSuites(client: Client, targetWsId: string) {
         callTool(client, "execute_isolated_sql", { storeId, stage: SQL_STAGE, sql: `DELETE FROM ${table} WHERE run_id = $1`, params: [runId] }),
       );
     }
+    }
   }
 
   // ──────────────────────────────────────────────────────────────────
@@ -1340,22 +1345,23 @@ async function runAllSuites(client: Client, targetWsId: string) {
   // ──────────────────────────────────────────────────────────────────
   suiteHeader("SUITE 14: FuseBase Work & Firecrawl");
 
+  // COR-25: thread creation now sends the required workspaceId, but the request body the
+  // server expects is still unknown (it answers 500). Tracked as a known gap until the web
+  // app's request is captured.
   const runAgentId = numericAgent ? String(numericAgent.id) : firstAgentGlobalId;
-  const runRes = await optional("fusebase_work_run_agent", AI_UNAVAILABLE, () =>
-    callTool(client, "fusebase_work_run_agent", { agentId: runAgentId, prompt: "Status check for data validation suite" }),
-  );
-  if (runRes) {
-    assertJson(runRes.value, "fusebase_work_run_agent");
-    ok("fusebase_work_run_agent", "Executed agent run");
-  }
-
-  const scrapeRes = await optional("fusebase_work_scrape_url", AI_UNAVAILABLE, () =>
-    callTool(client, "fusebase_work_scrape_url", { url: "https://example.com", formats: ["markdown"] }),
-  );
-  if (scrapeRes) {
-    assertJson(scrapeRes.value, "fusebase_work_scrape_url");
-    ok("fusebase_work_scrape_url", "Executed Firecrawl web scrape");
-  }
+  const tryWork = async (tool: string, args: Record<string, unknown>): Promise<boolean> => {
+    try {
+      assertJson(await callTool(client, tool, args), tool);
+      return true;
+    } catch (err) {
+      if (!(err instanceof ToolError)) throw err;
+      return false;
+    }
+  };
+  knownGap("COR-25", "fusebase_work_run_agent starts an agent thread",
+    await tryWork("fusebase_work_run_agent", { workspaceId: targetWsId, agentId: runAgentId, prompt: "Status check for data validation suite" }));
+  knownGap("COR-25", "fusebase_work_scrape_url starts a scraping agent thread",
+    await tryWork("fusebase_work_scrape_url", { workspaceId: targetWsId, url: "https://example.com", formats: ["markdown"] }));
 
   if (!automationAvailable) console.log("(fusebase_work_trigger_n8n skipped with automations — see Suite 9)");
 
@@ -1395,8 +1401,8 @@ async function runAllSuites(client: Client, targetWsId: string) {
       expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
     });
     assert(createTokenRes !== null && typeof createTokenRes === "object", "fusebase_token_create should return a JSON object");
-    const created = createTokenRes.data ?? createTokenRes;
-    const tokenId = created.token?.global_id ?? created.token?.id ?? created.global_id ?? created.globalId ?? created.id;
+    // Live shape: { ok, opId, data: { success, data: { global_id, token (secret), ... } } }
+    const tokenId = createTokenRes?.data?.data?.global_id;
     assertString(tokenId, "fusebase_token_create token id");
     ok("fusebase_token_create", `Created scoped token ${tokenId} (secret not logged)`);
 

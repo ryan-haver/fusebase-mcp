@@ -133,7 +133,7 @@ describe("agent runs and automation triggers (COR-1)", () => {
   it("does not start the agent again on the second endpoint after a 5xx", async () => {
     const calls = stubFetch(status(504));
     const { c } = client();
-    await expect(c.runAiAgentTask("agent", "do it")).rejects.toThrow(/504/);
+    await expect(c.runAiAgentTask("agent", "do it", { workspaceId: "ws" })).rejects.toThrow(/504/);
     expect(calls.filter((x) => x.url.includes("/run"))).toHaveLength(0);
   });
 
