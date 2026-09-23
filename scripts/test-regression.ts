@@ -7,10 +7,12 @@
  * Requires a valid session cookie and FUSEBASE_WORKSPACE_ID.
  */
 import { writeContentViaWebSocket, readContentViaWebSocket } from "../src/yjs-ws-writer.js";
+import { markdownToSchema } from "../src/markdown-parser.js";
+import { htmlToMarkdown } from "../src/tools/helpers.js";
 import { loadEncryptedCookie } from "../src/crypto.js";
 import { FusebaseClient } from "../src/client.js";
 import type { ContentBlock } from "../src/content-schema.js";
-import { assert, assertIncludes, knownGap, requireSandboxWorkspace, runSuite } from "./lib/live-harness.js";
+import { assert, assertIncludes, requireSandboxWorkspace, runSuite } from "./lib/live-harness.js";
 
 const BLOCKS: ContentBlock[] = [
   { type: "heading", level: 1, children: [{ text: "Full Regression Test" }] },
@@ -40,6 +42,15 @@ const BLOCKS: ContentBlock[] = [
   { type: "blockquote", children: [{ text: "A wise quote" }] },
   { type: "code", language: "typescript", code: "const answer: number = 4242;" },
   { type: "toggle", summary: [{ text: "Toggle Summary" }], children: [{ type: "paragraph", children: [{ text: "Hidden toggle content" }] }] },
+  // Nested non-paragraph content (CON-3): a list and a code block inside a toggle.
+  {
+    type: "toggle",
+    summary: [{ text: "Nested Toggle" }],
+    children: [
+      { type: "list", style: "bullet", items: [{ children: [{ text: "Nested bullet one" }] }, { children: [{ text: "Nested bullet two" }] }] },
+      { type: "code", language: "python", code: "print('nested code')" },
+    ],
+  },
   { type: "hint", children: [{ text: "Important callout" }] },
   { type: "collapsible-heading", level: 2, summary: [{ text: "Collapsible Section" }], children: [{ type: "paragraph", children: [{ text: "Collapsible body" }] }] },
   { type: "image", src: "https://via.placeholder.com/400x200.png?text=Regression+Test", width: 400 },
@@ -125,8 +136,25 @@ async function main() {
     assertIncludes(html, "Hidden toggle content", "toggle body");
     assertIncludes(html, "Step one body", "step 1 body");
     assertIncludes(html, "Step two body", "step 2 body");
-    knownGap("CON-3", "collapsible heading body survives round-trip", html.includes("Collapsible body"));
-    knownGap("CON-2", "table cells survive round-trip", html.includes("Alpha") && html.includes("99"));
+    assertIncludes(html, "Collapsible body", "collapsible heading body (CON-3)");
+    assertIncludes(html, "Nested bullet two", "list inside a toggle (CON-3)");
+    assertIncludes(html, "nested code", "code inside a toggle (CON-3)");
+    assertIncludes(html, "<td>Alpha</td>", "table cell text (CON-2)");
+    assertIncludes(html, "99", "table number cell (CON-2)");
+
+    // Read → markdown → write → read: content must survive a full round trip through
+    // get_page_content (markdown) and update_page_content (CON-2/3/6/7/8).
+    const markdown = htmlToMarkdown(html);
+    for (const text of ["Full Regression Test", "Nested bullet two", "nested code", "Alpha", "Collapsible body", "Important callout"]) {
+      assertIncludes(markdown, text, `markdown export keeps "${text}"`);
+    }
+    const rewrite = await writeContentViaWebSocket(host, workspaceId, noteId, cookie, markdownToSchema(markdown), { replace: true, timeout: 20000 });
+    assert(rewrite.success, `markdown write-back failed: ${rewrite.error}`);
+    const reread = await readContentViaWebSocket(host, workspaceId, noteId, cookie);
+    assert(reread.success, `re-read failed: ${reread.error}`);
+    for (const text of ["Full Regression Test", "Nested bullet two", "nested code", "<td>Alpha</td>", "Collapsible body", "Important callout", "Checked item"]) {
+      assertIncludes(reread.html ?? "", text, `round trip keeps "${text}"`);
+    }
   } finally {
     try {
       await client.deletePage(workspaceId, noteId);

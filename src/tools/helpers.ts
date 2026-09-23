@@ -4,6 +4,7 @@
 
 import * as path from "path";
 import { fileURLToPath } from "url";
+import TurndownService from "turndown";
 
 const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -53,64 +54,230 @@ export function guessMime(filename: string): string {
   return mimeMap[ext] || "application/octet-stream";
 }
 
-/** Simple HTML to Markdown converter for token-efficient document reading */
-export function htmlToMarkdown(html: string): string {
-  if (!html) return "";
-  let md = html;
+// ─── HTML → Markdown (get_page_content format "markdown") ───
 
-  // Headings
-  md = md.replace(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, "# $1\n\n");
-  md = md.replace(/<h2[^>]*>([\s\S]*?)<\/h2>/gi, "## $1\n\n");
-  md = md.replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi, "### $1\n\n");
-  md = md.replace(/<h4[^>]*>([\s\S]*?)<\/h4>/gi, "#### $1\n\n");
-  md = md.replace(/<h5[^>]*>([\s\S]*?)<\/h5>/gi, "##### $1\n\n");
-  md = md.replace(/<h6[^>]*>([\s\S]*?)<\/h6>/gi, "###### $1\n\n");
+/**
+ * Hint colour → GitHub callout type. Mirrors the callout mapping in markdown-parser.ts
+ * (NOTE→indigo, TIP→green, IMPORTANT→purple, WARNING→yellow, CAUTION→red) so that a
+ * read → write round trip keeps the hint and its colour.
+ */
+const HINT_CALLOUT: Record<string, string> = {
+  indigo: "NOTE",
+  green: "TIP",
+  purple: "IMPORTANT",
+  yellow: "WARNING",
+  red: "CAUTION",
+};
 
-  // Code blocks
-  md = md.replace(/<pre[^>]*><code(?: class="language-([^"]*)")?>([\s\S]*?)<\/code><\/pre>/gi, (_, lang, code) => {
-    return `\`\`\`${lang || ""}\n${code}\n\`\`\`\n\n`;
+let turndownService: TurndownService | undefined;
+
+const WORD_CHAR = /[\p{L}\p{N}]/u;
+
+/**
+ * Backslash-escape text so CommonMark + GFM (markdown-parser.ts) reads it back as the same
+ * literal text. Lighter than turndown's default: `_` inside a word (snake_case) cannot start
+ * emphasis and is left alone, and `~` (GFM strikethrough) and tag-like `<` are escaped too.
+ * Turndown already skips text inside code spans and code blocks.
+ */
+function escapeMarkdownText(text: string): string {
+  return text
+    .replace(/\\/g, "\\\\")
+    .replace(/[*`[\]~]/g, "\\$&")
+    .replace(/_/g, (m, off: number, s: string) =>
+      WORD_CHAR.test(s[off - 1] ?? "") && WORD_CHAR.test(s[off + 1] ?? "") ? m : "\\_")
+    .replace(/<(?=[A-Za-z/!?])/g, "\\<")
+    .replace(/&(?=#?\w+;)/g, "\\&")
+    .replace(/^(\s*)([-+>]|#{1,6}(?=\s|$)|=+(?=\s*$))/, "$1\\$2")
+    .replace(/^(\s*\d+)([.)])(?=\s|$)/, "$1\\$2");
+}
+
+function childElements(node: Element): Element[] {
+  return Array.from(node.children);
+}
+
+/** The first <tr> of a table, looking through thead/tbody/tfoot. */
+function firstTableRow(table: Element): Element | undefined {
+  for (const child of childElements(table)) {
+    if (child.nodeName === "TR") return child;
+    if (/^T(HEAD|BODY|FOOT)$/.test(child.nodeName)) {
+      const tr = childElements(child).find((c) => c.nodeName === "TR");
+      if (tr) return tr;
+    }
+  }
+  return undefined;
+}
+
+function tableOf(row: Element): Element | null {
+  const parent = row.parentElement;
+  if (!parent) return null;
+  return parent.nodeName === "TABLE" ? parent : parent.parentElement;
+}
+
+function cellSpan(cell: Element): number {
+  return Math.max(1, Number(cell.getAttribute("colspan")) || 1);
+}
+
+/** One-line inline markdown of an element's children (captions, summaries, headings). */
+function inlineMarkdown(service: TurndownService, el: Element | null | undefined): string {
+  if (!el) return "";
+  return service.turndown(el.innerHTML).replace(/\s*\n+\s*/g, " ").trim();
+}
+
+function createTurndown(): TurndownService {
+  const service = new TurndownService({
+    headingStyle: "atx",
+    hr: "---",
+    bulletListMarker: "-",
+    codeBlockStyle: "fenced",
+    fence: "```",
+    emDelimiter: "*",
+    strongDelimiter: "**",
+    // A CommonMark hard break ("\" + newline). A bare newline is a soft break, which the
+    // parser joins into the same line, so read → write would merge the lines.
+    br: "\\",
+  });
+  service.escape = escapeMarkdownText;
+  service.remove(["script", "style"]);
+
+  // Lists: tight items; nested content is indented by the marker width ("- " = 2,
+  // "1. " = 3), which is what CommonMark requires for it to stay inside the item.
+  service.addRule("listItem", {
+    filter: "li",
+    replacement(content, node) {
+      const parent = node.parentNode as Element | null;
+      let prefix = "- ";
+      if (parent?.nodeName === "OL") {
+        const start = Number(parent.getAttribute("start")) || 1;
+        prefix = `${start + childElements(parent).indexOf(node)}. `;
+      }
+      const pad = " ".repeat(prefix.length);
+      const body = content.replace(/^\n+/, "").replace(/\n+$/, "").replace(/\n+/g, "\n").replace(/\n/g, `\n${pad}`);
+      return prefix + body + (node.nextSibling ? "\n" : "");
+    },
   });
 
-  // Inline formats
-  md = md.replace(/<strong[^>]*>([\s\S]*?)<\/strong>/gi, "**$1**");
-  md = md.replace(/<b[^>]*>([\s\S]*?)<\/b>/gi, "**$1**");
-  md = md.replace(/<em[^>]*>([\s\S]*?)<\/em>/gi, "*$1*");
-  md = md.replace(/<i[^>]*>([\s\S]*?)<\/i>/gi, "*$1*");
-  md = md.replace(/<s[^>]*>([\s\S]*?)<\/s>/gi, "~~$1~~");
-  md = md.replace(/<strike[^>]*>([\s\S]*?)<\/strike>/gi, "~~$1~~");
-  md = md.replace(/<del[^>]*>([\s\S]*?)<\/del>/gi, "~~$1~~");
-  md = md.replace(/<code[^>]*>([\s\S]*?)<\/code>/gi, "`$1`");
+  service.addRule("checkbox", {
+    filter: (node) => node.nodeName === "INPUT" && node.getAttribute("type") === "checkbox",
+    replacement: (_content, node) => (node.hasAttribute("checked") ? "[x]" : "[ ]"),
+  });
 
-  // Links & Images
-  md = md.replace(/<a[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi, "[$2]($1)");
-  md = md.replace(/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>/gi, "![$2]($1)");
-  md = md.replace(/<img[^>]*src="([^"]*)"[^>]*>/gi, "![]($1)");
+  service.addRule("strikethrough", {
+    filter: (node) => ["DEL", "S", "STRIKE"].includes(node.nodeName),
+    replacement: (content) => (content.trim() ? `~~${content}~~` : content),
+  });
+  service.addRule("underline", {
+    filter: ["u"],
+    replacement: (content) => (content.trim() ? `<u>${content}</u>` : content),
+  });
+  service.addRule("highlight", {
+    filter: ["mark"],
+    replacement: (content) => (content.trim() ? `==${content}==` : content),
+  });
 
-  // Lists
-  md = md.replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, "- $1\n");
-  md = md.replace(/<\/?ul[^>]*>/gi, "\n");
-  md = md.replace(/<\/?ol[^>]*>/gi, "\n");
+  // GFM tables. A table without a header row uses its first row as the header.
+  service.addRule("tableCell", {
+    filter: ["th", "td"],
+    replacement(content, node) {
+      const text = content.trim().replace(/\s*\n+\s*/g, " ").replace(/\|/g, "\\|");
+      return ` ${text} |` + "  |".repeat(cellSpan(node) - 1);
+    },
+  });
+  service.addRule("tableRow", {
+    filter: "tr",
+    replacement(content, node) {
+      let row = `\n|${content}`;
+      const table = tableOf(node);
+      if (table && firstTableRow(table) === node) {
+        const count = childElements(node)
+          .filter((c) => c.nodeName === "TD" || c.nodeName === "TH")
+          .reduce((n, c) => n + cellSpan(c), 0);
+        row += `\n|${" --- |".repeat(Math.max(1, count))}`;
+      }
+      return row;
+    },
+  });
+  service.addRule("tableSection", {
+    filter: ["thead", "tbody", "tfoot"],
+    replacement: (content) => content,
+  });
+  service.addRule("tableCaption", {
+    filter: ["caption"],
+    replacement: () => "",
+  });
+  service.addRule("table", {
+    filter: "table",
+    replacement(content, node) {
+      const caption = inlineMarkdown(service, childElements(node).find((c) => c.nodeName === "CAPTION"));
+      return `\n\n${content.replace(/^\n+/, "")}${caption ? `\n\n*${caption}*` : ""}\n\n`;
+    },
+  });
 
-  // Blockquotes & Dividers
-  md = md.replace(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/gi, "> $1\n\n");
-  md = md.replace(/<hr[^>]*\/?>/gi, "---\n\n");
+  // Hints → GitHub callouts (read back by markdown-parser.ts as hints of the same colour).
+  service.addRule("hint", {
+    filter: (node) => node.nodeName === "ASIDE" && node.classList.contains("hint"),
+    replacement(content, node) {
+      const type = HINT_CALLOUT[node.getAttribute("data-color") || ""] || "NOTE";
+      const lines = content.trim().replace(/\n{3,}/g, "\n\n").split("\n");
+      return `\n\n> [!${type}]\n${lines.map((l) => (l ? `> ${l}` : ">")).join("\n")}\n\n`;
+    },
+  });
 
-  // Paragraphs & Breaks
-  md = md.replace(/<p[^>]*>([\s\S]*?)<\/p>/gi, "$1\n\n");
-  md = md.replace(/<br[^>]*\/?>/gi, "\n");
+  // Toggles → <details> (markdown-parser.ts reads them back as toggles); collapsible
+  // headings → the heading followed by its body.
+  service.addRule("summary", {
+    filter: ["summary"],
+    replacement: () => "",
+  });
+  service.addRule("details", {
+    filter: ["details"],
+    replacement(content, node) {
+      const summary = childElements(node).find((c) => c.nodeName === "SUMMARY");
+      const heading = summary && childElements(summary).find((c) => /^H[1-6]$/.test(c.nodeName));
+      const body = content.trim();
+      if (heading) {
+        const hashes = "#".repeat(Number(heading.nodeName[1]));
+        return `\n\n${hashes} ${inlineMarkdown(service, heading)}${body ? `\n\n${body}` : ""}\n\n`;
+      }
+      const title = inlineMarkdown(service, summary) || "Details";
+      const open = node.hasAttribute("open") ? " open" : "";
+      return `\n\n<details${open}>\n<summary>${title}</summary>\n\n${body}\n\n</details>\n\n`;
+    },
+  });
 
-  // Strip any remaining tags
-  md = md.replace(/<[^>]+>/g, "");
+  // Images with captions → ![caption](src) (markdown-parser.ts uses the alt text as caption).
+  service.addRule("imageFigure", {
+    filter: (node) => node.nodeName === "FIGURE" && node.querySelector("img") !== null,
+    replacement(_content, node) {
+      const img = node.querySelector("img")!;
+      const caption = inlineMarkdown(service, node.querySelector("figcaption"));
+      const alt = caption || img.getAttribute("alt") || "";
+      return `\n\n![${alt}](${img.getAttribute("src") || ""})\n\n`;
+    },
+  });
+  service.addRule("figcaption", {
+    filter: ["figcaption"],
+    replacement: (content) => (content.trim() ? `\n\n*${content.trim()}*\n\n` : ""),
+  });
+  service.addRule("iframe", {
+    filter: ["iframe"],
+    replacement: (_content, node) => {
+      const src = node.getAttribute("src");
+      return src ? `\n\n[Embedded frame](${src})\n\n` : "";
+    },
+  });
 
-  // Unescape entities
-  md = md
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, " ");
+  return service;
+}
 
-  return md.replace(/\n{3,}/g, "\n\n").trim();
+/** Convert decoded page HTML to markdown for token-efficient document reading. */
+export function htmlToMarkdown(html: string): string {
+  if (!html) return "";
+  turndownService ??= createTurndown();
+  return turndownService
+    .turndown(html)
+    .replace(/\u00a0/g, " ") // non-breaking spaces
+    .replace(/[ \t]+$/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 

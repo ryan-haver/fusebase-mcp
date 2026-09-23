@@ -31,7 +31,7 @@ import * as Y from "yjs";
 import * as encoding from "lib0/encoding";
 import { WebSocket } from "ws";
 import type { ContentBlock, InlineSegment } from "./content-schema.js";
-import { decodeYDocToHtml } from "./yjs-html-decoder.js";
+import { applyYjsUpdate, decodeYDocToHtml } from "./yjs-html-decoder.js";
 
 
 // ─── Configuration ───
@@ -179,7 +179,7 @@ export function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
     // hLine blocks have only id + type — no other fields
     if (props.noCharacters) {
       blocksMap!.set(id, bm);
-      rootChildren!.push([id]);
+      place(id);
       return id;
     }
 
@@ -209,850 +209,814 @@ export function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
     const chars = (props.characters as Y.Text) || (() => { const t = new Y.Text(); t.insert(0, "\n"); return t; })();
     bm.set("characters", chars);
     blocksMap!.set(id, bm);
-    rootChildren!.push([id]);
+    place(id);
     return id;
   }
 
-  /**
-   * Add a child block (not added to rootChildren — only referenced by parent's children array).
-   */
-  function addChildBlock(type: string, props: Record<string, unknown> = {}): string {
-    const id = genBlockId();
-    const bm = new Y.Map();
-    bm.set("id", id);
-    bm.set("type", type);
-    bm.set("indent", (props.indent as number) || 0);
-    bm.set("color", (props.color as string) || "transparent");
-    bm.set("align", (props.align as string) || "left");
-    const chars = (props.characters as Y.Text) || (() => { const t = new Y.Text(); t.insert(0, "\n"); return t; })();
-    bm.set("characters", chars);
-    blocksMap!.set(id, bm);
-    return id; // NOT added to rootChildren
+  // Blocks are placed into the container currently being filled: the page root, or the
+  // children of a toggle, collapsible heading, step or grid column. Nested content of any
+  // type is written recursively (CON-3).
+  const targets: string[][] = [];
+  function place(id: string): void {
+    const top = targets[targets.length - 1];
+    if (top) top.push(id);
+    else rootChildren.push([id]);
+  }
+  function collectChildren(children: ContentBlock[]): string[] {
+    targets.push([]);
+    emit(children);
+    return targets.pop()!;
   }
 
-  for (const block of blocks) {
-    switch (block.type) {
-      case "heading": {
-        const type = block.level === 1 ? "hLarge" : block.level === 2 ? "hMedium" : "hSmall";
-        const chars = new Y.Text();
-        insertInlineText(chars, 0, block.children);
-        addBlock(type, { characters: chars });
-        break;
-      }
-      case "paragraph": {
-        const chars = new Y.Text();
-        insertInlineText(chars, 0, block.children);
-        addBlock("paragraph", { indent: block.indent, color: block.color, align: block.align, characters: chars });
-        break;
-      }
-      case "list": {
-        // FuseBase wraps list items in a parent "list" container block
-        const listType = block.style === "bullet" ? "listItemBullet" : "listItemNumber";
-        const itemIds: string[] = [];
-        for (const item of block.items) {
-          const itemId = genBlockId();
-          const itemBm = new Y.Map();
-          itemBm.set("id", itemId);
-          itemBm.set("type", listType);
-          itemBm.set("align", "left");
-          itemBm.set("indent", (item.indent as number) || 0);
-          itemBm.set("color", "transparent");
-          itemBm.set("collapsed", false);
+  function emit(list: ContentBlock[]): void {
+    for (const block of list) {
+      switch (block.type) {
+        case "heading": {
+          const type = block.level === 1 ? "hLarge" : block.level === 2 ? "hMedium" : "hSmall";
           const chars = new Y.Text();
-          insertInlineText(chars, 0, item.children);
-          itemBm.set("characters", chars);
-          blocksMap!.set(itemId, itemBm);
-          itemIds.push(itemId);
+          insertInlineText(chars, 0, block.children);
+          addBlock(type, { characters: chars });
+          break;
         }
-        // Parent list container
-        const listId = genBlockId();
-        const listBm = new Y.Map();
-        listBm.set("id", listId);
-        listBm.set("type", "list");
-        listBm.set("number-list-template", "decimal-all");
-        listBm.set("bullet-list-template", ["circle"]);
-        const childArr = new Y.Array<string>();
-        childArr.push(itemIds);
-        listBm.set("children", childArr);
-        blocksMap!.set(listId, listBm);
-        rootChildren!.push([listId]);
-        break;
-      }
-      case "checklist": {
-        // Checkboxes also wrapped in a parent "list" container
-        const itemIds: string[] = [];
-        for (const item of block.items) {
-          const itemId = genBlockId();
-          const itemBm = new Y.Map();
-          itemBm.set("id", itemId);
-          itemBm.set("type", "listItemCheckbox");
-          itemBm.set("checked", item.checked ?? false);
-          itemBm.set("align", "left");
-          itemBm.set("indent", 0);
-          itemBm.set("color", "transparent");
-          itemBm.set("collapsed", false);
+        case "paragraph": {
           const chars = new Y.Text();
-          insertInlineText(chars, 0, item.children);
-          itemBm.set("characters", chars);
-          blocksMap!.set(itemId, itemBm);
-          itemIds.push(itemId);
+          insertInlineText(chars, 0, block.children);
+          addBlock("paragraph", { indent: block.indent, color: block.color, align: block.align, characters: chars });
+          break;
         }
-        const listId = genBlockId();
-        const listBm = new Y.Map();
-        listBm.set("id", listId);
-        listBm.set("type", "list");
-        listBm.set("number-list-template", "decimal-all");
-        listBm.set("bullet-list-template", ["circle"]);
-        const childArr = new Y.Array<string>();
-        childArr.push(itemIds);
-        listBm.set("children", childArr);
-        blocksMap!.set(listId, listBm);
-        rootChildren!.push([listId]);
-        break;
-      }
-      case "divider":
-        // Divider is Y.js type "hLine" — only has id + type, no characters
-        addBlock("hLine", { noCharacters: true });
-        break;
-      case "blockquote": {
-        const chars = new Y.Text();
-        insertInlineText(chars, 0, block.children);
-        addBlock("blockquote", { characters: chars });  // MUST be lowercase — "blockQuote" triggers version error
-        break;
-      }
-      case "code": {
-        const id = genBlockId();
-        const bm = new Y.Map();
-        bm.set("id", id);
-        bm.set("type", "syntax");
-        bm.set("setCursor", false);
-        bm.set("wrap", false);
-        bm.set("lineNumbers", true);
-        bm.set("align", "left");
-        bm.set("indent", 0);
-        bm.set("data-language", block.language || "plaintext");
-        const chars = new Y.Text();
-        chars.insert(0, block.code + "\n");
-        bm.set("characters", chars);
-        // Caption sub-block (required by FuseBase client)
-        const capId = genBlockId();
-        const cap = new Y.Map();
-        cap.set("id", capId);
-        cap.set("type", "caption");
-        cap.set("align", "left");
-        cap.set("indent", 0);
-        const capChars = new Y.Text();
-        capChars.insert(0, "\n");
-        cap.set("characters", capChars);
-        blocksMap!.set(capId, cap);
-        bm.set("caption", capId);
-        blocksMap!.set(id, bm);
-        rootChildren!.push([id]);
-        break;
-      }
-      case "toggle": {
-        // Toggle block: parent block has characters (summary text) + children (array of child block IDs)
-        // Create child blocks first, then reference them in the parent
-        const childIds: string[] = [];
-        for (const child of block.children) {
-          // Recursively process child blocks but add them as child blocks (not root)
-          const childChars = new Y.Text();
-          if (child.type === "paragraph") {
-            insertInlineText(childChars, 0, child.children);
-            childIds.push(addChildBlock("paragraph", { characters: childChars }));
-          } else {
-            // For simplicity, treat other child types as paragraphs
-            insertInlineText(childChars, 0, [{ text: "(nested block)" }]);
-            childIds.push(addChildBlock("paragraph", { characters: childChars }));
+        case "list": {
+          // FuseBase wraps list items in a parent "list" container block
+          const listType = block.style === "bullet" ? "listItemBullet" : "listItemNumber";
+          const itemIds: string[] = [];
+          for (const item of block.items) {
+            const itemId = genBlockId();
+            const itemBm = new Y.Map();
+            itemBm.set("id", itemId);
+            itemBm.set("type", listType);
+            itemBm.set("align", "left");
+            itemBm.set("indent", (item.indent as number) || 0);
+            itemBm.set("color", "transparent");
+            itemBm.set("collapsed", false);
+            const chars = new Y.Text();
+            insertInlineText(chars, 0, item.children);
+            itemBm.set("characters", chars);
+            blocksMap!.set(itemId, itemBm);
+            itemIds.push(itemId);
           }
+          // Parent list container
+          const listId = genBlockId();
+          const listBm = new Y.Map();
+          listBm.set("id", listId);
+          listBm.set("type", "list");
+          listBm.set("number-list-template", "decimal-all");
+          listBm.set("bullet-list-template", ["circle"]);
+          const childArr = new Y.Array<string>();
+          childArr.push(itemIds);
+          listBm.set("children", childArr);
+          blocksMap!.set(listId, listBm);
+          place(listId);
+          break;
         }
-        const summaryChars = new Y.Text();
-        insertInlineText(summaryChars, 0, block.summary);
-        addBlock("toggle", {
-          characters: summaryChars,
-          childIds,
-          collapsed: block.collapsed ?? false,
-        });
-        break;
-      }
-      case "hint": {
-        // Hint/callout block — same structure as paragraph
-        const chars = new Y.Text();
-        insertInlineText(chars, 0, block.children);
-        addBlock("hint", { color: block.color || "transparent", characters: chars });
-        break;
-      }
-      case "collapsible-heading": {
-        // Collapsible heading: regular heading type with children + collapsed (same structure as toggle)
-        const typeMap = { 1: "hLarge", 2: "hMedium", 3: "hSmall" } as const;
-        const childIds: string[] = [];
-        for (const child of block.children) {
-          const childChars = new Y.Text();
-          if (child.type === "paragraph") {
-            insertInlineText(childChars, 0, child.children);
-            childIds.push(addChildBlock("paragraph", { characters: childChars }));
-          } else {
-            insertInlineText(childChars, 0, [{ text: "(nested block)" }]);
-            childIds.push(addChildBlock("paragraph", { characters: childChars }));
+        case "checklist": {
+          // Checkboxes also wrapped in a parent "list" container
+          const itemIds: string[] = [];
+          for (const item of block.items) {
+            const itemId = genBlockId();
+            const itemBm = new Y.Map();
+            itemBm.set("id", itemId);
+            itemBm.set("type", "listItemCheckbox");
+            itemBm.set("checked", item.checked ?? false);
+            itemBm.set("align", "left");
+            itemBm.set("indent", 0);
+            itemBm.set("color", "transparent");
+            itemBm.set("collapsed", false);
+            const chars = new Y.Text();
+            insertInlineText(chars, 0, item.children);
+            itemBm.set("characters", chars);
+            blocksMap!.set(itemId, itemBm);
+            itemIds.push(itemId);
           }
+          const listId = genBlockId();
+          const listBm = new Y.Map();
+          listBm.set("id", listId);
+          listBm.set("type", "list");
+          listBm.set("number-list-template", "decimal-all");
+          listBm.set("bullet-list-template", ["circle"]);
+          const childArr = new Y.Array<string>();
+          childArr.push(itemIds);
+          listBm.set("children", childArr);
+          blocksMap!.set(listId, listBm);
+          place(listId);
+          break;
         }
-        const summaryChars = new Y.Text();
-        insertInlineText(summaryChars, 0, block.summary);
-        addBlock(typeMap[block.level], {
-          characters: summaryChars,
-          childIds,
-          collapsed: block.collapsed ?? false,
-        });
-        break;
-      }
-      case "table": {
-        // Create columns — native schema: text columns have only id+type,
-        // non-text columns add columnType (and dbSelect for singleselect)
-        const colIds: string[] = [];
-        for (const col of block.columns) {
-          const colId = genBlockId();
-          const cm = new Y.Map();
-          cm.set("id", colId);
-          cm.set("type", "column");
-          if (col.text) {
-            cm.set("text", col.text);
-          }
-          // Only set columnType for non-text columns (text is the default)
-          if (col.type && col.type !== "text") {
-            cm.set("columnType", col.type);
-          }
-          if ((col.type === "singleselect" || col.type === "multiselect") && col.dbSelect) {
-            cm.set("dbSelect", col.dbSelect);
-          }
-          // Column-level format options
-          if (col.format) {
-            const fmt: Record<string, any> = {};
-            if (col.format.currency) fmt.currency = col.format.currency;
-            if (col.format.customSymbol) fmt.customSymbol = col.format.customSymbol;
-            if (col.format.type) fmt.type = col.format.type;
-            if (col.format.symbolPosition) fmt.symbolPosition = col.format.symbolPosition;
-            if (col.format.decimalSeparator) fmt.decimalSeparator = col.format.decimalSeparator;
-            if (col.format.thousandSeparator) fmt.thousandSeparator = col.format.thousandSeparator;
-            if (col.format.colorNumbers) fmt.colorNumbers = col.format.colorNumbers;
-            if (col.format.dateFormat) fmt.dateFormat = col.format.dateFormat;
-            if (col.format.showTime) fmt.showTime = col.format.showTime;
-            if (col.format.firstDayOfWeek) fmt.firstDayOfWeek = col.format.firstDayOfWeek;
-            if (col.format.ratingIcon) fmt.ratingIcon = col.format.ratingIcon;
-            if (col.format.ratingAmount) fmt.ratingAmount = col.format.ratingAmount;
-            if (col.format.progressStyle) fmt.progressStyle = col.format.progressStyle;
-            if (Object.keys(fmt).length > 0) cm.set("format", fmt);
-          }
-          if (col.sortby) {
-            cm.set("sortby", col.sortby);
-          }
-          blocksMap!.set(colId, cm);
-          colIds.push(colId);
+        case "divider":
+          // Divider is Y.js type "hLine" — only has id + type, no characters
+          addBlock("hLine", { noCharacters: true });
+          break;
+        case "blockquote": {
+          const chars = new Y.Text();
+          insertInlineText(chars, 0, block.children);
+          addBlock("blockquote", { characters: chars });  // MUST be lowercase — "blockQuote" triggers version error
+          break;
         }
-
-        const rowIds: string[] = [];
-        for (const row of block.rows) {
-          const cellIds: (string | false)[] = [];
-          for (let ci = 0; ci < row.cells.length; ci++) {
-            const cell = row.cells[ci];
-            // null/undefined cell: check if it's consumed by a merge span
-            if (!cell) {
-              // Check if a previous cell in this row has colspan covering this position
-              let isMergeConsumed = false;
-              for (let pi = 0; pi < ci; pi++) {
-                const prev = row.cells[pi];
-                if (prev && 'colspan' in prev && prev.colspan && prev.colspan > 1) {
-                  if (pi + prev.colspan > ci) { isMergeConsumed = true; break; }
-                }
-              }
-              if (isMergeConsumed) {
-                // Emit a hidden placeholder cell block
-                const hiddenId = genBlockId();
-                const hm = new Y.Map();
-                hm.set("id", hiddenId);
-                hm.set("cellType", "text");
-                hm.set("type", "tableCellText");
-                hm.set("hidden", true);
-                hm.set("children", new Y.Array<string>());
-                blocksMap!.set(hiddenId, hm);
-                cellIds.push(hiddenId);
-              } else {
-                cellIds.push(false);
-              }
-              continue;
+        case "code": {
+          const id = genBlockId();
+          const bm = new Y.Map();
+          bm.set("id", id);
+          bm.set("type", "syntax");
+          bm.set("setCursor", false);
+          bm.set("wrap", false);
+          bm.set("lineNumbers", true);
+          bm.set("align", "left");
+          bm.set("indent", 0);
+          bm.set("data-language", block.language || "plaintext");
+          const chars = new Y.Text();
+          chars.insert(0, block.code + "\n");
+          bm.set("characters", chars);
+          // Caption sub-block (required by FuseBase client)
+          const capId = genBlockId();
+          const cap = new Y.Map();
+          cap.set("id", capId);
+          cap.set("type", "caption");
+          cap.set("align", "left");
+          cap.set("indent", 0);
+          const capChars = new Y.Text();
+          capChars.insert(0, "\n");
+          cap.set("characters", capChars);
+          blocksMap!.set(capId, cap);
+          bm.set("caption", capId);
+          blocksMap!.set(id, bm);
+          place(id);
+          break;
+        }
+        case "toggle": {
+          // Toggle block: parent block has characters (summary text) + children (array of child block IDs)
+          const childIds = collectChildren(block.children);
+          const summaryChars = new Y.Text();
+          insertInlineText(summaryChars, 0, block.summary);
+          addBlock("toggle", {
+            characters: summaryChars,
+            childIds,
+            collapsed: block.collapsed ?? false,
+          });
+          break;
+        }
+        case "hint": {
+          // Hint/callout block — same structure as paragraph
+          const chars = new Y.Text();
+          insertInlineText(chars, 0, block.children);
+          addBlock("hint", { color: block.color || "transparent", characters: chars });
+          break;
+        }
+        case "collapsible-heading": {
+          // Collapsible heading: regular heading type with children + collapsed (same structure as toggle)
+          const typeMap = { 1: "hLarge", 2: "hMedium", 3: "hSmall" } as const;
+          const childIds = collectChildren(block.children);
+          const summaryChars = new Y.Text();
+          insertInlineText(summaryChars, 0, block.summary);
+          addBlock(typeMap[block.level], {
+            characters: summaryChars,
+            childIds,
+            collapsed: block.collapsed ?? false,
+          });
+          break;
+        }
+        case "table": {
+          // Create columns — native schema: text columns have only id+type,
+          // non-text columns add columnType (and dbSelect for singleselect)
+          const colIds: string[] = [];
+          for (const col of block.columns) {
+            const colId = genBlockId();
+            const cm = new Y.Map();
+            cm.set("id", colId);
+            cm.set("type", "column");
+            if (col.text) {
+              cm.set("text", col.text);
             }
-            const cellId = genBlockId();
-            const cellMap = new Y.Map();
-            cellMap.set("id", cellId);
+            // Only set columnType for non-text columns (text is the default)
+            if (col.type && col.type !== "text") {
+              cm.set("columnType", col.type);
+            }
+            if ((col.type === "singleselect" || col.type === "multiselect") && col.dbSelect) {
+              cm.set("dbSelect", col.dbSelect);
+            }
+            // Column-level format options
+            if (col.format) {
+              const fmt: Record<string, any> = {};
+              if (col.format.currency) fmt.currency = col.format.currency;
+              if (col.format.customSymbol) fmt.customSymbol = col.format.customSymbol;
+              if (col.format.type) fmt.type = col.format.type;
+              if (col.format.symbolPosition) fmt.symbolPosition = col.format.symbolPosition;
+              if (col.format.decimalSeparator) fmt.decimalSeparator = col.format.decimalSeparator;
+              if (col.format.thousandSeparator) fmt.thousandSeparator = col.format.thousandSeparator;
+              if (col.format.colorNumbers) fmt.colorNumbers = col.format.colorNumbers;
+              if (col.format.dateFormat) fmt.dateFormat = col.format.dateFormat;
+              if (col.format.showTime) fmt.showTime = col.format.showTime;
+              if (col.format.firstDayOfWeek) fmt.firstDayOfWeek = col.format.firstDayOfWeek;
+              if (col.format.ratingIcon) fmt.ratingIcon = col.format.ratingIcon;
+              if (col.format.ratingAmount) fmt.ratingAmount = col.format.ratingAmount;
+              if (col.format.progressStyle) fmt.progressStyle = col.format.progressStyle;
+              if (Object.keys(fmt).length > 0) cm.set("format", fmt);
+            }
+            if (col.sortby) {
+              cm.set("sortby", col.sortby);
+            }
+            blocksMap!.set(colId, cm);
+            colIds.push(colId);
+          }
 
-            if (cell.cellType === "text") {
-              cellMap.set("type", "tableCellText");
-              cellMap.set("cellType", "text");
-              // Background color on the cell block
-              if (cell.color) {
-                cellMap.set("color", cell.color);
+          const rowIds: string[] = [];
+          for (const row of block.rows) {
+            const cellIds: (string | false)[] = [];
+            for (let ci = 0; ci < row.cells.length; ci++) {
+              const cell = row.cells[ci];
+              // null/undefined cell: check if it's consumed by a merge span
+              if (!cell) {
+                // Check if a previous cell in this row has colspan covering this position
+                let isMergeConsumed = false;
+                for (let pi = 0; pi < ci; pi++) {
+                  const prev = row.cells[pi];
+                  if (prev && 'colspan' in prev && prev.colspan && prev.colspan > 1) {
+                    if (pi + prev.colspan > ci) { isMergeConsumed = true; break; }
+                  }
+                }
+                if (isMergeConsumed) {
+                  // Emit a hidden placeholder cell block
+                  const hiddenId = genBlockId();
+                  const hm = new Y.Map();
+                  hm.set("id", hiddenId);
+                  hm.set("cellType", "text");
+                  hm.set("type", "tableCellText");
+                  hm.set("hidden", true);
+                  hm.set("children", new Y.Array<string>());
+                  blocksMap!.set(hiddenId, hm);
+                  cellIds.push(hiddenId);
+                } else {
+                  cellIds.push(false);
+                }
+                continue;
               }
-              // Vertical alignment on the cell block
-              if (cell.valign) {
-                cellMap.set("valign", cell.valign);
-              }
-              const textId = genBlockId();
-              const tm = new Y.Map();
-              tm.set("id", textId);
-              tm.set("type", "tableText");
-              const chars = new Y.Text();
-              insertInlineText(chars, 0, cell.children);
-              tm.set("characters", chars);
-              // Text alignment on the tableText block
-              if (cell.align) {
-                tm.set("align", cell.align);
-              }
-              blocksMap!.set(textId, tm);
-              const kids = new Y.Array<string>();
-              kids.push([textId]);
-              cellMap.set("children", kids);
-            } else if (cell.cellType === "singleselect") {
-              cellMap.set("type", "tableCellSelect");
-              cellMap.set("cellType", "singleselect");
-              const sel = new Y.Array<string>();
-              sel.push(cell.selected);
-              cellMap.set("selected", sel);
-            } else if (cell.cellType === "progress") {
-              cellMap.set("type", "tableCellProgress");
-              cellMap.set("cellType", "progress");
-              cellMap.set("progress", cell.progress);
-              // Per-cell progress style (FuseBase reads style from cell, not column)
-              const progressCol = block.columns[ci];
-              if (progressCol?.format?.progressStyle) {
-                cellMap.set("format", { type: progressCol.format.progressStyle });
-              }
-            } else if (cell.cellType === "checkbox") {
-              cellMap.set("type", "tableCellCheckbox");
-              cellMap.set("cellType", "checkbox");
-              cellMap.set("checked", cell.checked);
-            } else if (cell.cellType === "date") {
-              cellMap.set("type", "tableCellDate");
-              cellMap.set("cellType", "date");
-              cellMap.set("timestamp", cell.timestamp);
-              // Per-cell date format (FuseBase reads format from cell, not column)
-              const dateCol = block.columns[ci];
-              const dateFmt = dateCol?.format?.dateFormat;
-              if (dateFmt) {
-                const dateFmtMap: Record<string, string> = {
-                  "yyyy/mm/dd": "yyyyddmm",
-                  "dd/mm/yyyy": "ddmmyyyy",
-                  "mm/dd/yyyy": "mmddyyyy",
-                  "month_dd_yyyy": "month_dd_yyyy",
-                  "browser": "browser",
-                };
-                const cellFmtType = dateFmtMap[dateFmt] || dateFmt;
-                cellMap.set("format", { type: cellFmtType });
-              }
-            } else if (cell.cellType === "number") {
-              cellMap.set("type", "tableCellNumber");
-              cellMap.set("cellType", "number");
-              // Cell-level number format override
-              if (cell.format) cellMap.set("format", cell.format);
-              // Number cells use children + tableText (same as text cells)
-              const textId = genBlockId();
-              const tm2 = new Y.Map();
-              tm2.set("id", textId);
-              tm2.set("type", "tableText");
-              const numChars = new Y.Text();
-              numChars.insert(0, `${cell.value ?? 0}\n`);
-              tm2.set("characters", numChars);
-              blocksMap!.set(textId, tm2);
-              const numKids = new Y.Array<string>();
-              numKids.push([textId]);
-              cellMap.set("children", numKids);
-            } else if (cell.cellType === "currency") {
-              cellMap.set("type", "tableCellCurrency");
-              cellMap.set("cellType", "currency");
-              const textId = genBlockId();
-              const tm2 = new Y.Map();
-              tm2.set("id", textId);
-              tm2.set("type", "tableText");
-              const curChars = new Y.Text();
-              curChars.insert(0, `${cell.value ?? 0}\n`);
-              tm2.set("characters", curChars);
-              blocksMap!.set(textId, tm2);
-              const curKids = new Y.Array<string>();
-              curKids.push([textId]);
-              cellMap.set("children", curKids);
-            } else if (cell.cellType === "link") {
-              cellMap.set("type", "tableCellLink");
-              cellMap.set("cellType", "link");
-              const textId = genBlockId();
-              const tm2 = new Y.Map();
-              tm2.set("id", textId);
-              tm2.set("type", "tableText");
-              const linkChars = new Y.Text();
-              const linkText = cell.text || cell.url || "";
-              linkChars.insert(0, linkText, { link: cell.url });
-              tm2.set("characters", linkChars);
-              blocksMap!.set(textId, tm2);
-              const linkKids = new Y.Array<string>();
-              linkKids.push([textId]);
-              cellMap.set("children", linkKids);
-            } else if (cell.cellType === "rating") {
-              cellMap.set("type", "tableCellRating");
-              cellMap.set("cellType", "rating");
-              cellMap.set("rating", cell.rating ?? 0);
-              // Per-cell rating format (FuseBase reads icon from cell, not column)
-              const ratingCol = block.columns[ci];
-              if (ratingCol?.format?.ratingIcon) {
-                cellMap.set("format", { type: ratingCol.format.ratingIcon });
-              }
-            } else if (cell.cellType === "multiselect") {
-              cellMap.set("type", "tableCellSelect");
-              cellMap.set("cellType", "multiselect");
-              const sel = new Y.Array<string>();
-              sel.push(cell.selected);
-              cellMap.set("selected", sel);
-            } else if (cell.cellType === "mention") {
-              cellMap.set("type", "tableCellMention");
-              cellMap.set("cellType", "mention");
-              const textId = genBlockId();
-              const tm2 = new Y.Map();
-              tm2.set("id", textId);
-              tm2.set("type", "tableText");
-              const menChars = new Y.Text();
-              const m = cell.mention;
-              // Generate a short hex ID for the embed
-              const embedId = Math.random().toString(16).slice(2, 8);
-              if (m.mentionType === "date") {
-                menChars.insertEmbed(0, {
-                  date: {
-                    dateId: embedId,
-                    value: m.value,
-                    format: m.format ?? null,
-                    name: m.name,
-                  },
-                });
-              } else if (m.mentionType === "user") {
-                menChars.insertEmbed(0, {
+              const cellId = genBlockId();
+              const cellMap = new Y.Map();
+              cellMap.set("id", cellId);
+
+              if (cell.cellType === "text") {
+                cellMap.set("type", "tableCellText");
+                cellMap.set("cellType", "text");
+                // Background color on the cell block
+                if (cell.color) {
+                  cellMap.set("color", cell.color);
+                }
+                // Vertical alignment on the cell block
+                if (cell.valign) {
+                  cellMap.set("valign", cell.valign);
+                }
+                const textId = genBlockId();
+                const tm = new Y.Map();
+                tm.set("id", textId);
+                tm.set("type", "tableText");
+                const chars = new Y.Text();
+                insertInlineText(chars, 0, cell.children);
+                tm.set("characters", chars);
+                // Text alignment on the tableText block
+                if (cell.align) {
+                  tm.set("align", cell.align);
+                }
+                blocksMap!.set(textId, tm);
+                const kids = new Y.Array<string>();
+                kids.push([textId]);
+                cellMap.set("children", kids);
+              } else if (cell.cellType === "singleselect") {
+                cellMap.set("type", "tableCellSelect");
+                cellMap.set("cellType", "singleselect");
+                const sel = new Y.Array<string>();
+                sel.push(cell.selected);
+                cellMap.set("selected", sel);
+              } else if (cell.cellType === "progress") {
+                cellMap.set("type", "tableCellProgress");
+                cellMap.set("cellType", "progress");
+                cellMap.set("progress", cell.progress);
+                // Per-cell progress style (FuseBase reads style from cell, not column)
+                const progressCol = block.columns[ci];
+                if (progressCol?.format?.progressStyle) {
+                  cellMap.set("format", { type: progressCol.format.progressStyle });
+                }
+              } else if (cell.cellType === "checkbox") {
+                cellMap.set("type", "tableCellCheckbox");
+                cellMap.set("cellType", "checkbox");
+                cellMap.set("checked", cell.checked);
+              } else if (cell.cellType === "date") {
+                cellMap.set("type", "tableCellDate");
+                cellMap.set("cellType", "date");
+                cellMap.set("timestamp", cell.timestamp);
+                // Per-cell date format (FuseBase reads format from cell, not column)
+                const dateCol = block.columns[ci];
+                const dateFmt = dateCol?.format?.dateFormat;
+                if (dateFmt) {
+                  const dateFmtMap: Record<string, string> = {
+                    "yyyy/mm/dd": "yyyyddmm",
+                    "dd/mm/yyyy": "ddmmyyyy",
+                    "mm/dd/yyyy": "mmddyyyy",
+                    "month_dd_yyyy": "month_dd_yyyy",
+                    "browser": "browser",
+                  };
+                  const cellFmtType = dateFmtMap[dateFmt] || dateFmt;
+                  cellMap.set("format", { type: cellFmtType });
+                }
+              } else if (cell.cellType === "number") {
+                cellMap.set("type", "tableCellNumber");
+                cellMap.set("cellType", "number");
+                // Cell-level number format override
+                if (cell.format) cellMap.set("format", cell.format);
+                // Number cells use children + tableText (same as text cells)
+                const textId = genBlockId();
+                const tm2 = new Y.Map();
+                tm2.set("id", textId);
+                tm2.set("type", "tableText");
+                const numChars = new Y.Text();
+                numChars.insert(0, `${cell.value ?? 0}\n`);
+                tm2.set("characters", numChars);
+                blocksMap!.set(textId, tm2);
+                const numKids = new Y.Array<string>();
+                numKids.push([textId]);
+                cellMap.set("children", numKids);
+              } else if (cell.cellType === "currency") {
+                cellMap.set("type", "tableCellCurrency");
+                cellMap.set("cellType", "currency");
+                const textId = genBlockId();
+                const tm2 = new Y.Map();
+                tm2.set("id", textId);
+                tm2.set("type", "tableText");
+                const curChars = new Y.Text();
+                curChars.insert(0, `${cell.value ?? 0}\n`);
+                tm2.set("characters", curChars);
+                blocksMap!.set(textId, tm2);
+                const curKids = new Y.Array<string>();
+                curKids.push([textId]);
+                cellMap.set("children", curKids);
+              } else if (cell.cellType === "link") {
+                cellMap.set("type", "tableCellLink");
+                cellMap.set("cellType", "link");
+                const textId = genBlockId();
+                const tm2 = new Y.Map();
+                tm2.set("id", textId);
+                tm2.set("type", "tableText");
+                const linkChars = new Y.Text();
+                const linkText = cell.text || cell.url || "";
+                linkChars.insert(0, linkText, { link: cell.url });
+                tm2.set("characters", linkChars);
+                blocksMap!.set(textId, tm2);
+                const linkKids = new Y.Array<string>();
+                linkKids.push([textId]);
+                cellMap.set("children", linkKids);
+              } else if (cell.cellType === "rating") {
+                cellMap.set("type", "tableCellRating");
+                cellMap.set("cellType", "rating");
+                cellMap.set("rating", cell.rating ?? 0);
+                // Per-cell rating format (FuseBase reads icon from cell, not column)
+                const ratingCol = block.columns[ci];
+                if (ratingCol?.format?.ratingIcon) {
+                  cellMap.set("format", { type: ratingCol.format.ratingIcon });
+                }
+              } else if (cell.cellType === "multiselect") {
+                cellMap.set("type", "tableCellSelect");
+                cellMap.set("cellType", "multiselect");
+                const sel = new Y.Array<string>();
+                sel.push(cell.selected);
+                cellMap.set("selected", sel);
+              } else if (cell.cellType === "mention") {
+                cellMap.set("type", "tableCellMention");
+                cellMap.set("cellType", "mention");
+                const textId = genBlockId();
+                const tm2 = new Y.Map();
+                tm2.set("id", textId);
+                tm2.set("type", "tableText");
+                const menChars = new Y.Text();
+                const m = cell.mention;
+                // Generate a short hex ID for the embed
+                const embedId = Math.random().toString(16).slice(2, 8);
+                if (m.mentionType === "date") {
+                  menChars.insertEmbed(0, {
+                    date: {
+                      dateId: embedId,
+                      value: m.value,
+                      format: m.format ?? null,
+                      name: m.name,
+                    },
+                  });
+                } else if (m.mentionType === "user") {
+                  menChars.insertEmbed(0, {
+                    mention: {
+                      type: "user",
+                      object_id: m.objectId,
+                      id: embedId,
+                      name: m.name,
+                    },
+                  });
+                } else if (m.mentionType === "folder") {
+                  menChars.insertEmbed(0, {
+                    mention: {
+                      type: "folder",
+                      object_id: m.objectId,
+                      id: embedId,
+                      name: m.name,
+                      workspace_id: m.workspaceId ?? "",
+                    },
+                  });
+                } else if (m.mentionType === "workspace") {
+                  menChars.insertEmbed(0, {
+                    mention: {
+                      type: "workspace",
+                      object_id: m.objectId,
+                      id: embedId,
+                      name: m.name,
+                      workspace_id: m.workspaceId ?? m.objectId,
+                    },
+                  });
+                } else if (m.mentionType === "page") {
+                  menChars.insertEmbed(0, {
+                    mention: {
+                      type: "note",
+                      object_id: m.objectId,
+                      id: embedId,
+                      name: m.name,
+                      workspace_id: m.workspaceId ?? "",
+                    },
+                  });
+                }
+                menChars.insert(1, "\n");
+                tm2.set("characters", menChars);
+                blocksMap!.set(textId, tm2);
+                const menKids = new Y.Array<string>();
+                menKids.push([textId]);
+                cellMap.set("children", menKids);
+              } else if (cell.cellType === "collaborator") {
+                cellMap.set("type", "tableCellCollaborator");
+                cellMap.set("cellType", "collaborator");
+                const textId = genBlockId();
+                const tm2 = new Y.Map();
+                tm2.set("id", textId);
+                tm2.set("type", "tableText");
+                const collabChars = new Y.Text();
+                const embedId = Math.random().toString(16).slice(2, 8);
+                collabChars.insertEmbed(0, {
                   mention: {
                     type: "user",
-                    object_id: m.objectId,
+                    object_id: cell.userId,
                     id: embedId,
-                    name: m.name,
+                    name: cell.userName,
                   },
                 });
-              } else if (m.mentionType === "folder") {
-                menChars.insertEmbed(0, {
-                  mention: {
-                    type: "folder",
-                    object_id: m.objectId,
-                    id: embedId,
-                    name: m.name,
-                    workspace_id: m.workspaceId ?? "",
-                  },
-                });
-              } else if (m.mentionType === "workspace") {
-                menChars.insertEmbed(0, {
-                  mention: {
-                    type: "workspace",
-                    object_id: m.objectId,
-                    id: embedId,
-                    name: m.name,
-                    workspace_id: m.workspaceId ?? m.objectId,
-                  },
-                });
-              } else if (m.mentionType === "page") {
-                menChars.insertEmbed(0, {
-                  mention: {
-                    type: "note",
-                    object_id: m.objectId,
-                    id: embedId,
-                    name: m.name,
-                    workspace_id: m.workspaceId ?? "",
-                  },
-                });
+                collabChars.insert(1, "\n");
+                tm2.set("characters", collabChars);
+                blocksMap!.set(textId, tm2);
+                const collabKids = new Y.Array<string>();
+                collabKids.push([textId]);
+                cellMap.set("children", collabKids);
               }
-              menChars.insert(1, "\n");
-              tm2.set("characters", menChars);
-              blocksMap!.set(textId, tm2);
-              const menKids = new Y.Array<string>();
-              menKids.push([textId]);
-              cellMap.set("children", menKids);
-            } else if (cell.cellType === "collaborator") {
-              cellMap.set("type", "tableCellCollaborator");
-              cellMap.set("cellType", "collaborator");
-              const textId = genBlockId();
-              const tm2 = new Y.Map();
-              tm2.set("id", textId);
-              tm2.set("type", "tableText");
-              const collabChars = new Y.Text();
-              const embedId = Math.random().toString(16).slice(2, 8);
-              collabChars.insertEmbed(0, {
-                mention: {
-                  type: "user",
-                  object_id: cell.userId,
-                  id: embedId,
-                  name: cell.userName,
-                },
-              });
-              collabChars.insert(1, "\n");
-              tm2.set("characters", collabChars);
-              blocksMap!.set(textId, tm2);
-              const collabKids = new Y.Array<string>();
-              collabKids.push([textId]);
-              cellMap.set("children", collabKids);
-            }
 
-            // Merge support: colspan/rowspan on the spanning cell
-            if (cell && 'colspan' in cell && cell.colspan && cell.colspan > 1) {
-              cellMap.set("colspan", cell.colspan);
-            }
-            if (cell && 'rowspan' in cell && cell.rowspan && cell.rowspan > 1) {
-              cellMap.set("rowspan", cell.rowspan);
-            }
+              // Merge support: colspan/rowspan on the spanning cell
+              if (cell && 'colspan' in cell && cell.colspan && cell.colspan > 1) {
+                cellMap.set("colspan", cell.colspan);
+              }
+              if (cell && 'rowspan' in cell && cell.rowspan && cell.rowspan > 1) {
+                cellMap.set("rowspan", cell.rowspan);
+              }
 
-            blocksMap!.set(cellId, cellMap);
-            cellIds.push(cellId);
+              blocksMap!.set(cellId, cellMap);
+              cellIds.push(cellId);
+            }
+            const rowId = genBlockId();
+            const rm = new Y.Map();
+            rm.set("id", rowId);
+            rm.set("type", "row");
+            const rowKids = new Y.Array<string | false>();
+            rowKids.push(cellIds);
+            rm.set("children", rowKids);
+            // Row background color
+            if (row.color) {
+              rm.set("color", row.color);
+            }
+            blocksMap!.set(rowId, rm);
+            rowIds.push(rowId);
           }
-          const rowId = genBlockId();
-          const rm = new Y.Map();
-          rm.set("id", rowId);
-          rm.set("type", "row");
-          const rowKids = new Y.Array<string | false>();
-          rowKids.push(cellIds);
-          rm.set("children", rowKids);
-          // Row background color
-          if (row.color) {
-            rm.set("color", row.color);
+
+          const tableId = genBlockId();
+          const tm = new Y.Map();
+          tm.set("id", tableId);
+          tm.set("type", "table");
+          tm.set("version", 2);
+          tm.set("size", { cols: block.columns.length, rows: block.rows.length, visibleRows: block.rows.length });
+
+          const colArr = new Y.Array<string>();
+          colArr.push(colIds);
+          tm.set("columns", colArr);
+
+          const rowArr = new Y.Array<string>();
+          rowArr.push(rowIds);
+          tm.set("rows", rowArr);
+          tm.set("indent", 0);
+
+          if (block.sortableColumn) {
+            tm.set("sortableColumn", {
+              columnId: colIds[block.sortableColumn.columnIndex],
+              order: block.sortableColumn.order
+            });
+
+            const rowsOrderArr = new Y.Array<string>();
+            rowsOrderArr.push(rowIds); // Caller should pass the sorted rows in order
+            tm.set("rowsOrder", rowsOrderArr);
           }
-          blocksMap!.set(rowId, rm);
-          rowIds.push(rowId);
+
+          // Add empty caption
+          const capId = genBlockId();
+          const cap = new Y.Map();
+          cap.set("id", capId);
+          cap.set("type", "caption");
+          cap.set("align", "left");
+          cap.set("indent", 0);
+          const chars = new Y.Text();
+          chars.insert(0, "\n");
+          cap.set("characters", chars);
+          blocksMap!.set(capId, cap);
+          tm.set("caption", capId);
+
+          blocksMap!.set(tableId, tm);
+          place(tableId);
+          break;
         }
+        case "grid": {
+          const colIds: string[] = [];
+          for (const col of block.columns) {
+            const colId = genBlockId();
+            const cm = new Y.Map();
+            cm.set("id", colId);
+            cm.set("type", "gridCol");
+            cm.set("width", col.width);
 
-        const tableId = genBlockId();
-        const tm = new Y.Map();
-        tm.set("id", tableId);
-        tm.set("type", "table");
-        tm.set("version", 2);
-        tm.set("size", { cols: block.columns.length, rows: block.rows.length, visibleRows: block.rows.length });
+            const kids = new Y.Array<string>();
+            const kidIds = collectChildren(col.children);
+            if (kidIds.length > 0) kids.push(kidIds);
+            cm.set("children", kids);
+            blocksMap!.set(colId, cm);
+            colIds.push(colId);
+          }
 
-        const colArr = new Y.Array<string>();
-        colArr.push(colIds);
-        tm.set("columns", colArr);
+          const gridId = genBlockId();
+          const gm = new Y.Map();
+          gm.set("id", gridId);
+          gm.set("type", "grid");
+          gm.set("widths", new Y.Map());
+          const colsArr = new Y.Array<string>();
+          colsArr.push(colIds);
+          gm.set("children", colsArr);
 
-        const rowArr = new Y.Array<string>();
-        rowArr.push(rowIds);
-        tm.set("rows", rowArr);
-        tm.set("indent", 0);
+          blocksMap!.set(gridId, gm);
+          place(gridId);
+          break;
+        }
+        case "file": {
+          const id = genBlockId();
+          const m = new Y.Map();
+          m.set("id", id);
+          m.set("type", "file");
+          m.set("syncedViewerState", new Y.Map());
+          m.set("syncedInterfaceState", new Y.Map());
+          if (block.fileId) m.set("fileId", block.fileId);
+          const capId = genBlockId();
+          const cap = new Y.Map();
+          cap.set("id", capId);
+          cap.set("type", "caption");
+          cap.set("align", "left");
+          cap.set("indent", 0);
+          const chars = new Y.Text();
+          if (block.caption) {
+            insertInlineText(chars, 0, block.caption);
+          } else {
+            chars.insert(0, "\n");
+          }
+          cap.set("characters", chars);
+          blocksMap!.set(capId, cap);
+          m.set("caption", capId);
 
-        if (block.sortableColumn) {
-          tm.set("sortableColumn", {
-            columnId: colIds[block.sortableColumn.columnIndex],
-            order: block.sortableColumn.order
+          blocksMap!.set(id, m);
+          place(id);
+          break;
+        }
+        case "remote-frame": {
+          const id = genBlockId();
+          const m = new Y.Map();
+          m.set("id", id);
+          m.set("type", "remote-frame");
+          m.set("src", block.src);
+          m.set("embed-type", null);
+          m.set("html", null);
+          m.set("signature", "");
+          m.set("allowOverWidth", block.allowOverWidth ?? false);
+
+          const capId = genBlockId();
+          const cap = new Y.Map();
+          cap.set("id", capId);
+          cap.set("type", "caption");
+          cap.set("align", "left");
+          cap.set("indent", 0);
+          const chars = new Y.Text();
+          if (block.caption) {
+            insertInlineText(chars, 0, block.caption);
+          } else {
+            chars.insert(0, "\n");
+          }
+          cap.set("characters", chars);
+          blocksMap!.set(capId, cap);
+          m.set("caption", capId);
+
+          blocksMap!.set(id, m);
+          place(id);
+          break;
+        }
+        case "uploader": {
+          const id = genBlockId();
+          const m = new Y.Map();
+          m.set("id", id);
+          m.set("type", "uploader");
+          m.set("children", new Y.Array<string>());
+          m.set("enabledInPublicPage", true);
+          blocksMap!.set(id, m);
+          place(id);
+          break;
+        }
+        case "foreign-dashboard": {
+          const id = genBlockId();
+          const m = new Y.Map();
+          m.set("id", id);
+          m.set("type", "foreign-dashboard");
+          m.set("componentType", "dashboard");
+          m.set("componentData", {
+            entityType: "database",
+            databaseId: block.databaseId,
+            dashboardId: block.dashboardId,
+            dashboardViewId: block.dashboardViewId,
+            tableSelector: false,
+            viewSelector: true
           });
-
-          const rowsOrderArr = new Y.Array<string>();
-          rowsOrderArr.push(rowIds); // Caller should pass the sorted rows in order
-          tm.set("rowsOrder", rowsOrderArr);
+          m.set("blotParams", { forbidInColumn: true });
+          m.set("fullwidthMode", true);
+          blocksMap!.set(id, m);
+          place(id);
+          break;
         }
+        case "board": {
+          const id = genBlockId();
+          const m = new Y.Map();
+          m.set("id", id);
+          m.set("type", "board");
+          m.set("layout", { "add-new-column": true });
+          m.set("boardId", block.boardId);
+          blocksMap!.set(id, m);
+          place(id);
+          break;
+        }
+        case "tasks-list": {
+          const id = genBlockId();
+          const m = new Y.Map();
+          m.set("id", id);
+          m.set("type", "tasks-list");
+          m.set("tasksListId", block.tasksListId);
+          blocksMap!.set(id, m);
+          place(id);
+          break;
+        }
+        case "button-single": {
+          const id = genBlockId();
+          const m = new Y.Map();
+          m.set("id", id);
+          m.set("type", "button-single");
+          m.set("showForm", false);
+          m.set("title", block.title);
+          m.set("url", block.url);
+          blocksMap!.set(id, m);
+          place(id);
+          break;
+        }
+        case "step": {
+          const childIds = collectChildren(block.children);
 
-        // Add empty caption
-        const capId = genBlockId();
-        const cap = new Y.Map();
-        cap.set("id", capId);
-        cap.set("type", "caption");
-        cap.set("align", "left");
-        cap.set("indent", 0);
-        const chars = new Y.Text();
-        chars.insert(0, "\n");
-        cap.set("characters", chars);
-        blocksMap!.set(capId, cap);
-        tm.set("caption", capId);
-
-        blocksMap!.set(tableId, tm);
-        rootChildren!.push([tableId]);
-        break;
-      }
-      case "grid": {
-        const colIds: string[] = [];
-        for (const col of block.columns) {
-          const colId = genBlockId();
-          const cm = new Y.Map();
-          cm.set("id", colId);
-          cm.set("type", "gridCol");
-          cm.set("width", col.width);
+          const id = genBlockId();
+          const m = new Y.Map();
+          m.set("id", id);
+          m.set("type", "step");
+          m.set("collapsed", false);
+          m.set("show-arrow", true);
+          const chars = new Y.Text();
+          chars.insert(0, "\n");
+          m.set("characters", chars);
 
           const kids = new Y.Array<string>();
-          const kidIds: string[] = [];
-          for (const child of col.children) {
-            const childChars = new Y.Text();
-            if (child.type === "paragraph") {
-              insertInlineText(childChars, 0, child.children);
-              kidIds.push(addChildBlock("paragraph", { characters: childChars }));
-            } else {
-              insertInlineText(childChars, 0, [{ text: "(nested item)" }]);
-              kidIds.push(addChildBlock("paragraph", { characters: childChars }));
-            }
+          if (childIds.length > 0) kids.push(childIds);
+          m.set("children", kids);
+
+          blocksMap!.set(id, m);
+          place(id);
+          break;
+        }
+        case "image": {
+          const id = genBlockId();
+          const m = new Y.Map();
+          m.set("id", id);
+          m.set("type", "image");
+          m.set("src", block.src);
+          m.set("imageShadow", false);
+          m.set("allowOverWidth", false);
+          m.set("indent", 0);
+          m.set("color", "transparent");
+          m.set("align", "center");
+          if (block.width) {
+            m.set("width", block.width);
+            m.set("noGridWidth", block.width);
           }
-          if (kidIds.length > 0) kids.push(kidIds);
-          cm.set("children", kids);
-          blocksMap!.set(colId, cm);
-          colIds.push(colId);
-        }
+          if (block.ratio) m.set("ratio", block.ratio);
+          if (block.originalSize) m.set("originalSize", block.originalSize);
 
-        const gridId = genBlockId();
-        const gm = new Y.Map();
-        gm.set("id", gridId);
-        gm.set("type", "grid");
-        gm.set("widths", new Y.Map());
-        const colsArr = new Y.Array<string>();
-        colsArr.push(colIds);
-        gm.set("children", colsArr);
-
-        blocksMap!.set(gridId, gm);
-        rootChildren!.push([gridId]);
-        break;
-      }
-      case "file": {
-        const id = genBlockId();
-        const m = new Y.Map();
-        m.set("id", id);
-        m.set("type", "file");
-        m.set("syncedViewerState", new Y.Map());
-        m.set("syncedInterfaceState", new Y.Map());
-        if (block.fileId) m.set("fileId", block.fileId);
-        const capId = genBlockId();
-        const cap = new Y.Map();
-        cap.set("id", capId);
-        cap.set("type", "caption");
-        cap.set("align", "left");
-        cap.set("indent", 0);
-        const chars = new Y.Text();
-        if (block.caption) {
-          insertInlineText(chars, 0, block.caption);
-        } else {
-          chars.insert(0, "\n");
-        }
-        cap.set("characters", chars);
-        blocksMap!.set(capId, cap);
-        m.set("caption", capId);
-
-        blocksMap!.set(id, m);
-        rootChildren!.push([id]);
-        break;
-      }
-      case "remote-frame": {
-        const id = genBlockId();
-        const m = new Y.Map();
-        m.set("id", id);
-        m.set("type", "remote-frame");
-        m.set("src", block.src);
-        m.set("embed-type", null);
-        m.set("html", null);
-        m.set("signature", "");
-        m.set("allowOverWidth", block.allowOverWidth ?? false);
-
-        const capId = genBlockId();
-        const cap = new Y.Map();
-        cap.set("id", capId);
-        cap.set("type", "caption");
-        cap.set("align", "left");
-        cap.set("indent", 0);
-        const chars = new Y.Text();
-        if (block.caption) {
-          insertInlineText(chars, 0, block.caption);
-        } else {
-          chars.insert(0, "\n");
-        }
-        cap.set("characters", chars);
-        blocksMap!.set(capId, cap);
-        m.set("caption", capId);
-
-        blocksMap!.set(id, m);
-        rootChildren!.push([id]);
-        break;
-      }
-      case "uploader": {
-        const id = genBlockId();
-        const m = new Y.Map();
-        m.set("id", id);
-        m.set("type", "uploader");
-        m.set("children", new Y.Array<string>());
-        m.set("enabledInPublicPage", true);
-        blocksMap!.set(id, m);
-        rootChildren!.push([id]);
-        break;
-      }
-      case "foreign-dashboard": {
-        const id = genBlockId();
-        const m = new Y.Map();
-        m.set("id", id);
-        m.set("type", "foreign-dashboard");
-        m.set("componentType", "dashboard");
-        m.set("componentData", {
-          entityType: "database",
-          databaseId: block.databaseId,
-          dashboardId: block.dashboardId,
-          dashboardViewId: block.dashboardViewId,
-          tableSelector: false,
-          viewSelector: true
-        });
-        m.set("blotParams", { forbidInColumn: true });
-        m.set("fullwidthMode", true);
-        blocksMap!.set(id, m);
-        rootChildren!.push([id]);
-        break;
-      }
-      case "board": {
-        const id = genBlockId();
-        const m = new Y.Map();
-        m.set("id", id);
-        m.set("type", "board");
-        m.set("layout", { "add-new-column": true });
-        m.set("boardId", block.boardId);
-        blocksMap!.set(id, m);
-        rootChildren!.push([id]);
-        break;
-      }
-      case "tasks-list": {
-        const id = genBlockId();
-        const m = new Y.Map();
-        m.set("id", id);
-        m.set("type", "tasks-list");
-        m.set("tasksListId", block.tasksListId);
-        blocksMap!.set(id, m);
-        rootChildren!.push([id]);
-        break;
-      }
-      case "button-single": {
-        const id = genBlockId();
-        const m = new Y.Map();
-        m.set("id", id);
-        m.set("type", "button-single");
-        m.set("showForm", false);
-        m.set("title", block.title);
-        m.set("url", block.url);
-        blocksMap!.set(id, m);
-        rootChildren!.push([id]);
-        break;
-      }
-      case "step": {
-        const childIds: string[] = [];
-        for (const child of block.children) {
-          const childChars = new Y.Text();
-          if (child.type === "paragraph") {
-            insertInlineText(childChars, 0, child.children);
-            childIds.push(addChildBlock("paragraph", { characters: childChars }));
+          const capId = genBlockId();
+          const cap = new Y.Map();
+          cap.set("id", capId);
+          cap.set("type", "caption");
+          cap.set("align", "left");
+          cap.set("indent", 0);
+          const chars = new Y.Text();
+          if (block.caption) {
+            insertInlineText(chars, 0, block.caption);
           } else {
-            insertInlineText(childChars, 0, [{ text: "(nested block)" }]);
-            childIds.push(addChildBlock("paragraph", { characters: childChars }));
+            chars.insert(0, "\n");
           }
+          cap.set("characters", chars);
+          blocksMap!.set(capId, cap);
+          m.set("caption", capId);
+
+          blocksMap!.set(id, m);
+          place(id);
+          break;
         }
+        case "bookmark": {
+          const id = genBlockId();
+          const m = new Y.Map();
+          m.set("id", id);
+          m.set("type", "bookmark");
+          m.set("viewMode", "card");
+          m.set("name", null);
+          m.set("description", null);
+          m.set("attachmentGlobalId", null);
+          m.set("icon", null);
+          m.set("src", block.url || null);
+          m.set("color", "yellow-green");
+          m.set("previewId", null);
 
-        const id = genBlockId();
-        const m = new Y.Map();
-        m.set("id", id);
-        m.set("type", "step");
-        m.set("collapsed", false);
-        m.set("show-arrow", true);
-        const chars = new Y.Text();
-        chars.insert(0, "\n");
-        m.set("characters", chars);
-
-        const kids = new Y.Array<string>();
-        if (childIds.length > 0) kids.push(childIds);
-        m.set("children", kids);
-
-        blocksMap!.set(id, m);
-        rootChildren!.push([id]);
-        break;
-      }
-      case "image": {
-        const id = genBlockId();
-        const m = new Y.Map();
-        m.set("id", id);
-        m.set("type", "image");
-        m.set("src", block.src);
-        m.set("imageShadow", false);
-        m.set("allowOverWidth", false);
-        m.set("indent", 0);
-        m.set("color", "transparent");
-        m.set("align", "center");
-        if (block.width) {
-          m.set("width", block.width);
-          m.set("noGridWidth", block.width);
+          blocksMap!.set(id, m);
+          place(id);
+          break;
         }
-        if (block.ratio) m.set("ratio", block.ratio);
-        if (block.originalSize) m.set("originalSize", block.originalSize);
+        case "outline": {
+          const id = genBlockId();
+          const m = new Y.Map();
+          m.set("id", id);
+          m.set("type", "outline");
+          m.set("name", null);
+          m.set("bordered", block.bordered ?? true);
+          m.set("numbered", block.numbered ?? true);
+          m.set("expanded", block.expanded ?? true);
 
-        const capId = genBlockId();
-        const cap = new Y.Map();
-        cap.set("id", capId);
-        cap.set("type", "caption");
-        cap.set("align", "left");
-        cap.set("indent", 0);
-        const chars = new Y.Text();
-        if (block.caption) {
-          insertInlineText(chars, 0, block.caption);
-        } else {
-          chars.insert(0, "\n");
+          blocksMap!.set(id, m);
+          place(id);
+          break;
         }
-        cap.set("characters", chars);
-        blocksMap!.set(capId, cap);
-        m.set("caption", capId);
+        case "step-aggregator": {
+          const id = genBlockId();
+          const m = new Y.Map();
+          m.set("id", id);
+          m.set("type", "step-aggregator");
 
-        blocksMap!.set(id, m);
-        rootChildren!.push([id]);
-        break;
-      }
-      case "bookmark": {
-        const id = genBlockId();
-        const m = new Y.Map();
-        m.set("id", id);
-        m.set("type", "bookmark");
-        m.set("viewMode", "card");
-        m.set("name", null);
-        m.set("description", null);
-        m.set("attachmentGlobalId", null);
-        m.set("icon", null);
-        m.set("src", block.url || null);
-        m.set("color", "yellow-green");
-        m.set("previewId", null);
-
-        blocksMap!.set(id, m);
-        rootChildren!.push([id]);
-        break;
-      }
-      case "outline": {
-        const id = genBlockId();
-        const m = new Y.Map();
-        m.set("id", id);
-        m.set("type", "outline");
-        m.set("name", null);
-        m.set("bordered", block.bordered ?? true);
-        m.set("numbered", block.numbered ?? true);
-        m.set("expanded", block.expanded ?? true);
-
-        blocksMap!.set(id, m);
-        rootChildren!.push([id]);
-        break;
-      }
-      case "step-aggregator": {
-        const id = genBlockId();
-        const m = new Y.Map();
-        m.set("id", id);
-        m.set("type", "step-aggregator");
-
-        blocksMap!.set(id, m);
-        rootChildren!.push([id]);
-        break;
+          blocksMap!.set(id, m);
+          place(id);
+          break;
+        }
       }
     }
   }
+
+  emit(blocks);
 }
 
 // ─── JWT ───
 
-async function getAuthToken(host: string, workspaceId: string, pageId: string, cookie: string): Promise<string> {
+async function getAuthToken(host: string, workspaceId: string, pageId: string, cookie: string, timeoutMs = 15000): Promise<string> {
   const res = await fetch(
-    `https://${host}/v4/api/workspaces/${workspaceId}/texts/${pageId}/tokens`,
-    { method: "POST", headers: { cookie, "content-type": "application/json" }, body: JSON.stringify({ tokens: [] }) },
+    `https://${host}/v4/api/workspaces/${encodeURIComponent(workspaceId)}/texts/${encodeURIComponent(pageId)}/tokens`,
+    {
+      method: "POST",
+      headers: { cookie, "content-type": "application/json" },
+      body: JSON.stringify({ tokens: [] }),
+      signal: AbortSignal.timeout(timeoutMs), // CON-4: the token fetch was outside the write timeout
+    },
   );
   if (!res.ok) throw new Error(`Token request failed: ${res.status}`);
   const data = (await res.json()) as { token: string };
@@ -1083,13 +1047,95 @@ export async function writeContentViaWebSocket(
     /** Timeout in ms (default: 20000) */
     timeout?: number;
   } = {},
-): Promise<{ success: boolean; error?: string }> {
+): Promise<WriteResult> {
+  // One write per page at a time in this process, so concurrent replaces can't interleave (CON-5).
+  return withPageLock(`${host}/${workspaceId}/${pageId}`, async () => {
+    const sent = await sendContentUpdate(host, workspaceId, pageId, cookie, blocks, options);
+    if (!sent.success || !sent.pending) return { success: sent.success, error: sent.error };
+    // CON-4: confirm the server actually holds our update instead of trusting a timer.
+    return confirmUpdate(host, workspaceId, pageId, cookie, sent.pending);
+  });
+}
+
+export interface WriteResult {
+  success: boolean;
+  error?: string;
+  /** Set when the update was sent but the server could not be shown to hold it. Don't blindly retry an append. */
+  unconfirmed?: boolean;
+}
+
+// ─── Per-page write lock (CON-5) ───
+
+const pageLocks = new Map<string, Promise<unknown>>();
+
+/** Run `fn` after any earlier write to the same page in this process has finished. */
+export async function withPageLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  const previous = pageLocks.get(key) ?? Promise.resolve();
+  const run = previous.catch(() => undefined).then(fn);
+  pageLocks.set(key, run);
+  try {
+    return await run;
+  } finally {
+    if (pageLocks.get(key) === run) pageLocks.delete(key);
+  }
+}
+
+// ─── Write confirmation (CON-4) ───
+
+export interface PendingUpdate {
+  clientId: number;
+  clock: number;
+}
+
+/** True when the server-side doc contains our client's updates up to `clock`. */
+export function docHasUpdate(doc: Y.Doc, pending: PendingUpdate): boolean {
+  return (Y.decodeStateVector(Y.encodeStateVector(doc)).get(pending.clientId) ?? 0) >= pending.clock;
+}
+
+async function confirmUpdate(
+  host: string,
+  workspaceId: string,
+  pageId: string,
+  cookie: string,
+  pending: PendingUpdate,
+  attempts = 5,
+  delayMs = 700,
+): Promise<WriteResult> {
+  let lastError = "";
+  for (let i = 0; i < attempts; i++) {
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+    const read = await readContentViaWebSocket(host, workspaceId, pageId, cookie, { timeout: 10000 });
+    if (read.success && read.doc) {
+      if (docHasUpdate(read.doc, pending)) return { success: true };
+    } else {
+      lastError = read.error ?? "read failed";
+    }
+  }
+  return {
+    success: false,
+    unconfirmed: true,
+    error: `Write unconfirmed: the update was sent but the server did not show it after ${attempts} checks${lastError ? ` (last read error: ${lastError})` : ""}. It may still have been applied; check the page before retrying.`,
+  };
+}
+
+/**
+ * Open the editor socket, sync, and send one update with `blocks`. Resolves once the update
+ * has been handed to the socket; confirmation happens separately in confirmUpdate().
+ */
+async function sendContentUpdate(
+  host: string,
+  workspaceId: string,
+  pageId: string,
+  cookie: string,
+  blocks: ContentBlock[],
+  options: { replace?: boolean; timeout?: number },
+): Promise<{ success: boolean; error?: string; pending?: PendingUpdate }> {
   const { replace = true, timeout = 20000 } = options;
 
   // Step 1: Get JWT
   let jwt: string;
   try {
-    jwt = await getAuthToken(host, workspaceId, pageId, cookie);
+    jwt = await getAuthToken(host, workspaceId, pageId, cookie, timeout);
   } catch (e) {
     return { success: false, error: `JWT auth failed: ${(e as Error).message}` };
   }
@@ -1131,15 +1177,22 @@ export async function writeContentViaWebSocket(
     });
 
     let resolved = false;
-    const done = (result: { success: boolean; error?: string }) => {
+    let pending: PendingUpdate | undefined; // set once our update has been sent
+    const done = (result: { success: boolean; error?: string; pending?: PendingUpdate }) => {
       if (!resolved) { resolved = true; clearTimeout(timeoutId); resolve(result); }
       try { ws.close(); } catch { /* already closed */ }
     };
+    // Once the update is on the wire, let confirmation decide instead of reporting failure.
+    const doneAfterSend = () => done({ success: true, pending });
 
-    const timeoutId = setTimeout(() => done({ success: false, error: "Timeout" }), timeout);
+    const timeoutId = setTimeout(() => (pending ? doneAfterSend() : done({ success: false, error: "Timeout" })), timeout);
 
-    ws.on("error", (e: Error) => done({ success: false, error: `WebSocket error: ${e.message}` }));
-    ws.on("close", (code: number, reason: Buffer) => { if (!resolved) done({ success: false, error: `Connection closed before sync (code=${code}, reason=${reason?.toString() || 'none'})` }); });
+    ws.on("error", (e: Error) => (pending ? doneAfterSend() : done({ success: false, error: `WebSocket error: ${e.message}` })));
+    ws.on("close", (code: number, reason: Buffer) => {
+      if (resolved) return;
+      if (pending) doneAfterSend();
+      else done({ success: false, error: `Connection closed before sync (code=${code}, reason=${reason?.toString() || "none"})` });
+    });
     (ws as any).on("unexpected-response", (_req: unknown, res: { statusCode: number }) => {
       done({ success: false, error: `WebSocket upgrade failed: HTTP ${res.statusCode} (text sync server may be down)` });
     });
@@ -1151,8 +1204,10 @@ export async function writeContentViaWebSocket(
       ws.send(Buffer.from(awarenessMsg));
     });
 
+    let wrote = false;
     ws.on("message", (raw: Buffer, isBinary: boolean) => {
-      if (!isBinary) return;
+      // Ignore anything after the outcome is decided (e.g. a step 2 arriving after the timeout).
+      if (resolved || !isBinary) return;
       const data = new Uint8Array(raw);
       if (data.length === 0) return;
 
@@ -1189,18 +1244,16 @@ export async function writeContentViaWebSocket(
       else if (subType === 1) {
         // Server SyncStep2: server sends its document state
         // With encv2=true, the data is V2-encoded
+        if (wrote) return; // a duplicate step 2 must not write the content twice (CON-4)
+        wrote = true;
         const [uLen, uStart] = readVarUint(data, subOff);
         const updateData = data.slice(uStart, uStart + uLen);
 
-        // Apply server state using V2 encoding (encv2=true mode)
-        let applied = false;
-        try { Y.applyUpdateV2(ydoc, updateData); applied = true; } catch { /* not V2-encoded; V1 fallback below */ }
-        if (!applied) {
-          // Fallback to V1 just in case
-          try { Y.applyUpdate(ydoc, updateData); applied = true; } catch { /* handled by !applied check */ }
-        }
-
-        if (!applied) {
+        // Apply server state (V2 with encv2=true, V1 fallback). Never write on top of a
+        // document we couldn't read: replace would drop content we never saw.
+        try {
+          applyYjsUpdate(ydoc, updateData);
+        } catch {
           done({ success: false, error: "Failed to apply server document state" });
           return;
         }
@@ -1241,10 +1294,16 @@ export async function writeContentViaWebSocket(
 
           // Server expects V1 outbound update encoding
           const diff = Y.encodeStateAsUpdate(ydoc, beforeSv);
-          ws.send(Buffer.from(encodeSyncMessage(0x02, diff)));
-
-          // Wait for server to process the update before closing
-          setTimeout(() => done({ success: true }), 3000);
+          const clock = Y.decodeStateVector(Y.encodeStateVector(ydoc)).get(ydoc.clientID) ?? 0;
+          if (clock === 0) {
+            done({ success: true }); // nothing to write (e.g. an empty append)
+            return;
+          }
+          pending = { clientId: ydoc.clientID, clock };
+          ws.send(Buffer.from(encodeSyncMessage(0x02, diff)), () => {
+            // Handed to the socket; give the server a moment to process before closing.
+            setTimeout(doneAfterSend, 300);
+          });
         } catch (e) {
           done({ success: false, error: `Write failed: ${(e as Error).message}` });
         }
@@ -1253,9 +1312,12 @@ export async function writeContentViaWebSocket(
       else if (subType === 2) {
         // Incremental update from server or another client
         const [uLen, uStart] = readVarUint(data, subOff);
-        const updateData = data.slice(uStart, uStart + uLen);
-        try { Y.applyUpdateV2(ydoc, updateData); } catch {
-          try { Y.applyUpdate(ydoc, updateData); } catch { /* TODO(CON-8): undecodable update is silently dropped */ }
+        try {
+          applyYjsUpdate(ydoc, data.slice(uStart, uStart + uLen));
+        } catch (e) {
+          // Before our write this would leave us with an inconsistent view of the page; after
+          // it, confirmation re-reads the page anyway.
+          if (!pending) done({ success: false, error: `Could not decode page update: ${(e as Error).message}` });
         }
       }
     });
@@ -1328,6 +1390,23 @@ export async function readContentViaWebSocket(
       if (!resolved) { resolved = true; clearTimeout(timeoutId); resolve(result); }
       try { ws.close(); } catch { /* already closed */ }
     };
+    // Undecodable updates and broken documents are errors, not an empty page (CON-8).
+    const applyOrFail = (update: Uint8Array): boolean => {
+      try {
+        applyYjsUpdate(ydoc, update);
+        return true;
+      } catch (e) {
+        done({ success: false, error: `Could not decode page content: ${(e as Error).message}` });
+        return false;
+      }
+    };
+    const finish = () => {
+      try {
+        done({ success: true, html: decodeYDocToHtml(ydoc), doc: ydoc });
+      } catch (e) {
+        done({ success: false, error: `Could not decode page content: ${(e as Error).message}` });
+      }
+    };
 
     const timeoutId = setTimeout(() => done({ success: false, error: "Timeout" }), timeout);
 
@@ -1375,31 +1454,19 @@ export async function readContentViaWebSocket(
       } else if (subType === 1) {
         // Server SyncStep2 — apply the full document state
         const [uLen, uStart] = readVarUint(data, subOff);
-        const updateData = data.slice(uStart, uStart + uLen);
-        try { Y.applyUpdateV2(ydoc, updateData); } catch {
-          try { Y.applyUpdate(ydoc, updateData); } catch { /* TODO(CON-8): undecodable update is silently dropped */ }
-        }
+        if (!applyOrFail(data.slice(uStart, uStart + uLen))) return;
 
         // Allow trailing incremental updates (subType 2) to settle before returning
         if (settleTimer) clearTimeout(settleTimer);
-        settleTimer = setTimeout(() => {
-          const html = decodeYDocToHtml(ydoc);
-          done({ success: true, html, doc: ydoc });
-        }, 350);
+        settleTimer = setTimeout(finish, 350);
       } else if (subType === 2) {
         const [uLen, uStart] = readVarUint(data, subOff);
-        const updateData = data.slice(uStart, uStart + uLen);
-        try { Y.applyUpdateV2(ydoc, updateData); } catch {
-          try { Y.applyUpdate(ydoc, updateData); } catch { /* TODO(CON-8): undecodable update is silently dropped */ }
-        }
+        if (!applyOrFail(data.slice(uStart, uStart + uLen))) return;
 
         // Refresh settle timer if we already received the sync snapshot
         if (settleTimer) {
           clearTimeout(settleTimer);
-          settleTimer = setTimeout(() => {
-            const html = decodeYDocToHtml(ydoc);
-            done({ success: true, html, doc: ydoc });
-          }, 350);
+          settleTimer = setTimeout(finish, 350);
         }
       }
     });

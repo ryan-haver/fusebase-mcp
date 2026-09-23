@@ -52,14 +52,15 @@ describe("Y.Doc writer → HTML decoder round trip", () => {
     expect(html).toContain('<a href="https://x.io">the docs</a> for details.');
   });
 
-  // CON-2: tables decode to a placeholder, so read → write-back destroys them.
-  it.fails("decodes table cell contents (CON-2)", () => {
+  // CON-2: tables decoded to a placeholder, so read → write-back destroyed them.
+  it("decodes table cell contents (CON-2)", () => {
     const html = decodeYDocToHtml(build(markdownToSchema("| Name | Qty |\n|---|---|\n| Alpha | 42 |")));
-    expect(html).toContain("Alpha");
+    expect(html).toContain("<th>Name</th><th>Qty</th>");
+    expect(html).toContain("<td>Alpha</td><td>42</td>");
   });
 
-  // CON-3: non-paragraph children of a toggle are written as "(nested block)".
-  it.fails("keeps nested list content inside a toggle (CON-3)", () => {
+  // CON-3 regression: non-paragraph children of a toggle were written as "(nested block)".
+  it("keeps nested list content inside a toggle (CON-3)", () => {
     const doc = build([
       { type: "toggle", summary: [{ text: "More" }], children: [{ type: "list", style: "bullet", items: [{ children: [{ text: "nested item" }] }] }] },
     ] as ContentBlock[]);
@@ -70,16 +71,22 @@ describe("Y.Doc writer → HTML decoder round trip", () => {
 describe("htmlToMarkdown (get_page_content markdown mode)", () => {
   it("converts basic formatting", () => {
     expect(htmlToMarkdown("<h1>Title</h1><p><strong>b</strong> and <em>i</em></p>")).toContain("# Title");
-    expect(htmlToMarkdown("<p>line one<br>line two</p>")).toBe("line one\nline two");
+    expect(htmlToMarkdown("<p>line one<br>line two</p>")).toBe("line one\\\nline two");
+  });
+
+  it("keeps line breaks through a read → write round trip", () => {
+    const blocks = markdownToSchema(htmlToMarkdown("<p>line one<br>line two</p>")) as any[];
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].children.map((c: any) => c.text).join("")).toBe("line one\nline two");
   });
 
   // CON-8: `<i[^>]*>` also matches `<img ...>`, destroying the image.
-  it.fails("keeps an image that precedes italic text (CON-8)", () => {
+  it("keeps an image that precedes italic text (CON-8)", () => {
     expect(htmlToMarkdown('<p><img src="a.png" alt="pic"> and <i>ital</i></p>')).toContain("![pic](a.png)");
   });
 
   // CON-8: tables flatten to concatenated cell text.
-  it.fails("renders tables as GFM tables (CON-8)", () => {
+  it("renders tables as GFM tables (CON-8)", () => {
     expect(htmlToMarkdown("<table><tr><td>a</td><td>b</td></tr></table>")).toContain("| a | b |");
   });
 });

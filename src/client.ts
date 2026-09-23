@@ -1569,17 +1569,19 @@ export class FusebaseClient {
 
   /** Get page content as HTML/MD via Gate MCP or Y.js WebSocket sync + decoder */
   async getPageContent(workspaceId: string, noteId: string): Promise<string> {
+    let wsError: string | undefined;
     if (this.cookie) {
       try {
         const { readContentViaWebSocket } = await import("./yjs-ws-writer.js");
         const result = await readContentViaWebSocket(this.host, workspaceId, noteId, this.cookie);
-        if (result.success && result.html) {
-          return result.html;
-        }
+        // An empty page is a valid result, not a failure.
+        if (result.success) return result.html ?? "";
+        wsError = result.error;
       } catch (err: any) {
-        if (!this.gateBridge?.hasGate) throw err;
-        console.warn(`[client] WebSocket getPageContent failed (${err.message}), falling back to Gate bridge...`);
+        wsError = err.message;
       }
+      if (!this.gateBridge?.hasGate) throw new Error(`Page content read failed: ${wsError}`);
+      console.warn(`[client] WebSocket getPageContent failed (${wsError}), falling back to Gate bridge...`);
     }
     if (this.gateBridge?.hasGate) {
       try {

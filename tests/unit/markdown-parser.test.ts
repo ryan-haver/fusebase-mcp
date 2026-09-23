@@ -51,20 +51,20 @@ describe("markdownToSchema: other blocks", () => {
   });
 
   // CON-7: CRLF input leaves "\r" in heading text and code lines.
-  it.fails("normalises CRLF line endings (CON-7)", () => {
+  it("normalises CRLF line endings (CON-7)", () => {
     const blocks = markdownToSchema("# Title\r\n\r\nBody\r\n") as any[];
     expect(blocks[0].children[0].text).toBe("Title");
   });
 
   // CON-7: numeric-looking cells are coerced, losing leading zeros.
-  it.fails("keeps leading zeros in table cells (CON-7)", () => {
+  it("keeps leading zeros in table cells (CON-7)", () => {
     const table = markdownToSchema("| City | Zip |\n|---|---|\n| Boston | 02134 |").find((b) => b.type === "table") as any;
     expect(table).toBeTruthy();
     expect(JSON.stringify(table.rows)).toContain("02134");
   });
 
   // CON-7: a table needs 2+ columns to be detected.
-  it.fails("detects single-column tables (CON-7)", () => {
+  it("detects single-column tables (CON-7)", () => {
     expect(markdownToSchema("| Name |\n|---|\n| Alpha |").some((b) => b.type === "table")).toBe(true);
   });
 });
@@ -77,13 +77,13 @@ describe("parseInline", () => {
   });
 
   // CON-6: underscores inside words are treated as emphasis and deleted.
-  it.fails("leaves intraword underscores alone (CON-6)", () => {
+  it("leaves intraword underscores alone (CON-6)", () => {
     const text = parseInline("the snake_case_name variable").map((s) => s.text).join("");
     expect(text).toBe("the snake_case_name variable");
   });
 
   // CON-6: a link URL containing parentheses is truncated.
-  it.fails("keeps parentheses inside link URLs (CON-6)", () => {
+  it("keeps parentheses inside link URLs (CON-6)", () => {
     const link = parseInline("[wiki](https://en.wikipedia.org/wiki/Foo_(bar)) after").find((s) => s.link);
     expect(link?.link).toBe("https://en.wikipedia.org/wiki/Foo_(bar)");
   });
