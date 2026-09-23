@@ -278,3 +278,43 @@ describe("COR-18: label cells take an array of label IDs", () => {
     await expect(client().updateDatabaseCell("dash", "view", "row", "Status", "Doing")).rejects.toThrow(/Backlog.*In Progress/);
   });
 });
+
+describe("COR-20: relation direction for relation columns", () => {
+  // FuseBase: relation source = table the data is fetched FROM, target = table the column is ON.
+  it("creates the relation from the linked table to the table that gets the column", async () => {
+    const posts: any[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+      const method = init?.method || "GET";
+      if (method === "POST" && String(url).endsWith("/relations")) {
+        posts.push(JSON.parse(String(init?.body)));
+        return new Response(JSON.stringify({ data: { global_id: "rel1" } }), { status: 201, headers: { "content-type": "application/json" } });
+      }
+      const schema = { data: { schema: { items: [{ key: "name", name: "Name", source: { custom_type: "string" } }] } } };
+      return new Response(JSON.stringify(schema), { status: 200, headers: { "content-type": "application/json" } });
+    }));
+    const c = new FusebaseClient({ host: "unit-test.invalid", orgId: "o", cookie: "c", autoRefresh: false });
+    await c.addRelationColumn("dash_on", "view_on", "Linked", "dash_from", "view_from");
+    expect(posts[0]).toMatchObject({ source_dashboard_id: "dash_from", target_dashboard_id: "dash_on" });
+  });
+});
+
+describe("COR-22: page tags use one call per tag", () => {
+  // Live contract (probed): PUT .../tags {tag} adds one tag; DELETE .../tags/{tag} removes one.
+  // Sending an array stored the literal tag "undefined".
+  it("replaces tags by removing extras and adding missing ones, one tag per call", async () => {
+    const calls: Array<{ method: string; path: string; body?: string }> = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+      const method = init?.method || "GET";
+      calls.push({ method, path: new URL(url).pathname, body: init?.body as string | undefined });
+      const body = method === "GET" ? ["keep", "old"] : true;
+      return new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } });
+    }));
+    const c = new FusebaseClient({ host: "unit-test.invalid", orgId: "o", cookie: "c", autoRefresh: false });
+    await c.updatePageTags("ws", "note", ["keep", "new tag"]);
+    const writes = calls.filter((x) => x.method !== "GET");
+    expect(writes).toEqual([
+      { method: "DELETE", path: "/v2/api/workspaces/ws/notes/note/tags/old", body: undefined },
+      { method: "PUT", path: "/v2/api/workspaces/ws/notes/note/tags", body: JSON.stringify({ tag: "new tag" }) },
+    ]);
+  });
+});

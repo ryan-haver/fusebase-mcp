@@ -109,11 +109,16 @@ The cookie will need refreshing more than once. Before each live run, check that
 | COR-1 | Retrying a failed write by another route after *any* error runs it twice (isolated SQL, migrations, createIsolatedStore, createPage, createFolder, runAiAgentTask, triggerAutomationFlow) | ✅ fixed | Fall back only on errors raised before the request was sent (DNS, connect, 401 before send). Never fall back on a timeout or 5xx after sending. Reuse the generated `noteId` so a retry is idempotent |
 | COR-11 | SQL write tools default to `stage: "prod"` and `dryRun: false` | ✅ fixed | Make `stage` required, with no default (see D3) |
 | COR-2 | `addDatabaseRow`: substring alias match ("deals" matches "Ideal"); `viewId` taken from a different table after a failure; unknown columns passed through; always returns `success: true` | ✅ fixed | Match exactly (case-insensitive) with an explicit alias map; fail if the table can't be resolved; reject unknown columns and list the valid ones |
-| COR-3 | `importCSV`: a 200 on the probe GET counts as success with no upload; `.json()` then `.text()` on the same body throws | ✅ fixed | Remove the GET; POST the multipart form through `request()`; read the body once with `text()` then `JSON.parse` |
+| COR-3 | `importCSV`: a 200 on the probe GET counts as success with no upload; `.json()` then `.text()` on the same body throws | ✅ fixed (live: also moved `mapping` into the multipart body as JSON, per the SDK) | Remove the GET; POST the multipart form through `request()`; read the body once with `text()` then `JSON.parse` |
 | COR-9 | `unlink_database_rows` with no IDs deletes every link on the relation; `updateDashboardRowOrder` uses a path that doesn't match its docstring | ✅ fixed | Require explicit row IDs (add a separate `unlinkAll: true` flag); check the path against a live capture |
 | COR-10 | `process.exit(1)` inside `getClient()` lets one tool call kill the server | ✅ fixed | Throw a typed `ConfigError` instead; the SDK turns it into `isError` |
 | COR-17 | `fusebase_swarm_init` creates a plain database: no status column, no stage options, no kanban view, no role column. It still reports the stages as if they were created, so `fusebase_swarm_task_transition` has nothing to move cards along | ✅ fixed | Create a single-select status column with the template's stages, a kanban view grouped by it, and a role column; return their keys. Or reduce the tool's claims to what it does |
 | COR-18 | Label (single/multi-select) cells were written as bare strings, but the API needs an array of label nanoids (a bare string is a 400 per the dashboards SDK docs). Broke `fusebase_swarm_task_transition`, `move_kanban_card` and label updates through `update_database_cell` | ✅ fixed | `updateDatabaseCell` maps label names or IDs (single or array) to an array of nanoids and rejects unknown options, listing the valid ones |
+| COR-19 | `check_session_health` ran the Gate check and `listWorkspaces` in one `try`: a rejected token skipped the workspace check, so a working cookie session was reported as EXPIRED. `gateConnected` only meant "a token is configured" | ✅ fixed (found live) | Each route checked separately; partial failure is `WARNING` with `gateError`; `gateConnected` means the Gate call succeeded |
+| COR-20 | `add_relation_column` created the relation in the wrong direction (source = the table getting the column). FuseBase needs source = the table fetched from, target = the table the column is on; the view update then failed with "Dashboard view not found". Hidden by a swallowed catch until Phase 0 | ✅ fixed (found live) | Swap direction in `addRelationColumn` (per the dashboards SDK relations guide) |
+| COR-21 | `create_dashboard_table` is broken for any input: with a database ID it posts to `/dashboards/<databaseId>/views` (404); with a table ID it creates a view and fails with 500 "global_id is required". It never created a table. Hidden by a swallowed catch until Phase 0 | ✅ (found live) | Reimplement with `POST /dashboards` (`database_id`, `root_entity: custom`, schema) or `createDashboardFromTemplate`; needs live exploration. Tracked as `knownGap` in both live suites |
+| COR-22 | `update_page_tags` sent the tag array as the body; the endpoint takes `{ tag }` per call, so it stored a literal tag "undefined" and never set the requested tags | ✅ fixed (found live, contract probed) | PUT `{ tag }` adds, DELETE `/tags/{tag}` removes; replace = diff current vs desired |
+| COR-23 | `refresh_auth` launches a browser and can run past the 60 s MCP request timeout, so clients see a timeout even when the refresh succeeds | ✅ (found live) | Return quickly and refresh in the background, or report progress; live suite now runs it only with `FUSEBASE_TEST_REFRESH_AUTH=1` |
 
 **Exit criteria:**
 - Offline test: a markdown → Y.Doc delta test shows no formatting bleed.
@@ -122,6 +127,18 @@ The cookie will need refreshing more than once. Before each live run, check that
 - An idempotency test runs `create_page` with an injected timeout and still produces exactly one page.
 
 ---
+
+## Live verification (2026-09-23, sandbox "Agent Projects", cookie session; Gate tokens still invalid)
+
+| Suite | Result |
+|---|---|
+| Block regression | ✅ 31/31 (known gaps: CON-2 tables, CON-3 collapsible-heading body) |
+| MCP end-to-end | ✅ 189/189, 49 tools |
+| Database & relations | ✅ 138/138, 40 tools (known gap COR-21; isolated stores not provisioned) |
+| Data validation | ✅ suites 1–12 (246 checks); suites 13–15 need valid Gate tokens (P1) |
+| Direct token, parity | ⏳ need valid Gate/Dashboards tokens (P1) |
+
+Bugs that only showed up live, all now reproduced offline and fixed unless noted: COR-5, COR-19, COR-20, COR-22, the CSV `mapping` format (COR-3), MCP-12 (partly); open: COR-21, COR-23. Also fixed several response shapes the rewritten suites had guessed (task lists, comment threads).
 
 ## Phase 3: Content fidelity (L)
 
@@ -147,7 +164,7 @@ The cookie will need refreshing more than once. Before each live run, check that
 | ID | Finding | Status | Fix |
 |---|---|---|---|
 | COR-4 | 8 raw `fetch` calls skip `request()` (no proxy, no bearer token, `cookie: ""`, no 401 refresh, not logged); `downloadAttachment` loads the whole file into memory with a 10 s timeout | 🔎 | Send everything through `request()`, with a raw-body/stream option for downloads |
-| COR-5 | Several 401s at once each start their own Playwright refresh; `authorization` and `Authorization` headers get merged; dead code at 292-301 | 🔎 | Share a single `refreshPromise`; build headers with a `Headers` object; remove the dead code |
+| COR-5 | Several 401s at once each start their own Playwright refresh; `authorization` and `Authorization` headers get merged; dead code at 292-301 | ✅ fixed (header merge only; refresh race still open) | Share a single `refreshPromise`; build headers with a `Headers` object; remove the dead code |
 | COR-6 | Gate fallback results have the wrong shape (`id` vs `workspaceId`, `global_id/title` vs `id/name`); hardcoded workspace `45h7lom5ryjak34u` and agent `qMjAPHPS1e6UdoYf` | 🔎 | Add a normaliser per entity, with typed mapping and no `as unknown as`; remove the hardcoded IDs (resolve them or fail) |
 | COR-7 | gate-bridge: no fetch timeout; re-initialises and resends `tools/call` after any 400/404; SSE parser reads only the first `data:` line; `init` not memoised | 🔎 | Add a timeout; re-init only on a session-expired signal; parse SSE properly; memoise the init promise |
 | COR-8 | `tryRepairTruncatedJson` returns partial data as success; a non-JSON 200 is returned as `T`; an HTML login redirect could look like data | 🔎 | Treat these as errors (`redirect: "manual"`, check content-type); remove the truncation repair or return a `truncated: true` error |
@@ -181,6 +198,7 @@ This is done together with the refactor. Adding annotations and output limits on
 | MCP-9 | No SIGINT/SIGTERM handling; the HTTP server is never closed | ✅ | Graceful shutdown: close transports, the HTTP server and the relay |
 | MCP-10 | Resources that can be created but not deleted through MCP: folders (no `delete_folder`; `delete_page` on a folder ID is unverified), isolated SQL stores, portals, portal clients / invites | ✅ (tool list) | Add the missing delete tools with `destructiveHint`, or confirm live that `delete_page` removes folders and document it |
 | MCP-11 | 13 tools don't accept the `profile` parameter, so multi-profile use is inconsistent | ✅ (audit) | Add `profile` where the tool touches FuseBase; document the local-only exceptions. Enforce in `audit-tools.ts` once done |
+| MCP-12 | Tools that return empty or misleading text: `delete_automation_flow` returned `""` on success and `get_active_import_status` returned `""` when idle (both fixed live); `fusebase_gate_whoami` returns an `UNAUTHORIZED` payload as a normal result instead of `isError` (open). `listTaskLists` is typed as an array but returns `{ taskLists, tasks, ... }` (open, see MNT-2) | ✅ partly fixed | Return an explicit message/`null`; set `isError` for upstream auth errors; fix the types |
 
 **Exit criteria:**
 - Every tool has annotations.

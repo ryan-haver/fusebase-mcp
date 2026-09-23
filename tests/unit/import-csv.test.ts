@@ -25,6 +25,14 @@ describe("FusebaseClient.importCSV (COR-3)", () => {
     const body = init?.body as FormData;
     expect(body).toBeInstanceOf(FormData);
     expect(await (body.get("file") as Blob).text()).toBe(CSV);
+    // Shape from the official dashboard-service SDK (importDashboardFromCsv)
+    expect(body.get("database_id")).toBe("db");
+    expect(JSON.parse(String(body.get("mapping")))).toEqual({
+      columns: [
+        { index: 0, type: "string", edit_type: "string-single-line" },
+        { index: 1, type: "string", edit_type: "string-single-line" },
+      ],
+    });
     // fetch must set the multipart boundary itself
     expect((init?.headers as Record<string, string>)["content-type"]).toBeUndefined();
   });

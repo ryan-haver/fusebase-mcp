@@ -256,6 +256,9 @@ export class FusebaseClient {
       if (match && match[1]) {
         reqHeaders["FBS-Session-ID"] = match[1].trim();
       }
+      // Automation endpoints use their own JWT. Drop the generic Gate/API token header,
+      // otherwise fetch merges both into "Bearer a, Bearer b" and the call gets 401 (COR-5).
+      delete reqHeaders["authorization"];
       if (this.automationToken) {
         reqHeaders["Authorization"] = `Bearer ${this.automationToken}`;
       }
@@ -320,6 +323,7 @@ export class FusebaseClient {
             if (match && match[1]) {
               retryHeaders["FBS-Session-ID"] = match[1].trim();
             }
+            delete retryHeaders["authorization"];
             if (this.automationToken) {
               retryHeaders["Authorization"] = `Bearer ${this.automationToken}`;
             }
@@ -1034,11 +1038,24 @@ export class FusebaseClient {
     workspaceId: string,
     noteId: string,
     tags: string[],
-  ): Promise<void> {
-    await this.request<void>(
-      apiPath`/v2/api/workspaces/${workspaceId}/notes/${noteId}/tags`,
-      { method: "PUT", body: JSON.stringify(tags) },
-    );
+  ): Promise<{ added: string[]; removed: string[] }> {
+    // The endpoint works one tag at a time (probed live, COR-22): PUT .../tags with
+    // { tag } adds a tag and DELETE .../tags/{tag} removes one. Sending an array stored the
+    // literal tag "undefined". Replace semantics = remove extras, then add missing ones.
+    const desired = [...new Set(tags.map((t) => t.trim()).filter(Boolean))];
+    const current = (await this.getNoteTags(workspaceId, noteId)) ?? [];
+    const removed = current.filter((t) => !desired.includes(t));
+    const added = desired.filter((t) => !current.includes(t));
+    for (const tag of removed) {
+      await this.request(apiPath`/v2/api/workspaces/${workspaceId}/notes/${noteId}/tags/${tag}`, { method: "DELETE" });
+    }
+    for (const tag of added) {
+      await this.request(apiPath`/v2/api/workspaces/${workspaceId}/notes/${noteId}/tags`, {
+        method: "PUT",
+        body: JSON.stringify({ tag }),
+      });
+    }
+    return { added, removed };
   }
 
   /** Get labels for a workspace */
@@ -2885,32 +2902,10 @@ export class FusebaseClient {
       }
     }
 
-    // The FuseBase import API uses a GET request with all params as query strings.
-    // File content is sent as a Blob in a multipart POST first, but the actual
-    // import trigger is via query params. Based on browser intercept, the flow is:
-    // 1. Upload file via the dialog (client-side reads it)
-    // 2. GET /dashboards/import/csv?database_id=...&dashboard_id=...&view_id=...&delimiter=...&mapping[columns][0][index]=0&...
-    //
-    // However, since we're sending CSV content programmatically, we use POST with
-    // the file in form data and all other params as query strings.
-    const params = new URLSearchParams();
-    params.set("database_id", databaseId);
-    params.set("dashboard_id", dashboardId);
-    params.set("view_id", viewId);
-    params.set("delimiter", delimiter);
-
-    if (mapping) {
-      for (let i = 0; i < mapping.length; i++) {
-        const col = mapping[i];
-        params.set(`mapping[columns][${i}][index]`, String(col.index));
-        params.set(`mapping[columns][${i}][type]`, col.type);
-        params.set(`mapping[columns][${i}][edit_type]`, col.edit_type);
-      }
-    }
-
-    // POST the CSV as multipart form data. (A GET can't carry the file, so a 200 from it
-    // never meant our rows were imported — COR-3.) request() handles auth, the proxy,
-    // errors and parsing, and reads the body only once.
+    // POST everything as multipart form data, matching the official dashboard-service SDK
+    // (importDashboardFromCsv): the file in `file`, the ids and delimiter as plain fields,
+    // and `mapping` as a JSON string. Bracket-style query parameters are not parsed by the
+    // server ("mapping.columns must be provided"), and a GET can't carry the file (COR-3).
     const blob = new Blob([csvContent], { type: "text/csv" });
     const formData = new FormData();
     formData.append("file", blob, "import.csv");
@@ -2918,9 +2913,10 @@ export class FusebaseClient {
     formData.append("dashboard_id", dashboardId);
     formData.append("view_id", viewId);
     formData.append("delimiter", delimiter);
+    formData.append("mapping", JSON.stringify({ columns: mapping ?? [] }));
 
     const data = await this.request<unknown>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/import/csv?${params.toString()}`,
+      `/v4/api/proxy/dashboard-service/v1/dashboards/import/csv`,
       { method: "POST", body: formData },
     );
     return { success: true, data };
@@ -3225,14 +3221,17 @@ export class FusebaseClient {
   }> {
     const relationType = options?.relationType ?? "many_to_many";
 
-    // 1. Create the relation via dedicated endpoint
+    // 1. Create the relation via dedicated endpoint.
+    // FuseBase direction: source = the table data is fetched FROM (the linked table),
+    // target = the table the column lives ON. Reversing them makes the view update fail
+    // with "Dashboard view not found" (COR-20; see the dashboards SDK relations guide).
     const relationRes = await this.request<{ data: { global_id: string } }>(
       `/v4/api/proxy/dashboard-service/v1/relations`,
       {
         method: "POST",
         body: JSON.stringify({
-          source_dashboard_id: dashboardId,
-          target_dashboard_id: targetDashboardId,
+          source_dashboard_id: targetDashboardId,
+          target_dashboard_id: dashboardId,
           relation_type: relationType,
         }),
       },

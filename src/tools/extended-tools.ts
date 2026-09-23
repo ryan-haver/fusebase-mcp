@@ -2490,10 +2490,11 @@ export function registerExtendedTools(
     async ({ flowId, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.deleteAutomationFlow(flowId);
+        await client.deleteAutomationFlow(flowId);
+        // The API answers with an empty body; report the outcome explicitly.
         return {
           content: [
-            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+            { type: "text" as const, text: `Automation flow ${flowId} deleted successfully.` },
           ],
         };
       } catch (error) {
@@ -3033,7 +3034,9 @@ export function registerExtendedTools(
     async ({ workspaceId, profile }) => {
       const client = getClient(profile);
       try {
-        const importStatus = await client.getActiveImportStatus(workspaceId);
+        const raw = await client.getActiveImportStatus(workspaceId);
+        // The API returns an empty body when nothing is importing; say so explicitly.
+        const importStatus = raw === "" || raw === undefined ? null : raw;
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(importStatus, null, 2) },

@@ -121,9 +121,11 @@ async function main() {
     assertIncludes(html, "End of regression test", "final paragraph");
 
     // Nested content & tables (tracked remediation findings)
-    knownGap("CON-3", "toggle body survives round-trip", html.includes("Hidden toggle content"));
+    // Paragraph children survive; CON-3 is about non-paragraph children and heading bodies.
+    assertIncludes(html, "Hidden toggle content", "toggle body");
+    assertIncludes(html, "Step one body", "step 1 body");
+    assertIncludes(html, "Step two body", "step 2 body");
     knownGap("CON-3", "collapsible heading body survives round-trip", html.includes("Collapsible body"));
-    knownGap("CON-3", "step bodies survive round-trip", html.includes("Step one body") && html.includes("Step two body"));
     knownGap("CON-2", "table cells survive round-trip", html.includes("Alpha") && html.includes("99"));
   } finally {
     try {

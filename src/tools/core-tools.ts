@@ -167,25 +167,36 @@ export function registerCoreTools(
       const ageMs = stored?.savedAt ? Date.now() - new Date(stored.savedAt).getTime() : 0;
       const ageHours = Math.round(ageMs / 3600000);
 
-      // Verify active connectivity
-      let isValid = false;
-      let workspaceCount = 0;
+      // Verify each configured route separately, so a bad token can't hide a working
+      // session (or the other way round) — COR-19.
       let gateIdentity: any;
-      let errorMsg: string | undefined;
-
-      try {
-        if (client.gateBridge?.isConfigured) {
+      let gateError: string | undefined;
+      let gateOk = false;
+      if (client.gateBridge?.isConfigured) {
+        try {
           gateIdentity = await client.gateBridge.getIdentity();
-          isValid = true;
+          gateOk = true;
+        } catch (err: any) {
+          gateError = err.message;
         }
-        const ws = await client.listWorkspaces();
-        isValid = true;
-        workspaceCount = ws.length;
-      } catch (err: any) {
-        if (!isValid) errorMsg = err.message;
       }
 
-      const status = !isValid ? "EXPIRED" : (!hasCookie && hasToken) ? "HEALTHY" : ageHours > 100 ? "WARNING" : "HEALTHY";
+      let workspaceCount = 0;
+      let workspacesError: string | undefined;
+      let workspacesOk = false;
+      try {
+        const ws = await client.listWorkspaces();
+        workspacesOk = true;
+        workspaceCount = ws.length;
+      } catch (err: any) {
+        workspacesError = err.message;
+      }
+
+      const isValid = gateOk || workspacesOk;
+      const partialFailure = Boolean(gateError || workspacesError);
+      const errorMsg = [gateError && `Gate: ${gateError}`, workspacesError && `Workspaces: ${workspacesError}`].filter(Boolean).join("; ") || undefined;
+
+      const status = !isValid ? "EXPIRED" : partialFailure ? "WARNING" : hasCookie && ageHours > 100 ? "WARNING" : "HEALTHY";
 
       return {
         content: [
@@ -198,7 +209,9 @@ export function registerCoreTools(
                 profile: activeProfile || "default",
                 authenticated: isValid,
                 ageHours: hasCookie ? ageHours : null,
-                gateConnected: Boolean(client.gateBridge?.isConfigured),
+                gateConfigured: Boolean(client.gateBridge?.isConfigured),
+                gateConnected: gateOk,
+                gateError,
                 gateOrgId: gateIdentity?.orgId,
                 gateDomain: gateIdentity?.orgDomain,
                 permissionsCount: gateIdentity?.permissions?.length,
@@ -210,6 +223,10 @@ export function registerCoreTools(
                 recommendation:
                   status === "HEALTHY"
                     ? `Session is active and healthy (${authMode} mode).`
+                    : status === "WARNING" && gateError
+                    ? "The session works but the Gate/Dashboards token was rejected; Gate-only tools (isolated SQL, tokens, token-mode writes) will fail. Regenerate the tokens."
+                    : status === "WARNING" && workspacesError
+                    ? "Gate works but the web session failed; cookie-only tools (Y.js content, automations) will fail. Re-authenticate: npx tsx scripts/auth.ts"
                     : status === "WARNING"
                     ? `Cookie is ${ageHours}h old. Still valid, but consider refreshing soon: npx tsx scripts/auth.ts${activeProfile ? ` --profile=${activeProfile}` : ""}`
                     : `Session expired or invalid. Re-authenticate: npx tsx scripts/auth.ts${activeProfile ? ` --profile=${activeProfile}` : ""}`,

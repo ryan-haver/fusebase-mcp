@@ -495,7 +495,8 @@ async function main() {
     // ─── 13. Task time tracking ───────────────────────────────────
     console.log("\n── 13. Task time tracking ──");
     const taskListsRes = await callTool(client, "list_task_lists", { workspaceId });
-    const taskLists = listOf(taskListsRes, "list_task_lists");
+    // Live shape: { taskLists: [...], tasks, notes, labels, ... }
+    const taskLists = listOf(taskListsRes?.taskLists ?? taskListsRes, "list_task_lists");
     if (taskLists.length === 0) {
       skip("get_task_time_tracking", `sandbox workspace ${workspaceId} has no task list to create a test task in`);
     } else {

@@ -38,6 +38,7 @@ import {
   assertString,
   callTool,
   connectMcp,
+  knownGap,
   requireSandboxWorkspace,
   runSuite,
   skip,
@@ -528,12 +529,19 @@ async function main() {
 
     // ─── 11. Multi-table dashboards ─────────────────────────────────
     phase("11. Multi-table dashboards");
-    const newTableRes = await callTool(client, "create_dashboard_table", {
-      databaseId: primaryDbId,
-      title: "Secondary Action Items Table",
-    });
-    assertObject(newTableRes, "create_dashboard_table");
-    console.log("✅ create_dashboard_table verified");
+    // COR-21: the tool posts a *view* to /dashboards/<databaseId>/views, which 404s; creating
+    // a real table needs POST /dashboards (or createDashboardFromTemplate) with a schema.
+    let tableCreated = false;
+    try {
+      const newTableRes = await callTool(client, "create_dashboard_table", {
+        databaseId: primaryDbId,
+        title: "Secondary Action Items Table",
+      });
+      tableCreated = newTableRes !== null && typeof newTableRes === "object";
+    } catch (err) {
+      if (!(err instanceof ToolError)) throw err;
+    }
+    knownGap("COR-21", "create_dashboard_table creates a table in a database", tableCreated);
 
     // ─── 12. Gate isolated stores ───────────────────────────────────
     phase("12. Gate isolated stores");

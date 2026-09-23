@@ -244,3 +244,32 @@ describe("isolated SQL writes need an explicit stage (COR-11)", () => {
     expect(res.text).toMatch(/stage/);
   });
 });
+
+describe("check_session_health (COR-19)", () => {
+  // A profile with no stored files keeps the test hermetic (no real data/ credentials).
+  const args = { profile: "unit-test-no-such-profile" };
+  const bridge = (identity: () => Promise<unknown>) => ({ isConfigured: true, getIdentity: identity });
+
+  it("does not report a working web session as expired when the Gate token is bad", async () => {
+    session = await startServer(fakeClient({
+      gateBridge: bridge(async () => { throw new Error("UNAUTHORIZED: Invalid token"); }),
+      listWorkspaces: async () => [{ workspaceId: "ws1" }, { workspaceId: "ws2" }],
+    }));
+    const res = JSON.parse((await session.callText("check_session_health", args)).text);
+    expect(res.authenticated).toBe(true);
+    expect(res.workspaceCount).toBe(2);
+    expect(res.status).toBe("WARNING");
+    expect(res.gateConnected).toBe(false);
+    expect(res.gateError).toMatch(/Invalid token/);
+  });
+
+  it("reports EXPIRED only when every configured route fails", async () => {
+    session = await startServer(fakeClient({
+      gateBridge: bridge(async () => { throw new Error("UNAUTHORIZED"); }),
+      listWorkspaces: async () => { throw new Error("401 Unauthorized"); },
+    }));
+    const res = JSON.parse((await session.callText("check_session_health", args)).text);
+    expect(res.authenticated).toBe(false);
+    expect(res.status).toBe("EXPIRED");
+  });
+});
