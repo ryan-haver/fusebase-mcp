@@ -60,5 +60,6 @@ USER node
 
 # Default entrypoint runs the MCP server.
 # By default, runs stdio mode (pipe with docker run -i).
-# Pass --transport sse --port 3000 or MCP_TRANSPORT=sse to run as a network service.
+# For a network service pass MCP_TRANSPORT=http, MCP_HOST=0.0.0.0 and MCP_AUTH_TOKEN (required when
+# listening on a non-loopback address). See docker-compose.yml.
 ENTRYPOINT ["node", "dist/index.js"]

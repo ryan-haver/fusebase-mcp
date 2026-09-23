@@ -1,4 +1,7 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 
 vi.mock("child_process", async (importOriginal) => {
   const actual = await importOriginal<typeof import("child_process")>();
@@ -15,10 +18,13 @@ describe("getGuideContent (SEC-3)", () => {
     expect(getGuideContent("basics", "hint-object")).toBeTruthy();
   });
 
-  // SEC-3: section/slug are joined unsanitised, so ".." escapes docs/guides.
-  it.fails("refuses to read files outside docs/guides", () => {
-    // docs/guides/../PLAN-content-formats.md → docs/PLAN-content-formats.md
-    expect(getGuideContent("..", "PLAN-content-formats")).toBeNull();
+  it.each([
+    ["..", "PLAN-content-formats"],
+    ["basics", "../../PLAN-content-formats"],
+    ["basics/..", "index"],
+    ["C:", "x"],
+  ])("refuses to read outside docs/guides: section %j slug %j", (section, slug) => {
+    expect(getGuideContent(section, slug)).toBeNull();
   });
 });
 
@@ -39,15 +45,73 @@ describe("FusebaseCliManager.executeCommand (SEC-6)", () => {
     return child;
   }
 
-  // SEC-6: a .cmd shim is spawned with shell: true, so model-supplied args reach cmd.exe.
-  it.fails("never spawns the CLI through a shell, even for a .cmd shim", async () => {
+  let tmp: string;
+  beforeEach(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), "fusebase-sec6-"));
+  });
+  afterEach(() => fs.rmSync(tmp, { recursive: true, force: true }));
+
+  /** Write an npm-style .cmd shim; with `withEntry` it points at a real JS entry point. */
+  function writeShim(withEntry: boolean): string {
+    const shim = path.join(tmp, "fusebase.cmd");
+    fs.mkdirSync(path.join(tmp, "node_modules", "fusebase", "bin"), { recursive: true });
+    fs.writeFileSync(path.join(tmp, "node_modules", "fusebase", "bin", "cli.js"), "");
+    const body = withEntry
+      ? '@ECHO off\r\nSET dp0=%~dp0\r\n"%_prog%"  "%dp0%\\node_modules\\fusebase\\bin\\cli.js" %*\r\n'
+      : "@ECHO off\r\nsome-other-launcher.exe %*\r\n";
+    fs.writeFileSync(shim, body);
+    return shim;
+  }
+
+  function useCli(cliPath: string) {
     Object.defineProperty(process, "platform", { value: "win32" });
-    vi.spyOn(FusebaseCliManager, "getCliPath").mockReturnValue("C:\\npm\\fusebase.cmd");
+    vi.spyOn(FusebaseCliManager, "getCliPath").mockReturnValue(cliPath);
     vi.mocked(spawn).mockImplementation(() => fakeChild());
+  }
 
-    await FusebaseCliManager.executeCommand("init", ["--name", "x & calc"]);
+  it("runs an npm .cmd shim's JS entry point with node, without a shell", async () => {
+    useCli(writeShim(true));
+    const res = await FusebaseCliManager.executeCommand("init", ["--name", "x & calc"]);
+    expect(res.success).toBe(true);
+    const [command, args, opts] = vi.mocked(spawn).mock.calls[0] as any[];
+    expect(command).toBe(process.execPath);
+    expect(args[0]).toBe(path.join(tmp, "node_modules", "fusebase", "bin", "cli.js"));
+    expect(args.slice(1)).toEqual(["init", "--name", "x & calc"]);
+    expect(opts.shell).toBe(false);
+  });
 
-    const opts = vi.mocked(spawn).mock.calls[0][2] as { shell?: boolean };
-    expect(opts.shell).toBeFalsy();
+  it("refuses cmd.exe metacharacters when a shim has to go through the shell", async () => {
+    useCli(writeShim(false));
+    const res = await FusebaseCliManager.executeCommand("init", ["--name", "x & calc"]);
+    expect(res.success).toBe(false);
+    expect(res.stderr).toMatch(/unsafe/);
+    expect(spawn).not.toHaveBeenCalled();
+  });
+
+  it("quotes plain arguments when a shim has to go through the shell", async () => {
+    useCli(writeShim(false));
+    await FusebaseCliManager.executeCommand("init", ["--name", "my app"]);
+    const [, args, opts] = vi.mocked(spawn).mock.calls[0] as any[];
+    expect(opts.shell).toBe(true);
+    expect(args).toEqual(["init", "--name", '"my app"']);
+  });
+
+  it("refuses a cwd outside the allowed directories", async () => {
+    useCli(writeShim(true));
+    const res = await FusebaseCliManager.executeCommand("deploy", [], tmp);
+    expect(res.success).toBe(false);
+    expect(res.stderr).toMatch(/outside the allowed directories/);
+    expect(spawn).not.toHaveBeenCalled();
+  });
+
+  it("accepts a cwd listed in FUSEBASE_CLI_ALLOWED_DIRS", async () => {
+    useCli(writeShim(true));
+    process.env.FUSEBASE_CLI_ALLOWED_DIRS = tmp;
+    try {
+      const res = await FusebaseCliManager.executeCommand("deploy", [], path.join(tmp, "node_modules"));
+      expect(res.success).toBe(true);
+    } finally {
+      delete process.env.FUSEBASE_CLI_ALLOWED_DIRS;
+    }
   });
 });

@@ -18,7 +18,7 @@ const ENTRY = path.join(ROOT, "dist", "index.js");
 function hermeticEnv(extra: Record<string, string> = {}): Record<string, string> {
   const env: Record<string, string> = {};
   for (const [k, v] of Object.entries(process.env)) {
-    if (v !== undefined && !/^(FUSEBASE_|GATE_MCP_|DASHBOARDS_MCP_|MCP_TRANSPORT$|PORT$)/.test(k)) env[k] = v;
+    if (v !== undefined && !/^(FUSEBASE_|GATE_MCP_|DASHBOARDS_MCP_|MCP_|PORT$)/.test(k)) env[k] = v;
   }
   return { ...env, FUSEBASE_NO_DOTENV: "1", FUSEBASE_PROFILE: "unit-test-no-such-profile", ...extra };
 }
@@ -39,7 +39,7 @@ async function waitForHealth(port: number, host = "127.0.0.1"): Promise<void> {
     } catch { /* not up yet */ }
     await new Promise((r) => setTimeout(r, 100));
   }
-  throw new Error("SSE server did not start");
+  throw new Error("HTTP server did not start");
 }
 
 const children: ChildProcess[] = [];
@@ -55,29 +55,41 @@ async function startSse(): Promise<number> {
   return port;
 }
 
-describe("SSE transport security (SEC-1)", () => {
-  // SEC-1: /sse opens a session with no credentials at all.
-  it.fails("rejects an SSE connection without a bearer token", async () => {
-    const port = await startSse();
-    const ctrl = new AbortController();
-    const res = await fetch(`http://127.0.0.1:${port}/sse`, { signal: ctrl.signal });
-    ctrl.abort();
-    expect(res.status).toBe(401);
-  });
-
-  // SEC-1: the wildcard CORS header lets any web page drive the server.
-  it.fails("does not send a wildcard Access-Control-Allow-Origin header", async () => {
+describe("HTTP transport security (SEC-1)", () => {
+  it("answers a foreign Origin with 403 and no wildcard CORS header", async () => {
     const port = await startSse();
     const res = await fetch(`http://127.0.0.1:${port}/health`, { headers: { Origin: "https://evil.example" } });
-    expect(res.headers.get("access-control-allow-origin")).not.toBe("*");
+    expect(res.status).toBe(403);
+    expect(res.headers.get("access-control-allow-origin")).toBeNull();
   });
 
-  // SEC-1: the server binds 0.0.0.0, so it is reachable from the LAN.
+  // Binds 127.0.0.1 by default, so it is not reachable from the LAN.
   const lanIp = Object.values(os.networkInterfaces()).flat().find((i) => i && i.family === "IPv4" && !i.internal)?.address;
-  it.skipIf(!lanIp).fails("is not reachable on a non-loopback interface by default", async () => {
+  it.skipIf(!lanIp)("is not reachable on a non-loopback interface by default", async () => {
     const port = await startSse();
     const reachable = await fetch(`http://${lanIp}:${port}/health`, { signal: AbortSignal.timeout(2000) }).then(() => true, () => false);
     expect(reachable).toBe(false);
+  });
+
+  it("refuses to start on 0.0.0.0 without MCP_AUTH_TOKEN", async () => {
+    const port = await freePort();
+    const child = spawn(process.execPath, [ENTRY, "--transport", "http", "--host", "0.0.0.0", "--port", String(port)], { env: hermeticEnv(), stdio: ["ignore", "ignore", "pipe"] });
+    children.push(child);
+    let stderr = "";
+    child.stderr!.on("data", (d) => (stderr += d.toString()));
+    const code = await new Promise<number | null>((resolve) => child.on("exit", resolve));
+    expect(code).not.toBe(0);
+    expect(stderr).toMatch(/Refusing to listen/);
+  });
+
+  it("requires the bearer token when MCP_AUTH_TOKEN is set", async () => {
+    const port = await freePort();
+    const child = spawn(process.execPath, [ENTRY, "--transport", "http", "--port", String(port)], {
+      env: hermeticEnv({ MCP_AUTH_TOKEN: "unit-test-token-0123456789abcdef" }), stdio: "ignore",
+    });
+    children.push(child);
+    await waitForHealth(port);
+    expect((await fetch(`http://127.0.0.1:${port}/sse`)).status).toBe(401);
   });
 });
 

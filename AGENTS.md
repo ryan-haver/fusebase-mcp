@@ -111,13 +111,15 @@ docker run -i --rm \
 
 ### Option C: Docker Container (Remote SSE / HTTP Network Service)
 ```bash
-docker run -d --name fusebase-mcp -p 3000:3000 \
+docker run -d --name fusebase-mcp -p 127.0.0.1:3000:3000 \
   -e FUSEBASE_GATE_TOKEN="your_token" \
   -e FUSEBASE_DASHBOARDS_TOKEN="your_token" \
-  -e MCP_TRANSPORT="sse" \
+  -e MCP_TRANSPORT="http" \
+  -e MCP_HOST="0.0.0.0" \
+  -e MCP_AUTH_TOKEN="$(openssl rand -hex 32)" \
   fusebase-mcp:latest
 ```
-Connect via SSE endpoint: `http://<host>:3000/sse` (Health check: `http://<host>:3000/health`).
+Connect to `http://localhost:3000/mcp` (Streamable HTTP; legacy SSE at `/sse`) with header `Authorization: Bearer <MCP_AUTH_TOKEN>`. Health check: `/health`. The port is published on loopback only; see `docker-compose.yml` before exposing it.
 
 ---
 

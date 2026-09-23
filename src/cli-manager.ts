@@ -4,9 +4,12 @@
  */
 
 import { execSync, spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { delimiter, dirname, isAbsolute, join, parse, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 export interface CliStatus {
   installed: boolean;
@@ -149,12 +152,70 @@ export class FusebaseCliManager {
   }
 
   /**
+   * Directories a tool-supplied `cwd` may point into: the server's working directory
+   * (unless it is a filesystem root), the project's apps/ folder, and any directories in
+   * FUSEBASE_CLI_ALLOWED_DIRS (separated by the platform path delimiter).
+   */
+  static allowedWorkingDirs(): string[] {
+    const roots = [resolve(PROJECT_ROOT, "apps")];
+    const cwd = resolve(process.cwd());
+    if (parse(cwd).root !== cwd) roots.push(cwd);
+    for (const dir of (process.env.FUSEBASE_CLI_ALLOWED_DIRS || "").split(delimiter)) {
+      if (dir.trim()) roots.push(resolve(dir.trim()));
+    }
+    return roots;
+  }
+
+  /** Resolve a tool-supplied working directory, or throw if it is outside the allow-list. */
+  static resolveWorkingDir(cwd?: string): string {
+    if (!cwd) return process.cwd();
+    const target = resolve(cwd);
+    const allowed = this.allowedWorkingDirs();
+    const inside = (root: string) => {
+      const rel = relative(root, target);
+      return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
+    };
+    if (!allowed.some(inside)) {
+      throw new Error(`cwd ${JSON.stringify(cwd)} is outside the allowed directories (${allowed.join(", ")}). Add it to FUSEBASE_CLI_ALLOWED_DIRS to allow it.`);
+    }
+    return target;
+  }
+
+  /**
+   * Decide how to launch the CLI without letting arguments reach a shell.
+   * Windows can only run .cmd/.bat files through cmd.exe, so for an npm shim we run the
+   * underlying JavaScript entry point with node directly. If that can't be found, the
+   * shell is used only when no argument contains a cmd.exe metacharacter.
+   */
+  static resolveInvocation(cliPath: string, args: string[]): { command: string; args: string[]; shell: boolean } {
+    const isBatch = process.platform === "win32" && /\.(cmd|bat)$/i.test(cliPath);
+    if (!isBatch) return { command: cliPath, args, shell: false };
+
+    try {
+      const shim = readFileSync(cliPath, "utf-8");
+      const entry = /"%(?:~?dp0)%\\([^"]+\.(?:c|m)?js)"/i.exec(shim)?.[1];
+      if (entry) {
+        const script = join(dirname(cliPath), ...entry.split(/[\\/]/));
+        if (existsSync(script)) return { command: process.execPath, args: [script, ...args], shell: false };
+      }
+    } catch {
+      // Unreadable shim: fall through to the guarded shell path.
+    }
+
+    const unsafe = args.find((a) => /[&|<>^%!"`\r\n]/.test(a));
+    if (unsafe !== undefined) {
+      throw new Error(`Argument ${JSON.stringify(unsafe)} contains characters that are unsafe to pass through cmd.exe.`);
+    }
+    return { command: cliPath, args: args.map((a) => (/\s/.test(a) ? `"${a}"` : a)), shell: true };
+  }
+
+  /**
    * Execute a CLI command safely.
    */
   static async executeCommand(
     subcommand: string,
     args: string[] = [],
-    cwd: string = process.cwd(),
+    cwd?: string,
     timeoutMs: number = 30000,
   ): Promise<{ success: boolean; stdout: string; stderr: string; exitCode: number | null }> {
     const cliPath = this.getCliPath();
@@ -167,12 +228,19 @@ export class FusebaseCliManager {
       };
     }
 
+    let invocation: { command: string; args: string[]; shell: boolean };
+    let workingDir: string;
+    try {
+      workingDir = this.resolveWorkingDir(cwd);
+      invocation = this.resolveInvocation(cliPath, [subcommand, ...args]);
+    } catch (err) {
+      return { success: false, stdout: "", stderr: err instanceof Error ? err.message : String(err), exitCode: -4 };
+    }
+
     return new Promise((resolve) => {
-      const fullArgs = [subcommand, ...args];
-      const isBatch = process.platform === "win32" && (cliPath.endsWith(".cmd") || cliPath.endsWith(".bat"));
-      const child = spawn(cliPath, fullArgs, {
-        cwd,
-        shell: isBatch,
+      const child = spawn(invocation.command, invocation.args, {
+        cwd: workingDir,
+        shell: invocation.shell,
         env: { ...process.env, FUSEBASE_AGENT: "1" },
       });
 

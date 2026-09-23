@@ -84,16 +84,25 @@ docker run -i --rm \
   fusebase-mcp:latest
 ```
 
-Or run as a standing **HTTP / SSE Network Server** (for remote agents, swarms, and webhooks):
+Or run as a standing **HTTP Network Server** (for remote agents, swarms, and webhooks):
 ```bash
-docker run -d --name fusebase-mcp -p 3000:3000 \
+docker run -d --name fusebase-mcp -p 127.0.0.1:3000:3000 \
   -e FUSEBASE_GATE_TOKEN="your_token" \
   -e FUSEBASE_DASHBOARDS_TOKEN="your_token" \
-  -e MCP_TRANSPORT="sse" \
+  -e MCP_TRANSPORT="http" \
+  -e MCP_HOST="0.0.0.0" \
+  -e MCP_AUTH_TOKEN="$(openssl rand -hex 32)" \
   fusebase-mcp:latest
-# Endpoint: http://localhost:3000/sse | Health: http://localhost:3000/health
+# Endpoint: http://localhost:3000/mcp (legacy SSE: /sse) | Health: /health
+# Clients must send: Authorization: Bearer <MCP_AUTH_TOKEN>
 ```
-*(Or simply run `docker compose up -d`)*
+*(Or set `MCP_AUTH_TOKEN` in `.env` and run `docker compose up -d`.)*
+
+Every HTTP session acts with your FuseBase credentials, so the server:
+
+- listens on `127.0.0.1` unless `--host` / `MCP_HOST` says otherwise, and refuses a non-loopback address without `MCP_AUTH_TOKEN`;
+- requires `Authorization: Bearer <MCP_AUTH_TOKEN>` on every MCP request when a token is set;
+- rejects unexpected `Host` headers (extra names via `MCP_ALLOWED_HOSTS`) and browser `Origin`s not listed in `MCP_ALLOWED_ORIGINS`.
 
 ### 2. Configure & Authenticate
 

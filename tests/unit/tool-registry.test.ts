@@ -108,23 +108,50 @@ describe("input validation", () => {
 
 describe("download_attachment (SEC-2)", () => {
   let outside: string;
+  let downloads: string;
+  const originalDir = process.env.FUSEBASE_DOWNLOAD_DIR;
   beforeEach(() => {
-    outside = fs.mkdtempSync(path.join(os.tmpdir(), "fusebase-sec2-"));
+    outside = fs.mkdtempSync(path.join(os.tmpdir(), "fusebase-sec2-out-"));
+    downloads = fs.mkdtempSync(path.join(os.tmpdir(), "fusebase-sec2-dl-"));
+    process.env.FUSEBASE_DOWNLOAD_DIR = downloads;
   });
-  afterEach(() => fs.rmSync(outside, { recursive: true, force: true }));
+  afterEach(() => {
+    if (originalDir === undefined) delete process.env.FUSEBASE_DOWNLOAD_DIR;
+    else process.env.FUSEBASE_DOWNLOAD_DIR = originalDir;
+    fs.rmSync(outside, { recursive: true, force: true });
+    fs.rmSync(downloads, { recursive: true, force: true });
+  });
 
-  // SEC-2: outputPath is written verbatim, anywhere on disk.
-  it.fails("refuses to write outside the download directory", async () => {
-    const client = fakeClient({
-      downloadAttachment: async () => ({ base64: Buffer.from("payload").toString("base64"), mime: "application/octet-stream", size: 7 }),
-    });
-    session = await startServer(client);
+  const client = () => fakeClient({
+    downloadAttachment: async () => ({ base64: Buffer.from("payload").toString("base64"), mime: "application/octet-stream", size: 7 }),
+  });
+
+  it("refuses an outputPath outside the download directory", async () => {
+    session = await startServer(client());
     const target = path.join(outside, "written-by-tool.bin");
     const res = await session.callText("download_attachment", {
       workspaceId: "ws", attachmentId: "att", filename: "x.bin", saveToDisk: true, outputPath: target,
     });
     expect(fs.existsSync(target)).toBe(false);
     expect(res.isError).toBe(true);
+  });
+
+  it.each(["../escape.bin", "..\\escape.bin", "sub/../../escape.bin"])("keeps a traversal filename %j inside the download directory", async (filename) => {
+    session = await startServer(client());
+    const res = await session.callText("download_attachment", { workspaceId: "ws", attachmentId: "att", filename, saveToDisk: true });
+    expect(res.isError).toBe(false);
+    const saved = JSON.parse(res.text).savedPath as string;
+    expect(saved.startsWith(downloads + path.sep)).toBe(true);
+    expect(fs.readFileSync(saved, "utf-8")).toBe("payload");
+  });
+
+  it("writes a relative outputPath inside the download directory", async () => {
+    session = await startServer(client());
+    const res = await session.callText("download_attachment", {
+      workspaceId: "ws", attachmentId: "att", filename: "x.bin", saveToDisk: true, outputPath: "reports/q3.bin",
+    });
+    expect(res.isError).toBe(false);
+    expect(fs.readFileSync(path.join(downloads, "reports", "q3.bin"), "utf-8")).toBe("payload");
   });
 });
 

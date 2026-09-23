@@ -2,11 +2,11 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { FusebaseClient } from "../client.js";
 import type { FusebaseMember, FusebaseOrgMember } from "../types.js";
-import { loadEncryptedCookie, loadEncryptedToken, listConfiguredProfiles } from "../crypto.js";
+import { assertValidProfile, loadEncryptedCookie, loadEncryptedToken, listConfiguredProfiles } from "../crypto.js";
 import { markdownToSchema } from "../markdown-parser.js";
 import type { ContentBlock } from "../content-schema.js";
 import { writeContentViaWebSocket } from "../yjs-ws-writer.js";
-import { errorResult, guessMime, htmlToMarkdown } from "./helpers.js";
+import { errorResult, guessMime, htmlToMarkdown, resolveDownloadPath } from "./helpers.js";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
@@ -112,8 +112,10 @@ export function registerCoreTools(
     },
     async ({ profile }) => {
       try {
+        const next = profile === "default" ? undefined : profile;
+        assertValidProfile(next);
         if (options.setActiveProfile) {
-          options.setActiveProfile(profile === "default" ? undefined : profile);
+          options.setActiveProfile(next);
         }
         return {
           content: [
@@ -763,18 +765,18 @@ export function registerCoreTools(
         .optional()
         .default(false)
         .describe("If true, writes the file to local disk and returns the local file path instead of large base64 text"),
-      outputPath: z.string().optional().describe("Optional destination file path if saveToDisk is true"),
+      outputPath: z.string().optional().describe("Optional destination file name or relative path inside the download directory (data/downloads, or FUSEBASE_DOWNLOAD_DIR). Paths outside it are rejected."),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     }, async ({ workspaceId, attachmentId, filename, saveToDisk, outputPath, profile }) => {
       const client = getClient(profile);
       try {
+        // Validate the destination before downloading anything.
+        const targetFile = saveToDisk || outputPath ? resolveDownloadPath(filename, outputPath) : undefined;
         const result = await client.downloadAttachment(workspaceId, attachmentId, filename);
 
         // Safe local disk saving to prevent context blowup
-        if (saveToDisk || outputPath) {
-          const downloadDir = outputPath ? path.dirname(outputPath) : path.resolve(__dirname, "..", "..", "data", "downloads");
-          if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir, { recursive: true });
-          const targetFile = outputPath || path.join(downloadDir, filename);
+        if (targetFile) {
+          fs.mkdirSync(path.dirname(targetFile), { recursive: true });
           fs.writeFileSync(targetFile, Buffer.from(result.base64, "base64"));
           return {
             content: [{

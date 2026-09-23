@@ -18,18 +18,19 @@
  *
  * Supported Transports:
  *   - Stdio (default): node dist/index.js
- *   - SSE / HTTP: node dist/index.js --transport sse --port 3000 (or MCP_TRANSPORT=sse)
+ *   - HTTP: node dist/index.js --transport http [--host 127.0.0.1] [--port 3000] (or MCP_TRANSPORT=http)
+ *     Serves Streamable HTTP at /mcp and legacy SSE at /sse. See src/http-server.ts for the
+ *     access controls (MCP_AUTH_TOKEN, MCP_ALLOWED_HOSTS, MCP_ALLOWED_ORIGINS).
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
-import * as http from "node:http";
 import { FusebaseClient } from "./client.js";
 import { FusebaseGateBridge } from "./gate-bridge.js";
 import { loadEncryptedCookie, loadCredentialStore } from "./crypto.js";
 import { loadDotEnv, resolveTokens, hasAnyToken } from "./config.js";
 import { startProxyRelay } from "./proxy-relay.js";
+import { resolveHttpOptions, startHttpServer } from "./http-server.js";
 import { registerCoreTools } from "./tools/core-tools.js";
 import { registerExtendedTools } from "./tools/extended-tools.js";
 import { registerResources } from "./resources.js";
@@ -191,110 +192,32 @@ async function main() {
   if (credStore?.proxy) {
     try {
       const relay = await startProxyRelay(credStore.proxy);
-      _proxyRelayUrl = `http://127.0.0.1:${relay.port}`;
+      _proxyRelayUrl = relay.url;
       process.on("exit", () => relay.stop());
     } catch (err) {
       console.error(`[fusebase] Warning: Failed to start proxy relay: ${err instanceof Error ? err.message : err}`);
     }
   }
 
-  // Determine transport mode
-  const isSseMode =
-    process.argv.includes("--sse") ||
-    (process.argv.includes("--transport") && process.argv[process.argv.indexOf("--transport") + 1]?.toLowerCase() === "sse") ||
-    process.env.MCP_TRANSPORT === "sse";
+  // Determine transport mode: "http" (Streamable HTTP + legacy SSE) or stdio.
+  // "--sse" / "--transport sse" / MCP_TRANSPORT=sse are accepted as aliases for http.
+  const transportArg = (process.argv.includes("--transport") ? process.argv[process.argv.indexOf("--transport") + 1] : undefined)
+    || process.env.MCP_TRANSPORT
+    || (process.argv.includes("--sse") ? "sse" : "stdio");
+  const isHttpMode = ["http", "sse"].includes(transportArg.toLowerCase());
 
-  let port = 3000;
-  const portArgIdx = process.argv.indexOf("--port");
-  if (portArgIdx !== -1 && process.argv[portArgIdx + 1]) {
-    port = parseInt(process.argv[portArgIdx + 1], 10);
-  } else if (process.env.PORT) {
-    port = parseInt(process.env.PORT, 10);
-  }
-
-  if (isSseMode) {
-    const sessions = new Map<string, { server: McpServer; transport: SSEServerTransport }>();
-
-    const httpServer = http.createServer(async (req, res) => {
-      // Set permissive CORS headers for agent web interfaces and tools
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, mcp-session-id");
-
-      if (req.method === "OPTIONS") {
-        res.writeHead(204).end();
-        return;
-      }
-
-      const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
-
-      // Health and status endpoint
-      if (req.method === "GET" && (url.pathname === "/health" || url.pathname === "/")) {
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({
-          status: "ok",
-          server: "fusebase-mcp",
-          version: "1.0.0",
-          transport: "sse",
-          activeSessions: sessions.size,
-          tier: process.env.FUSEBASE_TOOLS === "all" ? "all" : "core",
-          gateConnected: Boolean(_gateBridge?.isConfigured),
-          timestamp: new Date().toISOString()
-        }));
-        return;
-      }
-
-      // SSE connection establishment
-      if (req.method === "GET" && url.pathname === "/sse") {
-        try {
-          const transport = new SSEServerTransport("/message", res);
-          const { server } = createFusebaseServer();
-          sessions.set(transport.sessionId, { server, transport });
-
-          transport.onclose = () => {
-            sessions.delete(transport.sessionId);
-            console.error(`[fusebase] SSE session closed: ${transport.sessionId} (${sessions.size} active)`);
-          };
-
-          console.error(`[fusebase] SSE session opened: ${transport.sessionId} (${sessions.size} active)`);
-          await server.connect(transport);
-        } catch (err: any) {
-          console.error(`[fusebase] Error establishing SSE connection: ${err.message}`);
-          if (!res.headersSent) {
-            res.writeHead(500, { "Content-Type": "text/plain" }).end("Error establishing SSE stream");
-          }
-        }
-        return;
-      }
-
-      // Incoming JSON-RPC messages via HTTP POST
-      if (req.method === "POST" && url.pathname === "/message") {
-        const sessionId = url.searchParams.get("sessionId");
-        const session = sessionId ? sessions.get(sessionId) : undefined;
-        if (!session) {
-          res.writeHead(400, { "Content-Type": "text/plain" }).end("Invalid or expired session ID");
-          return;
-        }
-        try {
-          await session.transport.handlePostMessage(req, res);
-        } catch (err: any) {
-          console.error(`[fusebase] Error handling message for session ${sessionId}: ${err.message}`);
-          if (!res.headersSent) {
-            res.writeHead(500, { "Content-Type": "text/plain" }).end(err.message);
-          }
-        }
-        return;
-      }
-
-      res.writeHead(404, { "Content-Type": "text/plain" }).end("Not Found");
-    });
-
-    httpServer.listen(port, "0.0.0.0", () => {
-      console.error(`[fusebase] MCP Server running on HTTP/SSE at http://0.0.0.0:${port}`);
-      console.error(`[fusebase] SSE Endpoint: http://0.0.0.0:${port}/sse`);
-      console.error(`[fusebase] Health Check: http://0.0.0.0:${port}/health`);
-      console.error("📊 Live Platform Status: https://fusebase-mcp.thefusebase.app/");
-    });
+  if (isHttpMode) {
+    const options = resolveHttpOptions(process.argv, process.env);
+    const handle = await startHttpServer(options, () => createFusebaseServer().server, { version: "1.0.0" });
+    const base = `http://${options.host.includes(":") ? `[${options.host}]` : options.host}:${handle.port}`;
+    console.error(`[fusebase] MCP server listening on ${base}`);
+    console.error(`[fusebase]   Streamable HTTP: ${base}/mcp   Legacy SSE: ${base}/sse   Health: ${base}/health`);
+    console.error(`[fusebase]   Auth: ${options.authToken ? "bearer token required" : "none (loopback only)"}`);
+    const shutdown = () => {
+      handle.close().finally(() => process.exit(0));
+    };
+    process.once("SIGINT", shutdown);
+    process.once("SIGTERM", shutdown);
   } else {
     // Default: Stdio Transport for local desktop & CLI clients
     const { server } = createFusebaseServer();

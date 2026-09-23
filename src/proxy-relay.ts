@@ -4,12 +4,16 @@
  * Exposes a local HTTP CONNECT proxy on 127.0.0.1 that forwards connections
  * through an upstream authenticated SOCKS5 proxy (PIA).
  *
- * Flow: Chromium → HTTP CONNECT (localhost, no auth) → SOCKS5 (PIA, with auth) → Internet
+ * Flow: Chromium / undici → HTTP CONNECT (localhost, per-process credentials) → SOCKS5 (PIA, with auth) → Internet
+ *
+ * The relay requires a random username/password generated at startup, so other local
+ * processes cannot tunnel through the stored upstream proxy account.
  *
  * We implement the upstream SOCKS5 handshake manually (no `socks` package)
  * to ensure IPv4-only connections, which PIA requires.
  */
 
+import * as crypto from "crypto";
 import * as net from "net";
 import * as dns from "dns";
 import * as http from "http";
@@ -17,7 +21,20 @@ import type { ProxyConfig } from "./crypto.js";
 
 export interface RelayHandle {
     port: number;
+    /** Relay credentials; required on every CONNECT. */
+    username: string;
+    password: string;
+    /** Proxy URL including credentials, e.g. for undici's ProxyAgent. Do not log it. */
+    url: string;
     stop: () => void;
+}
+
+/** Constant-time check of a Proxy-Authorization header against the expected value. */
+function isAuthorized(header: string | undefined, expected: string): boolean {
+    if (!header) return false;
+    const a = Buffer.from(header);
+    const b = Buffer.from(expected);
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
 /**
@@ -35,6 +52,9 @@ export async function startProxyRelay(
     console.error(`[proxy-relay] Upstream: ${upstreamHost} → ${upstreamIp}:${upstreamPort}`);
 
     const activeSockets = new Set<net.Socket>();
+    const username = "relay";
+    const password = crypto.randomBytes(24).toString("base64url");
+    const expectedAuth = `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`;
 
     const server = http.createServer((_req, res) => {
         // Regular HTTP requests are not proxied
@@ -46,6 +66,11 @@ export async function startProxyRelay(
         const clientSocket = rawSocket as net.Socket;
         activeSockets.add(clientSocket);
         clientSocket.on("close", () => activeSockets.delete(clientSocket));
+
+        if (!isAuthorized(req.headers["proxy-authorization"], expectedAuth)) {
+            clientSocket.end('HTTP/1.1 407 Proxy Authentication Required\r\nProxy-Authenticate: Basic realm="fusebase-relay"\r\n\r\n');
+            return;
+        }
 
         const [destHost, destPortStr] = req.url!.split(":");
         const destPort = parseInt(destPortStr, 10) || 443;
@@ -122,6 +147,9 @@ export async function startProxyRelay(
 
             resolve({
                 port,
+                username,
+                password,
+                url: `http://${username}:${encodeURIComponent(password)}@127.0.0.1:${port}`,
                 stop: () => {
                     for (const sock of activeSockets) sock.destroy();
                     activeSockets.clear();

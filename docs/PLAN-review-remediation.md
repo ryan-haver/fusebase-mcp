@@ -65,18 +65,25 @@ The cookie will need refreshing more than once. Before each live run, check that
 
 ## Phase 1: Security (L)
 
+> **Status (branch `fix/phase-1-security`):** implemented, all SEC findings closed with tests. Notes:
+> - SEC-4, SEC-5, SEC-7 and SEC-9 were reproduced with failing tests before fixing. SEC-5 was worse than reported: an empty ID silently hit the parent endpoint, and `listFolders("ws&depth=1")` injected a query parameter.
+> - D1 applied: `/mcp` (Streamable HTTP) is the primary endpoint; legacy `/sse` stays for one release behind the same auth, Host and Origin checks. `--transport sse` / `MCP_TRANSPORT=sse` now mean HTTP mode.
+> - Loopback without `MCP_AUTH_TOKEN` is still allowed (other local processes can already read `data/`); Host and Origin checks still apply there.
+> - SEC-6 deviates slightly from the plan: a tool-supplied `cwd` may be inside the server's working directory (unless it is a filesystem root), `apps/`, or `FUSEBASE_CLI_ALLOWED_DIRS`. Restricting to `apps/` alone would break running the CLI in the user's own project.
+> - SEC-2 is the breaking change from D3: `download_attachment` only writes inside `data/downloads` (or `FUSEBASE_DOWNLOAD_DIR`).
+
 | ID | Finding | Status | Fix |
 |---|---|---|---|
-| SEC-1 | The SSE server binds `0.0.0.0`, sends `ACAO: *`, has no auth and no Host or Origin check. Confirmed live: an unauthenticated LAN client can list and call every tool | ✅ | Bind `127.0.0.1` by default (`--host` to override). When not on loopback, require `MCP_AUTH_TOKEN` (bearer) and refuse to start without it. Allow-list Host and Origin (SDK `hostHeaderValidation`). Remove the wildcard CORS header. Move to `StreamableHTTPServerTransport` (see D1) |
-| SEC-1b | `docker-compose.yml` publishes 3000 on every interface | ✅ | Publish `127.0.0.1:3000:3000` and pass through `MCP_AUTH_TOKEN` |
-| SEC-2 | `download_attachment` writes to any `outputPath`; `filename` can escape the folder with `../` | ✅ | Write only inside `data/downloads` (or `FUSEBASE_DOWNLOAD_DIR`); use `path.basename(filename)`; reject a resolved path outside the root |
-| SEC-3 | `get_guide` reads any `.md` file on disk through `..` in section or slug | ✅ | Allow-list section and slug with `^[a-z0-9-]+$`, plus a check that the resolved path stays inside the root |
-| SEC-4 | Profile names become file paths (`cookie_${profile}.enc`) | 🔎 | Validate with `^[A-Za-z0-9_-]{1,64}$` in `crypto.ts` and in `switch_active_profile` |
-| SEC-5 | IDs are put into URL paths without encoding (`..` reaches other endpoints) | 🔎 | Add a `path\`…\`` tagged-template helper that encodes each segment, and use it for every URL built in `client.ts` |
-| SEC-6 | `cli-manager` uses `shell: true` for `.cmd`/`.bat` CLIs with model-supplied arguments; `cwd` is unrestricted | ✅ | Never use a shell. For a `.cmd` shim, find the underlying `node` + script and spawn that directly. Validate arguments; limit `cwd` to an allow-list (default: `apps/`) |
-| SEC-7 | The local proxy relay accepts any local process and forwards stored proxy credentials | 🔎 | Bind to an ephemeral loopback port and require a per-process random token (`Proxy-Authorization`) |
-| SEC-8 | Test logs print token and cookie prefixes | ✅ | Covered by TST-6 |
-| SEC-9 | The `summarize-page` prompt embeds unbounded, untrusted page content | 🔎 | Truncate the content and wrap it in clear delimiters marking it as data |
+| SEC-1 | The SSE server binds `0.0.0.0`, sends `ACAO: *`, has no auth and no Host or Origin check. Confirmed live: an unauthenticated LAN client can list and call every tool | ✅ fixed | Bind `127.0.0.1` by default (`--host` to override). When not on loopback, require `MCP_AUTH_TOKEN` (bearer) and refuse to start without it. Allow-list Host and Origin (SDK `hostHeaderValidation`). Remove the wildcard CORS header. Move to `StreamableHTTPServerTransport` (see D1) |
+| SEC-1b | `docker-compose.yml` publishes 3000 on every interface | ✅ fixed | Publish `127.0.0.1:3000:3000` and pass through `MCP_AUTH_TOKEN` |
+| SEC-2 | `download_attachment` writes to any `outputPath`; `filename` can escape the folder with `../` | ✅ fixed | Write only inside `data/downloads` (or `FUSEBASE_DOWNLOAD_DIR`); use `path.basename(filename)`; reject a resolved path outside the root |
+| SEC-3 | `get_guide` reads any `.md` file on disk through `..` in section or slug | ✅ fixed | Allow-list section and slug with `^[a-z0-9-]+$`, plus a check that the resolved path stays inside the root |
+| SEC-4 | Profile names become file paths (`cookie_${profile}.enc`) | ✅ fixed | Validate with `^[A-Za-z0-9_-]{1,64}$` in `crypto.ts` and in `switch_active_profile` |
+| SEC-5 | IDs are put into URL paths without encoding (`..` reaches other endpoints) | ✅ fixed | Add a `path\`…\`` tagged-template helper that encodes each segment, and use it for every URL built in `client.ts` |
+| SEC-6 | `cli-manager` uses `shell: true` for `.cmd`/`.bat` CLIs with model-supplied arguments; `cwd` is unrestricted | ✅ fixed | Never use a shell. For a `.cmd` shim, find the underlying `node` + script and spawn that directly. Validate arguments; limit `cwd` to an allow-list (default: `apps/`) |
+| SEC-7 | The local proxy relay accepts any local process and forwards stored proxy credentials | ✅ fixed | Bind to an ephemeral loopback port and require a per-process random token (`Proxy-Authorization`) |
+| SEC-8 | Test logs print token and cookie prefixes | ✅ fixed | Covered by TST-6 |
+| SEC-9 | The `summarize-page` prompt embeds unbounded, untrusted page content | ✅ fixed | Truncate the content and wrap it in clear delimiters marking it as data |
 
 **Exit criteria:**
 - The SSE probe (`scratchpad/sse-probe.mjs`, moved into `tests/`) shows: not reachable on the LAN by default, 401 without a token, and 403 on a foreign Host or Origin.

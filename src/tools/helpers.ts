@@ -2,6 +2,33 @@
  * Shared helpers and utilities for MCP tools.
  */
 
+import * as path from "path";
+import { fileURLToPath } from "url";
+
+const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+
+/** Directory that download_attachment may write into (FUSEBASE_DOWNLOAD_DIR or data/downloads). */
+export function downloadRoot(): string {
+  return path.resolve(process.env.FUSEBASE_DOWNLOAD_DIR || path.join(PROJECT_ROOT, "data", "downloads"));
+}
+
+/**
+ * Resolve where a downloaded attachment may be written. Both the filename and outputPath
+ * come from tool arguments, so the result must stay inside downloadRoot(): the filename
+ * is reduced to its base name, and outputPath is resolved relative to the root.
+ */
+export function resolveDownloadPath(filename: string, outputPath?: string): string {
+  const root = downloadRoot();
+  const target = outputPath
+    ? path.resolve(root, outputPath)
+    // eslint-disable-next-line no-control-regex -- stripping control characters from a remote filename is the point
+    : path.join(root, path.basename(filename.replace(/\\/g, "/")).replace(/[\x00-\x1f]/g, "") || "attachment");
+  if (!target.startsWith(root + path.sep)) {
+    throw new Error(`Refusing to write outside the download directory (${root}). Use a path inside it, or set FUSEBASE_DOWNLOAD_DIR.`);
+  }
+  return target;
+}
+
 export function errorResult(error: unknown) {
   const msg = error instanceof Error ? error.message : String(error);
   return {

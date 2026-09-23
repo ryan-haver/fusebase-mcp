@@ -81,14 +81,13 @@ export async function refreshCookies(config: AuthConfig): Promise<string> {
       }
 
       const launchArgs = ["--disable-blink-features=AutomationControlled"];
-      if (config.proxy) {
-        launchArgs.push(`--proxy-server=${config.proxy.server}`);
-      }
 
       const context = await chromium.launchPersistentContext(userDataDir, {
         headless,
         args: launchArgs,
         viewport: { width: 1280, height: 800 },
+        // Playwright's proxy option (unlike --proxy-server) carries the relay credentials.
+        ...(config.proxy ? { proxy: config.proxy } : {}),
       });
 
       try {
@@ -315,11 +314,11 @@ async function main() {
       const { startProxyRelay } = await import(relayUrl);
       const relay = await startProxyRelay(store.proxy);
       relayStop = relay.stop;
-      // Give Chromium the local relay (no auth needed)
+      // Give Chromium the local relay and its per-process credentials
       proxyForBrowser = {
         server: `http://127.0.0.1:${relay.port}`,
-        username: "",
-        password: "",
+        username: relay.username,
+        password: relay.password,
       };
     }
   }

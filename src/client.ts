@@ -10,6 +10,7 @@ import * as path from "path";
 import { fileURLToPath } from "url";
 import { ProxyAgent } from "undici";
 import { FusebaseGateBridge } from "./gate-bridge.js";
+import { apiPath } from "./url-path.js";
 
 export interface FusebaseConfig {
   host: string;
@@ -139,7 +140,7 @@ export class FusebaseClient {
     fs.mkdirSync(DATA_DIR, { recursive: true });
     if (config.proxyRelayUrl) {
       this.proxyDispatcher = new ProxyAgent(config.proxyRelayUrl);
-      console.error(`[client] Using proxy relay: ${config.proxyRelayUrl}`);
+      console.error("[client] Using local proxy relay");
     }
   }
 
@@ -523,7 +524,7 @@ export class FusebaseClient {
     if (this.cookie) {
       try {
         const workspaces = await this.request<FusebaseWorkspace[]>(
-          `/gwapi2/ft%3Atasks/workspace-infos?orgId=${this.orgId}`,
+          `/gwapi2/ft%3Atasks/workspace-infos?orgId=${encodeURIComponent(this.orgId)}`,
         );
         this.updateWorkspaceCache(workspaces);
         return workspaces;
@@ -587,7 +588,8 @@ export class FusebaseClient {
           JSON.stringify([opts.orderBy, opts.orderDir]),
         );
         return await this.request<NotesListResponse>(
-          `/v2/api/workspaces/${workspaceId}/notes?filter=${filter}&range=${range}&rootId=${opts.rootId}&order=${order}`,
+          apiPath`/v2/api/workspaces/${workspaceId}/notes` +
+            `?filter=${filter}&range=${range}&rootId=${encodeURIComponent(opts.rootId)}&order=${order}`,
         );
       } catch (err: any) {
         if (!this.gateBridge?.hasGate) throw err;
@@ -619,7 +621,7 @@ export class FusebaseClient {
     if (this.cookie) {
       try {
         return await this.request<FusebaseNote>(
-          `/v2/api/web-editor/space/${workspaceId}/note/${noteId}`,
+          apiPath`/v2/api/web-editor/space/${workspaceId}/note/${noteId}`,
         );
       } catch (err: any) {
         if (!this.gateBridge?.hasGate) throw err;
@@ -654,7 +656,8 @@ export class FusebaseClient {
     limit = 10,
   ): Promise<RecentNotesResponse> {
     return this.request<RecentNotesResponse>(
-      `/v2/api/web-editor/notes/recent/${workspaceId}?count=1&type=note&limit=${limit}&offset=0`,
+      apiPath`/v2/api/web-editor/notes/recent/${workspaceId}` +
+        `?count=1&type=note&limit=${encodeURIComponent(limit)}&offset=0`,
     );
   }
 
@@ -778,7 +781,7 @@ export class FusebaseClient {
     updates: { title?: string; parentId?: string },
   ): Promise<unknown> {
     return this.request<unknown>(
-      `/v2/api/workspaces/${workspaceId}/notes/${noteId}/upsert`,
+      apiPath`/v2/api/workspaces/${workspaceId}/notes/${noteId}/upsert`,
       {
         method: "POST",
         body: JSON.stringify({ note: updates }),
@@ -803,7 +806,7 @@ export class FusebaseClient {
     const targetWorkspace = options.targetWorkspaceId || workspaceId;
     const parent = options.folderId || options.parentId || "root";
     return this.request<{ id: string }>(
-      `/v2/api/workspaces/${workspaceId}/notes/${noteId}/move`,
+      apiPath`/v2/api/workspaces/${workspaceId}/notes/${noteId}/move`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -821,7 +824,7 @@ export class FusebaseClient {
     if (this.cookie) {
       try {
         const folders = await this.request<FusebaseFolder[]>(
-          `/gwapi2/ft:notes/menu?workspace=${workspaceId}&depth=-1&type=folder&orderBy=title&orderDirection=ASC`,
+          `/gwapi2/ft:notes/menu?workspace=${encodeURIComponent(workspaceId)}&depth=-1&type=folder&orderBy=title&orderDirection=ASC`,
         );
         this.updateFolderCache(workspaceId, folders);
         return folders;
@@ -857,7 +860,7 @@ export class FusebaseClient {
     noteId: string,
   ): Promise<FusebaseAttachment[]> {
     return this.request<FusebaseAttachment[]>(
-      `/v2/api/web-editor/space/${workspaceId}/note/attachments/${noteId}`,
+      apiPath`/v2/api/web-editor/space/${workspaceId}/note/attachments/${noteId}`,
     );
   }
 
@@ -868,7 +871,8 @@ export class FusebaseClient {
     offset = 0,
   ): Promise<FusebaseFile[]> {
     return this.request<FusebaseFile[]>(
-      `/v2/api/workspaces/${workspaceId}/files?showPortalFiles=true&limitSize=${limit}&limitFrom=${offset}&resetCache=true`,
+      apiPath`/v2/api/workspaces/${workspaceId}/files` +
+        `?showPortalFiles=true&limitSize=${encodeURIComponent(limit)}&limitFrom=${encodeURIComponent(offset)}&resetCache=true`,
     );
   }
 
@@ -960,7 +964,7 @@ export class FusebaseClient {
     mime: string;
     size: number;
   }> {
-    const url = `${this.baseUrl}/box/attachment/${workspaceId}/${attachmentId}/${encodeURIComponent(filename)}`;
+    const url = `${this.baseUrl}` + apiPath`/box/attachment/${workspaceId}/${attachmentId}/${filename}`;
     const res = await fetch(url, {
       headers: { cookie: this.cookie },
       signal: AbortSignal.timeout(TIMEOUT_GET),
@@ -985,14 +989,14 @@ export class FusebaseClient {
   /** Get tags for a workspace */
   async getTags(workspaceId: string): Promise<FusebaseTag> {
     return this.request<FusebaseTag>(
-      `/v2/api/workspaces/${workspaceId}/tags`,
+      apiPath`/v2/api/workspaces/${workspaceId}/tags`,
     );
   }
 
   /** Get tags for a specific page */
   async getPageTags(workspaceId: string, noteId: string): Promise<string[]> {
     return this.request<string[]>(
-      `/v2/api/workspaces/${workspaceId}/notes/${noteId}/tags`,
+      apiPath`/v2/api/workspaces/${workspaceId}/notes/${noteId}/tags`,
     );
   }
 
@@ -1003,7 +1007,7 @@ export class FusebaseClient {
     tags: string[],
   ): Promise<void> {
     await this.request<void>(
-      `/v2/api/workspaces/${workspaceId}/notes/${noteId}/tags`,
+      apiPath`/v2/api/workspaces/${workspaceId}/notes/${noteId}/tags`,
       { method: "PUT", body: JSON.stringify(tags) },
     );
   }
@@ -1011,7 +1015,7 @@ export class FusebaseClient {
   /** Get labels for a workspace */
   async getLabels(workspaceId: string): Promise<FusebaseLabel[]> {
     return this.request<FusebaseLabel[]>(
-      `/gwapi2/ft%3Aworkspaces/workspaces/${workspaceId}/labels`,
+      apiPath`/gwapi2/ft%3Aworkspaces/workspaces/${workspaceId}/labels`,
     );
   }
 
@@ -1020,14 +1024,14 @@ export class FusebaseClient {
   /** Get workspace members */
   async getWorkspaceMembers(workspaceId: string): Promise<FusebaseMember[]> {
     return this.request<FusebaseMember[]>(
-      `/v2/api/workspaces/${workspaceId}/members`,
+      apiPath`/v2/api/workspaces/${workspaceId}/members`,
     );
   }
 
   /** Get organization members */
   async getOrgMembers(): Promise<FusebaseOrgMember[]> {
     return this.request<FusebaseOrgMember[]>(
-      `/v2/api/orgs/${this.orgId}/membersWithOwner`,
+      apiPath`/v2/api/orgs/${this.orgId}/membersWithOwner`,
     );
   }
 
@@ -1035,14 +1039,14 @@ export class FusebaseClient {
   async getMemberRoles(orgId?: string): Promise<Array<{ userId: number; role: string }>> {
     const org = orgId || this.orgId;
     return this.request<Array<{ userId: number; role: string }>>(
-      `/gwapi2/ft:org/orgs/${org}/member-roles`,
+      apiPath`/gwapi2/ft:org/orgs/${org}/member-roles`,
     );
   }
 
   /** Get granular v1 workspace member entities */
   async getWorkspaceMembersV1(workspaceId: string): Promise<unknown[]> {
     return this.request<unknown[]>(
-      `/v1/workspaces/${workspaceId}/members`,
+      apiPath`/v1/workspaces/${workspaceId}/members`,
     );
   }
 
@@ -1051,7 +1055,7 @@ export class FusebaseClient {
   /** Get organization usage stats */
   async getOrgUsage(): Promise<OrgUsageResponse> {
     return this.request<OrgUsageResponse>(
-      `/v2/api/orgs/${this.orgId}/usage`,
+      apiPath`/v2/api/orgs/${this.orgId}/usage`,
     );
   }
 
@@ -1090,7 +1094,7 @@ export class FusebaseClient {
     noteId: string,
   ): Promise<FusebaseCommentThread[]> {
     return this.request<FusebaseCommentThread[]>(
-      `/gwapi2/svc:comment/workspaces/${workspaceId}/notes/${noteId}/threadsInfo`,
+      apiPath`/gwapi2/svc:comment/workspaces/${workspaceId}/notes/${noteId}/threadsInfo`,
     );
   }
 
@@ -1115,7 +1119,7 @@ export class FusebaseClient {
       attributes: { workspaceId, noteId },
     };
     return this.request<unknown>(
-      `/gwapi2/ft:comments/threads?workspace=${workspaceId}`,
+      `/gwapi2/ft:comments/threads?workspace=${encodeURIComponent(workspaceId)}`,
       {
         method: "POST",
         body: JSON.stringify(body),
@@ -1136,7 +1140,7 @@ export class FusebaseClient {
   ): Promise<unknown> {
     const delta = JSON.stringify([{ insert: text + "\n" }]);
     return this.request<unknown>(
-      `/gwapi2/ft:comments/comments?workspace=${workspaceId}&thread=${threadId}`,
+      `/gwapi2/ft:comments/comments?workspace=${encodeURIComponent(workspaceId)}&thread=${encodeURIComponent(threadId)}`,
       {
         method: "POST",
         body: JSON.stringify({ text: delta }),
@@ -1154,7 +1158,7 @@ export class FusebaseClient {
     threadId: string,
   ): Promise<unknown> {
     return this.request<unknown>(
-      `/gwapi2/ft:comments/threads/${threadId}`,
+      apiPath`/gwapi2/ft:comments/threads/${threadId}`,
       {
         method: "PATCH",
         body: JSON.stringify({ workspaceId, resolved: true }),
@@ -1169,7 +1173,7 @@ export class FusebaseClient {
     workspaceId: string,
     options?: { taskListId?: string },
   ): Promise<FusebaseTaskList[]> {
-    let path = `/gwapi2/ft%3Atasks/workspaces/${workspaceId}/taskLists`;
+    let path = apiPath`/gwapi2/ft%3Atasks/workspaces/${workspaceId}/taskLists`;
     if (options?.taskListId) {
       const filter = encodeURIComponent(
         JSON.stringify({ taskListId: [options.taskListId] }),
@@ -1195,7 +1199,7 @@ export class FusebaseClient {
       },
     };
     return this.request<unknown>(
-      `/gwapi2/ft%3Atasks/workspaces/${workspaceId}/tasks?addToOrder=false`,
+      apiPath`/gwapi2/ft%3Atasks/workspaces/${workspaceId}/tasks` + "?addToOrder=false",
       {
         method: "POST",
         body: JSON.stringify(body),
@@ -1210,7 +1214,7 @@ export class FusebaseClient {
     updates: Record<string, unknown>,
   ): Promise<unknown> {
     return this.request<unknown>(
-      `/gwapi2/ft%3Atasks/workspaces/${workspaceId}/tasks/${taskId}`,
+      apiPath`/gwapi2/ft%3Atasks/workspaces/${workspaceId}/tasks/${taskId}`,
       {
         method: "POST",
         body: JSON.stringify({ task: updates }),
@@ -1221,7 +1225,7 @@ export class FusebaseClient {
   /** Delete a task */
   async deleteTask(workspaceId: string, taskId: string): Promise<void> {
     await this.request<void>(
-      `/gwapi2/ft%3Atasks/workspaces/${workspaceId}/tasks/${taskId}`,
+      apiPath`/gwapi2/ft%3Atasks/workspaces/${workspaceId}/tasks/${taskId}`,
       { method: "DELETE" },
     );
   }
@@ -1232,7 +1236,7 @@ export class FusebaseClient {
     taskId: string,
   ): Promise<unknown> {
     return this.request<unknown>(
-      `/gwapi2/ft%3Atasks/workspaces/${workspaceId}/taskDescriptions/${taskId}`,
+      apiPath`/gwapi2/ft%3Atasks/workspaces/${workspaceId}/taskDescriptions/${taskId}`,
     );
   }
 
@@ -1247,7 +1251,7 @@ export class FusebaseClient {
     taskId: string,
   ): Promise<unknown> {
     return this.request<unknown>(
-      `/gwapi2/ft:tasks/workspaces/${workspaceId}/time/${taskId}`,
+      apiPath`/gwapi2/ft:tasks/workspaces/${workspaceId}/time/${taskId}`,
     );
   }
 
@@ -1256,7 +1260,7 @@ export class FusebaseClient {
   /** Delete a page */
   async deletePage(workspaceId: string, noteId: string): Promise<void> {
     await this.request<void>(
-      `/v2/api/workspaces/${workspaceId}/notes/${noteId}`,
+      apiPath`/v2/api/workspaces/${workspaceId}/notes/${noteId}`,
       { method: "DELETE" },
     );
   }
@@ -1268,7 +1272,7 @@ export class FusebaseClient {
     tokens: unknown[],
   ): Promise<unknown> {
     return this.request<unknown>(
-      `/v4/api/workspaces/${workspaceId}/texts/${noteId}/tokens`,
+      apiPath`/v4/api/workspaces/${workspaceId}/texts/${noteId}/tokens`,
       {
         method: "POST",
         body: JSON.stringify({ tokens }),
@@ -1281,7 +1285,7 @@ export class FusebaseClient {
   /** List AI agents for the org */
   async listAgents(): Promise<FusebaseAgent[]> {
     return this.request<FusebaseAgent[]>(
-      `/v4/api/proxy/ai-service/v1/orgs/${this.orgId}/agent-categories/agents?globalId=all`,
+      apiPath`/v4/api/proxy/ai-service/v1/orgs/${this.orgId}/agent-categories/agents` + "?globalId=all",
     );
   }
 
@@ -1303,14 +1307,14 @@ export class FusebaseClient {
       type: string;
       [key: string]: unknown;
     }>>(
-      `/v4/api/proxy/ai-service/v1/orgs/${org}/agent-categories`,
+      apiPath`/v4/api/proxy/ai-service/v1/orgs/${org}/agent-categories`,
     );
   }
 
   /** Get AI assistant state, prompt suggestions, and preferences for a workspace */
   async getAiAssistantState(workspaceId: string): Promise<Record<string, unknown>> {
     return this.request<Record<string, unknown>>(
-      `/ai-assistant/rest/workspaces/${workspaceId}/main-page`,
+      apiPath`/ai-assistant/rest/workspaces/${workspaceId}/main-page`,
     );
   }
 
@@ -1318,7 +1322,7 @@ export class FusebaseClient {
   async listAiAgentThreads(agentId: string, orgId?: string): Promise<unknown[]> {
     const org = orgId || this.orgId;
     return this.request<unknown[]>(
-      `/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads`,
+      apiPath`/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads`,
     );
   }
 
@@ -1326,7 +1330,7 @@ export class FusebaseClient {
   async getAiAgentFavorites(orgId?: string): Promise<unknown[]> {
     const org = orgId || this.orgId;
     return this.request<unknown[]>(
-      `/v4/api/proxy/ai-service/v1/orgs/${org}/agentFavorites`,
+      apiPath`/v4/api/proxy/ai-service/v1/orgs/${org}/agentFavorites`,
     );
   }
 
@@ -1334,7 +1338,7 @@ export class FusebaseClient {
   async getAgentPublicProfile(agentGlobalId: string, orgId?: string): Promise<Record<string, unknown>> {
     const org = orgId || this.orgId;
     return this.request<Record<string, unknown>>(
-      `/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentGlobalId}/public`,
+      apiPath`/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentGlobalId}/public`,
     );
   }
 
@@ -1350,14 +1354,14 @@ export class FusebaseClient {
     const org = options?.orgId || this.orgId;
     if (options?.threadId) {
       return this.request<Record<string, unknown>>(
-        `/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads/${options.threadId}/messages`,
+        apiPath`/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads/${options.threadId}/messages`,
         {
           method: "POST",
           body: JSON.stringify({ message: prompt, text: prompt, content: prompt }),
         },
       ).catch(async () => {
         return this.request<Record<string, unknown>>(
-          `/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentId}/run`,
+          apiPath`/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentId}/run`,
           {
             method: "POST",
             body: JSON.stringify({ prompt, threadId: options?.threadId }),
@@ -1367,14 +1371,14 @@ export class FusebaseClient {
     }
 
     return this.request<Record<string, unknown>>(
-      `/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads`,
+      apiPath`/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads`,
       {
         method: "POST",
         body: JSON.stringify({ message: prompt, text: prompt, prompt }),
       },
     ).catch(async () => {
       return this.request<Record<string, unknown>>(
-        `/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentId}/run`,
+        apiPath`/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentId}/run`,
         {
           method: "POST",
           body: JSON.stringify({ prompt }),
@@ -1425,7 +1429,7 @@ export class FusebaseClient {
     workspaceId: string,
   ): Promise<FusebaseMentionEntity[]> {
     return this.request<FusebaseMentionEntity[]>(
-      `/v2/api/web-editor/mention-entities/${workspaceId}`,
+      apiPath`/v2/api/web-editor/mention-entities/${workspaceId}`,
     );
   }
 
@@ -1439,57 +1443,57 @@ export class FusebaseClient {
       ws = workspaces[0]?.workspaceId || "45h7lom5ryjak34u";
     }
     return this.request<FusebaseNavMenuItem[]>(
-      `/gwapi2/ft%3Anotes/menu?workspace=${ws}`,
+      `/gwapi2/ft%3Anotes/menu?workspace=${encodeURIComponent(ws)}`,
     );
   }
 
   /** Get the activity stream for a workspace (comments, mentions, etc.) */
   async getActivityStream(workspaceId: string): Promise<FusebaseActivityItem> {
     return this.request<FusebaseActivityItem>(
-      `/gwapi2/svc%3Anotification/workspaces/${workspaceId}/activityStream`,
+      apiPath`/gwapi2/svc%3Anotification/workspaces/${workspaceId}/activityStream`,
     );
   }
 
   /** Get task usage (deadlines, reminders) for a workspace */
   async getTaskUsage(workspaceId: string): Promise<FusebaseTaskUsage> {
     return this.request<FusebaseTaskUsage>(
-      `/gwapi2/ft%3Atasks/workspaces/${workspaceId}/usage`,
+      apiPath`/gwapi2/ft%3Atasks/workspaces/${workspaceId}/usage`,
     );
   }
 
   /** Get recently updated notes across the org */
   async getRecentlyUpdatedNotes(): Promise<unknown> {
     return this.request<unknown>(
-      `/v2/api/note-service-proxy/v1/orgs/${this.orgId}/recentlyUpdatedNotes`,
+      apiPath`/v2/api/note-service-proxy/v1/orgs/${this.orgId}/recentlyUpdatedNotes`,
     );
   }
 
   /** Get task count for a workspace */
   async getTaskCount(workspaceId: string): Promise<{ count: number }> {
     return this.request<{ count: number }>(
-      `/v2/api/task-service-proxy/v1/workspaces/${workspaceId}/tasks/count`,
+      apiPath`/v2/api/task-service-proxy/v1/workspaces/${workspaceId}/tasks/count`,
     );
   }
 
   /** Get full workspace detail */
   async getWorkspaceDetail(workspaceId: string): Promise<FusebaseWorkspaceDetail> {
     return this.request<FusebaseWorkspaceDetail>(
-      `/v2/api/workspace-service-proxy/v1/workspaces/${workspaceId}`,
+      apiPath`/v2/api/workspace-service-proxy/v1/workspaces/${workspaceId}`,
     );
   }
 
   /** Get workspace email addresses */
   async getWorkspaceEmails(workspaceId: string): Promise<FusebaseWorkspaceEmail[]> {
     return this.request<FusebaseWorkspaceEmail[]>(
-      `/v1/workspaces/${workspaceId}/emails`,
+      apiPath`/v1/workspaces/${workspaceId}/emails`,
     );
   }
 
   /** Get file count across workspace or org */
   async getFileCount(params?: { workspaceId?: string; orgId?: string }): Promise<{ count: number }> {
     const qs = params?.workspaceId
-      ? `?workspaceId=${params.workspaceId}`
-      : `?orgId=${params?.orgId || this.orgId}`;
+      ? `?workspaceId=${encodeURIComponent(params.workspaceId)}`
+      : `?orgId=${encodeURIComponent(params?.orgId || this.orgId)}`;
     return this.request<{ count: number }>(
       `/v2/api/bucket-service-proxy/v1/files/count${qs}`,
     );
@@ -1498,28 +1502,28 @@ export class FusebaseClient {
   /** Get AI feature usage for the org */
   async getAiUsage(): Promise<{ max: number; current: number }> {
     return this.request<{ max: number; current: number }>(
-      `/gwapi2/ft%3Aai/orgs/${this.orgId}/usage`,
+      apiPath`/gwapi2/ft%3Aai/orgs/${this.orgId}/usage`,
     );
   }
 
   /** Get org permissions with members, avatars, usage */
   async getOrgPermissions(): Promise<FusebaseOrgPermissions> {
     return this.request<FusebaseOrgPermissions>(
-      `/gwapi2/ft%3Apermissions/orgs/${this.orgId}/members`,
+      apiPath`/gwapi2/ft%3Apermissions/orgs/${this.orgId}/members`,
     );
   }
 
   /** Get workspace info (quota reset dates, billing) */
   async getWorkspaceInfo(workspaceId: string): Promise<FusebaseWorkspaceInfo> {
     return this.request<FusebaseWorkspaceInfo>(
-      `/api/workspaces/${workspaceId}/info`,
+      apiPath`/api/workspaces/${workspaceId}/info`,
     );
   }
 
   /** Get tags for a specific note/page */
   async getNoteTags(workspaceId: string, noteId: string): Promise<string[]> {
     return this.request<string[]>(
-      `/v2/api/workspaces/${workspaceId}/notes/${noteId}/tags`,
+      apiPath`/v2/api/workspaces/${workspaceId}/notes/${noteId}/tags`,
     );
   }
 
@@ -1615,7 +1619,7 @@ export class FusebaseClient {
     if (options?.cacheStrategy) params.set("cacheStrategy", options.cacheStrategy);
     const qs = params.toString();
     return this.request<FusebaseDatabaseViewData>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/data${qs ? `?${qs}` : ""}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/data` + (qs ? `?${qs}` : ""),
     );
   }
 
@@ -1676,7 +1680,7 @@ export class FusebaseClient {
     rows: Array<BatchPutDashboardRow>,
   ): Promise<any> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/data/batch`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/data/batch`,
       {
         method: "PUT",
         body: JSON.stringify({ rows }),
@@ -1827,7 +1831,7 @@ export class FusebaseClient {
     ];
 
     try {
-      const dbRes = await fetch(`${this.baseUrl}/dashboard/${org}/tables/databases`, {
+      const dbRes = await fetch(`${this.baseUrl}` + apiPath`/dashboard/${org}/tables/databases`, {
         headers: { cookie: this.cookie },
         signal: AbortSignal.timeout(TIMEOUT_GET),
       });
@@ -1841,7 +1845,7 @@ export class FusebaseClient {
       for (const entity of entities) {
         try {
           const entRes = await fetch(
-            `${this.baseUrl}/dashboard/${org}/tables/entity/${entity}`,
+            `${this.baseUrl}` + apiPath`/dashboard/${org}/tables/entity/${entity}`,
             {
               headers: { cookie: this.cookie },
               signal: AbortSignal.timeout(TIMEOUT_GET),
@@ -2080,7 +2084,7 @@ export class FusebaseClient {
     rowId: string,
   ): Promise<{ success: boolean; message: string }> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/rows/${rowId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/rows/${rowId}`,
       { method: "DELETE" },
     );
   }
@@ -2116,10 +2120,10 @@ export class FusebaseClient {
     viewId?: string,
   ): Promise<{ success: boolean; data: unknown }> {
     const qs = viewId
-      ? `?source_view_ids=${viewId}&include_possible_lookup_items=true`
+      ? `?source_view_ids=${encodeURIComponent(viewId)}&include_possible_lookup_items=true`
       : `?include_possible_lookup_items=true`;
     const result = await this.request<unknown>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/allowed-items${qs}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/allowed-items` + qs,
     );
     return { success: true, data: result };
   }
@@ -2138,7 +2142,7 @@ export class FusebaseClient {
     title: string,
   ): Promise<unknown> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views`,
       {
         method: "POST",
         body: JSON.stringify({ title }),
@@ -2155,7 +2159,7 @@ export class FusebaseClient {
     relationId: string,
   ): Promise<{ success: boolean; message: string }> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/relations/${relationId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/relations/${relationId}`,
       { method: "DELETE" },
     );
   }
@@ -2170,7 +2174,7 @@ export class FusebaseClient {
     rows: Array<{ source_index: string; target_index: string }>,
   ): Promise<{ success: boolean; data: unknown }> {
     const result = await this.request<unknown>(
-      `/v4/api/proxy/dashboard-service/v1/relations/${relationId}/rows`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/relations/${relationId}/rows`,
       {
         method: "POST",
         body: JSON.stringify({ rows }),
@@ -2194,7 +2198,7 @@ export class FusebaseClient {
     const qs = params.toString() ? `?${params.toString()}` : "";
 
     await this.request(
-      `/v4/api/proxy/dashboard-service/v1/relations/${relationId}/rows${qs}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/relations/${relationId}/rows` + qs,
       { method: "DELETE" },
     );
     return { success: true, message: "Relation row(s) removed successfully" };
@@ -2210,7 +2214,7 @@ export class FusebaseClient {
     includeRows: boolean = true,
   ): Promise<{ success: boolean; data: unknown }> {
     const result = await this.request<unknown>(
-      `/v4/api/proxy/dashboard-service/v1/relations/${relationId}?include_rows=${includeRows}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/relations/${relationId}` + `?include_rows=${encodeURIComponent(includeRows)}`,
     );
     return { success: true, data: result };
   }
@@ -2230,7 +2234,9 @@ export class FusebaseClient {
     const sectionKey = options?.section_key ?? "view";
     const sectionValue = options?.section_value ?? viewId;
     await this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/rows/order?view_id=${viewId}&section_type=${sectionType}&section_key=${sectionKey}&section_value=${sectionValue}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/rows/order` +
+        `?view_id=${encodeURIComponent(viewId)}&section_type=${encodeURIComponent(sectionType)}` +
+        `&section_key=${encodeURIComponent(sectionKey)}&section_value=${encodeURIComponent(sectionValue)}`,
       {
         method: "PUT",
         body: JSON.stringify({ row_orders: rowOrders }),
@@ -2270,7 +2276,7 @@ export class FusebaseClient {
     }>;
   }> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/databases?scope_type=org&scope_id=${this.orgId}`,
+      `/v4/api/proxy/dashboard-service/v1/databases?scope_type=org&scope_id=${encodeURIComponent(this.orgId)}`,
     );
   }
 
@@ -2301,7 +2307,7 @@ export class FusebaseClient {
     };
   }> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/databases/${dbId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/databases/${dbId}`,
     );
   }
 
@@ -2339,7 +2345,7 @@ export class FusebaseClient {
     if (Object.keys(metadata).length > 0) body.metadata = metadata;
 
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/databases/${dbId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/databases/${dbId}`,
       { method: "PUT", body: JSON.stringify(body) },
     );
   }
@@ -2352,7 +2358,7 @@ export class FusebaseClient {
    */
   async deleteDatabase(dbId: string): Promise<{ success: boolean; message: string }> {
     const res = await fetch(
-      `${this.baseUrl}/v4/api/proxy/dashboard-service/v1/databases/${dbId}`,
+      `${this.baseUrl}` + apiPath`/v4/api/proxy/dashboard-service/v1/databases/${dbId}`,
       {
         method: "DELETE",
         headers: { cookie: this.cookie },
@@ -2427,7 +2433,7 @@ export class FusebaseClient {
     };
   }> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}`,
     );
   }
 
@@ -2442,7 +2448,7 @@ export class FusebaseClient {
     message: string;
   }> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}`,
       { method: "DELETE" },
     );
   }
@@ -2468,7 +2474,7 @@ export class FusebaseClient {
     data: Record<string, unknown>;
   }> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify(updates) },
     );
   }
@@ -2498,13 +2504,13 @@ export class FusebaseClient {
   }> {
     if (representationType === "table" || representationType === "kanban") {
       return this.request(
-        `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/representations/${representationType}`,
+        apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/representations/${representationType}`,
         { method: "POST" },
       );
     }
     // board, calendar, timeline, gallery, list, grid use PUT on the view
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       {
         method: "PUT",
         body: JSON.stringify({
@@ -2517,8 +2523,8 @@ export class FusebaseClient {
   /** Get managed dashboard and view representation templates (e.g. Table, Kanban) */
   async getDashboardTemplates(orgId?: string, workspaceId?: string): Promise<unknown> {
     const org = orgId || this.orgId;
-    let url = `/v4/api/dashboard/representation-templates?orgId=${org}`;
-    if (workspaceId) url += `&workspaceId=${workspaceId}`;
+    let url = `/v4/api/dashboard/representation-templates?orgId=${encodeURIComponent(org)}`;
+    if (workspaceId) url += `&workspaceId=${encodeURIComponent(workspaceId)}`;
     return this.request<unknown>(url);
   }
 
@@ -2567,7 +2573,7 @@ export class FusebaseClient {
     }
 
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/representations/${representationType}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/representations/${representationType}`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -2617,7 +2623,7 @@ export class FusebaseClient {
 
     // PUT the updated schema back
     const res = await this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       {
         method: "PUT",
         body: JSON.stringify({ schema: { items } }),
@@ -2648,7 +2654,7 @@ export class FusebaseClient {
     let schema: unknown = {};
     if (defaultViewId) {
       const viewDetail = await this.request<{ success: boolean; data: { schema: unknown } }>(
-        `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${defaultViewId}`,
+        apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${defaultViewId}`,
       );
       schema = viewDetail.data?.schema || {};
     }
@@ -2659,7 +2665,7 @@ export class FusebaseClient {
       filters: { logic: "AND", conditions: [] },
     };
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views`,
       { method: "POST", body: JSON.stringify(body) },
     );
   }
@@ -2674,7 +2680,7 @@ export class FusebaseClient {
     viewId: string,
   ): Promise<{ success: boolean; message: string }> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "DELETE" },
     );
   }
@@ -2696,14 +2702,14 @@ export class FusebaseClient {
   ): Promise<{ success: boolean; data: unknown }> {
     // First, get the source view's schema and filters
     const sourceView = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${sourceViewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${sourceViewId}`,
     );
     const viewData = (sourceView as any)?.data ?? sourceView;
     const schema = viewData.schema || {};
     const filters = viewData.filters || { logic: "AND", conditions: [] };
 
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -2844,7 +2850,7 @@ export class FusebaseClient {
     newName: string,
   ): Promise<{ success: boolean; message: string }> {
     const viewRes = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
     );
     const viewData = (viewRes as any)?.data ?? viewRes;
     const schema = { ...(viewData.schema ?? {}) };
@@ -2858,7 +2864,7 @@ export class FusebaseClient {
 
     (schema as any).items = items;
     await this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
     this.invalidateViewSchemaCache(dashboardId, viewId);
@@ -2882,7 +2888,7 @@ export class FusebaseClient {
     orderedKeys: string[],
   ): Promise<{ success: boolean; message: string }> {
     const viewRes = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
     );
     const viewData = (viewRes as any)?.data ?? viewRes;
     const schema = { ...(viewData.schema ?? {}) };
@@ -2912,7 +2918,7 @@ export class FusebaseClient {
 
     (schema as any).items = reordered;
     await this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
     this.invalidateViewSchemaCache(dashboardId, viewId);
@@ -2932,7 +2938,8 @@ export class FusebaseClient {
     viewId: string,
     delimiter: "," | ";" | "|" | "\t" | "^" = ",",
   ): Promise<{ success: boolean; csv: string }> {
-    const url = `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/export/csv?view_id=${viewId}&delimiter=${encodeURIComponent(delimiter)}`;
+    const url = apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/export/csv` +
+      `?view_id=${encodeURIComponent(viewId)}&delimiter=${encodeURIComponent(delimiter)}`;
     const res = await fetch(`${this.baseUrl}${url}`, {
       headers: { cookie: this.cookie },
       signal: AbortSignal.timeout(TIMEOUT_GET),
@@ -2972,7 +2979,7 @@ export class FusebaseClient {
     rawSchema: Record<string, unknown>;
   }> {
     const res = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
     );
     const schema = (res as any)?.data?.schema ?? (res as any)?.schema ?? {};
     const items: Array<Record<string, unknown>> = (schema as any).items ?? [];
@@ -3022,7 +3029,7 @@ export class FusebaseClient {
   }> {
     // 1. Fetch current view detail
     const viewRes = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
     );
     const viewData = (viewRes as any)?.data ?? viewRes;
     const schema = { ...(viewData.schema ?? {}) };
@@ -3042,7 +3049,7 @@ export class FusebaseClient {
     // 4. PUT updated schema
     (schema as any).items = items;
     await this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
     this.invalidateViewSchemaCache(dashboardId, viewId);
@@ -3067,7 +3074,7 @@ export class FusebaseClient {
   ): Promise<{ success: boolean; message: string }> {
     // 1. Fetch current view detail
     const viewRes = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
     );
     const viewData = (viewRes as any)?.data ?? viewRes;
     const schema = { ...(viewData.schema ?? {}) };
@@ -3084,7 +3091,7 @@ export class FusebaseClient {
     // 3. PUT updated schema
     (schema as any).items = items;
     await this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
     this.invalidateViewSchemaCache(dashboardId, viewId);
@@ -3140,7 +3147,7 @@ export class FusebaseClient {
 
     // 2. Get target view schema to find the Name column key
     const targetViewRes = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${targetDashboardId}/views/${targetViewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${targetDashboardId}/views/${targetViewId}`,
     );
     const targetItems: Array<Record<string, unknown>> = ((targetViewRes as any)?.data?.schema?.items ?? []);
     // Use the first string column (usually "Name") as the lookup field
@@ -3149,7 +3156,7 @@ export class FusebaseClient {
 
     // 3. Fetch source view schema and add the relation column
     const viewRes = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
     );
     const viewData = (viewRes as any)?.data ?? viewRes;
     const schema = { ...(viewData.schema ?? {}) };
@@ -3224,7 +3231,7 @@ export class FusebaseClient {
     items.push(colDef);
     (schema as any).items = items;
     await this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
     this.invalidateViewSchemaCache(dashboardId, viewId);
@@ -3259,7 +3266,7 @@ export class FusebaseClient {
   }> {
     // 1. Fetch current schema and find the relation column
     const viewRes = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
     );
     const viewData = (viewRes as any)?.data ?? viewRes;
     const schema = { ...(viewData.schema ?? {}) };
@@ -3287,7 +3294,7 @@ export class FusebaseClient {
     let targetItemKey = lookupFieldKey;
     if (!targetItemKey) {
       const targetViewRes = await this.request<{ data: Record<string, unknown> }>(
-        `/v4/api/proxy/dashboard-service/v1/dashboards/${targetDashId}/views/${targetViewId}`,
+        apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${targetDashId}/views/${targetViewId}`,
       );
       const targetItems: Array<Record<string, unknown>> = ((targetViewRes as any)?.data?.schema?.items ?? []);
       const nameCol = targetItems.find((i: any) => i.source?.custom_type === "string") ?? targetItems[0];
@@ -3362,7 +3369,7 @@ export class FusebaseClient {
     items.push(lookupDef);
     (schema as any).items = items;
     await this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
     this.invalidateViewSchemaCache(dashboardId, viewId);
@@ -3838,7 +3845,7 @@ export class FusebaseClient {
       }
     }
     return this.request<IsolatedStore[]>(
-      `/v4/api/proxy/gate-service/v1/orgs/${org}/isolated-stores`,
+      apiPath`/v4/api/proxy/gate-service/v1/orgs/${org}/isolated-stores`,
     );
   }
 
@@ -3872,7 +3879,7 @@ export class FusebaseClient {
       }
     }
     return this.request<IsolatedStore>(
-      `/v4/api/proxy/gate-service/v1/orgs/${org}/isolated-stores`,
+      apiPath`/v4/api/proxy/gate-service/v1/orgs/${org}/isolated-stores`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -3913,7 +3920,7 @@ export class FusebaseClient {
       }
     }
     return this.request<IsolatedStoreSqlResult>(
-      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/query`,
+      apiPath`/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/query`,
       {
         method: "POST",
         body: JSON.stringify({ sql, params, stage }),
@@ -3946,7 +3953,7 @@ export class FusebaseClient {
       }
     }
     return this.request<{ rowCount: number; message?: string }>(
-      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/execute`,
+      apiPath`/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/execute`,
       {
         method: "POST",
         body: JSON.stringify({ sql, params, stage }),
@@ -3973,7 +3980,7 @@ export class FusebaseClient {
       }
     }
     return this.request<Array<{ tableName: string; schema?: string }>>(
-      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/tables?stage=${stage}`,
+      apiPath`/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/tables` + `?stage=${encodeURIComponent(stage)}`,
     );
   }
 
@@ -4025,7 +4032,7 @@ export class FusebaseClient {
       }
     }
     return this.request<{ rows: Array<Record<string, unknown>>; total?: number }>(
-      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/select`,
+      apiPath`/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/select`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -4066,7 +4073,7 @@ export class FusebaseClient {
       }
     }
     return this.request<{ success: boolean; row?: Record<string, unknown> }>(
-      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/insert`,
+      apiPath`/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/insert`,
       {
         method: "POST",
         body: JSON.stringify({ table, row, stage }),
@@ -4100,7 +4107,7 @@ export class FusebaseClient {
       }
     }
     return this.request<{ success: boolean; insertedCount: number }>(
-      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/batch-insert`,
+      apiPath`/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/batch-insert`,
       {
         method: "POST",
         body: JSON.stringify({ table, rows, stage }),
@@ -4129,7 +4136,7 @@ export class FusebaseClient {
       }
     }
     return this.request<{ success: boolean; appliedVersions?: string[]; message?: string }>(
-      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/migrations/apply`,
+      apiPath`/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/migrations/apply`,
       {
         method: "POST",
         body: JSON.stringify({ bundle, stage, dryRun }),
@@ -4231,14 +4238,14 @@ export class FusebaseClient {
 
   async getOrgLimits(): Promise<FusebaseOrgLimits> {
     return this.request<FusebaseOrgLimits>(
-      `/v2/api/orgs/${this.orgId}/limits`,
+      apiPath`/v2/api/orgs/${this.orgId}/limits`,
     );
   }
 
   /** Get condensed usage summary */
   async getUsageSummary(): Promise<FusebaseUsageSummary> {
     return this.request<FusebaseUsageSummary>(
-      `/v2/api/orgs/${this.orgId}/usageSummary`,
+      apiPath`/v2/api/orgs/${this.orgId}/usageSummary`,
     );
   }
 
@@ -4246,11 +4253,11 @@ export class FusebaseClient {
   async listPortals(workspaceId?: string): Promise<FusebasePortal[]> {
     if (workspaceId) {
       return this.request<FusebasePortal[]>(
-        `/v1/portals/orgs/${this.orgId}/portals?workspaceId=${workspaceId}`,
+        apiPath`/v1/portals/orgs/${this.orgId}/portals` + `?workspaceId=${encodeURIComponent(workspaceId)}`,
       );
     }
     return this.request<FusebasePortal[]>(
-      `/v2/api/portal-service-proxy/v1/orgs/${this.orgId}/portals`,
+      apiPath`/v2/api/portal-service-proxy/v1/orgs/${this.orgId}/portals`,
     );
   }
 
@@ -4273,7 +4280,7 @@ export class FusebaseClient {
     domain?: string,
   ): Promise<unknown> {
     return this.request<unknown>(
-      `/v1/portals/orgs/${this.orgId}/portals?workspaceId=${workspaceId}`,
+      apiPath`/v1/portals/orgs/${this.orgId}/portals` + `?workspaceId=${encodeURIComponent(workspaceId)}`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -4304,7 +4311,7 @@ export class FusebaseClient {
 
   /** Check if portal feature is available for organization */
   async checkPortalAvailability(): Promise<boolean> {
-    const res = await this.request<any>(`/v1/portals/orgs/${this.orgId}/available`);
+    const res = await this.request<any>(apiPath`/v1/portals/orgs/${this.orgId}/available`);
     return res === true || res === "true" || res?.available === true;
   }
 
@@ -4325,13 +4332,13 @@ export class FusebaseClient {
 
   /** Get workspace client portal navigation tree and entities */
   async getPortalNavigationMenu(workspaceId: string): Promise<unknown> {
-    return this.request<unknown>(`/v2/api/workspaces/${workspaceId}/portal`);
+    return this.request<unknown>(apiPath`/v2/api/workspaces/${workspaceId}/portal`);
   }
 
   /** Get workspace client portal resolution object (portal ID, global ID, domain) */
   async getWorkspacePortal(workspaceId: string): Promise<unknown> {
     return this.request<unknown>(
-      `/v2/api/portal-service-proxy/v1/workspaces/${workspaceId}/portals`,
+      apiPath`/v2/api/portal-service-proxy/v1/workspaces/${workspaceId}/portals`,
     );
   }
 
@@ -4342,7 +4349,7 @@ export class FusebaseClient {
     isPortalShare: boolean,
   ): Promise<unknown> {
     return this.request<unknown>(
-      `/v2/api/workspaces/${workspaceId}/notes/${pageId}/upsert`,
+      apiPath`/v2/api/workspaces/${workspaceId}/notes/${pageId}/upsert`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -4357,7 +4364,7 @@ export class FusebaseClient {
   /** Get org feature flags */
   async getOrgFeatures(): Promise<FusebaseOrgFeature[]> {
     return this.request<FusebaseOrgFeature[]>(
-      `/v1/organizations/${this.orgId}/features`,
+      apiPath`/v1/organizations/${this.orgId}/features`,
     );
   }
 
@@ -4367,13 +4374,13 @@ export class FusebaseClient {
   async listAutomationFlows(projectId?: string): Promise<unknown> {
     const auth = await this.ensureAutomationAuth();
     const effectiveProjectId = projectId || auth.projectId;
-    const qs = effectiveProjectId ? `?projectId=${effectiveProjectId}` : "";
+    const qs = effectiveProjectId ? `?projectId=${encodeURIComponent(effectiveProjectId)}` : "";
     return this.request<unknown>(`/automation/api/v1/flows${qs}`);
   }
 
   /** Get details of a specific automation flow */
   async getAutomationFlow(flowId: string): Promise<unknown> {
-    return this.request<unknown>(`/automation/api/v1/flows/${flowId}`);
+    return this.request<unknown>(apiPath`/automation/api/v1/flows/${flowId}`);
   }
 
   /** List recent automation flow runs */
@@ -4418,7 +4425,7 @@ export class FusebaseClient {
     const requestPayload = operation.type === "CHANGE_NAME"
       ? { displayName: operation.displayName }
       : { status: operation.status };
-    return this.request<unknown>(`/automation/api/v1/flows/${flowId}`, {
+    return this.request<unknown>(apiPath`/automation/api/v1/flows/${flowId}`, {
       method: "POST",
       body: JSON.stringify({
         type: operation.type,
@@ -4429,7 +4436,7 @@ export class FusebaseClient {
 
   /** Delete an automation flow */
   async deleteAutomationFlow(flowId: string): Promise<unknown> {
-    return this.request<unknown>(`/automation/api/v1/flows/${flowId}`, {
+    return this.request<unknown>(apiPath`/automation/api/v1/flows/${flowId}`, {
       method: "DELETE",
     });
   }
@@ -4439,12 +4446,12 @@ export class FusebaseClient {
     flowId: string,
     payload: Record<string, unknown> = {},
   ): Promise<unknown> {
-    return this.request<unknown>(`/automation/api/v1/flows/${flowId}/runs`, {
+    return this.request<unknown>(apiPath`/automation/api/v1/flows/${flowId}/runs`, {
       method: "POST",
       body: JSON.stringify({ payload }),
     }).catch(async () => {
       // Fallback to webhook trigger endpoint
-      return this.request<unknown>(`/automation/api/v1/webhooks/${flowId}`, {
+      return this.request<unknown>(apiPath`/automation/api/v1/webhooks/${flowId}`, {
         method: "POST",
         body: JSON.stringify(payload),
       });
@@ -4499,7 +4506,7 @@ export class FusebaseClient {
    */
   async deleteAutomationFolder(folderId: string): Promise<void> {
     await this.ensureAutomationAuth();
-    await this.request(`/automation/api/v1/folders/${folderId}`, {
+    await this.request(apiPath`/automation/api/v1/folders/${folderId}`, {
       method: "DELETE",
     });
   }
@@ -4520,9 +4527,9 @@ export class FusebaseClient {
 
   /** List invited portal clients and members */
   async listPortalClients(portalId?: string): Promise<unknown> {
-    const qs = portalId ? `?portalId=${portalId}` : "";
+    const qs = portalId ? `?portalId=${encodeURIComponent(portalId)}` : "";
     return this.request<unknown>(
-      `/v2/api/orgs/${this.orgId}/portalClients${qs}`,
+      apiPath`/v2/api/orgs/${this.orgId}/portalClients` + qs,
     ).catch(async () => {
       // Fallback: query org members filtered by role client
       const members = await this.getOrgMembers();
@@ -4536,7 +4543,7 @@ export class FusebaseClient {
     email: string,
     name?: string,
   ): Promise<unknown> {
-    return this.request<unknown>(`/v1/portals/orgs/${this.orgId}/invites`, {
+    return this.request<unknown>(apiPath`/v1/portals/orgs/${this.orgId}/invites`, {
       method: "POST",
       body: JSON.stringify({
         portalId,
@@ -4549,7 +4556,7 @@ export class FusebaseClient {
 
   /** Generate or retrieve a 24-hour magic login link for a portal client */
   async getPortalMagicLink(portalId: string, email: string): Promise<unknown> {
-    return this.request<unknown>(`/v1/portals/orgs/${this.orgId}/magic-link`, {
+    return this.request<unknown>(apiPath`/v1/portals/orgs/${this.orgId}/magic-link`, {
       method: "POST",
       body: JSON.stringify({
         portalId,
@@ -4569,8 +4576,8 @@ export class FusebaseClient {
     const org = orgId || this.orgId;
     const [credit, activeCoupons, couponTokens] = await Promise.all([
       this.request<unknown>("/v1/billing/credit").catch(() => null),
-      this.request<unknown>(`/v2/api/orgs/${org}/coupons`).catch(() => null),
-      this.request<unknown>(`/v1/organizations/${org}/coupons`).catch(() => null),
+      this.request<unknown>(apiPath`/v2/api/orgs/${org}/coupons`).catch(() => null),
+      this.request<unknown>(apiPath`/v1/organizations/${org}/coupons`).catch(() => null),
     ]);
     return { credit, activeCoupons, couponTokens };
   }
@@ -4600,12 +4607,12 @@ export class FusebaseClient {
   /** Get workspace premium subscription tier and expiration */
   async getWorkspacePremiumStatus(workspaceId?: string): Promise<unknown> {
     const ws = workspaceId || "default";
-    return this.request<unknown>(`/v1/workspaces/${ws}/premium`);
+    return this.request<unknown>(apiPath`/v1/workspaces/${ws}/premium`);
   }
 
   /** Get active data import job status in a workspace */
   async getActiveImportStatus(workspaceId: string): Promise<unknown> {
-    return this.request<unknown>(`/v1/workspaces/${workspaceId}/import/activeImport`);
+    return this.request<unknown>(apiPath`/v1/workspaces/${workspaceId}/import/activeImport`);
   }
 
   /** Get active feature trial subscriptions for an organization */

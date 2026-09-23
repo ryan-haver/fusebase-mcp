@@ -9,7 +9,7 @@ This file provides project commands, architecture guidelines, and best practices
 - **Build Project**: `npm run build`
 - **Watch / Dev Mode**: `npm run dev`
 - **Run Server (Stdio)**: `node dist/index.js`
-- **Run Server (SSE)**: `node dist/index.js --transport sse --port 3000`
+- **Run Server (HTTP)**: `node dist/index.js --transport http --port 3000` (loopback only; set `MCP_AUTH_TOKEN` to require a bearer token, mandatory with `--host 0.0.0.0`)
 - **Run Tests**:
   - Offline unit tests: `npm test`
   - Typecheck / lint: `npm run typecheck` / `npm run lint`

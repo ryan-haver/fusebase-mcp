@@ -77,8 +77,23 @@ export function decryptData(encoded: string): string {
 
 const DATA_DIR = path.resolve(__dirname, "..", "data");
 
+const PROFILE_NAME = /^[A-Za-z0-9_-]{1,64}$/;
+
+/**
+ * Validate an agent profile name before it is used in a file name.
+ * Profile names come from tool arguments, so anything that could escape data/ is rejected.
+ * An empty or missing profile means the default profile.
+ */
+export function assertValidProfile(profile?: string): void {
+  if (profile === undefined || profile === "") return;
+  if (!PROFILE_NAME.test(profile)) {
+    throw new Error(`Invalid profile name ${JSON.stringify(profile)}: use 1-64 letters, digits, '-' or '_'.`);
+  }
+}
+
 /** Get the path to the encrypted cookie file. Uses profile if provided. */
 export function getCookieEncPath(profile?: string): string {
+  assertValidProfile(profile);
   const filename = profile ? `cookie_${profile}.enc` : "cookie.enc";
   return path.join(DATA_DIR, filename);
 }
@@ -189,6 +204,7 @@ export function listConfiguredProfiles(): Array<{
       });
     } else if (file.startsWith("cookie_") && file.endsWith(".enc")) {
       const profileName = file.slice(7, -4);
+      if (!PROFILE_NAME.test(profileName)) continue;
       const data = loadEncryptedCookie(profileName);
       const ageHours = data?.savedAt ? Math.round((Date.now() - new Date(data.savedAt).getTime()) / 3600000) : undefined;
       profiles.push({
@@ -302,6 +318,7 @@ export interface TokenCredentials {
 
 /** Get the path to the encrypted token file. Uses profile if provided. */
 export function getTokenEncPath(profile?: string): string {
+  assertValidProfile(profile);
   const filename = profile ? `token_${profile}.enc` : "token.enc";
   return path.join(DATA_DIR, filename);
 }
