@@ -147,18 +147,20 @@ export function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
       if (seg.code) attrs.code = true;
       if (seg.link) attrs.link = seg.link;
       if (seg.highlight) attrs.highlight = typeof seg.highlight === "string" ? { color: seg.highlight } : seg.highlight;
-      const hasAttrs = Object.keys(attrs).length > 0;
-
+      // Always pass the attributes object, even when empty. With `undefined`, Y.Text gives the
+      // inserted text the formatting of the character before it, so plain text after a bold
+      // run or a link would become bold / linked too (CON-1).
       if (seg.embed) {
-        ytext.insertEmbed(offset, seg.embed as any, hasAttrs ? attrs : undefined);
+        ytext.insertEmbed(offset, seg.embed as any, attrs);
         offset += 1; // object embed takes 1 unit of length
       } else if (seg.text) {
-        ytext.insert(offset, seg.text, hasAttrs ? attrs : undefined);
+        ytext.insert(offset, seg.text, attrs);
         offset += seg.text.length;
       }
     }
-    // CRITICAL: Every block's characters MUST end with "\n" — Fusebase block terminator
-    ytext.insert(offset, "\n");
+    // CRITICAL: Every block's characters MUST end with "\n" — Fusebase block terminator.
+    // Inserted without formatting so it doesn't inherit the last segment's attributes.
+    ytext.insert(offset, "\n", {});
     offset += 1;
     return offset;
   }

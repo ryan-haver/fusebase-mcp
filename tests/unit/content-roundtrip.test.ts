@@ -35,14 +35,19 @@ describe("Y.Doc writer → HTML decoder round trip", () => {
     expect(html).not.toContain("<script>");
   });
 
-  // CON-1: plain text inserted after a formatted run inherits its formatting.
-  it.fails("does not bleed bold into following plain text (CON-1)", () => {
+  // CON-1 regressions: text inserted with `undefined` attributes inherits the previous format.
+  it("does not give the block terminator the last segment's format (CON-1)", () => {
+    const [delta] = deltas(build(markdownToSchema("ends in **bold**")));
+    expect(delta.at(-1)).toEqual({ insert: "\n" });
+  });
+
+  it("does not bleed bold into following plain text (CON-1)", () => {
     const [delta] = deltas(build(markdownToSchema("**Note:** the rest is plain.")));
     expect(delta[0]).toEqual({ insert: "Note:", attributes: { bold: true } });
     expect(delta[1].attributes).toBeUndefined();
   });
 
-  it.fails("does not bleed a link into following plain text (CON-1)", () => {
+  it("does not bleed a link into following plain text (CON-1)", () => {
     const html = decodeYDocToHtml(build(markdownToSchema("See [the docs](https://x.io) for details.")));
     expect(html).toContain('<a href="https://x.io">the docs</a> for details.');
   });

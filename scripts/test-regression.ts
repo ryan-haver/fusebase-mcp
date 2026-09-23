@@ -94,15 +94,13 @@ async function main() {
     assertIncludes(html, "Full Regression Test", "H1");
     assertIncludes(html, "Heading H2", "H2");
     assertIncludes(html, "Heading H3", "H3");
-    // Prefix matches: until CON-1 is fixed the following space inherits the format.
-    assertIncludes(html, "<strong>bold", "bold");
-    assertIncludes(html, "<em>italic", "italic");
-    assertIncludes(html, "<del>struck", "strikethrough");
-    assertIncludes(html, "<u>underlined", "underline");
-    assertIncludes(html, "<code>code", "inline code");
-    assertIncludes(html, '<a href="https://example.com">link', "link");
+    assertIncludes(html, "<strong>bold</strong> ", "bold");
+    assertIncludes(html, "<em>italic</em> ", "italic");
+    assertIncludes(html, "<del>struck</del> ", "strikethrough");
+    assertIncludes(html, "<u>underlined</u> ", "underline");
+    assertIncludes(html, "<code>code</code> ", "inline code");
     // CON-1: formatting must not bleed into the following plain text
-    knownGap("CON-1", "plain text after a link stays unlinked", !/<a [^>]*>[^<]*trailing plain text/.test(html));
+    assertIncludes(html, '<a href="https://example.com">link</a> trailing plain text', "link without bleed");
 
     // Simple blocks
     assertIncludes(html, "<hr>", "divider");

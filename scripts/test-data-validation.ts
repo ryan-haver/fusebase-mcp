@@ -50,6 +50,8 @@ const AI_UNAVAILABLE =
   /\b(402|403)\b|forbidden|not enabled|not available|premium|upgrade|\bplan\b|quota|insufficient credits?|out of credits/i;
 
 const SANDBOX_STORE_ALIAS = "qa-val-store";
+/** Tests only ever touch the dev stage of the sandbox store. */
+const SQL_STAGE = "dev";
 
 function errMsg(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
@@ -1257,23 +1259,24 @@ async function runAllSuites(client: Client, targetWsId: string) {
         },
       ],
     };
-    assertJson(await callTool(client, "apply_isolated_sql_migrations", { storeId, bundle, dryRun: true }), "apply_isolated_sql_migrations (dry run)");
-    assertJson(await callTool(client, "apply_isolated_sql_migrations", { storeId, bundle, dryRun: false }), "apply_isolated_sql_migrations");
+    assertJson(await callTool(client, "apply_isolated_sql_migrations", { storeId, stage: SQL_STAGE, bundle, dryRun: true }), "apply_isolated_sql_migrations (dry run)");
+    assertJson(await callTool(client, "apply_isolated_sql_migrations", { storeId, stage: SQL_STAGE, bundle, dryRun: false }), "apply_isolated_sql_migrations");
     ok("apply_isolated_sql_migrations", `Applied migration bundle (dry run + real) creating ${table}`);
 
-    const tablesRes = await callTool(client, "list_isolated_sql_tables", { storeId });
+    const tablesRes = await callTool(client, "list_isolated_sql_tables", { storeId, stage: SQL_STAGE });
     assertArray(tablesRes, "list_isolated_sql_tables");
     assertIncludes(JSON.stringify(tablesRes), table, "list_isolated_sql_tables contains migrated table");
     ok("list_isolated_sql_tables", `Listed tables (${tablesRes.length})`);
 
     const runId = `run-${Date.now()}`;
     try {
-      const insertRes = await callTool(client, "insert_isolated_sql_row", { storeId, table, row: { id: `${runId}-1`, run_id: runId, event_type: "single" } });
+      const insertRes = await callTool(client, "insert_isolated_sql_row", { storeId, stage: SQL_STAGE, table, row: { id: `${runId}-1`, run_id: runId, event_type: "single" } });
       assertJson(insertRes, "insert_isolated_sql_row");
       ok("insert_isolated_sql_row", "Inserted single row");
 
       const batchRes = await callTool(client, "batch_insert_isolated_sql_rows", {
         storeId,
+        stage: SQL_STAGE,
         table,
         rows: [
           { id: `${runId}-2`, run_id: runId, event_type: "batch_1" },
@@ -1283,24 +1286,24 @@ async function runAllSuites(client: Client, targetWsId: string) {
       assertJson(batchRes, "batch_insert_isolated_sql_rows");
       ok("batch_insert_isolated_sql_rows", "Batch inserted rows");
 
-      const selectRes = await callTool(client, "select_isolated_sql_rows", { storeId, table, where: { run_id: runId }, limit: 10 });
+      const selectRes = await callTool(client, "select_isolated_sql_rows", { storeId, stage: SQL_STAGE, table, where: { run_id: runId }, limit: 10 });
       assertObject(selectRes, "select_isolated_sql_rows");
       assertArray(selectRes.rows, "select_isolated_sql_rows.rows", 3);
       ok("select_isolated_sql_rows", `Selected ${selectRes.rows.length} rows for this run`);
 
-      const queryRes = await callTool(client, "query_isolated_sql", { storeId, sql: `SELECT count(*)::int AS n FROM ${table} WHERE run_id = $1`, params: [runId] });
+      const queryRes = await callTool(client, "query_isolated_sql", { storeId, stage: SQL_STAGE, sql: `SELECT count(*)::int AS n FROM ${table} WHERE run_id = $1`, params: [runId] });
       assertObject(queryRes, "query_isolated_sql");
       assertArray(queryRes.rows, "query_isolated_sql.rows", 1);
       assertEqual(Number(queryRes.rows[0].n), 3, "query_isolated_sql count");
       ok("query_isolated_sql", "Read-only count query returned 3");
 
-      const execRes = await callTool(client, "execute_isolated_sql", { storeId, sql: `DELETE FROM ${table} WHERE run_id = $1`, params: [runId] });
+      const execRes = await callTool(client, "execute_isolated_sql", { storeId, stage: SQL_STAGE, sql: `DELETE FROM ${table} WHERE run_id = $1`, params: [runId] });
       assertObject(execRes, "execute_isolated_sql");
       assertEqual(Number(execRes.rowCount), 3, "execute_isolated_sql.rowCount");
       ok("execute_isolated_sql", "Deleted this run's rows (rowCount 3)");
     } finally {
       await cleanup(`delete isolated rows for ${runId}`, () =>
-        callTool(client, "execute_isolated_sql", { storeId, sql: `DELETE FROM ${table} WHERE run_id = $1`, params: [runId] }),
+        callTool(client, "execute_isolated_sql", { storeId, stage: SQL_STAGE, sql: `DELETE FROM ${table} WHERE run_id = $1`, params: [runId] }),
       );
     }
   }

@@ -407,25 +407,33 @@ export function registerCoreTools(
 
         // Write initial content if provided
         if (markdown || blocks) {
-          let contentBlocks: ContentBlock[];
-          if (markdown) {
-            contentBlocks = markdownToSchema(markdown);
+          let writeResult: { success: boolean; error?: string };
+          if (client.getCookie()) {
+            const contentBlocks: ContentBlock[] = markdown ? markdownToSchema(markdown) : (blocks as ContentBlock[]);
+            writeResult = await writeContentViaWebSocket(
+              client["host"],
+              workspaceId,
+              page.globalId,
+              client.getCookie(),
+              contentBlocks,
+              { replace: true, timeout: 20000 },
+            );
+          } else if (markdown) {
+            // Token-only mode (COR-12): the page is new and empty, so appending through Gate
+            // produces the same result as writing it.
+            writeResult = await client.appendPageContent(workspaceId, page.globalId, { markdown });
           } else {
-            contentBlocks = blocks as ContentBlock[];
+            writeResult = { success: false, error: "structured 'blocks' need a session cookie; only markdown can be written in token-only mode" };
           }
-
-          const writeResult = await writeContentViaWebSocket(
-            client["host"],
-            workspaceId,
-            page.globalId,
-            client.getCookie(),
-            contentBlocks,
-            { replace: true, timeout: 20000 },
-          );
 
           result.contentWritten = writeResult.success;
           if (!writeResult.success) {
+            // The page exists but is empty: report an error so the caller doesn't assume success.
             result.contentError = writeResult.error;
+            return {
+              content: [{ type: "text" as const, text: `Page created but its content was not written. ${JSON.stringify(result, null, 2)}` }],
+              isError: true,
+            };
           }
         }
 
@@ -1068,14 +1076,18 @@ export function registerCoreTools(
         .boolean()
         .optional()
         .default(true)
-        .describe("Replace existing content (default: true). Set to false to append."),
+        .describe("Replace existing content (default: true). Set to false to append. Replacing requires a session cookie; in token-only mode only markdown appends are possible."),
+      allowEmpty: z
+        .boolean()
+        .optional()
+        .describe("Set true to deliberately clear the page when replacing with empty content. Without it, an empty replace is refused."),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, pageId, markdown, blocks, replace, profile }) => {
+    }, async ({ workspaceId, pageId, markdown, blocks, replace, allowEmpty, profile }) => {
       const client = getClient(profile);
       try {
         let contentBlocks: ContentBlock[];
 
-        if (markdown) {
+        if (markdown !== undefined) {
           contentBlocks = markdownToSchema(markdown);
         } else if (blocks) {
           contentBlocks = blocks as ContentBlock[];
@@ -1091,13 +1103,39 @@ export function registerCoreTools(
           };
         }
 
+        const replacing = replace !== false;
+
+        // CON-9a: whitespace-only markdown parses to no blocks; replacing with that erases the page.
+        if (contentBlocks.length === 0) {
+          if (!replacing) return errorResult("Nothing to append: the content parsed to no blocks.");
+          if (!allowEmpty) {
+            return errorResult("Refusing to replace the page with empty content, which would erase it. Pass allowEmpty: true to clear the page deliberately.");
+          }
+        }
+
+        // COR-12: without a session cookie the Y.js editor socket is unavailable.
+        if (!client.getCookie()) {
+          if (replacing) {
+            return errorResult(
+              "Replacing page content needs a session cookie (the Y.js editor); only tokens are configured. " +
+              "Use replace: false with markdown to append through Gate, or run `npx tsx scripts/auth.ts` to add a session.",
+            );
+          }
+          if (markdown === undefined) {
+            return errorResult("In token-only mode only markdown can be appended (Gate accepts text). Pass 'markdown' instead of 'blocks'.");
+          }
+          const appended = await client.appendPageContent(workspaceId, pageId, { markdown });
+          if (!appended.success) return errorResult(`Append via Gate failed: ${appended.error}`);
+          return { content: [{ type: "text" as const, text: `Content appended via Gate (token mode).` }] };
+        }
+
         const result = await writeContentViaWebSocket(
           client["host"],
           workspaceId,
           pageId,
           client.getCookie(),
           contentBlocks,
-          { replace: replace !== false, timeout: 20000 },
+          { replace: replacing, timeout: 20000 },
         );
 
         if (result.success) {

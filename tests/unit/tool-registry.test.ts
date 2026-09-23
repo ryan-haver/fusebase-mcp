@@ -157,7 +157,7 @@ describe("download_attachment (SEC-2)", () => {
 
 describe("update_page_content", () => {
   // CON-9a: whitespace-only markdown parses to [] and replace=true wipes the page.
-  it.fails("refuses to replace a page with empty content (CON-9a)", async () => {
+  it("refuses to replace a page with empty content (CON-9a)", async () => {
     session = await startServer();
     const res = await session.callText("update_page_content", { workspaceId: "ws", pageId: "p", markdown: "   \n  " });
     expect(writeContentViaWebSocket).not.toHaveBeenCalled();
@@ -165,7 +165,7 @@ describe("update_page_content", () => {
   });
 
   // COR-12: in token-only mode (no cookie) it still tries the cookie WebSocket writer.
-  it.fails("does not attempt a cookie WebSocket write in token-only mode (COR-12)", async () => {
+  it("does not attempt a cookie WebSocket write in token-only mode (COR-12)", async () => {
     session = await startServer(fakeClient({ getCookie: () => "" }));
     await session.callText("update_page_content", { workspaceId: "ws", pageId: "p", markdown: "# Hello" });
     expect(writeContentViaWebSocket).not.toHaveBeenCalledWith(expect.anything(), "ws", "p", "", expect.anything(), expect.anything());
@@ -178,5 +178,69 @@ describe("update_page_content", () => {
     expect(writeContentViaWebSocket).toHaveBeenCalledTimes(1);
     const blocks = vi.mocked(writeContentViaWebSocket).mock.calls[0][4];
     expect(blocks).toHaveLength(2);
+  });
+});
+
+describe("page writes in token-only mode (COR-12)", () => {
+  const tokenOnly = (overrides: Record<string, unknown> = {}) =>
+    fakeClient({ getCookie: () => "", appendPageContent: vi.fn(async () => ({ success: true })), ...overrides });
+
+  it("explains that replace needs a session cookie", async () => {
+    session = await startServer(tokenOnly());
+    const res = await session.callText("update_page_content", { workspaceId: "ws", pageId: "p", markdown: "# Hi" });
+    expect(res.isError).toBe(true);
+    expect(res.text).toMatch(/session cookie/);
+  });
+
+  it("appends markdown through Gate when replace is false", async () => {
+    const client = tokenOnly();
+    session = await startServer(client);
+    const res = await session.callText("update_page_content", { workspaceId: "ws", pageId: "p", markdown: "# Hi", replace: false });
+    expect(res.isError).toBe(false);
+    expect((client as any).appendPageContent).toHaveBeenCalledWith("ws", "p", { markdown: "# Hi" });
+    expect(writeContentViaWebSocket).not.toHaveBeenCalled();
+  });
+
+  it("writes a new page's markdown through Gate in create_page", async () => {
+    const client = tokenOnly({ createPage: async () => ({ globalId: "new", title: "T", createdAt: 0 }) });
+    session = await startServer(client);
+    const res = await session.callText("create_page", { workspaceId: "ws", title: "T", markdown: "# Hi" });
+    expect(res.isError).toBe(false);
+    expect(JSON.parse(res.text).contentWritten).toBe(true);
+    expect((client as any).appendPageContent).toHaveBeenCalledWith("ws", "new", { markdown: "# Hi" });
+  });
+
+  it("reports create_page as an error when the content could not be written", async () => {
+    const client = tokenOnly({
+      createPage: async () => ({ globalId: "new", title: "T", createdAt: 0 }),
+      appendPageContent: vi.fn(async () => ({ success: false, error: "gate down" })),
+    });
+    session = await startServer(client);
+    const res = await session.callText("create_page", { workspaceId: "ws", title: "T", markdown: "# Hi" });
+    expect(res.isError).toBe(true);
+    expect(res.text).toMatch(/"id": "new"/);
+  });
+});
+
+describe("update_page_content: deliberate clear (CON-9a)", () => {
+  it("clears the page when allowEmpty is set", async () => {
+    session = await startServer();
+    const res = await session.callText("update_page_content", { workspaceId: "ws", pageId: "p", markdown: "", allowEmpty: true });
+    expect(res.isError).toBe(false);
+    expect(vi.mocked(writeContentViaWebSocket).mock.calls[0][4]).toEqual([]);
+  });
+});
+
+describe("isolated SQL writes need an explicit stage (COR-11)", () => {
+  it.each([
+    ["execute_isolated_sql", { storeId: "s", sql: "DELETE FROM t" }],
+    ["insert_isolated_sql_row", { storeId: "s", table: "t", row: { a: 1 } }],
+    ["batch_insert_isolated_sql_rows", { storeId: "s", table: "t", rows: [{ a: 1 }] }],
+    ["apply_isolated_sql_migrations", { storeId: "s", bundle: { version: 1, migrations: [] } }],
+  ])("%s rejects a call without stage", async (name, args) => {
+    session = await startServer(undefined, { tier: "all" });
+    const res = await session.callText(name, args);
+    expect(res.isError).toBe(true);
+    expect(res.text).toMatch(/stage/);
   });
 });

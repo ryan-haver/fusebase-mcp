@@ -399,7 +399,7 @@ async function main() {
     const reorderRowsRes = await callTool(client, "reorder_database_rows", {
       dashboardId: primaryDashId,
       viewId: primaryViewId,
-      rowOrders: [{ rowUuid: row1Uuid, order: 0 }],
+      rowOrders: [{ rowUuid: row1Uuid, order: 1 }],
     });
     assertEqual(reorderRowsRes?.success, true, "reorder_database_rows.success");
     console.log("✅ Cell updates persisted; row reorder accepted");

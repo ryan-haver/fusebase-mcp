@@ -329,6 +329,8 @@ export interface DashboardViewColumn {
   required: boolean;
   description: string;
   metadata: Record<string, unknown>;
+  /** Options of a label (single/multi-select) column. Cell values are arrays of these nanoids. */
+  labels?: Array<{ nanoid: string; name: string }>;
 }
 
 export interface DashboardViewSchema {

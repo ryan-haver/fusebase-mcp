@@ -35,9 +35,7 @@ interface Row {
 const rows: Row[] = [];
 
 /** Findings from docs/PLAN-review-remediation.md that are expected to fail until fixed. */
-const KNOWN_GAPS: Record<string, string> = {
-  "token:Pages:Replace page content": "COR-12",
-};
+const KNOWN_GAPS: Record<string, string> = {};
 
 function errMsg(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
@@ -175,10 +173,16 @@ async function main() {
       if (!res.success) throw new Error(res.error || "write failed");
       return (await cookieClient.getPageContent(workspaceId, id)).includes(marker);
     });
-    // Token mode has no replace path today: update_page_content always uses the cookie WebSocket writer.
+    // Replacing content goes through the Y.js editor socket, which needs a session cookie;
+    // update_page_content reports this clearly in token mode (decision D5). Verify the
+    // server really refuses a cookieless editor write.
     await measure(replaceRow, "token", async () => {
-      throw new Error("update_page_content has no token-mode path");
-    });
+      const id = pageIds.token ?? pageIds.cookie;
+      if (!id) throw new Error("no page created");
+      const { writeContentViaWebSocket } = await import("../src/yjs-ws-writer.js");
+      const res = await writeContentViaWebSocket(host, workspaceId, id, "", [{ type: "paragraph", children: [{ text: "x" }] }], { replace: true });
+      return res.success;
+    }, "restricted");
 
     // ─── Folders ───────────────────────────────────────────────────
     console.log("--- Folders ---");

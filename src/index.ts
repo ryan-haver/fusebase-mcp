@@ -75,8 +75,12 @@ function getClient(profile?: string): FusebaseClient {
   }
 
   if (!host || !orgId) {
-    console.error("Missing FUSEBASE_HOST or FUSEBASE_ORG_ID. Configure FUSEBASE_HOST & FUSEBASE_ORG_ID or provide FUSEBASE_TOKEN.");
-    process.exit(1);
+    // Throw rather than exit: this runs inside tool calls, and the SDK turns a thrown
+    // error into an isError result instead of killing the server (COR-10).
+    throw new Error(
+      "FuseBase is not configured: FUSEBASE_HOST and FUSEBASE_ORG_ID are missing. " +
+      "Set them in .env, or provide valid FUSEBASE_GATE_TOKEN / FUSEBASE_DASHBOARDS_TOKEN so they can be discovered.",
+    );
   }
 
   if (!cookie && !_gateBridge?.isConfigured) {

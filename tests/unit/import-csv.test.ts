@@ -10,21 +10,32 @@ function client() {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("FusebaseClient.importCSV (COR-3)", () => {
-  // COR-3: a 200 on the preliminary GET is reported as success; the CSV is never sent.
-  it.fails("uploads the CSV even when the preliminary GET returns 200", async () => {
+  // COR-3 regression: a 200 on a preliminary GET used to count as success without sending the CSV.
+  it("uploads the CSV as multipart form data and sends no GET", async () => {
     const fetchMock = vi.fn(async (_url: string, init?: RequestInit) =>
       new Response(init?.method === "POST" ? '{"ok":true}' : '{"status":"ready"}', { status: 200, headers: { "content-type": "application/json" } }),
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    await client().importCSV(CSV, "db", "dash", "view");
+    await expect(client().importCSV(CSV, "db", "dash", "view")).resolves.toEqual({ success: true, data: { ok: true } });
 
-    const posts = fetchMock.mock.calls.filter(([, init]) => init?.method === "POST");
-    expect(posts).toHaveLength(1);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, init] = fetchMock.mock.calls[0];
+    expect(init?.method).toBe("POST");
+    const body = init?.body as FormData;
+    expect(body).toBeInstanceOf(FormData);
+    expect(await (body.get("file") as Blob).text()).toBe(CSV);
+    // fetch must set the multipart boundary itself
+    expect((init?.headers as Record<string, string>)["content-type"]).toBeUndefined();
   });
 
-  // COR-3: .json() consumes the body, then the .text() fallback throws "Body is unusable".
-  it.fails("handles a non-JSON 200 response body", async () => {
+  it("surfaces an API error instead of reporting success", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("bad mapping", { status: 400 })));
+    await expect(client().importCSV(CSV, "db", "dash", "view")).rejects.toThrow(/400/);
+  });
+
+  // COR-3 regression: .json() then .text() on the same body threw "Body is unusable".
+  it("handles a non-JSON 200 response body", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("<html>ok</html>", { status: 200 })));
     await expect(client().importCSV(CSV, "db", "dash", "view")).resolves.toMatchObject({ success: true });
   });

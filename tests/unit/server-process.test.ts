@@ -94,8 +94,8 @@ describe("HTTP transport security (SEC-1)", () => {
 });
 
 describe("configuration errors (COR-10)", () => {
-  // COR-10: getClient() calls process.exit(1) when host/org are missing, killing the server.
-  it.fails("returns an error result instead of exiting when FUSEBASE_HOST is missing", async () => {
+  // COR-10 regression: getClient() used to call process.exit(1), killing the server.
+  it("returns an error result instead of exiting when FUSEBASE_HOST is missing", async () => {
     const transport = new StdioClientTransport({ command: process.execPath, args: [ENTRY], env: hermeticEnv(), stderr: "ignore" });
     const client = new Client({ name: "unit", version: "0" }, { capabilities: {} });
     await client.connect(transport);

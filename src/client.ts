@@ -11,6 +11,7 @@ import { fileURLToPath } from "url";
 import { ProxyAgent } from "undici";
 import { FusebaseGateBridge } from "./gate-bridge.js";
 import { apiPath } from "./url-path.js";
+import { FusebaseApiError, isSafeToRetryElsewhere, wsWriteNeverSent } from "./write-safety.js";
 
 export interface FusebaseConfig {
   host: string;
@@ -88,6 +89,25 @@ function tryRepairTruncatedJson(text: string): Record<string, unknown> | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Convert a label cell value to what the API expects: an array of label nanoids (a bare
+ * string is rejected with 400). Accepts label names or nanoids, singly or as an array (COR-18).
+ */
+function toLabelIds(column: { name: string; labels?: Array<{ nanoid: string; name: string }> }, value: unknown): unknown {
+  if (value === null || value === undefined) return [];
+  const items = Array.isArray(value) ? value : [value];
+  const labels = column.labels;
+  if (!labels?.length) return items; // options unknown: at least send the required array shape
+  return items.map((item) => {
+    const s = String(item);
+    const match = labels.find((l) => l.nanoid === s) ?? labels.find((l) => l.name.toLowerCase() === s.trim().toLowerCase());
+    if (!match) {
+      throw new Error(`"${s}" is not an option of label column "${column.name}". Options: ${labels.map((l) => l.name).join(", ")}`);
+    }
+    return match.nanoid;
+  });
 }
 
 export class FusebaseClient {
@@ -226,6 +246,10 @@ export class FusebaseClient {
     if (method === "DELETE" && !options.body) {
       delete reqHeaders["content-type"];
     }
+    // Let fetch set the multipart boundary for form uploads.
+    if (options.body instanceof FormData) {
+      delete reqHeaders["content-type"];
+    }
 
     if (path.startsWith("/automation/") && !path.includes("/authentication/fusebase-auth")) {
       const match = this.cookie ? this.cookie.match(/eversessionid=([^;]+)/) : null;
@@ -314,8 +338,11 @@ export class FusebaseClient {
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       this.logApiCall(method, path, res.status, elapsed, text.length, false);
-      throw new Error(
+      throw new FusebaseApiError(
         `Fusebase API error: ${res.status} ${res.statusText} — ${url}\n${text}`,
+        res.status,
+        url,
+        text,
       );
     }
 
@@ -684,7 +711,8 @@ export class FusebaseClient {
           }),
         });
       } catch (err: any) {
-        if (!this.gateBridge?.hasGate) throw err;
+        // Only retry through Gate if the web API provably did not create the page.
+        if (!this.gateBridge?.hasGate || !isSafeToRetryElsewhere(err)) throw err;
         console.warn(`[client] Web API createPage failed (${err.message}), falling back to Gate bridge...`);
       }
     }
@@ -741,7 +769,8 @@ export class FusebaseClient {
           }),
         });
       } catch (err: any) {
-        if (!this.gateBridge?.hasGate) throw err;
+        // Only retry through Gate if the web API provably did not create the folder.
+        if (!this.gateBridge?.hasGate || !isSafeToRetryElsewhere(err)) throw err;
         console.warn(`[client] Web API createFolder failed (${err.message}), falling back to Gate bridge...`);
       }
     }
@@ -1359,7 +1388,9 @@ export class FusebaseClient {
           method: "POST",
           body: JSON.stringify({ message: prompt, text: prompt, content: prompt }),
         },
-      ).catch(async () => {
+      ).catch(async (err) => {
+        // Retrying on the second endpoint could run the agent twice.
+        if (!isSafeToRetryElsewhere(err)) throw err;
         return this.request<Record<string, unknown>>(
           apiPath`/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentId}/run`,
           {
@@ -1376,7 +1407,9 @@ export class FusebaseClient {
         method: "POST",
         body: JSON.stringify({ message: prompt, text: prompt, prompt }),
       },
-    ).catch(async () => {
+    ).catch(async (err) => {
+      // Retrying on the second endpoint could run the agent twice.
+      if (!isSafeToRetryElsewhere(err)) throw err;
       return this.request<Record<string, unknown>>(
         apiPath`/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentId}/run`,
         {
@@ -1564,26 +1597,19 @@ export class FusebaseClient {
     noteId: string,
     content: { markdown?: string; blocks?: unknown[] },
   ): Promise<{ success: boolean; error?: string }> {
-    if (this.cookie && content.markdown) {
-      try {
-        const { appendContentViaWebSocket } = await import("./yjs-ws-writer.js");
+    if (this.cookie && (content.markdown || content.blocks)) {
+      const { appendContentViaWebSocket } = await import("./yjs-ws-writer.js");
+      let blocks = content.blocks;
+      if (content.markdown) {
         const { markdownToSchema } = await import("./markdown-parser.js");
-        const blocks = markdownToSchema(content.markdown);
-        const result = await appendContentViaWebSocket(this.host, workspaceId, noteId, this.cookie, blocks);
-        if (result.success) return result;
-      } catch (err: any) {
-        if (!this.gateBridge?.hasGate) throw err;
-        console.warn(`[client] WebSocket appendPageContent failed (${err.message}), falling back to Gate bridge...`);
+        blocks = markdownToSchema(content.markdown);
       }
-    } else if (this.cookie && content.blocks) {
-      try {
-        const { appendContentViaWebSocket } = await import("./yjs-ws-writer.js");
-        const result = await appendContentViaWebSocket(this.host, workspaceId, noteId, this.cookie, content.blocks as any);
-        if (result.success) return result;
-      } catch (err: any) {
-        if (!this.gateBridge?.hasGate) throw err;
-        console.warn(`[client] WebSocket appendPageContent failed (${err.message}), falling back to Gate bridge...`);
-      }
+      const result = await appendContentViaWebSocket(this.host, workspaceId, noteId, this.cookie, blocks as any);
+      if (result.success) return result;
+      // A failed WebSocket append may still have been applied (e.g. a timeout after the
+      // update was sent). Only retry through Gate when the update provably never went out.
+      if (!this.gateBridge?.hasGate || !content.markdown || !wsWriteNeverSent(result.error)) return result;
+      console.warn(`[client] WebSocket appendPageContent failed (${result.error}), falling back to Gate bridge...`);
     }
 
     if (this.gateBridge?.hasGate && content.markdown) {
@@ -1693,86 +1719,120 @@ export class FusebaseClient {
    * Supports Flow canonical aliases including "deals_table", "deals_pipeline", "deals_all", and "trackers".
    */
   async resolveDatabaseAlias(alias: string): Promise<DatabaseAliasResolution> {
-    const normalized = alias.toLowerCase().trim();
+    // COR-2: exact (normalised) matching only. Substring matching let "deals" hit
+    // "Ideal Customers" and returned whichever table happened to come first.
+    const norm = (s: unknown) => String(s ?? "").toLowerCase().replace(/[\s_-]+/g, " ").trim();
+    const normalized = norm(alias);
+    const idLower = alias.trim().toLowerCase();
+
+    // Documented system aliases -> the table names / root entities they stand for.
+    const SYSTEM_ALIASES: Record<string, string[]> = {
+      "companies": ["company", "companies"],
+      "companies db": ["company", "companies"],
+      "deals": ["deal", "deals"],
+      "deals db": ["deal", "deals"],
+      "deals table": ["deal", "deals"],
+      "deals pipeline": ["deal", "deals"],
+      "deals all": ["deal", "deals"],
+      "meetings": ["meeting", "meetings"],
+      "meetings db": ["meeting", "meetings"],
+      "trackers": ["tracker", "trackers", "meeting tracker", "meeting trackers"],
+      "meeting trackers": ["tracker", "trackers", "meeting tracker", "meeting trackers"],
+      "members": ["member", "members"],
+      "members db": ["member", "members"],
+      "clients": ["client", "clients"],
+      "clients db": ["client", "clients"],
+      "spaces": ["space", "spaces"],
+      "spaces db": ["space", "spaces"],
+    };
+    const systemTargets = SYSTEM_ALIASES[normalized] ?? [];
+
+    let dbs: any[];
     try {
       const all = await this.listAllDatabases();
-      const dbs = all?.data ?? [];
-
-      for (const db of dbs) {
-        const dashboards = db.dashboards ?? [];
-        for (const dash of dashboards) {
-          const rootEntity = (dash.root_entity ?? "").toLowerCase();
-          const dashName = (dash.name ?? "").toLowerCase();
-          const dbTitle = (db.title ?? "").toLowerCase();
-
-          // Check for exact view names / aliases too (e.g. deals_pipeline, deals_all)
-          const matchedView = (dash.views ?? []).find((v: any) => {
-            const vName = (v.name ?? "").toLowerCase();
-            return vName === normalized || (v.global_id && v.global_id === normalized);
-          });
-
-          const match =
-            ((normalized === "companies" || normalized === "companies_db") && (dashName.includes("compan") || rootEntity.includes("compan"))) ||
-            ((normalized === "deals" || normalized === "deals_db" || normalized === "deals_table") && (dashName.includes("deal") || rootEntity.includes("deal"))) ||
-            ((normalized === "deals_pipeline" || normalized === "deals_all") && (dashName.includes("deal") || rootEntity.includes("deal"))) ||
-            ((normalized === "meetings" || normalized === "meetings_db") && (dashName.includes("meet") || rootEntity.includes("meet"))) ||
-            ((normalized === "trackers" || normalized === "meeting_trackers") && (dashName.includes("track") || rootEntity.includes("track"))) ||
-            ((normalized === "members" || normalized === "members_db") && (dashName.includes("member") || rootEntity.includes("member"))) ||
-            ((normalized === "clients" || normalized === "clients_db") && (rootEntity === "client" || dashName.includes("client"))) ||
-            ((normalized === "spaces" || normalized === "spaces_db") && (rootEntity === "space" || dashName.includes("space"))) ||
-            Boolean(matchedView) ||
-            dashName === normalized ||
-            dbTitle === normalized;
-
-          if (match) {
-            // Build views list
-            const views = (dash.views ?? []).map((v: any, idx: number) => ({
-              id: v.global_id || v.id,
-              name: v.name || `View ${idx + 1}`,
-              type: v.representation_type || v.type,
-              isDefault: idx === 0,
-            }));
-
-            // Determine primary view ID: if specific view was requested, prioritize it
-            let selectedViewId = dash.views?.[0]?.global_id;
-            if (normalized === "deals_pipeline") {
-              const pipelineView = views.find((v: any) => v.name.toLowerCase().includes("pipeline") || v.type === "kanban");
-              if (pipelineView) selectedViewId = pipelineView.id;
-            } else if (normalized === "deals_all") {
-              const allView = views.find((v: any) => v.name.toLowerCase().includes("all") || v.type === "table" || v.type === "grid");
-              if (allView) selectedViewId = allView.id;
-            } else if (matchedView) {
-              selectedViewId = (matchedView as any).global_id || (matchedView as any).id;
-            }
-
-            // Identify child tables in the same database (e.g. trackers for meetings)
-            const childTables = dashboards
-              .filter((d: any) => d.global_id !== dash.global_id)
-              .map((d: any) => ({
-                dashboardId: d.global_id,
-                name: d.name || "Child Table",
-                alias: (d.name || "").toLowerCase().replace(/\s+/g, "_"),
-              }));
-
-            return {
-              alias,
-              found: true,
-              databaseId: db.global_id,
-              dashboardId: dash.global_id,
-              dashboardName: dash.name,
-              viewId: selectedViewId,
-              title: dash.name || db.title,
-              views,
-              childTables: childTables.length > 0 ? childTables : undefined,
-            };
-          }
-        }
-      }
+      dbs = all?.data ?? [];
     } catch {
-      // Non-blocking fallback
+      // Non-blocking: callers fall back to listDatabases()
+      return { alias, found: false };
     }
 
-    return { alias, found: false };
+    // Rank every table; lower tier = stronger match. Only the best tier is considered.
+    type Candidate = { db: any; dash: any; tier: number; matchedView?: any };
+    const candidates: Candidate[] = [];
+    for (const db of dbs) {
+      const dashboards: any[] = db.dashboards ?? [];
+      dashboards.forEach((dash, idx) => {
+        const dashName = norm(dash.name);
+        const rootEntity = norm(dash.root_entity);
+        const matchedView = (dash.views ?? []).find(
+          (v: any) => (v.name && norm(v.name) === normalized) || (v.global_id && String(v.global_id).toLowerCase() === idLower),
+        );
+        let tier = 0;
+        if (dash.global_id && String(dash.global_id).toLowerCase() === idLower) tier = 1;
+        else if (dashName === normalized) tier = 2;
+        else if (systemTargets.length > 0 && (systemTargets.includes(dashName) || systemTargets.includes(rootEntity))) tier = 3;
+        else if (rootEntity === normalized) tier = 4;
+        else if (matchedView) tier = 5;
+        else if (idx === 0 && (norm(db.title) === normalized || String(db.global_id ?? "").toLowerCase() === idLower)) tier = 6;
+        if (tier > 0) candidates.push({ db, dash, tier, matchedView });
+      });
+    }
+
+    if (candidates.length === 0) return { alias, found: false };
+
+    const bestTier = Math.min(...candidates.map((c) => c.tier));
+    const best = candidates.filter((c) => c.tier === bestTier);
+    if (best.length > 1) {
+      const list = best
+        .map((c) => `"${c.dash.name ?? c.db.title}" (dashboardId ${c.dash.global_id}, database "${c.db.title}")`)
+        .join("; ");
+      throw new Error(
+        `Database alias '${alias}' is ambiguous: ${best.length} tables match equally well: ${list}. ` +
+        `Pass dashboardId (and viewId) explicitly.`,
+      );
+    }
+
+    const { db, dash, matchedView } = best[0];
+    const dashboards: any[] = db.dashboards ?? [];
+    const views = (dash.views ?? []).map((v: any, idx: number) => ({
+      id: v.global_id || v.id,
+      name: v.name || `View ${idx + 1}`,
+      type: v.representation_type || v.type,
+      isDefault: idx === 0,
+    }));
+
+    // Determine primary view ID: if specific view was requested, prioritize it
+    let selectedViewId = dash.views?.[0]?.global_id;
+    if (normalized === "deals pipeline") {
+      const pipelineView = views.find((v: any) => v.name.toLowerCase().includes("pipeline") || v.type === "kanban");
+      if (pipelineView) selectedViewId = pipelineView.id;
+    } else if (normalized === "deals all") {
+      const allView = views.find((v: any) => v.name.toLowerCase().includes("all") || v.type === "table" || v.type === "grid");
+      if (allView) selectedViewId = allView.id;
+    } else if (matchedView) {
+      selectedViewId = matchedView.global_id || matchedView.id;
+    }
+
+    // Identify child tables in the same database (e.g. trackers for meetings)
+    const childTables = dashboards
+      .filter((d: any) => d.global_id !== dash.global_id)
+      .map((d: any) => ({
+        dashboardId: d.global_id,
+        name: d.name || "Child Table",
+        alias: (d.name || "").toLowerCase().replace(/\s+/g, "_"),
+      }));
+
+    return {
+      alias,
+      found: true,
+      databaseId: db.global_id,
+      dashboardId: dash.global_id,
+      dashboardName: dash.name,
+      viewId: selectedViewId,
+      title: dash.name || db.title,
+      views,
+      childTables: childTables.length > 0 ? childTables : undefined,
+    };
   }
 
   /**
@@ -1986,40 +2046,73 @@ export class FusebaseClient {
     viewId: string;
     entity: string;
   }> {
+    // COR-2: never mix a caller-supplied id with ids resolved for a different table,
+    // never write to guessed column keys, and never report success the API didn't give.
+    const norm = (s: unknown) => String(s ?? "").toLowerCase().replace(/[\s_-]+/g, " ").trim();
+    const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
     let dashboardId = options?.dashboardId;
     let viewId = options?.viewId;
+    // View ids known to belong to a resolved dashboard (used to validate a caller-supplied viewId).
+    let knownViewIds: string[] | undefined;
 
-    if (dashboardId && !viewId) {
-      try {
-        const detail = await this.getDashboardDetail(dashboardId);
-        const views = (detail as any)?.data?.views ?? (detail as any)?.views;
-        if (Array.isArray(views) && views.length > 0) {
-          viewId = views[0].global_id || views[0].id;
+    if (dashboardId) {
+      if (!viewId) {
+        let detail: unknown;
+        try {
+          detail = await this.getDashboardDetail(dashboardId);
+        } catch (err) {
+          throw new Error(
+            `Could not load dashboard '${dashboardId}' to find its default view: ${errMsg(err)}. Pass viewId explicitly.`,
+          );
         }
-      } catch {
-        // Fallback to searching database list
+        const views = (detail as any)?.data?.views ?? (detail as any)?.views;
+        viewId = Array.isArray(views) && views.length > 0 ? (views[0].global_id || views[0].id) : undefined;
+        if (!viewId) {
+          throw new Error(`Dashboard '${dashboardId}' returned no views. Pass viewId explicitly.`);
+        }
       }
-    }
-
-    if (!dashboardId || !viewId) {
+    } else if (options?.databaseId) {
+      const all = await this.listAllDatabases();
+      const db = (all?.data ?? []).find((d) => d.global_id === options.databaseId);
+      if (!db) {
+        throw new Error(`Database '${options.databaseId}' not found. Use list_all_databases to find valid ids.`);
+      }
+      const dashboards = db.dashboards ?? [];
+      const picks = dashboards.length === 1
+        ? dashboards
+        : dashboards.filter((d) => norm(d.name) === norm(entity) || norm(d.root_entity) === norm(entity));
+      if (picks.length !== 1) {
+        const list = dashboards.map((d) => `"${d.name}" (dashboardId ${d.global_id})`).join("; ") || "none";
+        throw new Error(
+          `Could not pick a single table for entity '${entity}' in database '${options.databaseId}'. ` +
+          `Tables: ${list}. Pass dashboardId explicitly.`,
+        );
+      }
+      dashboardId = picks[0].global_id;
+      knownViewIds = (picks[0].views ?? []).map((v) => v.global_id);
+      viewId = viewId || knownViewIds[0];
+    } else {
       const resolved = await this.resolveDatabaseAlias(entity);
-      if (resolved?.dashboardId && resolved?.viewId) {
-        dashboardId = dashboardId || resolved.dashboardId;
+      if (resolved.found && resolved.dashboardId) {
+        dashboardId = resolved.dashboardId;
+        knownViewIds = (resolved.views ?? []).map((v) => v.id);
         viewId = viewId || resolved.viewId;
       } else {
         const databases = await this.listDatabases(options?.orgId);
-        let match = dashboardId ? databases.find((d) => d.dashboardId === dashboardId) : undefined;
-        if (!match) {
-          match = databases.find(
-            (d) =>
-              d.entity.toLowerCase() === entity.toLowerCase() ||
-              d.title?.toLowerCase() === entity.toLowerCase() ||
-              (options?.databaseId && d.databaseId === options.databaseId),
+        const matches = databases.filter(
+          (d) => norm(d.entity) === norm(entity) || norm(d.title) === norm(entity),
+        );
+        const distinct = [...new Map(matches.map((m) => [m.dashboardId, m])).values()];
+        if (distinct.length > 1) {
+          throw new Error(
+            `Entity '${entity}' is ambiguous: ${distinct.map((d) => `dashboardId ${d.dashboardId} (${d.title ?? d.entity})`).join("; ")}. ` +
+            `Pass dashboardId explicitly.`,
           );
         }
-        if (match) {
-          dashboardId = dashboardId || match.dashboardId;
-          viewId = viewId || match.viewId;
+        if (distinct.length === 1) {
+          dashboardId = distinct[0].dashboardId;
+          if (!viewId) viewId = distinct[0].viewId;
+          else if (viewId !== distinct[0].viewId) knownViewIds = [distinct[0].viewId];
         }
       }
     }
@@ -2029,24 +2122,34 @@ export class FusebaseClient {
         `Could not resolve dashboardId and viewId for entity '${entity}'. Please provide dashboardId and viewId explicitly.`,
       );
     }
+    if (options?.viewId && knownViewIds && knownViewIds.length > 0 && !knownViewIds.includes(options.viewId)) {
+      throw new Error(
+        `viewId '${options.viewId}' does not belong to the resolved table (dashboardId ${dashboardId}; views: ${knownViewIds.join(", ")}). ` +
+        `Pass the matching dashboardId explicitly.`,
+      );
+    }
 
-    // Resolve column keys if values were provided
+    // Resolve column keys if values were provided; unknown columns are an error, not raw keys.
     const rowValues: Array<{ item_key: string; value: unknown }> = [];
     if (options?.values && Object.keys(options.values).length > 0) {
       const mapping = await this.resolveColumnKeys(dashboardId, viewId);
+      const unknown: string[] = [];
       for (const [keyOrName, val] of Object.entries(options.values)) {
         if (mapping.nameByKey.has(keyOrName)) {
           rowValues.push({ item_key: keyOrName, value: val });
-        } else {
-          const resolvedKey =
-            mapping.keyByName.get(keyOrName) ||
-            mapping.keyByName.get(keyOrName.toLowerCase());
-          if (resolvedKey) {
-            rowValues.push({ item_key: resolvedKey, value: val });
-          } else {
-            rowValues.push({ item_key: keyOrName, value: val });
-          }
+          continue;
         }
+        const resolvedKey =
+          mapping.keyByName.get(keyOrName) ||
+          mapping.keyByName.get(keyOrName.toLowerCase());
+        if (resolvedKey) rowValues.push({ item_key: resolvedKey, value: val });
+        else unknown.push(keyOrName);
+      }
+      if (unknown.length > 0) {
+        const valid = mapping.columns.map((c) => `${c.name} (${c.key})`).join(", ") || "none";
+        throw new Error(
+          `Unknown column(s) for dashboard ${dashboardId} / view ${viewId}: ${unknown.join(", ")}. Valid columns: ${valid}.`,
+        );
       }
     }
 
@@ -2058,13 +2161,20 @@ export class FusebaseClient {
       },
     ]);
 
+    // request() throws on HTTP errors; a 2xx body can still report failure.
+    if (res && typeof res === "object" && !Array.isArray(res) && (res.success === false || res.error)) {
+      throw new Error(
+        `Row creation failed for dashboard ${dashboardId}: ${res.message ?? res.error ?? JSON.stringify(res)}`,
+      );
+    }
+
     const items = Array.isArray(res) ? res : (res?.data ?? res?.rows ?? []);
-    const createdItem = items[0];
+    const createdItem = Array.isArray(items) ? items[0] : undefined;
     const rowUuid =
       createdItem?.root_index_value ?? createdItem?.id ?? createdItem?.global_id;
 
     return {
-      success: true,
+      success: res?.success ?? true,
       rowUuid,
       data: res,
       dashboardId,
@@ -2187,11 +2297,20 @@ export class FusebaseClient {
    * Remove row mappings from a relation.
    *
    * Endpoint: DELETE /v4/api/proxy/dashboard-service/v1/relations/{relationId}/rows
+   *
+   * COR-9: a DELETE with no source_index/target_index removes EVERY mapping on the
+   * relation, so that form is only sent when `unlinkAll: true` is passed explicitly.
    */
   async deleteRelationRows(
     relationId: string,
-    options?: { source_index?: string; target_index?: string },
+    options?: { source_index?: string; target_index?: string; unlinkAll?: boolean },
   ): Promise<{ success: boolean; message?: string }> {
+    if (!options?.source_index && !options?.target_index && options?.unlinkAll !== true) {
+      throw new Error(
+        "Refusing to unlink rows without source_index/target_index: that would remove every link on the relation. " +
+        "Pass row IDs, or unlinkAll: true to intentionally remove all links.",
+      );
+    }
     const params = new URLSearchParams();
     if (options?.source_index) params.set("source_index", options.source_index);
     if (options?.target_index) params.set("target_index", options.target_index);
@@ -2222,12 +2341,16 @@ export class FusebaseClient {
   /**
    * Update row ordering for a dashboard view/section.
    *
-   * Endpoint: PUT /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/row-orders
+   * Endpoint: PUT /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/rows/order
+   *   ?view_id=…&section_type=…&section_key=…&section_value=…
+   * Body: { row_orders: [{ row_uuid, sort_order }] } — sort_order is 1-based.
+   * Source: @fusebase/dashboard-service-sdk 1.33.4 (CustomDashboardRowsApi.updateDashboardRowOrder,
+   * UpdateRowOrderRequestContract). Not yet confirmed against a live capture.
    */
   async updateDashboardRowOrder(
     dashboardId: string,
     viewId: string,
-    rowOrders: Array<{ row_uuid: string; order: number }>,
+    rowOrders: Array<{ row_uuid: string; sort_order: number }>,
     options?: { section_type?: string; section_key?: string; section_value?: string },
   ): Promise<{ success: boolean; message?: string }> {
     const sectionType = options?.section_type ?? "view";
@@ -2785,27 +2908,9 @@ export class FusebaseClient {
       }
     }
 
-    // Try GET first (as observed in browser), fall back to POST with form data
-    const baseEndpoint = `/v4/api/proxy/dashboard-service/v1/dashboards/import/csv`;
-    const queryString = params.toString();
-
-    // First, try the GET approach (browser-observed method)
-    const getUrl = `${this.baseUrl}${baseEndpoint}?${queryString}`;
-    const getRes = await fetch(getUrl, {
-      method: "GET",
-      headers: { cookie: this.cookie },
-      signal: AbortSignal.timeout(TIMEOUT_WRITE),
-    });
-
-    if (getRes.ok) {
-      try {
-        return { success: true, data: await getRes.json() };
-      } catch {
-        return { success: true, data: await getRes.text() };
-      }
-    }
-
-    // Fallback: POST with CSV as form data + query params
+    // POST the CSV as multipart form data. (A GET can't carry the file, so a 200 from it
+    // never meant our rows were imported — COR-3.) request() handles auth, the proxy,
+    // errors and parsing, and reads the body only once.
     const blob = new Blob([csvContent], { type: "text/csv" });
     const formData = new FormData();
     formData.append("file", blob, "import.csv");
@@ -2814,23 +2919,11 @@ export class FusebaseClient {
     formData.append("view_id", viewId);
     formData.append("delimiter", delimiter);
 
-    const postUrl = `${this.baseUrl}${baseEndpoint}?${queryString}`;
-    const postRes = await fetch(postUrl, {
-      method: "POST",
-      headers: { cookie: this.cookie },
-      body: formData,
-      signal: AbortSignal.timeout(TIMEOUT_WRITE),
-    });
-
-    if (!postRes.ok) {
-      const text = await postRes.text().catch(() => "");
-      throw new Error(`importCSV failed: ${postRes.status} ${text}`);
-    }
-    try {
-      return { success: true, data: await postRes.json() };
-    } catch {
-      return { success: true, data: await postRes.text() };
-    }
+    const data = await this.request<unknown>(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/import/csv?${params.toString()}`,
+      { method: "POST", body: formData },
+    );
+    return { success: true, data };
   }
 
   /**
@@ -2975,6 +3068,7 @@ export class FusebaseClient {
       required: boolean;
       description: string;
       metadata: Record<string, unknown>;
+      labels?: Array<{ nanoid: string; name: string }>;
     }>;
     rawSchema: Record<string, unknown>;
   }> {
@@ -2994,6 +3088,9 @@ export class FusebaseClient {
       required: Boolean(item.required),
       description: String(item.description ?? ""),
       metadata: (item.metadata ?? {}) as Record<string, unknown>,
+      labels: Array.isArray((item.render as any)?.labels)
+        ? ((item.render as any).labels as Array<Record<string, unknown>>).map((l) => ({ nanoid: String(l.nanoid ?? ""), name: String(l.name ?? "") }))
+        : undefined,
     }));
 
     return { columns, rawSchema: schema as Record<string, unknown> };
@@ -3730,6 +3827,8 @@ export class FusebaseClient {
         const lower = value.trim().toLowerCase();
         if (lower === "true") effectiveValue = true;
         else if (lower === "false") effectiveValue = false;
+      } else if (colDef.type === "label") {
+        effectiveValue = toLabelIds(colDef, value);
       }
     }
 
@@ -3875,6 +3974,7 @@ export class FusebaseClient {
         });
         return (res?.data?.store || res?.store || res) as IsolatedStore;
       } catch (err: any) {
+        if (!isSafeToRetryElsewhere(err)) throw err;
         console.error(`[client] gateBridge.createIsolatedStore fallback: ${err.message}`);
       }
     }
@@ -3949,6 +4049,7 @@ export class FusebaseClient {
         });
         return (res?.data || res) as { rowCount: number; message?: string };
       } catch (err: any) {
+        if (!isSafeToRetryElsewhere(err)) throw err;
         console.error(`[client] gateBridge.executeIsolatedStoreSql fallback: ${err.message}`);
       }
     }
@@ -4069,6 +4170,7 @@ export class FusebaseClient {
         });
         return (res?.data || res) as { success: boolean; row?: Record<string, unknown> };
       } catch (err: any) {
+        if (!isSafeToRetryElsewhere(err)) throw err;
         console.error(`[client] gateBridge.insertIsolatedStoreSqlRow fallback: ${err.message}`);
       }
     }
@@ -4103,6 +4205,7 @@ export class FusebaseClient {
         });
         return (res?.data || res) as { success: boolean; insertedCount: number };
       } catch (err: any) {
+        if (!isSafeToRetryElsewhere(err)) throw err;
         console.error(`[client] gateBridge.batchInsertIsolatedStoreSqlRows fallback: ${err.message}`);
       }
     }
@@ -4132,6 +4235,7 @@ export class FusebaseClient {
         });
         return (res?.data || res) as { success: boolean; appliedVersions?: string[]; message?: string };
       } catch (err: any) {
+        if (!isSafeToRetryElsewhere(err)) throw err;
         console.error(`[client] gateBridge.applyIsolatedStoreSqlMigrations fallback: ${err.message}`);
       }
     }
@@ -4449,8 +4553,9 @@ export class FusebaseClient {
     return this.request<unknown>(apiPath`/automation/api/v1/flows/${flowId}/runs`, {
       method: "POST",
       body: JSON.stringify({ payload }),
-    }).catch(async () => {
-      // Fallback to webhook trigger endpoint
+    }).catch(async (err) => {
+      // Fallback to webhook trigger endpoint, but only if the first trigger provably didn't run.
+      if (!isSafeToRetryElsewhere(err)) throw err;
       return this.request<unknown>(apiPath`/automation/api/v1/webhooks/${flowId}`, {
         method: "POST",
         body: JSON.stringify(payload),
