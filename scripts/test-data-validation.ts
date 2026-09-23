@@ -1,281 +1,237 @@
 /**
- * Full-Spectrum End-to-End Data Validation Test Suite for FuseBase MCP
+ * Live Data Validation Suite for FuseBase MCP
  *
- * Validates ALL 175 MCP tools and their underlying REST / microservice endpoints
- * against live FuseBase infrastructure.
+ * Exercises the registered MCP tools (extended tier) against live FuseBase infrastructure,
+ * scoped to an explicitly configured sandbox workspace (FUSEBASE_WORKSPACE_ID or
+ * --workspace=<id>; there is no fallback to "the first workspace").
  *
- * Beyond checking status codes, this suite enforces deep DATA VALIDATION:
- *  - Non-null, non-empty, and correct data types for all returned properties
- *  - Expected array lengths, schema keys, and string formats (UUIDs, semver, URLs)
- *  - State mutation round-trips: Write -> Read & Assert Exact Fields -> Update -> Read & Assert Mutation -> Delete -> Assert Removal
+ * For each tool it checks the returned data shape (types, required fields, round-trips such as
+ * create -> read -> update -> read -> delete) and treats error-shaped results as failures
+ * (see scripts/lib/live-harness.ts#callTool).
+ *
+ * Optional capabilities that may legitimately be absent for an org (FuseBase CLI not installed,
+ * Gate token not configured, automations / portals / AI features not enabled on the plan) are
+ * recorded as explicit SKIPS with a reason and reported separately from passes. A tool that
+ * errors for any other reason fails the suite. At the end, every registered tool must have been
+ * either exercised or explicitly skipped.
+ *
+ * Entities the suite needs are created during the run and cleaned up afterwards. Known leak:
+ * on first run only, the sandbox isolated SQL store 'qa-val-store' (no delete tool; reused on
+ * later runs). Portal invite / magic-link checks send real email and only run when
+ * FUSEBASE_TEST_INVITE_EMAIL is set.
  */
 
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import * as path from "path";
-import { fileURLToPath } from "url";
+import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import {
+  assert,
+  assertArray,
+  assertBoolean,
+  assertEqual,
+  assertIncludes,
+  assertNumber,
+  assertObject,
+  assertString,
+  callTool,
+  connectMcp,
+  requireSandboxWorkspace,
+  runSuite,
+  skip,
+  stats,
+  ToolError,
+} from "./lib/live-harness.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.resolve(__dirname, "..");
+// ─── Local helpers ──────────────────────────────────────────────────
 
-// ─── Data Assertion Helpers ──────────────────────────────────────────
+/** Patterns identifying an optional capability that is absent for this org / environment. */
+const GATE_UNAVAILABLE =
+  /requires Gate MCP bridge|FUSEBASE_GATE_TOKEN|No token configured|not configured with any tokens|\b(402|403)\b|forbidden|not enabled|premium|upgrade/i;
+const AUTOMATION_UNAVAILABLE = /\b(402|403)\b|forbidden|not enabled|not available|premium|upgrade|\bplan\b/i;
+const AI_UNAVAILABLE =
+  /\b(402|403)\b|forbidden|not enabled|not available|premium|upgrade|\bplan\b|quota|insufficient credits?|out of credits/i;
 
-let totalAssertions = 0;
-let passedAssertions = 0;
-const executedTools = new Set<string>();
+const SANDBOX_STORE_ALIAS = "qa-val-store";
 
-function assert(condition: boolean, message: string) {
-  totalAssertions++;
-  if (!condition) {
-    throw new Error(`❌ Data Assertion Failed: ${message}`);
-  }
-  passedAssertions++;
+function errMsg(e: unknown): string {
+  return e instanceof Error ? e.message : String(e);
 }
 
-function assertString(val: any, fieldName: string, minLength = 1) {
-  assert(
-    typeof val === "string" && val.trim().length >= minLength,
-    `Expected '${fieldName}' to be a non-empty string, got: ${JSON.stringify(val)}`
-  );
+function ok(tool: string, message: string): void {
+  console.log(`✅ ${tool}: ${message}`);
 }
 
-function assertNumber(val: any, fieldName: string) {
-  assert(
-    typeof val === "number" && !Number.isNaN(val),
-    `Expected '${fieldName}' to be a valid number, got: ${JSON.stringify(val)}`
-  );
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
 }
 
-function assertBoolean(val: any, fieldName: string) {
-  assert(
-    typeof val === "boolean",
-    `Expected '${fieldName}' to be a boolean, got: ${JSON.stringify(val)}`
-  );
+/** Parsed JSON payload (object or array), never an error string. */
+function assertJson(val: unknown, field: string): void {
+  assert(val !== null && typeof val === "object", `Expected '${field}' to be a JSON object or array, got: ${JSON.stringify(val)?.slice(0, 300)}`);
 }
 
-function assertArray(val: any, fieldName: string, minLength = 0) {
-  assert(
-    Array.isArray(val) && val.length >= minLength,
-    `Expected '${fieldName}' to be an array with >= ${minLength} items, got: ${JSON.stringify(val)}`
-  );
-}
-
-function assertObject(val: any, fieldName: string) {
-  assert(
-    val !== null && typeof val === "object" && !Array.isArray(val),
-    `Expected '${fieldName}' to be an object, got: ${JSON.stringify(val)}`
-  );
-}
-
-function assertEqual(actual: any, expected: any, fieldName: string) {
-  assert(
-    actual === expected,
-    `Field '${fieldName}' mismatch: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`
-  );
-}
-
-function assertIncludes(actual: string, substring: string, fieldName: string) {
-  assert(
-    typeof actual === "string" && actual.includes(substring),
-    `Field '${fieldName}' expected to include '${substring}', got:\n${actual}`
-  );
-}
-
-// ─── MCP Tool Call Helper ───────────────────────────────────────────
-
-async function callTool(client: Client, name: string, args: Record<string, any> = {}): Promise<any> {
-  executedTools.add(name);
-  const res = await client.callTool({ name, arguments: args });
-  if (res.isError) {
-    const errText = (res.content as any)?.[0]?.text || "Unknown error";
-    throw new Error(`Tool '${name}' returned error: ${errText}`);
-  }
-  const text = (res.content as any)?.[0]?.text;
-  if (typeof text !== "string") {
-    return text;
-  }
+/**
+ * Run a call for an optional capability. If the tool fails with an error matching `unavailable`,
+ * record a skip and return undefined. Any other failure (including assertion failures) is rethrown.
+ */
+async function optional<T>(tool: string, unavailable: RegExp, fn: () => Promise<T>): Promise<{ value: T } | undefined> {
   try {
-    return JSON.parse(text);
-  } catch {
-    return text;
+    return { value: await fn() };
+  } catch (e) {
+    if (e instanceof ToolError && unavailable.test(e.detail)) {
+      skip(tool, `capability unavailable: ${e.detail.slice(0, 200)}`);
+      return undefined;
+    }
+    throw e;
   }
+}
+
+function skipAll(tools: string[], reason: string): void {
+  for (const t of tools) skip(t, reason);
+}
+
+/** Best-effort cleanup: never marks anything passed, never masks the original failure. */
+async function cleanup(what: string, fn: () => Promise<unknown>): Promise<void> {
+  try {
+    await fn();
+  } catch (e) {
+    console.error(`⚠️  Cleanup failed (${what}): ${errMsg(e).slice(0, 300)}`);
+  }
+}
+
+/** Tools like fusebase_post_comment return "<status line>\n<json>". */
+function parseTrailingJson(text: unknown, field: string, statusPrefix: string): any {
+  assertString(text, field);
+  assertIncludes(text, statusPrefix, field);
+  const nl = text.indexOf("\n");
+  assert(nl >= 0, `Expected '${field}' to contain a JSON body after the status line`);
+  return JSON.parse(text.slice(nl + 1));
+}
+
+function suiteHeader(title: string): void {
+  console.log("\n==================================================");
+  console.log(title);
+  console.log("==================================================");
 }
 
 // ─── Main Test Runner ───────────────────────────────────────────────
 
 async function main() {
   console.log("================================================================================");
-  console.log("       FUSEBASE MCP FULL-SPECTRUM LIVE DATA VALIDATION SUITE (175 TOOLS)        ");
+  console.log("                FUSEBASE MCP LIVE DATA VALIDATION SUITE (SANDBOX)               ");
   console.log("================================================================================\n");
 
-  const transport = new StdioClientTransport({
-    command: "node",
-    args: [path.join(rootDir, "dist", "index.js")],
-    env: {
-      ...process.env,
-      FUSEBASE_TOOLS: "all",
-    },
-  });
+  const targetWsId = requireSandboxWorkspace();
 
-  const client = new Client(
-    { name: "fusebase-data-validator", version: "1.0.0" },
-    { capabilities: {} }
-  );
+  const client = await connectMcp("fusebase-data-validator", { tier: "all" });
+  try {
+    await runAllSuites(client, targetWsId);
+  } finally {
+    await client.close().catch((e) => console.error(`⚠️  Failed to close MCP client: ${errMsg(e)}`));
+  }
+}
 
-  await client.connect(transport);
+async function runAllSuites(client: Client, targetWsId: string) {
   console.log("✅ Connected to MCP Server via stdio.\n");
 
-  // Verify all 175 tools are registered
   const toolsList = await client.listTools();
-  console.log(`[Setup] Registered MCP Tools: ${toolsList.tools.length} (Expected: 175)`);
-  assert(toolsList.tools.length === 175, `Expected exactly 175 tools, found ${toolsList.tools.length}`);
+  assertArray(toolsList.tools, "listTools().tools", 1);
+  console.log(`[Setup] Registered MCP tools: ${toolsList.tools.length}`);
 
   // ──────────────────────────────────────────────────────────────────
-  // Suite 1: Workspaces & Organizations (12 tools)
+  // Suite 1: Workspaces & Organizations
   // ──────────────────────────────────────────────────────────────────
-  console.log("\n==================================================");
-  console.log("SUITE 1: Workspaces & Organizations (12 tools)");
-  console.log("==================================================");
+  suiteHeader("SUITE 1: Workspaces & Organizations");
 
-  // 1.1 list_workspaces
   const workspaces = await callTool(client, "list_workspaces");
   assertArray(workspaces, "list_workspaces", 1);
-  const wsArg = process.argv.find((a) => a.startsWith("--workspace="))?.split("=")[1];
-  const targetSpec = wsArg || process.env.FUSEBASE_WORKSPACE_ID;
-  let targetWs = workspaces[0];
-
-  if (targetSpec) {
-    const found = workspaces.find(
-      (w: any) =>
-        w.workspaceId.toLowerCase() === targetSpec.toLowerCase() ||
-        w.title.toLowerCase() === targetSpec.toLowerCase() ||
-        w.title.toLowerCase().includes(targetSpec.toLowerCase())
-    );
-    if (found) targetWs = found;
-  } else {
-    // Prefer dedicated project or agent workspace by default to protect personal workspace
-    const dedicated = workspaces.find(
-      (w: any) =>
-        w.title.toLowerCase().includes("mcp") ||
-        w.title.toLowerCase().includes("agent")
-    );
-    if (dedicated) targetWs = dedicated;
-  }
-
+  const targetWs = workspaces.find((w: any) => w.workspaceId === targetWsId);
+  assert(!!targetWs, `Sandbox workspace ${targetWsId} (FUSEBASE_WORKSPACE_ID) not found in list_workspaces`);
   assertString(targetWs.workspaceId, "workspaceId");
   assertString(targetWs.orgId, "orgId");
   assertString(targetWs.title, "title");
-  const targetWsId = targetWs.workspaceId;
-  const orgId = targetWs.orgId;
-  console.log(`✅ [1/143] list_workspaces: Found ${workspaces.length} workspaces. Target: "${targetWs.title}" (${targetWsId}) [Org: ${orgId}]`);
+  const orgId: string = targetWs.orgId;
+  ok("list_workspaces", `Found ${workspaces.length} workspaces. Sandbox: "${targetWs.title}" (${targetWsId}) [Org: ${orgId}]`);
 
-  // 1.2 get_workspace_info
   const wsInfo = await callTool(client, "get_workspace_info", { workspaceId: targetWsId });
   assertObject(wsInfo, "get_workspace_info");
-  assert(
-    typeof wsInfo.orgId === "string" || typeof wsInfo.quotaResetDate === "string" || Object.keys(wsInfo).length > 0,
-    "wsInfo should contain billing or quota details"
-  );
-  console.log("✅ [2/143] get_workspace_info: Validated workspace metadata");
+  assert(Object.keys(wsInfo).length > 0, "get_workspace_info should contain billing or quota details");
+  ok("get_workspace_info", "Validated workspace metadata");
 
-  // 1.3 get_workspace_detail
   const wsDetail = await callTool(client, "get_workspace_detail", { workspaceId: targetWsId });
   assertObject(wsDetail, "get_workspace_detail");
-  console.log("✅ [3/143] get_workspace_detail: Validated workspace detail properties");
+  ok("get_workspace_detail", "Validated workspace detail properties");
 
-  // 1.4 get_workspace_emails
   const wsEmails = await callTool(client, "get_workspace_emails", { workspaceId: targetWsId });
-  assert(Array.isArray(wsEmails) || typeof wsEmails === "object", "get_workspace_emails structure");
-  console.log("✅ [4/143] get_workspace_emails: Validated routing email schema");
+  assertJson(wsEmails, "get_workspace_emails");
+  ok("get_workspace_emails", "Validated routing email schema");
 
-  // 1.5 get_workspace_members_v1
   const wsMembersV1 = await callTool(client, "get_workspace_members_v1", { workspaceId: targetWsId });
   assertArray(wsMembersV1, "get_workspace_members_v1");
-  console.log(`✅ [5/143] get_workspace_members_v1: Validated members array (${wsMembersV1.length} members)`);
+  ok("get_workspace_members_v1", `Validated members array (${wsMembersV1.length} members)`);
 
-  // 1.6 get_members
   const members = await callTool(client, "get_members", { workspaceId: targetWsId });
   assertArray(members, "get_members", 1);
   assertString(members[0].id || members[0].userId, "member id");
-  console.log(`✅ [6/143] get_members: Validated member accounts (${members.length} members)`);
+  ok("get_members", `Validated member accounts (${members.length} members)`);
 
-  // 1.7 get_org_features
   const orgFeatures = await callTool(client, "get_org_features", { orgId });
-  assert(Array.isArray(orgFeatures) || typeof orgFeatures === "object", "get_org_features schema");
-  console.log("✅ [7/143] get_org_features: Validated organization feature flags");
+  assertJson(orgFeatures, "get_org_features");
+  ok("get_org_features", "Validated organization feature flags");
 
-  // 1.8 get_org_limits
   const orgLimits = await callTool(client, "get_org_limits", { orgId });
   assertObject(orgLimits, "get_org_limits");
-  console.log("✅ [8/143] get_org_limits: Validated quota and limits structure");
+  ok("get_org_limits", "Validated quota and limits structure");
 
-  // 1.9 get_org_permissions
   const orgPerms = await callTool(client, "get_org_permissions", { orgId });
-  assert(Array.isArray(orgPerms) || typeof orgPerms === "object", "get_org_permissions schema");
-  console.log("✅ [9/143] get_org_permissions: Validated RBAC permission definitions");
+  assertJson(orgPerms, "get_org_permissions");
+  ok("get_org_permissions", "Validated RBAC permission definitions");
 
-  // 1.10 get_org_usage
   const orgUsage = await callTool(client, "get_org_usage", { orgId });
-  assert(typeof orgUsage === "object", "get_org_usage schema");
-  console.log("✅ [10/143] get_org_usage: Validated organization storage/seat usage");
+  assertJson(orgUsage, "get_org_usage");
+  ok("get_org_usage", "Validated organization storage/seat usage");
 
-  // 1.11 get_usage_summary
   const usageSummary = await callTool(client, "get_usage_summary");
-  assert(typeof usageSummary === "object", "get_usage_summary schema");
-  console.log("✅ [11/143] get_usage_summary: Validated platform usage summary");
+  assertJson(usageSummary, "get_usage_summary");
+  ok("get_usage_summary", "Validated platform usage summary");
 
-  // 1.12 get_org_trials
   const orgTrials = await callTool(client, "get_org_trials", { orgId });
-  assert(Array.isArray(orgTrials) || typeof orgTrials === "object", "get_org_trials schema");
-  console.log("✅ [12/143] get_org_trials: Validated organization trials structure");
+  assertJson(orgTrials, "get_org_trials");
+  ok("get_org_trials", "Validated organization trials structure");
 
   // ──────────────────────────────────────────────────────────────────
-  // Suite 2: Folders & Taxonomy (3 tools)
+  // Suite 2: Folders & Taxonomy
   // ──────────────────────────────────────────────────────────────────
-  console.log("\n==================================================");
-  console.log("SUITE 2: Folders & Taxonomy (3 tools)");
-  console.log("==================================================");
+  suiteHeader("SUITE 2: Folders & Taxonomy");
 
-  // 2.1 get_labels
   const labels = await callTool(client, "get_labels", { workspaceId: targetWsId });
-  assert(Array.isArray(labels), "get_labels should return array");
-  console.log(`✅ [13/143] get_labels: Validated workspace labels (${labels.length} labels)`);
+  assertArray(labels, "get_labels");
+  ok("get_labels", `Validated workspace labels (${labels.length} labels)`);
 
-  // 2.2 create_folder
   const folderTitle = `Data Validation Folder ${Date.now()}`;
-  const createFolderRes = await callTool(client, "create_folder", {
-    workspaceId: targetWsId,
-    title: folderTitle,
-  });
-  console.log("createFolderRes:", JSON.stringify(createFolderRes));
+  const createFolderRes = await callTool(client, "create_folder", { workspaceId: targetWsId, title: folderTitle });
   assertObject(createFolderRes, "create_folder");
   const folderId = createFolderRes.globalId || createFolderRes.id || createFolderRes.folderId;
   assertString(folderId, "created folderId");
-  console.log(`✅ [14/143] create_folder: Created folder '${folderTitle}' with ID ${folderId}`);
+  ok("create_folder", `Created folder '${folderTitle}' with ID ${folderId}`);
 
-  // 2.3 list_folders
   let folders: any[] = [];
   let foundFolder: any = null;
-  for (let attempt = 1; attempt <= 4; attempt++) {
-    await new Promise((r) => setTimeout(r, 1200));
+  for (let attempt = 1; attempt <= 4 && !foundFolder; attempt++) {
+    await sleep(1200);
     folders = await callTool(client, "list_folders", { workspaceId: targetWsId });
-    console.log("folders items count:", folders?.length, "sample:", JSON.stringify(folders?.slice(0, 2)));
     assertArray(folders, "list_folders", 1);
     foundFolder = folders.find((f: any) => f.name === folderTitle || f.title === folderTitle || f.id === folderId || f.globalId === folderId);
-    if (foundFolder) break;
   }
   assert(!!foundFolder, `Expected newly created folder ${folderId} to appear in list_folders`);
-  console.log(`✅ [15/143] list_folders: Verified folder presence in workspace (${folders.length} folders, found '${foundFolder.name || foundFolder.title}')`);
+  ok("list_folders", `Verified folder presence in workspace (${folders.length} folders)`);
+  // Folders are notes, so delete_page removes them; there is no dedicated delete_folder tool.
+  await cleanup(`delete folder ${folderId}`, () => callTool(client, "delete_page", { workspaceId: targetWsId, pageId: folderId }));
 
   // ──────────────────────────────────────────────────────────────────
-  // Suite 3: Pages & Collaborative Y.js Content (11 tools)
+  // Suite 3: Pages & Collaborative Y.js Content
   // ──────────────────────────────────────────────────────────────────
-  console.log("\n==================================================");
-  console.log("SUITE 3: Pages & Collaborative Y.js Content (11 tools)");
-  console.log("==================================================");
+  suiteHeader("SUITE 3: Pages & Collaborative Y.js Content");
 
   const testPageTitle = `Validation Note ${Date.now()}`;
-  // 3.1 create_page
   const createPageRes = await callTool(client, "create_page", {
     workspaceId: targetWsId,
     title: testPageTitle,
@@ -284,365 +240,297 @@ async function main() {
   assertObject(createPageRes, "create_page response");
   const pageId = createPageRes.id;
   assertString(pageId, "created pageId");
-  console.log(`✅ [16/143] create_page: Created page '${testPageTitle}' with ID ${pageId}`);
+  ok("create_page", `Created page '${testPageTitle}' with ID ${pageId}`);
 
-  // 3.2 get_page
-  const pageMeta = await callTool(client, "get_page", { workspaceId: targetWsId, pageId });
-  assertObject(pageMeta, "get_page");
-  assertEqual(pageMeta.title, testPageTitle, "page title");
-  console.log("✅ [17/143] get_page: Verified metadata matches created note");
+  let pageDeleted = false;
+  try {
+    const pageMeta = await callTool(client, "get_page", { workspaceId: targetWsId, pageId });
+    assertObject(pageMeta, "get_page");
+    assertEqual(pageMeta.title, testPageTitle, "page title");
+    ok("get_page", "Verified metadata matches created note");
 
-  // 3.3 list_pages
-  const listPagesData = await callTool(client, "list_pages", { workspaceId: targetWsId });
-  assertObject(listPagesData, "list_pages response");
-  const pages = listPagesData.pages || [];
-  assertArray(pages, "list_pages.pages", 1);
-  const pageInList = pages.find((p: any) => p.id === pageId || p.title === testPageTitle);
-  assert(!!pageInList, "Page must be present in list_pages");
-  console.log(`✅ [18/143] list_pages: Verified page presence in workspace (${pages.length} pages, total: ${listPagesData.total})`);
+    const listPagesData = await callTool(client, "list_pages", { workspaceId: targetWsId });
+    assertObject(listPagesData, "list_pages response");
+    assertArray(listPagesData.pages, "list_pages.pages", 1);
+    const pageInList = listPagesData.pages.find((p: any) => p.id === pageId || p.title === testPageTitle);
+    assert(!!pageInList, "Page must be present in list_pages");
+    ok("list_pages", `Verified page presence in workspace (${listPagesData.pages.length} pages, total: ${listPagesData.total})`);
 
-  // 3.4 get_recent_pages
-  const recentPagesData = await callTool(client, "get_recent_pages", { workspaceId: targetWsId });
-  assertObject(recentPagesData, "get_recent_pages response");
-  assertArray(recentPagesData.pages, "recentPagesData.pages");
-  console.log(`✅ [19/143] get_recent_pages: Verified recent pages array (${recentPagesData.pages.length} items)`);
+    const recentPagesData = await callTool(client, "get_recent_pages", { workspaceId: targetWsId });
+    assertObject(recentPagesData, "get_recent_pages response");
+    assertArray(recentPagesData.pages, "recentPagesData.pages");
+    ok("get_recent_pages", `Verified recent pages array (${recentPagesData.pages.length} items)`);
 
-  // 3.5 get_recently_updated_notes
-  const recentUpdated = await callTool(client, "get_recently_updated_notes");
-  assert(
-    Array.isArray(recentUpdated) || typeof recentUpdated === "object",
-    "get_recently_updated_notes should return array or object"
-  );
-  console.log(`✅ [20/143] get_recently_updated_notes: Validated updated notes response`);
+    const recentUpdated = await callTool(client, "get_recently_updated_notes");
+    assertJson(recentUpdated, "get_recently_updated_notes");
+    ok("get_recently_updated_notes", "Validated updated notes response");
 
-  // 3.6 update_page
-  const updatedTitle = `${testPageTitle} (Renamed)`;
-  const updatePageRes = await callTool(client, "update_page", {
-    workspaceId: targetWsId,
-    pageId,
-    title: updatedTitle,
-  });
-  assert(typeof updatePageRes === "string" || typeof updatePageRes === "object", "update_page");
-  const recheckMeta = await callTool(client, "get_page", { workspaceId: targetWsId, pageId });
-  assertEqual(recheckMeta.title, updatedTitle, "renamed page title");
-  console.log("✅ [21/143] update_page: Verified title update round-trip");
+    const updatedTitle = `${testPageTitle} (Renamed)`;
+    const updatePageRes = await callTool(client, "update_page", { workspaceId: targetWsId, pageId, title: updatedTitle });
+    assertIncludes(updatePageRes, `Page ${pageId} updated`, "update_page response");
+    const recheckMeta = await callTool(client, "get_page", { workspaceId: targetWsId, pageId });
+    assertEqual(recheckMeta.title, updatedTitle, "renamed page title");
+    ok("update_page", "Verified title update round-trip");
 
-  // 3.7 append_page_content
-  await new Promise((r) => setTimeout(r, 2000));
-  const appendRes = await callTool(client, "append_page_content", {
-    workspaceId: targetWsId,
-    pageId,
-    markdown: "## Appended Verification Section\n\nAppended paragraph with unique token 987654.",
-  });
-  assert(typeof appendRes === "string" || appendRes.success === true, "append_page_content response");
-  console.log("✅ [22/143] append_page_content: Successfully sent append update");
+    await sleep(2000);
+    const appendRes = await callTool(client, "append_page_content", {
+      workspaceId: targetWsId,
+      pageId,
+      markdown: "## Appended Verification Section\n\nAppended paragraph with unique token 987654.",
+    });
+    assertIncludes(appendRes, "Successfully appended content", "append_page_content response");
+    ok("append_page_content", "Append acknowledged");
 
-  // 3.8 get_page_content (HTML & Markdown)
-  let readHtml = "";
-  for (let i = 0; i < 5; i++) {
-    await new Promise((r) => setTimeout(r, 1500));
-    readHtml = await callTool(client, "get_page_content", { workspaceId: targetWsId, pageId, format: "html" });
-    if (typeof readHtml === "string" && readHtml.includes("Appended Verification Section")) {
-      break;
+    let readHtml: unknown = "";
+    for (let i = 0; i < 5; i++) {
+      await sleep(1500);
+      readHtml = await callTool(client, "get_page_content", { workspaceId: targetWsId, pageId, format: "html" });
+      if (typeof readHtml === "string" && readHtml.includes("Appended Verification Section")) break;
     }
-  }
-  assertString(readHtml, "get_page_content (html)");
-  assertIncludes(readHtml, "Original Header", "readHtml original header");
-  assertIncludes(readHtml, "Appended Verification Section", "readHtml appended section");
-  console.log("✅ [23/143] get_page_content (HTML): Verified original + appended HTML content fidelity");
+    assertString(readHtml, "get_page_content (html)");
+    assertIncludes(readHtml, "Original Header", "readHtml original header");
+    assertIncludes(readHtml, "Appended Verification Section", "readHtml appended section");
+    ok("get_page_content (html)", "Verified original + appended HTML content fidelity");
 
-  let readMd = "";
-  for (let i = 0; i < 5; i++) {
-    readMd = await callTool(client, "get_page_content", { workspaceId: targetWsId, pageId, format: "markdown" });
-    if (typeof readMd === "string" && readMd.includes("987654")) {
-      break;
+    let readMd: unknown = "";
+    for (let i = 0; i < 5; i++) {
+      readMd = await callTool(client, "get_page_content", { workspaceId: targetWsId, pageId, format: "markdown" });
+      if (typeof readMd === "string" && readMd.includes("987654")) break;
+      await sleep(1500);
     }
-    await new Promise((r) => setTimeout(r, 1500));
+    assertString(readMd, "get_page_content (markdown)");
+    assertIncludes(readMd, "Original Header", "readMd original header");
+    assertIncludes(readMd, "987654", "readMd unique token");
+    ok("get_page_content (markdown)", "Verified markdown format fidelity");
+
+    const replaceRes = await callTool(client, "update_page_content", {
+      workspaceId: targetWsId,
+      pageId,
+      markdown: "# Replaced Entire Note\n\nAll previous content replaced by clean validation text.",
+    });
+    assertIncludes(replaceRes, "Content written successfully", "update_page_content response");
+    let replacedMd: unknown = "";
+    for (let i = 0; i < 5; i++) {
+      await sleep(1500);
+      replacedMd = await callTool(client, "get_page_content", { workspaceId: targetWsId, pageId, format: "markdown" });
+      if (typeof replacedMd === "string" && replacedMd.includes("Replaced Entire Note")) break;
+    }
+    assertIncludes(replacedMd, "Replaced Entire Note", "update_page_content readback");
+    ok("update_page_content", "Verified full content replacement round-trip");
+
+    const moveRes = await callTool(client, "move_page", { workspaceId: targetWsId, pageId, folderId: "root" });
+    assertObject(moveRes, "move_page response");
+    assertEqual(moveRes.success, true, "move_page.success");
+    assertEqual(moveRes.destinationFolderId, "root", "move_page.destinationFolderId");
+    ok("move_page", "Moved page to workspace root");
+
+    const deletePageRes = await callTool(client, "delete_page", { workspaceId: targetWsId, pageId });
+    assertIncludes(deletePageRes, "deleted successfully", "delete_page response");
+    pageDeleted = true;
+    ok("delete_page", `Deleted test page ${pageId}`);
+  } finally {
+    if (!pageDeleted) await cleanup(`delete page ${pageId}`, () => callTool(client, "delete_page", { workspaceId: targetWsId, pageId }));
   }
-  assertString(readMd, "get_page_content (markdown)");
-  assertIncludes(readMd, "Original Header", "readMd original header");
-  assertIncludes(readMd, "987654", "readMd unique token");
-  console.log("✅ [24/143] get_page_content (Markdown): Verified markdown format fidelity");
-
-  // 3.9 update_page_content (Full replace)
-  const replaceRes = await callTool(client, "update_page_content", {
-    workspaceId: targetWsId,
-    pageId,
-    markdown: "# Replaced Entire Note\n\nAll previous content replaced by clean validation text.",
-  });
-  assert(typeof replaceRes === "string" || replaceRes.success === true, "update_page_content response");
-  console.log("✅ [25/143] update_page_content: Dispatched full content replacement");
-
-  // 3.10 move_page
-  const moveRes = await callTool(client, "move_page", {
-    workspaceId: targetWsId,
-    pageId,
-    folderId: "root",
-  });
-  assert(moveRes.success === true || typeof moveRes === "object", "move_page response");
-  console.log(`✅ [26/143] move_page: Moved page into folder/root`);
-
-  // 3.11 delete_page
-  const deletePageRes = await callTool(client, "delete_page", { workspaceId: targetWsId, pageId });
-  assert(typeof deletePageRes === "string" || deletePageRes.success === true, "delete_page response");
-  console.log(`✅ [27/143] delete_page: Cleaned up test page ${pageId}`);
 
   // ──────────────────────────────────────────────────────────────────
-  // Suite 4: Tags, Files & Attachments (8 tools)
+  // Suite 4: Tags, Files & Attachments
   // ──────────────────────────────────────────────────────────────────
-  console.log("\n==================================================");
-  console.log("SUITE 4: Tags, Files & Attachments (8 tools)");
-  console.log("==================================================");
+  suiteHeader("SUITE 4: Tags, Files & Attachments");
 
-  // Create temporary page for tag and attachment testing
   const tagNoteRes = await callTool(client, "create_page", {
     workspaceId: targetWsId,
     title: `Tags & Files Test Page ${Date.now()}`,
     markdown: "# Tags and Attachments Testing",
   });
+  assertObject(tagNoteRes, "create_page (tags page)");
   const tagPageId = tagNoteRes.id;
+  assertString(tagPageId, "tagPageId");
 
   try {
-    // 4.1 get_tags
     const tagsData = await callTool(client, "get_tags", { workspaceId: targetWsId });
-    assert(
-      Array.isArray(tagsData) || (typeof tagsData === "object" && Array.isArray(tagsData.tags)),
-      "get_tags should return tags array or FusebaseTag object"
-    );
-    const tagsList = Array.isArray(tagsData) ? tagsData : tagsData.tags || [];
-    console.log(`✅ [28/143] get_tags: Validated workspace tags (${tagsList.length} tags)`);
+    const tagsList = Array.isArray(tagsData) ? tagsData : tagsData?.tags;
+    assertArray(tagsList, "get_tags (array or { tags: [] })");
+    ok("get_tags", `Validated workspace tags (${tagsList.length} tags)`);
 
-    // 4.2 update_page_tags
     const testTags = ["qa-audit-test", "val-tag-2"];
-    const tagUpdateRes = await callTool(client, "update_page_tags", {
-      workspaceId: targetWsId,
-      pageId: tagPageId,
-      tags: testTags,
-    });
-    assert(typeof tagUpdateRes === "object" || typeof tagUpdateRes === "string", "update_page_tags response");
-    console.log("✅ [29/143] update_page_tags: Updated page tags");
+    const tagUpdateRes = await callTool(client, "update_page_tags", { workspaceId: targetWsId, pageId: tagPageId, tags: testTags });
+    assertIncludes(tagUpdateRes, `Tags updated on page ${tagPageId}`, "update_page_tags response");
+    ok("update_page_tags", "Updated page tags");
 
-    // 4.3 get_note_tags
     const noteTags = await callTool(client, "get_note_tags", { workspaceId: targetWsId, pageId: tagPageId });
-    assert(Array.isArray(noteTags) || typeof noteTags === "object", "get_note_tags response");
-    console.log("✅ [30/143] get_note_tags: Verified page tags retrieval");
+    assertJson(noteTags, "get_note_tags");
+    assertIncludes(JSON.stringify(noteTags), "qa-audit-test", "get_note_tags contains applied tag");
+    ok("get_note_tags", "Verified page tags round-trip");
 
-    // 4.4 get_file_count
     const fileCount = await callTool(client, "get_file_count", { workspaceId: targetWsId });
     assertString(fileCount, "fileCount text");
-    assertIncludes(fileCount, "Total files:", "fileCount label");
-    console.log(`✅ [31/143] get_file_count: Validated workspace file count (${fileCount})`);
+    assert(/Total files: \d+/.test(fileCount), `get_file_count should report 'Total files: N', got: ${fileCount}`);
+    ok("get_file_count", `Validated workspace file count (${fileCount})`);
 
-    // 4.5 list_files
     const files = await callTool(client, "list_files", { workspaceId: targetWsId });
-    assert(Array.isArray(files), "list_files should return array");
-    console.log(`✅ [32/143] list_files: Validated files array (${files.length} files)`);
+    assertArray(files, "list_files");
+    ok("list_files", `Validated files array (${files.length} files)`);
 
-    // 4.6 upload_file
     const fixtureText = "FuseBase MCP Data Validation Fixture Bytes";
-    const fixtureB64 = Buffer.from(fixtureText).toString("base64");
     const uploadRes = await callTool(client, "upload_file", {
       workspaceId: targetWsId,
       pageId: tagPageId,
       filename: "qa-val-fixture.txt",
-      content: fixtureB64,
+      content: Buffer.from(fixtureText).toString("base64"),
     });
     assertObject(uploadRes, "upload_file response");
-    const attachmentId = uploadRes.id || uploadRes.tempId || uploadRes.attachmentId;
-    console.log(`✅ [33/143] upload_file: Uploaded fixture file (Attachment ID: ${attachmentId || "allocated"})`);
+    assertEqual(uploadRes.success, true, "upload_file.success");
+    const attachmentId = uploadRes.attachmentId;
+    assertString(attachmentId, "upload_file.attachmentId");
+    ok("upload_file", `Uploaded fixture file (Attachment ID: ${attachmentId})`);
 
-    // 4.7 get_page_attachments
     const attachments = await callTool(client, "get_page_attachments", { workspaceId: targetWsId, pageId: tagPageId });
-    assert(Array.isArray(attachments), "get_page_attachments should return array");
-    console.log(`✅ [34/143] get_page_attachments: Validated page attachments list (${attachments.length} items)`);
+    assertArray(attachments, "get_page_attachments");
+    ok("get_page_attachments", `Validated page attachments list (${attachments.length} items)`);
 
-    // 4.8 download_attachment
-    if (attachmentId) {
-      try {
-        const downloadRes = await callTool(client, "download_attachment", {
-          workspaceId: targetWsId,
-          attachmentId,
-          filename: "qa-val-fixture.txt",
-        });
-        assert(typeof downloadRes === "string" || typeof downloadRes === "object", "download_attachment response");
-        console.log("✅ [35/143] download_attachment: Downloaded attachment content");
-      } catch (e: any) {
-        console.log(`⚠️ [35/143] download_attachment: Attachment processing or download test completed (${e.message})`);
-      }
-    } else {
-      console.log("✅ [35/143] download_attachment: Validated tool schema and attachment routing");
-    }
+    const downloadRes = await callTool(client, "download_attachment", {
+      workspaceId: targetWsId,
+      attachmentId,
+      filename: "qa-val-fixture.txt",
+    });
+    assertObject(downloadRes, "download_attachment response");
+    assertString(downloadRes.base64, "download_attachment.base64");
+    assertIncludes(Buffer.from(downloadRes.base64, "base64").toString("utf8"), fixtureText, "downloaded fixture bytes");
+    ok("download_attachment", "Downloaded attachment and verified content round-trip");
   } finally {
-    await callTool(client, "delete_page", { workspaceId: targetWsId, pageId: tagPageId });
+    await cleanup(`delete page ${tagPageId}`, () => callTool(client, "delete_page", { workspaceId: targetWsId, pageId: tagPageId }));
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // Suite 5: Comments, Threads & Mentions (7 tools)
+  // Suite 5: Comments, Threads & Mentions
   // ──────────────────────────────────────────────────────────────────
-  console.log("\n==================================================");
-  console.log("SUITE 5: Comments, Threads & Mentions (7 tools)");
-  console.log("==================================================");
+  suiteHeader("SUITE 5: Comments, Threads & Mentions");
 
-  // 5.1 get_activity_stream
   const activityStream = await callTool(client, "get_activity_stream", { workspaceId: targetWsId });
-  assert(
-    Array.isArray(activityStream) || (typeof activityStream === "object" && activityStream !== null),
-    "get_activity_stream should return stream object or array"
-  );
-  console.log(`✅ [36/143] get_activity_stream: Validated activity stream object (keys: ${Object.keys(activityStream || {}).join(", ")})`);
+  assertJson(activityStream, "get_activity_stream");
+  ok("get_activity_stream", "Validated activity stream response");
 
-  // 5.2 fusebase_poll_mentions
   const mentions = await callTool(client, "fusebase_poll_mentions", { workspaceId: targetWsId });
-  assert(Array.isArray(mentions) || typeof mentions === "object", "fusebase_poll_mentions schema");
-  console.log("✅ [37/143] fusebase_poll_mentions: Polled mention notifications");
+  assertJson(mentions, "fusebase_poll_mentions");
+  ok("fusebase_poll_mentions", "Polled mention notifications");
 
-  // 5.3 get_mention_entities
   const mentionEntities = await callTool(client, "get_mention_entities", { workspaceId: targetWsId });
-  assert(Array.isArray(mentionEntities) || typeof mentionEntities === "object", "get_mention_entities schema");
-  console.log("✅ [38/143] get_mention_entities: Validated mentionable entities list");
+  assertJson(mentionEntities, "get_mention_entities");
+  ok("get_mention_entities", "Validated mentionable entities list");
 
-  // Create page for comment lifecycle
   const commentPageRes = await callTool(client, "create_page", {
     workspaceId: targetWsId,
     title: `Comment Lifecycle Test Page ${Date.now()}`,
     markdown: "# Comments Testing",
   });
+  assertObject(commentPageRes, "create_page (comment page)");
   const commentPageId = commentPageRes.id;
+  assertString(commentPageId, "commentPageId");
 
   try {
-    // 5.4 fusebase_post_comment
-    const commentText = "Data validation automated thread comment";
     const postCommentRes = await callTool(client, "fusebase_post_comment", {
       workspaceId: targetWsId,
       noteId: commentPageId,
-      text: commentText,
+      text: "Data validation automated thread comment",
     });
-    assert(typeof postCommentRes === "object" || typeof postCommentRes === "string", "fusebase_post_comment response");
-    const threadId = postCommentRes?.threadId || postCommentRes?.id || "test-thread-id";
-    console.log(`✅ [39/143] fusebase_post_comment: Posted comment to note ${commentPageId} (Thread: ${threadId})`);
+    const postedThread = parseTrailingJson(postCommentRes, "fusebase_post_comment", "Comment posted successfully.");
+    assertJson(postedThread, "fusebase_post_comment body");
+    ok("fusebase_post_comment", `Posted comment to note ${commentPageId}`);
 
-    // 5.5 get_comment_threads
     const threads = await callTool(client, "get_comment_threads", { workspaceId: targetWsId, pageId: commentPageId });
-    assert(Array.isArray(threads) || typeof threads === "object", "get_comment_threads response");
-    console.log("✅ [40/143] get_comment_threads: Verified thread retrieval");
+    assertArray(threads, "get_comment_threads", 1);
+    const threadId = threads[0].threadId;
+    assertString(threadId, "get_comment_threads[0].threadId");
+    ok("get_comment_threads", `Verified thread retrieval (Thread: ${threadId})`);
 
-    // 5.6 fusebase_reply_comment
-    try {
-      const replyRes = await callTool(client, "fusebase_reply_comment", {
-        workspaceId: targetWsId,
-        threadId,
-        text: "Automated reply comment test",
-      });
-      console.log("✅ [41/143] fusebase_reply_comment: Dispatched comment reply");
-    } catch {
-      console.log("✅ [41/143] fusebase_reply_comment: Validated tool schema and reply handler");
-    }
+    const replyRes = await callTool(client, "fusebase_reply_comment", {
+      workspaceId: targetWsId,
+      threadId,
+      text: "Automated reply comment test",
+    });
+    parseTrailingJson(replyRes, "fusebase_reply_comment", "Reply posted successfully.");
+    ok("fusebase_reply_comment", "Posted comment reply");
 
-    // 5.7 fusebase_resolve_thread
-    try {
-      const resolveRes = await callTool(client, "fusebase_resolve_thread", {
-        workspaceId: targetWsId,
-        threadId,
-      });
-      console.log("✅ [42/143] fusebase_resolve_thread: Resolved comment thread");
-    } catch {
-      console.log("✅ [42/143] fusebase_resolve_thread: Validated thread resolve handler");
-    }
+    const resolveRes = await callTool(client, "fusebase_resolve_thread", { workspaceId: targetWsId, threadId });
+    parseTrailingJson(resolveRes, "fusebase_resolve_thread", "Thread resolved successfully.");
+    ok("fusebase_resolve_thread", "Resolved comment thread");
   } finally {
-    await callTool(client, "delete_page", { workspaceId: targetWsId, pageId: commentPageId });
+    await cleanup(`delete page ${commentPageId}`, () => callTool(client, "delete_page", { workspaceId: targetWsId, pageId: commentPageId }));
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // Suite 6: Tasks & Project Management (10 tools)
+  // Suite 6: Tasks & Project Management
   // ──────────────────────────────────────────────────────────────────
-  console.log("\n==================================================");
-  console.log("SUITE 6: Tasks & Project Management (10 tools)");
-  console.log("==================================================");
+  suiteHeader("SUITE 6: Tasks & Project Management");
 
-  // 6.1 list_task_lists
+  const taskCount = await callTool(client, "get_task_count", { workspaceId: targetWsId });
+  assertString(taskCount, "get_task_count");
+  assert(/has \d+ tasks/.test(taskCount), `get_task_count should report 'has N tasks', got: ${taskCount}`);
+  ok("get_task_count", taskCount);
+
+  const taskUsage = await callTool(client, "get_task_usage", { workspaceId: targetWsId });
+  assertJson(taskUsage, "get_task_usage");
+  ok("get_task_usage", "Validated task metrics and quotas");
+
+  const taskSummary = await callTool(client, "get_tasks_workspace_summary");
+  assertArray(taskSummary, "get_tasks_workspace_summary");
+  ok("get_tasks_workspace_summary", `Validated summary list (${taskSummary.length} workspaces)`);
+
   const taskListsRes = await callTool(client, "list_task_lists", { workspaceId: targetWsId });
-  const taskLists = Array.isArray(taskListsRes) ? taskListsRes : (taskListsRes.taskLists || []);
-  assertArray(taskLists, "list_task_lists", 1);
-  const targetTaskList = taskLists[0];
-  const taskListId = String(targetTaskList.globalId || targetTaskList.id || "default");
-  assertString(taskListId, "taskListId");
-  console.log(`✅ [43/143] list_task_lists: Found ${taskLists.length} task lists. Target List: ${taskListId}`);
+  const taskLists = Array.isArray(taskListsRes) ? taskListsRes : taskListsRes?.taskLists;
+  assertArray(taskLists, "list_task_lists");
+  ok("list_task_lists", `Found ${taskLists.length} task lists`);
 
-  // 6.2 create_task
-  const taskTitle = `Data Validation Task ${Date.now()}`;
-  const createTaskRes = await callTool(client, "create_task", {
-    workspaceId: targetWsId,
-    title: taskTitle,
-    taskListId,
-  });
-  assertObject(createTaskRes, "create_task response");
-  const taskId = String(createTaskRes.globalId || createTaskRes.id || createTaskRes.taskId);
-  assertString(taskId, "created taskId");
-  console.log(`✅ [44/143] create_task: Created task '${taskTitle}' (ID: ${taskId})`);
+  const taskTools = ["create_task", "get_task_description", "get_task_time_tracking", "update_task", "search_tasks", "delete_task"];
+  if (taskLists.length === 0) {
+    skipAll(taskTools, "sandbox workspace has no task list (no MCP tool creates one); create a task list to exercise task CRUD");
+  } else {
+    const taskListId = taskLists[0].globalId || taskLists[0].id;
+    assertString(taskListId, "taskListId");
 
-  try {
-    // 6.3 get_task_description
-    const taskDesc = await callTool(client, "get_task_description", { workspaceId: targetWsId, taskId });
-    assert(typeof taskDesc === "object" || typeof taskDesc === "string", "get_task_description");
-    console.log("✅ [45/143] get_task_description: Verified task details readback");
+    const taskTitle = `Data Validation Task ${Date.now()}`;
+    const createTaskRes = await callTool(client, "create_task", { workspaceId: targetWsId, title: taskTitle, taskListId });
+    assertObject(createTaskRes, "create_task response");
+    const rawTaskId = createTaskRes.globalId ?? createTaskRes.id ?? createTaskRes.taskId;
+    assert(typeof rawTaskId === "string" || typeof rawTaskId === "number", `create_task should return an id, got: ${JSON.stringify(rawTaskId)}`);
+    const taskId = String(rawTaskId);
+    assertString(taskId, "created taskId");
+    ok("create_task", `Created task '${taskTitle}' (ID: ${taskId})`);
 
-    // 6.4 get_task_count
-    const taskCount = await callTool(client, "get_task_count", { workspaceId: targetWsId });
-    assert(typeof taskCount === "string" || typeof taskCount === "number" || typeof taskCount === "object", "task count");
-    console.log(`✅ [46/143] get_task_count: Validated workspace task count (${taskCount?.count ?? taskCount})`);
+    let taskDeleted = false;
+    try {
+      const taskDesc = await callTool(client, "get_task_description", { workspaceId: targetWsId, taskId });
+      assertJson(taskDesc, "get_task_description");
+      ok("get_task_description", "Verified task details readback");
 
-    // 6.5 get_task_usage
-    const taskUsage = await callTool(client, "get_task_usage", { workspaceId: targetWsId });
-    assert(typeof taskUsage === "object", "task usage schema");
-    console.log("✅ [47/143] get_task_usage: Validated task metrics and quotas");
+      const timeTracking = await callTool(client, "get_task_time_tracking", { workspaceId: targetWsId, taskId });
+      assertJson(timeTracking, "get_task_time_tracking");
+      ok("get_task_time_tracking", "Validated time tracking attributes");
 
-    // 6.6 get_task_time_tracking
-    const timeTracking = await callTool(client, "get_task_time_tracking", { workspaceId: targetWsId, taskId });
-    assert(typeof timeTracking === "object", "get_task_time_tracking schema");
-    console.log("✅ [48/143] get_task_time_tracking: Validated time tracking attributes");
+      const updatedTaskTitle = `${taskTitle} (Updated & Done)`;
+      const updateTaskRes = await callTool(client, "update_task", { workspaceId: targetWsId, taskId, title: updatedTaskTitle, completed: true });
+      assertObject(updateTaskRes, "update_task response");
+      ok("update_task", "Updated task title and marked completed");
 
-    // 6.7 get_tasks_workspace_summary
-    const taskSummary = await callTool(client, "get_tasks_workspace_summary");
-    assert(Array.isArray(taskSummary), "get_tasks_workspace_summary should return array");
-    console.log(`✅ [49/143] get_tasks_workspace_summary: Validated summary list (${taskSummary.length} workspaces)`);
+      const searchTasksRes = await callTool(client, "search_tasks", { workspaceId: targetWsId, query: taskTitle });
+      assertJson(searchTasksRes, "search_tasks");
+      const hits = Array.isArray(searchTasksRes) ? searchTasksRes.length : searchTasksRes?.tasks?.length;
+      ok("search_tasks", `Searched tasks by query (${hits ?? "n/a"} hits)`);
 
-    // 6.8 update_task
-    const updatedTaskTitle = `${taskTitle} (Updated & Done)`;
-    const updateTaskRes = await callTool(client, "update_task", {
-      workspaceId: targetWsId,
-      taskId,
-      title: updatedTaskTitle,
-      completed: true,
-    });
-    assert(typeof updateTaskRes === "object" || typeof updateTaskRes === "string", "update_task response");
-    console.log("✅ [50/143] update_task: Updated task title and marked completed");
-
-    // 6.9 search_tasks
-    const searchTasksRes = await callTool(client, "search_tasks", {
-      workspaceId: targetWsId,
-      query: taskTitle,
-    });
-    const hits = Array.isArray(searchTasksRes) ? searchTasksRes.length : (searchTasksRes?.tasks?.length || 0);
-    assert(Array.isArray(searchTasksRes) || typeof searchTasksRes === "object", "search_tasks should return array or result object");
-    console.log(`✅ [51/143] search_tasks: Searched tasks by query (${hits} hits)`);
-
-    // 6.10 delete_task
-    const deleteTaskRes = await callTool(client, "delete_task", { workspaceId: targetWsId, taskId });
-    assert(typeof deleteTaskRes === "object" || typeof deleteTaskRes === "string", "delete_task response");
-    console.log(`✅ [52/143] delete_task: Deleted test task ${taskId}`);
-  } catch (err: any) {
-    await callTool(client, "delete_task", { workspaceId: targetWsId, taskId }).catch(() => {});
-    throw err;
+      const deleteTaskRes = await callTool(client, "delete_task", { workspaceId: targetWsId, taskId });
+      assertIncludes(deleteTaskRes, "deleted successfully", "delete_task response");
+      taskDeleted = true;
+      ok("delete_task", `Deleted test task ${taskId}`);
+    } finally {
+      if (!taskDeleted) await cleanup(`delete task ${taskId}`, () => callTool(client, "delete_task", { workspaceId: targetWsId, taskId }));
+    }
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // Suite 7: Databases, Views, Columns, Rows, Relations & Formulas (28 tools)
+  // Suite 7: Databases, Views, Columns, Rows, Relations & Formulas
   // ──────────────────────────────────────────────────────────────────
-  console.log("\n==================================================");
-  console.log("SUITE 7: Databases, Views, Columns, Rows, Relations & Formulas (28 tools)");
-  console.log("==================================================");
+  suiteHeader("SUITE 7: Databases, Views, Columns, Rows, Relations & Formulas");
 
-  // 7.1 create_database
   const dbTitle = `QA Data Validation DB ${Date.now()}`;
   const createDbRes = await callTool(client, "create_database", { title: dbTitle });
   assertObject(createDbRes, "create_database response");
@@ -652,793 +540,573 @@ async function main() {
   assertString(databaseId, "databaseId");
   assertString(dashboardId, "dashboardId");
   assertString(viewId, "viewId");
-  console.log(`✅ [53/143] create_database: Created database '${dbTitle}' (DB: ${databaseId}, Dash: ${dashboardId}, View: ${viewId})`);
+  ok("create_database", `Created database '${dbTitle}' (DB: ${databaseId}, Dash: ${dashboardId}, View: ${viewId})`);
 
+  let databaseDeleted = false;
   try {
-    // 7.2 get_database_detail
     const dbDetail = await callTool(client, "get_database_detail", { databaseId });
     assertObject(dbDetail, "get_database_detail");
-    console.log("✅ [54/143] get_database_detail: Verified database root metadata");
+    ok("get_database_detail", "Verified database root metadata");
 
-    // 7.3 get_database_schema
     const dbSchema = await callTool(client, "get_database_schema", { dashboardId, viewId });
-    assert(Array.isArray(dbSchema) || typeof dbSchema === "object", "get_database_schema");
-    console.log("✅ [55/143] get_database_schema: Validated column schema definition");
+    assertArray(dbSchema, "get_database_schema (columns)");
+    ok("get_database_schema", `Validated column schema definition (${dbSchema.length} columns)`);
 
-    // 7.4 list_databases
     const wsDatabases = await callTool(client, "list_databases", { workspaceId: targetWsId });
-    assert(Array.isArray(wsDatabases), "list_databases should return array");
-    console.log(`✅ [56/143] list_databases: Verified workspace database query (${wsDatabases.length} databases)`);
+    assertArray(wsDatabases, "list_databases");
+    ok("list_databases", `Verified workspace database query (${wsDatabases.length} databases)`);
 
-    // 7.5 list_all_databases
     const allDbs = await callTool(client, "list_all_databases");
-    const dbsList = Array.isArray(allDbs) ? allDbs : (allDbs?.data || []);
-    assert(Array.isArray(dbsList), "list_all_databases should return array");
-    console.log(`✅ [57/143] list_all_databases: Verified global databases listing (${dbsList.length} databases)`);
+    assertObject(allDbs, "list_all_databases");
+    assertArray(allDbs.data, "list_all_databases.data", 1);
+    assert(allDbs.data.some((d: any) => d.global_id === databaseId), `list_all_databases should include created database ${databaseId}`);
+    ok("list_all_databases", `Verified global databases listing (${allDbs.data.length} databases)`);
 
-    // 7.6 get_dashboard_detail
     const dashDetail = await callTool(client, "get_dashboard_detail", { dashboardId });
     assertObject(dashDetail, "get_dashboard_detail");
-    console.log("✅ [58/143] get_dashboard_detail: Verified dashboard view hierarchy");
+    ok("get_dashboard_detail", "Verified dashboard view hierarchy");
 
-    // 7.7 add_database_column
     const colName = "ValidationStatus";
-    const addColRes = await callTool(client, "add_database_column", {
-      dashboardId,
-      viewId,
-      name: colName,
-      columnType: "text",
-    });
+    const addColRes = await callTool(client, "add_database_column", { dashboardId, viewId, name: colName, columnType: "text" });
+    assertObject(addColRes, "add_database_column response");
     const columnKey = addColRes.columnKey || addColRes.column?.key || addColRes.key;
     assertString(columnKey, "columnKey");
-    console.log(`✅ [59/143] add_database_column: Added column '${colName}' (Key: ${columnKey})`);
+    ok("add_database_column", `Added column '${colName}' (Key: ${columnKey})`);
 
-    // 7.8 rename_database_column
     const renamedColName = "ValidationStatusRenamed";
-    const renameColRes = await callTool(client, "rename_database_column", {
-      dashboardId,
-      viewId,
-      columnKey,
-      newName: renamedColName,
-    });
-    console.log(`✅ [60/143] rename_database_column: Renamed column to '${renamedColName}'`);
+    const renameColRes = await callTool(client, "rename_database_column", { dashboardId, viewId, columnKey, newName: renamedColName });
+    assertJson(renameColRes, "rename_database_column");
+    ok("rename_database_column", `Renamed column to '${renamedColName}'`);
 
-    // 7.9 set_column_width
-    const setWidthRes = await callTool(client, "set_column_width", {
-      dashboardId,
-      viewId,
-      columnKey,
-      width: 240,
-    });
-    console.log("✅ [61/143] set_column_width: Updated column width to 240px");
+    const setWidthRes = await callTool(client, "set_column_width", { dashboardId, viewId, columnKey, width: 240 });
+    assertJson(setWidthRes, "set_column_width");
+    ok("set_column_width", "Updated column width to 240px");
 
-    // 7.10 reorder_database_columns
-    const reorderRes = await callTool(client, "reorder_database_columns", {
-      dashboardId,
-      viewId,
-      orderedKeys: [columnKey],
-    });
-    console.log("✅ [62/143] reorder_database_columns: Reordered column display sequence");
+    const reorderRes = await callTool(client, "reorder_database_columns", { dashboardId, viewId, orderedKeys: [columnKey] });
+    assertJson(reorderRes, "reorder_database_columns");
+    ok("reorder_database_columns", "Reordered column display sequence");
 
-    // 7.11 add_database_row
-    try {
-      const addRowRes = await callTool(client, "add_database_row", {
-        databaseId,
-        dashboardId,
-        entity: "custom",
-      });
-      console.log(`✅ [63/143] add_database_row: Added row via server action`);
-    } catch {
-      console.log("✅ [63/143] add_database_row: Validated add_database_row schema and handler");
-    }
+    const addRowRes = await callTool(client, "add_database_row", { databaseId, dashboardId, viewId, entity: "custom" });
+    assertJson(addRowRes, "add_database_row");
+    ok("add_database_row", "Added row");
 
-    // 7.12 get_database_rows
     const rowsRes = await callTool(client, "get_database_rows", { dashboardId, viewId });
     assertObject(rowsRes, "get_database_rows response");
-    assertArray(rowsRes.rows, "rowsRes.rows");
-    console.log(`✅ [64/143] get_database_rows: Queried table row records (${rowsRes.rows.length} rows)`);
+    assertArray(rowsRes.rows, "get_database_rows.rows", 1);
+    const targetRowUuid = rowsRes.rows[0].rowUuid;
+    assertString(targetRowUuid, "get_database_rows.rows[0].rowUuid");
+    ok("get_database_rows", `Queried table row records (${rowsRes.rows.length} rows)`);
 
-    // 7.13 get_database_data
     const viewData = await callTool(client, "get_database_data", { dashboardId, viewId });
     assertObject(viewData, "get_database_data");
-    console.log("✅ [65/143] get_database_data: Read formatted table view dataset");
+    ok("get_database_data", "Read formatted table view dataset");
 
-    // 7.14 update_database_cell
-    const rowsList = Array.isArray(rowsRes?.rows) ? rowsRes.rows : [];
-    const targetRowUuid = rowsList[0]?.rowUuid || "row_val_test";
-    try {
-      await callTool(client, "update_database_cell", {
-        dashboardId,
-        viewId,
-        rowUuid: targetRowUuid,
-        columnKey,
-        value: "Verified 100%",
-      });
-      console.log("✅ [66/165] update_database_cell: Updated cell value to 'Verified 100%'");
-    } catch {
-      console.log("✅ [66/165] update_database_cell: Validated cell update handler");
-    }
+    const cellRes = await callTool(client, "update_database_cell", { dashboardId, viewId, rowUuid: targetRowUuid, columnKey, value: "Verified 100%" });
+    assertJson(cellRes, "update_database_cell");
+    ok("update_database_cell", "Updated cell value to 'Verified 100%'");
 
-    // batch_put_database_data
-    try {
-      const batchPutRes = await callTool(client, "batch_put_database_data", {
-        dashboardId,
-        rows: [{ values: { [columnKey]: "Batch Put Data Item" } }],
-      });
-      assertObject(batchPutRes, "batch_put_database_data response");
-      console.log("✅ [66a/165] batch_put_database_data: High-throughput batch row mutation verified");
-    } catch {
-      console.log("✅ [66a/165] batch_put_database_data: Validated batch put data handler");
-    }
-
-    // reorder_database_rows
-    try {
-      const reorderRowsRes = await callTool(client, "reorder_database_rows", {
-        dashboardId,
-        viewId,
-        rowOrders: [{ rowUuid: targetRowUuid, order: 1 }],
-      });
-      assertObject(reorderRowsRes, "reorder_database_rows response");
-      console.log("✅ [66b/165] reorder_database_rows: Verified row reordering mutation");
-    } catch {
-      console.log("✅ [66b/165] reorder_database_rows: Validated row reordering handler");
-    }
-
-    // resolve_database_alias
-    try {
-      const aliasRes = await callTool(client, "resolve_database_alias", { alias: "deals_table" });
-      assertObject(aliasRes, "resolve_database_alias response");
-      console.log("✅ [66c/165] resolve_database_alias: Verified database alias resolution");
-    } catch {
-      console.log("✅ [66c/165] resolve_database_alias: Validated alias resolution handler");
-    }
-
-    // 7.15 delete_database_row
-    try {
-      await callTool(client, "delete_database_row", { dashboardId, rowId: targetRowUuid });
-      console.log(`✅ [67/143] delete_database_row: Deleted row ${targetRowUuid}`);
-    } catch {
-      console.log(`✅ [67/143] delete_database_row: Validated row deletion handler`);
-    }
-
-    // 7.16 create_view
-    const createViewRes = await callTool(client, "create_view", {
+    const batchPutRes = await callTool(client, "batch_put_database_data", {
       dashboardId,
-      name: "Kanban Validation View",
-      representationType: "kanban",
+      viewId,
+      rows: [{ create_new_row: true, values: [{ item_key: columnKey, value: "Batch Put Data Item" }] }],
     });
+    assertJson(batchPutRes, "batch_put_database_data");
+    ok("batch_put_database_data", "Batch row creation accepted");
+
+    const reorderRowsRes = await callTool(client, "reorder_database_rows", { dashboardId, viewId, rowOrders: [{ rowUuid: targetRowUuid, order: 1 }] });
+    assertJson(reorderRowsRes, "reorder_database_rows");
+    ok("reorder_database_rows", "Verified row reordering mutation");
+
+    const aliasRes = await callTool(client, "resolve_database_alias", { alias: dbTitle });
+    assertObject(aliasRes, "resolve_database_alias");
+    assertEqual(aliasRes.found, true, "resolve_database_alias.found");
+    assertEqual(aliasRes.databaseId, databaseId, "resolve_database_alias.databaseId");
+    ok("resolve_database_alias", "Resolved created database by title");
+
+    const createViewRes = await callTool(client, "create_view", { dashboardId, name: "Kanban Validation View", representationType: "kanban" });
     assertObject(createViewRes, "create_view response");
     const newViewId = createViewRes.viewId || createViewRes.data?.global_id || createViewRes.id;
     assertString(newViewId, "created newViewId");
-    console.log(`✅ [68/143] create_view: Created view '${newViewId}'`);
+    ok("create_view", `Created view '${newViewId}'`);
 
-    // 7.17 duplicate_view
-    const dupViewRes = await callTool(client, "duplicate_view", {
-      dashboardId,
-      sourceViewId: newViewId,
-      name: "Kanban Validation View (Copy)",
-    });
+    const dupViewRes = await callTool(client, "duplicate_view", { dashboardId, sourceViewId: newViewId, name: "Kanban Validation View (Copy)" });
     assertObject(dupViewRes, "duplicate_view response");
     const dupViewId = dupViewRes.viewId || dupViewRes.data?.global_id || dupViewRes.id;
-    console.log(`✅ [69/143] duplicate_view: Duplicated view (New View ID: ${dupViewId})`);
+    assertString(dupViewId, "duplicated view id");
+    ok("duplicate_view", `Duplicated view (New View ID: ${dupViewId})`);
 
-    // 7.18 update_view
-    const updateViewRes = await callTool(client, "update_view", {
-      dashboardId,
-      viewId: newViewId,
-      name: "Kanban Validation View (Renamed)",
-    });
-    console.log("✅ [70/143] update_view: Updated view name and properties");
+    const updateViewRes = await callTool(client, "update_view", { dashboardId, viewId: newViewId, name: "Kanban Validation View (Renamed)" });
+    assertJson(updateViewRes, "update_view");
+    ok("update_view", "Updated view name");
 
-    // 7.19 set_view_grouping
-    const groupRes = await callTool(client, "set_view_grouping", {
-      dashboardId,
-      viewId: newViewId,
-      groupByColumnKey: columnKey,
-    });
-    console.log("✅ [71/143] set_view_grouping: Configured kanban column grouping");
+    const groupRes = await callTool(client, "set_view_grouping", { dashboardId, viewId: newViewId, groupByColumnKey: columnKey });
+    assertJson(groupRes, "set_view_grouping");
+    ok("set_view_grouping", "Configured kanban column grouping");
 
-    // 7.20 set_view_representation
-    const repRes = await callTool(client, "set_view_representation", {
-      dashboardId,
-      viewId: newViewId,
-      representationType: "table",
-    });
-    console.log("✅ [72/143] set_view_representation: Switched representation to 'table'");
+    const repRes = await callTool(client, "set_view_representation", { dashboardId, viewId: newViewId, representationType: "table" });
+    assertJson(repRes, "set_view_representation");
+    ok("set_view_representation", "Switched representation to 'table'");
 
-    // 7.21 delete_view
-    if (dupViewId) {
-      await callTool(client, "delete_view", { dashboardId, viewId: dupViewId });
-      console.log(`✅ [73/143] delete_view: Cleaned up duplicated view ${dupViewId}`);
-    }
-    await callTool(client, "delete_view", { dashboardId, viewId: newViewId });
+    assertJson(await callTool(client, "delete_view", { dashboardId, viewId: dupViewId }), "delete_view (duplicate)");
+    assertJson(await callTool(client, "delete_view", { dashboardId, viewId: newViewId }), "delete_view");
+    ok("delete_view", "Deleted created and duplicated views");
 
-    // 7.22 create second target database for relations and lookups
+    // Second database as relation target
     const targetDbRes = await callTool(client, "create_database", { title: `Target Relation DB ${Date.now()}` });
+    assertObject(targetDbRes, "create_database (relation target)");
     const targetDbId = targetDbRes.databaseId || targetDbRes.id;
     const targetDashId = targetDbRes.dashboardId;
     const targetViewId = targetDbRes.viewId;
+    assertString(targetDbId, "targetDbId");
+    assertString(targetDashId, "targetDashId");
+    assertString(targetViewId, "targetViewId");
 
     try {
-      // 7.23 add_relation_column
-      let relationKey = "col_rel_target";
-      let relationId = "rel_1";
-      try {
-        const relRes = await callTool(client, "add_relation_column", {
-          dashboardId,
-          viewId,
-          name: "LinkedTargetDB",
-          targetDashboardId: targetDashId,
-          targetViewId: targetViewId,
-        });
-        assertObject(relRes, "add_relation_column response");
-        relationKey = relRes.columnKey || relRes.key || "col_rel_target";
-        relationId = relRes.relationId || relRes.id || "rel_1";
-        console.log(`✅ [74/143] add_relation_column: Added relation to target DB (Key: ${relationKey})`);
-      } catch {
-        console.log("✅ [74/143] add_relation_column: Validated relation column schema and handler");
-      }
+      assertJson(await callTool(client, "add_database_row", { databaseId: targetDbId, dashboardId: targetDashId, viewId: targetViewId, entity: "custom" }), "add_database_row (target)");
+      const targetRows = await callTool(client, "get_database_rows", { dashboardId: targetDashId, viewId: targetViewId });
+      assertArray(targetRows?.rows, "target get_database_rows.rows", 1);
+      const targetDbRowUuid = targetRows.rows[0].rowUuid;
+      assertString(targetDbRowUuid, "target rowUuid");
 
-      // 7.24 list_database_relations
-      const relations = await callTool(client, "list_database_relations", { dashboardId });
-      assert(Array.isArray(relations) || typeof relations === "object", "list_database_relations");
-      console.log("✅ [75/165] list_database_relations: Queried cross-table relations");
-
-      // get_relation_rows
-      try {
-        await callTool(client, "get_relation_rows", { relationId });
-        console.log("✅ [75a/165] get_relation_rows: Queried linked relation rows");
-      } catch {
-        console.log("✅ [75a/165] get_relation_rows: Validated relation rows handler");
-      }
-
-      // link_database_rows
-      try {
-        await callTool(client, "link_database_rows", {
-          relationId,
-          sourceRowUuid: targetRowUuid,
-          targetRowUuid: targetRowUuid,
-        });
-        console.log("✅ [75b/165] link_database_rows: Established row-level relation");
-      } catch {
-        console.log("✅ [75b/165] link_database_rows: Validated row linking handler");
-      }
-
-      // unlink_database_rows
-      try {
-        await callTool(client, "unlink_database_rows", {
-          relationId,
-          sourceRowUuid: targetRowUuid,
-          targetRowUuid: targetRowUuid,
-        });
-        console.log("✅ [75c/165] unlink_database_rows: Removed row-level relation link");
-      } catch {
-        console.log("✅ [75c/165] unlink_database_rows: Validated row unlinking handler");
-      }
-
-      // 7.25 add_lookup_column
-      try {
-        const lookupRes = await callTool(client, "add_lookup_column", {
-          dashboardId,
-          viewId,
-          name: "TargetTitleLookup",
-          relationColumnKey: relationKey,
-          lookupFieldKey: "title",
-        });
-        console.log("✅ [76/143] add_lookup_column: Created lookup column targeting relation");
-      } catch {
-        console.log("✅ [76/143] add_lookup_column: Validated lookup column tool schema and handler");
-      }
-
-      // 7.26 delete_relation
-      try {
-        await callTool(client, "delete_relation", { relationId: relationId && relationId !== "rel_1" ? relationId : "rel_qa_dummy" });
-        console.log(`✅ [77/143] delete_relation: Tested delete_relation handler`);
-      } catch {
-        console.log("✅ [77/143] delete_relation: Validated delete_relation handler");
-      }
-    } finally {
-      await callTool(client, "delete_database", { databaseId: targetDbId }).catch(() => {});
-    }
-
-    // 7.27 export_csv
-    const exportCsvRes = await callTool(client, "export_csv", { dashboardId, viewId });
-    assertString(exportCsvRes, "export_csv", 1);
-    console.log("✅ [78/143] export_csv: Exported table schema and data to CSV format");
-
-    // 7.28 import_csv
-    try {
-      const csvData = "Title,ValidationStatusRenamed\nTask Alpha,Active\nTask Beta,Closed";
-      const importCsvRes = await callTool(client, "import_csv", {
-        databaseId,
+      const relRes = await callTool(client, "add_relation_column", {
         dashboardId,
         viewId,
-        csvContent: csvData,
+        name: "LinkedTargetDB",
+        targetDashboardId: targetDashId,
+        targetViewId,
       });
-      assert(typeof importCsvRes === "object" || typeof importCsvRes === "string", "import_csv response");
-      console.log("✅ [79/143] import_csv: Imported CSV dataset into database");
-    } catch {
-      console.log("✅ [79/143] import_csv: Validated CSV import handler and parameters");
+      assertObject(relRes, "add_relation_column response");
+      const relationKey = relRes.columnKey;
+      const relationId = relRes.relationId;
+      assertString(relationKey, "add_relation_column.columnKey");
+      assertString(relationId, "add_relation_column.relationId");
+      ok("add_relation_column", `Added relation to target DB (Key: ${relationKey}, Relation: ${relationId})`);
+
+      const relations = await callTool(client, "list_database_relations", { dashboardId });
+      assertJson(relations, "list_database_relations");
+      assertIncludes(JSON.stringify(relations), relationId, "list_database_relations contains created relation");
+      ok("list_database_relations", "Queried cross-table relations");
+
+      const relRows = await callTool(client, "get_relation_rows", { relationId });
+      assertJson(relRows, "get_relation_rows");
+      ok("get_relation_rows", "Queried linked relation rows");
+
+      const linkRes = await callTool(client, "link_database_rows", { relationId, sourceRowUuid: targetRowUuid, targetRowUuid: targetDbRowUuid });
+      assertJson(linkRes, "link_database_rows");
+      ok("link_database_rows", "Established row-level relation");
+
+      const unlinkRes = await callTool(client, "unlink_database_rows", { relationId, sourceRowUuid: targetRowUuid, targetRowUuid: targetDbRowUuid });
+      assertJson(unlinkRes, "unlink_database_rows");
+      ok("unlink_database_rows", "Removed row-level relation link");
+
+      const lookupRes = await callTool(client, "add_lookup_column", { dashboardId, viewId, name: "TargetTitleLookup", relationColumnKey: relationKey });
+      assertObject(lookupRes, "add_lookup_column response");
+      assertString(lookupRes.columnKey, "add_lookup_column.columnKey");
+      ok("add_lookup_column", "Created lookup column targeting relation");
+
+      const delRelRes = await callTool(client, "delete_relation", { relationId });
+      assertJson(delRelRes, "delete_relation");
+      ok("delete_relation", `Deleted relation ${relationId}`);
+
+      const delDashRes = await callTool(client, "delete_dashboard", { dashboardId: targetDashId });
+      assertJson(delDashRes, "delete_dashboard");
+      ok("delete_dashboard", `Deleted relation-target dashboard ${targetDashId}`);
+    } finally {
+      await cleanup(`delete relation target database ${targetDbId}`, () => callTool(client, "delete_database", { databaseId: targetDbId }));
     }
 
-    // 7.29 duplicate_database
-    const dupDbRes = await callTool(client, "duplicate_database", {
-      sourceDbId: databaseId,
-      title: `${dbTitle} (Clone)`,
-    });
-    assertObject(dupDbRes, "duplicate_database response");
-    const clonedDbId = dupDbRes.databaseId || dupDbRes.id;
-    console.log(`✅ [80/143] duplicate_database: Cloned database (New DB ID: ${clonedDbId})`);
-    if (clonedDbId) {
-      await callTool(client, "delete_database", { databaseId: clonedDbId }).catch(() => {});
-    }
+    const delRowRes = await callTool(client, "delete_database_row", { dashboardId, rowId: targetRowUuid });
+    assertJson(delRowRes, "delete_database_row");
+    ok("delete_database_row", `Deleted row ${targetRowUuid}`);
 
-    // 7.30 delete_database_column
-    const delColRes = await callTool(client, "delete_database_column", {
+    const exportCsvRes = await callTool(client, "export_csv", { dashboardId, viewId });
+    assertString(exportCsvRes, "export_csv", 1);
+    assertIncludes(exportCsvRes, renamedColName, "export_csv header contains renamed column");
+    ok("export_csv", "Exported table schema and data to CSV format");
+
+    const importCsvRes = await callTool(client, "import_csv", {
+      databaseId,
       dashboardId,
       viewId,
-      columnKey,
+      csvContent: `Title,${renamedColName}\nTask Alpha,Active\nTask Beta,Closed`,
     });
-    console.log(`✅ [81/143] delete_database_column: Deleted column ${columnKey}`);
+    assertJson(importCsvRes, "import_csv");
+    ok("import_csv", "Imported CSV dataset into database");
 
-    // 7.31 update_database
-    const updateDbRes = await callTool(client, "update_database", {
-      databaseId,
-      title: `${dbTitle} (Renamed)`,
-    });
-    console.log("✅ [82/143] update_database: Updated database properties");
+    const dupDbRes = await callTool(client, "duplicate_database", { sourceDbId: databaseId, title: `${dbTitle} (Clone)` });
+    assertObject(dupDbRes, "duplicate_database response");
+    const clonedDbId = dupDbRes.databaseId;
+    assertString(clonedDbId, "duplicate_database.databaseId");
+    ok("duplicate_database", `Cloned database (New DB ID: ${clonedDbId})`);
+    await cleanup(`delete cloned database ${clonedDbId}`, () => callTool(client, "delete_database", { databaseId: clonedDbId }));
 
-    // 7.32 get_database_entity
-    try {
-      const dbEntity = await callTool(client, "get_database_entity", { entity: "custom" });
-      assert(typeof dbEntity === "object", "get_database_entity");
-      console.log("✅ [83/165] get_database_entity: Queried database entity schema definitions");
-    } catch {
-      console.log("✅ [83/165] get_database_entity: Validated database entity discovery tool");
-    }
+    const delColRes = await callTool(client, "delete_database_column", { dashboardId, viewId, columnKey });
+    assertJson(delColRes, "delete_database_column");
+    ok("delete_database_column", `Deleted column ${columnKey}`);
 
-    // 7.33 create_dashboard_table
-    try {
-      const createTableRes = await callTool(client, "create_dashboard_table", {
-        dashboardId,
-        title: "Secondary Test Table",
-      });
-      console.log("✅ [84/143] create_dashboard_table: Added secondary table to dashboard");
-    } catch {
-      console.log("✅ [84/143] create_dashboard_table: Validated secondary table handler");
-    }
+    const updateDbRes = await callTool(client, "update_database", { databaseId, title: `${dbTitle} (Renamed)` });
+    assertJson(updateDbRes, "update_database");
+    ok("update_database", "Updated database properties");
 
-    // 7.34 delete_dashboard
-    try {
-      await callTool(client, "delete_dashboard", { dashboardId });
-      console.log(`✅ [85/143] delete_dashboard: Cleaned up dashboard ${dashboardId}`);
-    } catch {
-      console.log("✅ [85/143] delete_dashboard: Validated dashboard deletion handler");
-    }
+    const dbEntity = await callTool(client, "get_database_entity", { entity: "custom" });
+    assertJson(dbEntity, "get_database_entity");
+    ok("get_database_entity", "Queried database entity schema definitions");
+
+    const createTableRes = await callTool(client, "create_dashboard_table", { dashboardId, title: "Secondary Test Table" });
+    assertJson(createTableRes, "create_dashboard_table");
+    ok("create_dashboard_table", "Added secondary table to dashboard");
+
+    const delDbRes = await callTool(client, "delete_database", { databaseId });
+    assertJson(delDbRes, "delete_database");
+    databaseDeleted = true;
+    ok("delete_database", `Deleted database ${databaseId}`);
   } finally {
-    // 7.35 delete_database
-    await callTool(client, "delete_database", { databaseId }).catch(() => {});
-    console.log(`✅ [86/143] delete_database: Successfully cleaned up database ${databaseId}`);
+    if (!databaseDeleted) await cleanup(`delete database ${databaseId}`, () => callTool(client, "delete_database", { databaseId }));
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // Suite 8: Client Portals & Clients (9 tools)
+  // Suite 8: Client Portals & Clients
   // ──────────────────────────────────────────────────────────────────
-  console.log("\n==================================================");
-  console.log("SUITE 8: Client Portals & Clients (9 tools)");
-  console.log("==================================================");
+  suiteHeader("SUITE 8: Client Portals & Clients");
 
-  // 8.1 list_portals
-  const portals = await callTool(client, "list_portals");
-  assertArray(portals, "list_portals");
-  console.log(`✅ [87/143] list_portals: Found ${portals.length} portals`);
+  const navMenu = await callTool(client, "get_navigation_menu", { workspaceId: targetWsId });
+  assertJson(navMenu, "get_navigation_menu");
+  ok("get_navigation_menu", "Validated workspace navigation tree");
 
-  // 8.2 check_portal_availability
+  // Creating portals is never exercised: there is no delete_portal tool, so every run would leak
+  // an externally visible portal.
+  skip("create_portal", "no delete_portal tool to clean up a created portal; not exercised");
+
   const portalAvail = await callTool(client, "check_portal_availability");
-  assert(typeof portalAvail === "string" || typeof portalAvail === "object", "check_portal_availability");
-  console.log("✅ [88/143] check_portal_availability: Validated portal availability status");
+  assertString(portalAvail, "check_portal_availability");
+  const portalMatch = /^Client portal availability: (ENABLED|DISABLED)$/.exec(portalAvail.trim());
+  assert(!!portalMatch, `check_portal_availability returned unexpected text: ${portalAvail}`);
+  ok("check_portal_availability", portalAvail.trim());
 
-  const portalWsId = "49b306wxd9oa7hyc";
-  const portalId = portals[0]?.globalId || String(portals[0]?.id) || "9emvuxy7lp49x2eslh09u54sv";
+  const portalBoundTools = [
+    "get_portal",
+    "get_workspace_portal",
+    "get_portal_theme",
+    "get_portal_navigation_menu",
+    "get_portal_pages",
+    "publish_page_to_portal",
+    "list_portal_clients",
+    "create_portal_magic_link",
+    "invite_portal_client",
+  ];
 
-  // 8.3 get_portal
-  const portalDetail = await callTool(client, "get_portal", { portalId });
-  assertObject(portalDetail, "get_portal");
-  console.log("✅ [89/143] get_portal: Verified portal metadata and domain");
+  if (portalMatch![1] === "DISABLED") {
+    skipAll(["list_portals", ...portalBoundTools], "client portal feature is DISABLED for this org (check_portal_availability)");
+  } else {
+    const portals = await callTool(client, "list_portals", { workspaceId: targetWsId });
+    assertArray(portals, "list_portals");
+    ok("list_portals", `Found ${portals.length} portals bound to the sandbox workspace`);
 
-  // 8.4 get_workspace_portal
-  const wsPortal = await callTool(client, "get_workspace_portal", { workspaceId: portalWsId });
-  assert(typeof wsPortal === "object", "get_workspace_portal");
-  console.log("✅ [90/143] get_workspace_portal: Queried workspace portal binding");
+    if (portals.length === 0) {
+      skipAll(portalBoundTools, "sandbox workspace has no client portal; create one manually to exercise portal tools");
+    } else {
+      const portalId = String(portals[0].globalId ?? portals[0].id ?? "");
+      assertString(portalId, "sandbox portal id");
 
-  // 8.5 get_portal_theme
-  const portalTheme = await callTool(client, "get_portal_theme", { workspaceId: portalWsId });
-  assertObject(portalTheme, "get_portal_theme");
-  console.log("✅ [91/143] get_portal_theme: Validated theme styling and brand navigation");
+      const portalDetail = await callTool(client, "get_portal", { portalId });
+      assertObject(portalDetail, "get_portal");
+      ok("get_portal", "Verified portal metadata and domain");
 
-  // 8.6 get_portal_navigation_menu
-  const portalNav = await callTool(client, "get_portal_navigation_menu", { workspaceId: portalWsId });
-  assertObject(portalNav, "get_portal_navigation_menu");
-  console.log("✅ [92/143] get_portal_navigation_menu: Validated navigation menu schema");
+      const wsPortal = await callTool(client, "get_workspace_portal", { workspaceId: targetWsId });
+      assertJson(wsPortal, "get_workspace_portal");
+      ok("get_workspace_portal", "Queried workspace portal binding");
 
-  // 8.7 get_navigation_menu
-  const navMenu = await callTool(client, "get_navigation_menu", { workspaceId: portalWsId });
-  assert(typeof navMenu === "object", "get_navigation_menu");
-  console.log("✅ [93/143] get_navigation_menu: Validated workspace navigation tree");
+      const portalTheme = await callTool(client, "get_portal_theme", { workspaceId: targetWsId });
+      assertObject(portalTheme, "get_portal_theme");
+      ok("get_portal_theme", "Validated theme styling and brand navigation");
 
-  // 8.8 list_portal_clients
-  const portalClients = await callTool(client, "list_portal_clients", { portalId });
-  assert(Array.isArray(portalClients), "list_portal_clients");
-  console.log(`✅ [94/143] list_portal_clients: Queried portal client accounts (${portalClients.length} clients)`);
+      const portalNav = await callTool(client, "get_portal_navigation_menu", { workspaceId: targetWsId });
+      assertObject(portalNav, "get_portal_navigation_menu");
+      ok("get_portal_navigation_menu", "Validated navigation menu schema");
 
-  // 8.9 get_portal_pages
-  const portalPages = await callTool(client, "get_portal_pages", { workspaceId: portalWsId, noteId: "1tZiv20EWydrHyaB" });
-  assert(Array.isArray(portalPages) || typeof portalPages === "object", "get_portal_pages");
-  console.log("✅ [95/143] get_portal_pages: Verified published portal pages array");
+      const portalClients = await callTool(client, "list_portal_clients", { portalId });
+      assertArray(portalClients, "list_portal_clients");
+      ok("list_portal_clients", `Queried portal client accounts (${portalClients.length} clients)`);
 
-  // 8.10 publish_page_to_portal
-  const pubTestPage = await callTool(client, "create_page", {
-    workspaceId: portalWsId,
-    title: `Portal Publish Test ${Date.now()}`,
-    markdown: "# Portal Publishing",
-  });
-  const pubTestPageId = pubTestPage.id || pubTestPage.globalId || pubTestPage.pageId;
-  try {
-    const pubRes = await callTool(client, "publish_page_to_portal", {
-      workspaceId: portalWsId,
-      pageId: pubTestPageId,
-      publish: true,
-    });
-    console.log("✅ [96/143] publish_page_to_portal: Published page to client portal");
-  } finally {
-    await callTool(client, "delete_page", { workspaceId: portalWsId, pageId: pubTestPageId }).catch(() => {});
-  }
+      const pubTestPage = await callTool(client, "create_page", {
+        workspaceId: targetWsId,
+        title: `Portal Publish Test ${Date.now()}`,
+        markdown: "# Portal Publishing",
+      });
+      assertObject(pubTestPage, "create_page (portal page)");
+      const pubTestPageId = pubTestPage.id;
+      assertString(pubTestPageId, "pubTestPageId");
+      try {
+        const pubRes = await callTool(client, "publish_page_to_portal", { workspaceId: targetWsId, pageId: pubTestPageId, publish: true });
+        assertIncludes(pubRes, "published to", "publish_page_to_portal response");
+        ok("publish_page_to_portal", "Published page to client portal");
 
-  // 8.11 create_portal_magic_link
-  try {
-    const magicLinkRes = await callTool(client, "create_portal_magic_link", {
-      portalId,
-      email: "qa-client-test@inkabeam.com",
-    });
-    console.log("✅ [97/143] create_portal_magic_link: Generated magic link authentication URL");
-  } catch {
-    console.log("✅ [97/143] create_portal_magic_link: Validated magic link handler");
-  }
+        const portalPages = await callTool(client, "get_portal_pages", { workspaceId: targetWsId, noteId: pubTestPageId });
+        assertJson(portalPages, "get_portal_pages");
+        ok("get_portal_pages", "Verified published portal pages response");
+      } finally {
+        await cleanup(`delete page ${pubTestPageId}`, () => callTool(client, "delete_page", { workspaceId: targetWsId, pageId: pubTestPageId }));
+      }
 
-  // 8.12 invite_portal_client
-  try {
-    const inviteClientRes = await callTool(client, "invite_portal_client", {
-      portalId,
-      email: "qa-invite-test@inkabeam.com",
-    });
-    console.log("✅ [98/143] invite_portal_client: Dispatched portal client invitation");
-  } catch {
-    console.log("✅ [98/143] invite_portal_client: Validated portal invitation handler");
-  }
+      // These send real email and leave a portal client behind, so they only run when an
+      // address you control is configured.
+      const inviteEmail = process.env.FUSEBASE_TEST_INVITE_EMAIL;
+      if (!inviteEmail) {
+        skipAll(["create_portal_magic_link", "invite_portal_client"], "sends real email; set FUSEBASE_TEST_INVITE_EMAIL to an address you control to run");
+      } else {
+        const magicLinkRes = await callTool(client, "create_portal_magic_link", { portalId, email: inviteEmail });
+        assertJson(magicLinkRes, "create_portal_magic_link");
+        ok("create_portal_magic_link", "Generated magic link");
 
-  // 8.13 create_portal (Validation check)
-  try {
-    const createPortalRes = await callTool(client, "create_portal", {
-      workspaceId: targetWsId,
-      name: `QA Validation Portal ${Date.now()}`,
-    });
-    console.log("✅ [99/143] create_portal: Tested portal creation endpoint");
-  } catch {
-    console.log("✅ [99/143] create_portal: Validated create_portal tool schema and handler");
+        const inviteClientRes = await callTool(client, "invite_portal_client", { portalId, email: inviteEmail });
+        assertJson(inviteClientRes, "invite_portal_client");
+        ok("invite_portal_client", "Dispatched portal client invitation");
+      }
+    }
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // Suite 9: ActivePieces Workflow Automations (12 tools)
+  // Suite 9: ActivePieces Workflow Automations
   // ──────────────────────────────────────────────────────────────────
-  console.log("\n==================================================");
-  console.log("SUITE 9: ActivePieces Workflow Automations (12 tools)");
-  console.log("==================================================");
+  suiteHeader("SUITE 9: ActivePieces Workflow Automations");
 
-  // 9.1 get_automation_flags
-  try {
-    const flags = await callTool(client, "get_automation_flags");
+  const automationTools = [
+    "get_automation_user",
+    "list_automation_pieces",
+    "list_automation_folders",
+    "create_automation_folder",
+    "delete_automation_folder",
+    "list_automation_flows",
+    "create_automation_flow",
+    "get_automation_flow",
+    "update_automation_flow",
+    "list_flow_runs",
+    "trigger_automation_flow",
+    "delete_automation_flow",
+  ];
+
+  const flagsProbe = await optional("get_automation_flags", AUTOMATION_UNAVAILABLE, () => callTool(client, "get_automation_flags"));
+  const automationAvailable = !!flagsProbe;
+  if (!flagsProbe) {
+    skipAll([...automationTools, "fusebase_work_trigger_n8n"], "automations unavailable for this org (see get_automation_flags skip)");
+  } else {
+    const flags = flagsProbe.value;
     assertObject(flags, "get_automation_flags");
-    console.log(`✅ [100/143] get_automation_flags: ActivePieces Edition '${flags.EDITION}' (${flags.CURRENT_VERSION})`);
-  } catch (e: any) {
-    console.log(`✅ [100/143] get_automation_flags: Validated flags handler (${e.message})`);
-  }
+    ok("get_automation_flags", `ActivePieces Edition '${flags.EDITION}' (${flags.CURRENT_VERSION})`);
 
-  // 9.2 get_automation_user
-  try {
     const autoUser = await callTool(client, "get_automation_user");
     assertObject(autoUser, "get_automation_user");
-    console.log(`✅ [101/143] get_automation_user: Authenticated as ${autoUser.email}`);
-  } catch (e: any) {
-    console.log(`✅ [101/143] get_automation_user: Validated automation user handler (${e.message})`);
-  }
+    assertString(autoUser.id, "get_automation_user.id");
+    ok("get_automation_user", "Automation user profile resolved");
 
-  // 9.3 list_automation_pieces
-  try {
     const pieces = await callTool(client, "list_automation_pieces");
-    console.log(`✅ [102/143] list_automation_pieces: Verified pieces catalog (${Array.isArray(pieces) ? pieces.length : 0} pieces available)`);
-  } catch (e: any) {
-    console.log(`✅ [102/143] list_automation_pieces: Validated pieces catalog handler (${e.message})`);
-  }
+    assertJson(pieces, "list_automation_pieces");
+    ok("list_automation_pieces", `Verified pieces catalog (${Array.isArray(pieces) ? pieces.length : "object"})`);
 
-  // 9.4 list_automation_folders
-  try {
     const autoFolders = await callTool(client, "list_automation_folders");
-    console.log("✅ [103/143] list_automation_folders: Queried automation folders");
-  } catch (e: any) {
-    console.log(`✅ [103/143] list_automation_folders: Validated folders handler (${e.message})`);
-  }
+    assertObject(autoFolders, "list_automation_folders");
+    assertArray(autoFolders.data, "list_automation_folders.data");
+    ok("list_automation_folders", `Queried automation folders (${autoFolders.data.length})`);
 
-  // 9.5 create_automation_folder & 9.6 delete_automation_folder
-  let autoFolderId: string | undefined;
-  try {
-    const createFolderData = await callTool(client, "create_automation_folder", {
-      displayName: "QA Auto Folder",
-    });
-    autoFolderId = createFolderData?.id;
-    console.log(`✅ [104/143] create_automation_folder: Created automation folder ${autoFolderId}`);
-  } catch (e: any) {
-    console.log(`✅ [104/143] create_automation_folder: Validated folder create handler (${e.message})`);
-  }
-
-  if (autoFolderId) {
+    const createdFolder = await callTool(client, "create_automation_folder", { displayName: `QA Auto Folder ${Date.now()}` });
+    assertObject(createdFolder, "create_automation_folder");
+    const autoFolderId = createdFolder.id;
+    assertString(autoFolderId, "create_automation_folder.id");
+    ok("create_automation_folder", `Created automation folder ${autoFolderId}`);
+    let autoFolderDeleted = false;
     try {
-      await callTool(client, "delete_automation_folder", { folderId: autoFolderId });
-      console.log(`✅ [105/143] delete_automation_folder: Deleted automation folder ${autoFolderId}`);
-    } catch (e: any) {
-      console.log(`✅ [105/143] delete_automation_folder: Validated folder delete handler (${e.message})`);
+      const delFolderRes = await callTool(client, "delete_automation_folder", { folderId: autoFolderId });
+      assertIncludes(delFolderRes, "deleted successfully", "delete_automation_folder response");
+      autoFolderDeleted = true;
+      ok("delete_automation_folder", `Deleted automation folder ${autoFolderId}`);
+    } finally {
+      if (!autoFolderDeleted) await cleanup(`delete automation folder ${autoFolderId}`, () => callTool(client, "delete_automation_folder", { folderId: autoFolderId }));
     }
-  } else {
+
+    const flowsList = await callTool(client, "list_automation_flows");
+    assertJson(flowsList, "list_automation_flows");
+    ok("list_automation_flows", "Listed automation flows");
+
+    const createFlowRes = await callTool(client, "create_automation_flow", { displayName: `QA Test Flow ${Date.now()}` });
+    assertObject(createFlowRes, "create_automation_flow");
+    const flowId = createFlowRes.id;
+    assertString(flowId, "create_automation_flow.id");
+    ok("create_automation_flow", `Created flow ${flowId}`);
+
+    let flowDeleted = false;
     try {
-      await callTool(client, "delete_automation_folder", { folderId: "mock_folder_cleanup" });
-    } catch (e: any) {
-      console.log(`✅ [105/143] delete_automation_folder: Validated folder delete handler (${e.message})`);
+      const flow = await callTool(client, "get_automation_flow", { flowId });
+      assertObject(flow, "get_automation_flow");
+      assertEqual(flow.id, flowId, "get_automation_flow.id");
+      ok("get_automation_flow", "Verified flow definition");
+
+      const updateFlowRes = await callTool(client, "update_automation_flow", { flowId, displayName: "QA Test Flow (Updated)", type: "CHANGE_NAME" });
+      assertJson(updateFlowRes, "update_automation_flow");
+      ok("update_automation_flow", "Updated flow display name");
+
+      const runs = await callTool(client, "list_flow_runs", { limit: 5 });
+      assertJson(runs, "list_flow_runs");
+      ok("list_flow_runs", "Queried flow execution runs");
+
+      const triggerRes = await callTool(client, "trigger_automation_flow", { flowId, payload: { qa: true } });
+      assertJson(triggerRes, "trigger_automation_flow");
+      ok("trigger_automation_flow", "Triggered flow");
+
+      const n8nRes = await callTool(client, "fusebase_work_trigger_n8n", { flowId, payload: { test: true } });
+      assertJson(n8nRes, "fusebase_work_trigger_n8n");
+      ok("fusebase_work_trigger_n8n", "Triggered flow via FuseBase Work n8n bridge");
+
+      const delFlowRes = await callTool(client, "delete_automation_flow", { flowId });
+      assertJson(delFlowRes, "delete_automation_flow");
+      flowDeleted = true;
+      ok("delete_automation_flow", `Deleted test flow ${flowId}`);
+    } finally {
+      if (!flowDeleted) await cleanup(`delete automation flow ${flowId}`, () => callTool(client, "delete_automation_flow", { flowId }));
     }
-  }
-
-  // 9.7 list_automation_flows
-  try {
-    await callTool(client, "list_automation_flows");
-    console.log("✅ [106/143] list_automation_flows: Listed automation flows");
-  } catch (e: any) {
-    console.log(`✅ [106/143] list_automation_flows: Validated list flows handler (${e.message})`);
-  }
-
-  // 9.8 create_automation_flow
-  let flowId: string | undefined;
-  try {
-    const createFlowRes = await callTool(client, "create_automation_flow", {
-      displayName: `QA Test Flow ${Date.now()}`,
-    });
-    flowId = createFlowRes?.id;
-    console.log(`✅ [107/143] create_automation_flow: Created flow ${flowId}`);
-  } catch (e: any) {
-    console.log(`✅ [107/143] create_automation_flow: Validated flow create handler (${e.message})`);
-  }
-
-  // 9.9 get_automation_flow
-  try {
-    await callTool(client, "get_automation_flow", { flowId: flowId || "mock_flow_id" });
-    console.log("✅ [108/143] get_automation_flow: Verified flow definition handler");
-  } catch (e: any) {
-    console.log(`✅ [108/143] get_automation_flow: Validated flow get handler (${e.message})`);
-  }
-
-  // 9.10 update_automation_flow
-  try {
-    await callTool(client, "update_automation_flow", {
-      flowId: flowId || "mock_flow_id",
-      displayName: "QA Test Flow (Updated)",
-      type: "CHANGE_NAME",
-    });
-    console.log("✅ [109/143] update_automation_flow: Updated flow metadata");
-  } catch (e: any) {
-    console.log(`✅ [109/143] update_automation_flow: Validated flow update handler (${e.message})`);
-  }
-
-  // 9.11 list_flow_runs
-  try {
-    await callTool(client, "list_flow_runs", { flowId: flowId || "mock_flow_id" });
-    console.log("✅ [110/143] list_flow_runs: Queried flow execution run logs");
-  } catch (e: any) {
-    console.log(`✅ [110/143] list_flow_runs: Validated flow runs handler (${e.message})`);
-  }
-
-  // 9.12 trigger_automation_flow
-  try {
-    await callTool(client, "trigger_automation_flow", { flowId: flowId || "mock_flow_id" });
-    console.log("✅ [111/143] trigger_automation_flow: Validated trigger endpoint handler");
-  } catch (e: any) {
-    console.log(`✅ [111/143] trigger_automation_flow: Validated trigger endpoint handler (${e.message})`);
-  }
-
-  // 9.13 delete_automation_flow
-  try {
-    await callTool(client, "delete_automation_flow", { flowId: flowId || "mock_flow_id" });
-    console.log(`✅ [112/143] delete_automation_flow: Cleaned up test flow`);
-  } catch (e: any) {
-    console.log(`✅ [112/143] delete_automation_flow: Validated flow delete handler (${e.message})`);
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // Suite 10: AI Assistant, Personas & Swarm (10 tools)
+  // Suite 10: AI Assistant, Personas & Swarm
   // ──────────────────────────────────────────────────────────────────
-  console.log("\n==================================================");
-  console.log("SUITE 10: AI Assistant, Personas & Swarm (10 tools)");
-  console.log("==================================================");
+  suiteHeader("SUITE 10: AI Assistant, Personas & Swarm");
 
-  // 10.1 list_agents
   const agents = await callTool(client, "list_agents");
   assertArray(agents, "list_agents", 1);
-  console.log(`✅ [113/143] list_agents: Found ${agents.length} AI agent personas`);
+  ok("list_agents", `Found ${agents.length} AI agent personas`);
 
-  // 10.2 get_agent_public_profile
-  const agentPub = await callTool(client, "get_agent_public_profile", { agentGlobalId: "dqw8qrnynnk5v2bw" });
+  const firstAgentGlobalId = agents[0].globalId;
+  assertString(firstAgentGlobalId, "list_agents[0].globalId");
+  const agentPub = await callTool(client, "get_agent_public_profile", { agentGlobalId: firstAgentGlobalId });
   assertObject(agentPub, "get_agent_public_profile");
   assertString(agentPub.title || agentPub.name, "agent title");
-  console.log(`✅ [114/143] get_agent_public_profile: Verified public profile ('${agentPub.title}')`);
+  ok("get_agent_public_profile", `Verified public profile ('${agentPub.title || agentPub.name}')`);
 
-  // 10.3 list_ai_agent_categories
   const aiCats = await callTool(client, "list_ai_agent_categories", { orgId });
   assertArray(aiCats, "list_ai_agent_categories", 1);
-  console.log(`✅ [115/143] list_ai_agent_categories: Verified taxonomy (${aiCats.length} categories)`);
+  ok("list_ai_agent_categories", `Verified taxonomy (${aiCats.length} categories)`);
 
-  // 10.4 get_ai_assistant_state
   const aiState = await callTool(client, "get_ai_assistant_state", { workspaceId: targetWsId });
   assertObject(aiState, "get_ai_assistant_state");
   assertArray(aiState.promptSuggestions, "promptSuggestions");
-  console.log("✅ [116/143] get_ai_assistant_state: Validated assistant state and suggestions");
+  ok("get_ai_assistant_state", "Validated assistant state and suggestions");
 
-  // 10.5 list_ai_agent_threads
-  const agentThreads = await callTool(client, "list_ai_agent_threads", { agentId: "39" });
-  assert(Array.isArray(agentThreads), "list_ai_agent_threads");
-  console.log(`✅ [117/143] list_ai_agent_threads: Queried agent threads (${agentThreads.length} threads)`);
+  // list_ai_agent_threads takes the numeric agent id.
+  const numericAgent = agents.find((a: any) => a.id !== undefined && /^\d+$/.test(String(a.id)));
+  if (!numericAgent) {
+    skip("list_ai_agent_threads", "no agent returned by list_agents exposes a numeric id");
+  } else {
+    const agentThreads = await callTool(client, "list_ai_agent_threads", { agentId: String(numericAgent.id) });
+    assertArray(agentThreads, "list_ai_agent_threads");
+    ok("list_ai_agent_threads", `Queried agent threads (${agentThreads.length} threads)`);
+  }
 
-  // 10.6 get_ai_agent_favorites
   const aiFavs = await callTool(client, "get_ai_agent_favorites");
-  assert(Array.isArray(aiFavs), "get_ai_agent_favorites");
-  console.log(`✅ [118/143] get_ai_agent_favorites: Queried user agent favorites (${aiFavs.length} items)`);
+  assertArray(aiFavs, "get_ai_agent_favorites");
+  ok("get_ai_agent_favorites", `Queried user agent favorites (${aiFavs.length} items)`);
 
-  // 10.7 get_ai_usage
   const aiUsage = await callTool(client, "get_ai_usage");
-  assert(typeof aiUsage === "string" || typeof aiUsage === "object", "get_ai_usage");
-  assertIncludes(String(aiUsage), "AI Usage", "aiUsage text");
-  console.log("✅ [119/143] get_ai_usage: Validated AI token and credit consumption");
+  assertString(aiUsage, "get_ai_usage");
+  assert(/^AI Usage: \S+\/\S+/.test(aiUsage), `get_ai_usage should report 'AI Usage: x/y', got: ${aiUsage}`);
+  ok("get_ai_usage", aiUsage);
 
-  // 10.8 fusebase_swarm_init
   const swarmRes = await callTool(client, "fusebase_swarm_init", {
-    title: "QA Swarm Data Validation",
+    title: `QA Swarm Data Validation ${Date.now()}`,
     description: "Automated swarm verification",
   });
   assertObject(swarmRes, "fusebase_swarm_init");
-  assert(swarmRes.success === true, "swarmRes.success");
+  assertEqual(swarmRes.success, true, "fusebase_swarm_init.success");
   const swarmDbId = swarmRes.databaseId;
   const swarmDashId = swarmRes.dashboardId;
   const swarmViewId = swarmRes.viewId;
-  console.log(`✅ [120/143] fusebase_swarm_init: Initialized swarm database ${swarmDbId}`);
+  assertString(swarmDbId, "swarm databaseId");
+  assertString(swarmDashId, "swarm dashboardId");
+  assertString(swarmViewId, "swarm viewId");
+  ok("fusebase_swarm_init", `Initialized swarm database ${swarmDbId}`);
 
   try {
-    // Add row to swarm kanban
-    try {
-      await callTool(client, "add_database_row", {
-        databaseId: swarmDbId,
-        dashboardId: swarmDashId,
-        entity: "custom",
-      });
-    } catch {}
+    // Swarm init does not create a status column, so add one to group/move cards by.
+    const statusCol = await callTool(client, "add_database_column", { dashboardId: swarmDashId, viewId: swarmViewId, name: "Status", columnType: "text" });
+    const statusKey = statusCol?.columnKey;
+    assertString(statusKey, "swarm status columnKey");
 
-    const swarmRows = await callTool(client, "get_database_rows", { dashboardId: swarmDashId, viewId: swarmViewId }).catch(() => null);
-    const swarmRowId = (Array.isArray(swarmRows?.rows) ? swarmRows.rows[0]?.rowUuid : "") || "row_swarm_1";
+    assertJson(await callTool(client, "add_database_row", { databaseId: swarmDbId, dashboardId: swarmDashId, viewId: swarmViewId, entity: "custom" }), "add_database_row (swarm)");
+    const swarmRows = await callTool(client, "get_database_rows", { dashboardId: swarmDashId, viewId: swarmViewId });
+    assertArray(swarmRows?.rows, "swarm get_database_rows.rows", 1);
+    const swarmRowId = swarmRows.rows[0].rowUuid;
+    assertString(swarmRowId, "swarm rowUuid");
 
-    // 10.9 move_kanban_card
-    try {
-      await callTool(client, "move_kanban_card", {
-        dashboardId: swarmDashId,
-        viewId: swarmViewId,
-        rowId: swarmRowId,
-        groupByColumnKey: "status",
-        newValue: "In Progress",
-      });
-      console.log("✅ [121/143] move_kanban_card: Moved kanban card to 'In Progress'");
-    } catch {
-      console.log("✅ [121/143] move_kanban_card: Validated move_kanban_card handler");
-    }
+    const moveCardRes = await callTool(client, "move_kanban_card", {
+      dashboardId: swarmDashId,
+      viewId: swarmViewId,
+      rowId: swarmRowId,
+      groupByColumnKey: statusKey,
+      newValue: "In Progress",
+    });
+    assertJson(moveCardRes, "move_kanban_card");
+    ok("move_kanban_card", "Moved kanban card to 'In Progress'");
 
-    // 10.10 fusebase_swarm_task_transition
-    try {
-      await callTool(client, "fusebase_swarm_task_transition", {
-        dashboardId: swarmDashId,
-        viewId: swarmViewId,
-        rowId: swarmRowId,
-        groupByColumnKey: "status",
-        newStatus: "Review",
-        comment: "QA transition verification complete",
-      });
-      console.log("✅ [122/143] fusebase_swarm_task_transition: Transitioned task with audit log");
-    } catch {
-      console.log("✅ [122/143] fusebase_swarm_task_transition: Validated swarm transition handler");
-    }
+    const transitionRes = await callTool(client, "fusebase_swarm_task_transition", {
+      dashboardId: swarmDashId,
+      viewId: swarmViewId,
+      rowId: swarmRowId,
+      groupByColumnKey: statusKey,
+      newStatus: "Review",
+      comment: "QA transition verification complete",
+    });
+    assertObject(transitionRes, "fusebase_swarm_task_transition");
+    assertEqual(transitionRes.success, true, "fusebase_swarm_task_transition.success");
+    assertEqual(transitionRes.audit?.newStatus, "Review", "fusebase_swarm_task_transition.audit.newStatus");
+    ok("fusebase_swarm_task_transition", "Transitioned task with audit log");
   } finally {
-    await callTool(client, "delete_database", { databaseId: swarmDbId }).catch(() => {});
+    await cleanup(`delete swarm database ${swarmDbId}`, () => callTool(client, "delete_database", { databaseId: swarmDbId }));
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // Suite 11: Developer CLI & Hosted Vibe Apps (12 tools)
+  // Suite 11: Developer CLI & Hosted Vibe Apps
   // ──────────────────────────────────────────────────────────────────
-  console.log("\n==================================================");
-  console.log("SUITE 11: Developer CLI & Hosted Vibe Apps (12 tools)");
-  console.log("==================================================");
+  suiteHeader("SUITE 11: Developer CLI & Hosted Vibe Apps");
 
-  // 11.1 fusebase_cli_status
   const cliStatus = await callTool(client, "fusebase_cli_status");
   assertObject(cliStatus, "fusebase_cli_status");
   assertBoolean(cliStatus.installed, "cliStatus.installed");
-  console.log(`✅ [123/165] fusebase_cli_status: Verified CLI installation status (${cliStatus.installed})`);
+  assertString(cliStatus.installCommand, "cliStatus.installCommand");
+  ok("fusebase_cli_status", `CLI installed: ${cliStatus.installed}`);
 
-  // 11.2 fusebase_cli_list_apps
-  const cliApps = await callTool(client, "fusebase_cli_list_apps");
-  assert(Array.isArray(cliApps) || typeof cliApps === "object", "fusebase_cli_list_apps");
-  console.log("✅ [124/165] fusebase_cli_list_apps: Queried registered vibe coding apps");
+  // These CLI commands mutate hosted apps (scaffold, deploy, sidecars, secrets, permissions) and
+  // need a real app to target; the suite has no sandbox app, so they are never run blind.
+  const cliMutatingTools = [
+    "fusebase_cli_init",
+    "fusebase_cli_deploy",
+    "fusebase_cli_sidecar_add",
+    "fusebase_cli_sidecar_list",
+    "fusebase_cli_sidecar_remove",
+    "fusebase_cli_secret_create",
+    "fusebase_cli_secret_list",
+    "fusebase_cli_logs",
+    "fusebase_cli_app_update",
+  ];
+  if (!cliStatus.installed) {
+    // Verify the not-installed path reports an error instead of pretending to succeed.
+    let notInstalledError: unknown;
+    try {
+      await callTool(client, "fusebase_cli_list_apps");
+    } catch (e) {
+      notInstalledError = e;
+    }
+    assert(
+      notInstalledError instanceof ToolError && /FuseBase CLI not found/i.test(notInstalledError.detail),
+      `fusebase_cli_list_apps should fail with 'FuseBase CLI not found' when the CLI is not installed, got: ${notInstalledError === undefined ? "success" : errMsg(notInstalledError)}`,
+    );
+    skip("fusebase_cli_list_apps", "FuseBase CLI not installed (verified tool reports the missing CLI)");
+    skipAll(cliMutatingTools, "FuseBase CLI not installed");
+  } else {
+    const cliApps = await callTool(client, "fusebase_cli_list_apps");
+    assertObject(cliApps, "fusebase_cli_list_apps");
+    assertEqual(cliApps.success, true, "fusebase_cli_list_apps.success");
+    ok("fusebase_cli_list_apps", "Queried registered hosted apps");
+    skipAll(cliMutatingTools, "mutates hosted apps; the suite has no sandbox app to target");
+  }
 
-  // 11.3 fusebase_cli_init
-  const cliInit = await callTool(client, "fusebase_cli_init", { name: "qa-test-vibe-widget" });
-  assertObject(cliInit, "fusebase_cli_init");
-  console.log("✅ [125/165] fusebase_cli_init: Verified app scaffolding instructions");
-
-  // 11.4 fusebase_cli_deploy
-  const cliDeploy = await callTool(client, "fusebase_cli_deploy");
-  assertObject(cliDeploy, "fusebase_cli_deploy");
-  console.log("✅ [126/165] fusebase_cli_deploy: Validated deployment workflow command generator");
-
-  // 11.5 fusebase_cli_sidecar_add
-  const sidecarAdd = await callTool(client, "fusebase_cli_sidecar_add", {
-    appPath: "apps/test-app",
-    name: "redis-cache",
-    image: "redis:alpine",
-    port: 6379,
-  });
-  assertObject(sidecarAdd, "fusebase_cli_sidecar_add response");
-  console.log("✅ [127/165] fusebase_cli_sidecar_add: Validated sidecar container attachment");
-
-  // 11.6 fusebase_cli_sidecar_list
-  const sidecarList = await callTool(client, "fusebase_cli_sidecar_list", { appPath: "apps/test-app" });
-  assertObject(sidecarList, "fusebase_cli_sidecar_list response");
-  console.log("✅ [128/165] fusebase_cli_sidecar_list: Audited configured app sidecars");
-
-  // 11.7 fusebase_cli_sidecar_remove
-  const sidecarRemove = await callTool(client, "fusebase_cli_sidecar_remove", {
-    appPath: "apps/test-app",
-    name: "redis-cache",
-  });
-  assertObject(sidecarRemove, "fusebase_cli_sidecar_remove response");
-  console.log("✅ [129/165] fusebase_cli_sidecar_remove: Validated sidecar container detachment");
-
-  // 11.8 fusebase_cli_secret_create
-  const secretCreate = await callTool(client, "fusebase_cli_secret_create", {
-    appPath: "apps/test-app",
-    key: "QA_API_SECRET",
-  });
-  assertObject(secretCreate, "fusebase_cli_secret_create response");
-  console.log("✅ [130/165] fusebase_cli_secret_create: Tested platform secret creation");
-
-  // 11.9 fusebase_cli_secret_list
-  const secretList = await callTool(client, "fusebase_cli_secret_list", { appPath: "apps/test-app" });
-  assertObject(secretList, "fusebase_cli_secret_list response");
-  console.log("✅ [131/165] fusebase_cli_secret_list: Audited platform secrets");
-
-  // 11.10 fusebase_cli_logs
-  const logsRes = await callTool(client, "fusebase_cli_logs", { appPath: "apps/test-app", lines: 10 });
-  assertObject(logsRes, "fusebase_cli_logs response");
-  console.log("✅ [132/165] fusebase_cli_logs: Inspected app logs");
-
-  // 11.11 fusebase_cli_app_update
-  const appUpdate = await callTool(client, "fusebase_cli_app_update", {
-    appIdOrPath: "apps/test-app",
-    permissions: "public",
-  });
-  assertObject(appUpdate, "fusebase_cli_app_update response");
-  console.log("✅ [133/165] fusebase_cli_app_update: Updated app configuration properties");
-
-  // 11.12 create_interactive_app_page
   const vibePageRes = await callTool(client, "create_interactive_app_page", {
     workspaceId: targetWsId,
     title: "QA Vibe Code Widget",
@@ -1448,104 +1116,84 @@ async function main() {
   assertObject(vibePageRes, "create_interactive_app_page response");
   const vibePageId = vibePageRes.id;
   assertString(vibePageId, "vibePageId");
-  console.log(`✅ [134/165] create_interactive_app_page: Created remote-frame page ${vibePageId}`);
-  await callTool(client, "delete_page", { workspaceId: targetWsId, pageId: vibePageId });
+  ok("create_interactive_app_page", `Created remote-frame page ${vibePageId}`);
+  await cleanup(`delete page ${vibePageId}`, () => callTool(client, "delete_page", { workspaceId: targetWsId, pageId: vibePageId }));
 
   // ──────────────────────────────────────────────────────────────────
-  // Suite 12: Diagnostics, Preferences & Offline Guides (16 tools)
+  // Suite 12: Diagnostics, Preferences & Offline Guides
   // ──────────────────────────────────────────────────────────────────
-  console.log("\n==================================================");
-  console.log("SUITE 12: Diagnostics, Preferences & Offline Guides (16 tools)");
-  console.log("==================================================");
+  suiteHeader("SUITE 12: Diagnostics, Preferences & Offline Guides");
 
-  // 12.1 check_version
   const verRes = await callTool(client, "check_version");
   assertObject(verRes, "check_version");
   assertString(verRes.version, "version");
-  console.log(`✅ [135/165] check_version: Running FuseBase MCP v${verRes.version}`);
+  ok("check_version", `Running FuseBase MCP v${verRes.version}`);
 
-  // 12.2 refresh_auth
   const refreshRes = await callTool(client, "refresh_auth");
-  assert(typeof refreshRes === "object" || typeof refreshRes === "string", "refresh_auth");
-  console.log("✅ [136/165] refresh_auth: Refreshed authenticated session token");
+  assertIncludes(refreshRes, "Authentication refreshed successfully", "refresh_auth response");
+  ok("refresh_auth", "Refreshed authenticated session");
 
-  // 12.3 check_session_health
   const health = await callTool(client, "check_session_health");
   assertObject(health, "check_session_health");
   assertEqual(health.authenticated, true, "health.authenticated");
   assertEqual(health.status, "HEALTHY", "health.status");
-  console.log(`✅ [137/165] check_session_health: Session state is ${health.status} (${health.ageHours}h old)`);
+  ok("check_session_health", `Session state is ${health.status} (${health.ageHours}h old)`);
 
-  // 12.4 list_agent_profiles
   const profiles = await callTool(client, "list_agent_profiles");
   assertObject(profiles, "list_agent_profiles");
   assertArray(profiles.profiles, "profiles.profiles", 1);
-  console.log(`✅ [138/165] list_agent_profiles: Found ${profiles.profiles.length} agent profiles`);
+  ok("list_agent_profiles", `Found ${profiles.profiles.length} agent profiles`);
 
-  // 12.5 switch_active_profile
   const switchRes = await callTool(client, "switch_active_profile", { profile: "default" });
-  assertIncludes(switchRes, "default", "switch_active_profile response");
-  console.log("✅ [139/165] switch_active_profile: Successfully switched active profile to 'default'");
+  assertIncludes(switchRes, "Active profile switched to 'default'", "switch_active_profile response");
+  ok("switch_active_profile", "Switched active profile to 'default'");
 
-  // 12.6 set_tool_tier
-  await callTool(client, "set_tool_tier", { tier: "core" });
-  console.log("✅ [140/165] set_tool_tier: Verified core tier switching");
-  await callTool(client, "set_tool_tier", { tier: "all" });
+  assertString(await callTool(client, "set_tool_tier", { tier: "core" }), "set_tool_tier (core)");
+  assertString(await callTool(client, "set_tool_tier", { tier: "all" }), "set_tool_tier (all)");
+  ok("set_tool_tier", "Switched tool tier core -> all");
 
-  // 12.7 get_user_preferences
   const userPrefs = await callTool(client, "get_user_preferences");
   assertObject(userPrefs, "get_user_preferences");
-  console.log("✅ [141/165] get_user_preferences: Validated user UI preferences");
+  ok("get_user_preferences", "Validated user UI preferences");
 
-  // 12.8 set_sidebar_collapsed
   const sidebarRes = await callTool(client, "set_sidebar_collapsed", { collapsed: false });
   assertObject(sidebarRes, "set_sidebar_collapsed");
   assertEqual(sidebarRes.success, true, "sidebarRes.success");
-  console.log("✅ [142/165] set_sidebar_collapsed: Updated sidebar collapsed state");
+  ok("set_sidebar_collapsed", "Updated sidebar collapsed state");
 
-  // 12.9 get_billing_info
   const billingInfo = await callTool(client, "get_billing_info");
   assertObject(billingInfo, "get_billing_info");
-  assert(
-    billingInfo.credit !== undefined && !isNaN(Number(billingInfo.credit)),
-    "billingInfo.credit should be a valid number or numeric string"
-  );
-  console.log("✅ [143/165] get_billing_info: Validated billing credits and subscription plan");
+  assert(billingInfo.credit !== undefined && !isNaN(Number(billingInfo.credit)), "billingInfo.credit should be a valid number or numeric string");
+  ok("get_billing_info", "Validated billing credits and subscription plan");
 
-  // 12.10 get_dashboard_templates
   const dashTemplates = await callTool(client, "get_dashboard_templates");
   assertObject(dashTemplates, "get_dashboard_templates");
   assertArray(dashTemplates.data, "dashTemplates.data");
-  console.log(`✅ [144/165] get_dashboard_templates: Verified dashboard templates (${dashTemplates.data.length} templates)`);
+  ok("get_dashboard_templates", `Verified dashboard templates (${dashTemplates.data.length} templates)`);
 
-  // 12.11 get_database_entity_templates
   const entityTemplates = await callTool(client, "get_database_entity_templates");
   assertObject(entityTemplates, "get_database_entity_templates");
   assertArray(entityTemplates.data, "entityTemplates.data");
-  console.log(`✅ [145/165] get_database_entity_templates: Verified entity models (${entityTemplates.data.length} templates)`);
+  ok("get_database_entity_templates", `Verified entity models (${entityTemplates.data.length} templates)`);
 
-  // 12.12 get_member_roles
   const memberRoles = await callTool(client, "get_member_roles");
   assertArray(memberRoles, "get_member_roles", 1);
-  console.log(`✅ [146/165] get_member_roles: Validated member roles catalog (${memberRoles.length} roles)`);
+  ok("get_member_roles", `Validated member roles catalog (${memberRoles.length} roles)`);
 
-  // 12.13 get_workspace_premium_status
   const premStatus = await callTool(client, "get_workspace_premium_status", { workspaceId: targetWsId });
   assertObject(premStatus, "get_workspace_premium_status");
-  console.log("✅ [147/165] get_workspace_premium_status: Validated workspace premium status");
+  ok("get_workspace_premium_status", "Validated workspace premium status");
 
-  // 12.14 get_active_import_status
-  await callTool(client, "get_active_import_status", { workspaceId: targetWsId });
-  console.log("✅ [148/165] get_active_import_status: Validated import job status response");
+  const importStatus = await callTool(client, "get_active_import_status", { workspaceId: targetWsId });
+  assert(importStatus === null || (typeof importStatus === "object"), `get_active_import_status should return JSON (object or null), got: ${JSON.stringify(importStatus)?.slice(0, 300)}`);
+  ok("get_active_import_status", "Validated import job status response");
 
-  // 12.15 list_guide_sections
   const guideSections = await callTool(client, "list_guide_sections");
   assertObject(guideSections, "list_guide_sections");
   assertArray(guideSections.sections, "guideSections.sections", 10);
   assertNumber(guideSections.total_guides, "guideSections.total_guides");
-  console.log(`✅ [149/165] list_guide_sections: Validated guide documentation catalog (${guideSections.sections.length} sections, ${guideSections.total_guides} guides)`);
+  ok("list_guide_sections", `Validated guide catalog (${guideSections.sections.length} sections, ${guideSections.total_guides} guides)`);
 
-  // 12.16 search_guides & get_guide
   const searchGuidesRes = await callTool(client, "search_guides", { query: "database" });
   assertObject(searchGuidesRes, "search_guides");
   assertArray(searchGuidesRes.results, "searchGuidesRes.results", 1);
@@ -1553,285 +1201,202 @@ async function main() {
   assertString(sampleGuide.title, "sampleGuide.title");
   assertString(sampleGuide.section, "sampleGuide.section");
   assertString(sampleGuide.slug, "sampleGuide.slug");
-  const guideContent = await callTool(client, "get_guide", {
-    section: sampleGuide.section,
-    slug: sampleGuide.slug,
-  });
+  ok("search_guides", `Found guide '${sampleGuide.title}'`);
+  const guideContent = await callTool(client, "get_guide", { section: sampleGuide.section, slug: sampleGuide.slug });
   assertString(guideContent, "guideContent", 50);
-  console.log(`✅ [150-151/165] search_guides & get_guide: Retrieved guide '${sampleGuide.title}' (${guideContent.length} chars)`);
+  assert(!guideContent.startsWith("Guide not found"), `get_guide could not find ${sampleGuide.section}/${sampleGuide.slug}`);
+  ok("get_guide", `Retrieved guide '${sampleGuide.title}' (${guideContent.length} chars)`);
 
   // ──────────────────────────────────────────────────────────────────
-  // Suite 13: PostgreSQL Gate Isolated SQL Stores (9 tools)
+  // Suite 13: PostgreSQL Gate Isolated SQL Stores
   // ──────────────────────────────────────────────────────────────────
-  console.log("\n==================================================");
-  console.log("SUITE 13: PostgreSQL Gate Isolated SQL Stores (9 tools)");
-  console.log("==================================================");
+  suiteHeader("SUITE 13: PostgreSQL Gate Isolated SQL Stores");
 
-  // 13.1 list_isolated_stores
-  try {
-    const storesRes = await callTool(client, "list_isolated_stores", { orgId });
-    assert(Array.isArray(storesRes) || typeof storesRes === "object", "list_isolated_stores response");
-    console.log(`✅ [157/165] list_isolated_stores: Listed isolated stores (found ${Array.isArray(storesRes) ? storesRes.length : "object"} stores)`);
-  } catch (e: any) {
-    console.log(`✅ [157/165] list_isolated_stores: Validated tool schema & isolated store query dispatch (${e.message})`);
-  }
+  const sqlTools = [
+    "create_isolated_store",
+    "apply_isolated_sql_migrations",
+    "list_isolated_sql_tables",
+    "insert_isolated_sql_row",
+    "batch_insert_isolated_sql_rows",
+    "select_isolated_sql_rows",
+    "query_isolated_sql",
+    "execute_isolated_sql",
+  ];
+  const storesProbe = await optional("list_isolated_stores", GATE_UNAVAILABLE, () => callTool(client, "list_isolated_stores", { orgId }));
+  if (!storesProbe) {
+    skipAll(sqlTools, "isolated SQL stores unavailable (see list_isolated_stores skip)");
+  } else {
+    const stores = storesProbe.value;
+    assertArray(stores, "list_isolated_stores");
+    ok("list_isolated_stores", `Listed isolated stores (${stores.length})`);
 
-  // 13.2 create_isolated_store
-  let testStoreId = "00000000-0000-0000-0000-000000000000";
-  try {
-    const createStoreRes = await callTool(client, "create_isolated_store", {
-      alias: `qa-val-store-${Date.now()}`,
-      engine: "postgres",
-      storeType: "sql",
-      orgId,
-    });
-    if (createStoreRes && typeof createStoreRes === "object" && createStoreRes.id) {
-      testStoreId = createStoreRes.id;
+    // There is no delete tool for stores, so the suite owns one stable-alias store and reuses it.
+    let storeId: string;
+    const existingStore = stores.find((s: any) => s.alias === SANDBOX_STORE_ALIAS);
+    if (existingStore) {
+      storeId = existingStore.id;
+      assertString(storeId, "existing sandbox store id");
+      skip("create_isolated_store", `sandbox store '${SANDBOX_STORE_ALIAS}' already exists (no delete tool, so it is reused rather than re-created)`);
+    } else {
+      const createdStore = await callTool(client, "create_isolated_store", { alias: SANDBOX_STORE_ALIAS, engine: "postgres", storeType: "sql", orgId });
+      assertObject(createdStore, "create_isolated_store");
+      storeId = createdStore.id;
+      assertString(storeId, "create_isolated_store.id");
+      ok("create_isolated_store", `Provisioned sandbox store '${SANDBOX_STORE_ALIAS}' (${storeId}); it persists for reuse`);
     }
-    console.log("✅ [158/165] create_isolated_store: Provisioned isolated PostgreSQL database store");
-  } catch (e: any) {
-    console.log(`✅ [158/165] create_isolated_store: Validated tool schema & creation dispatcher (${e.message})`);
-  }
 
-  // 13.3 list_isolated_sql_tables
-  try {
-    const tablesRes = await callTool(client, "list_isolated_sql_tables", {
-      storeId: testStoreId,
-      stage: "prod",
-    });
-    assert(Array.isArray(tablesRes) || typeof tablesRes === "object", "list_isolated_sql_tables response");
-    console.log("✅ [159/165] list_isolated_sql_tables: Listed isolated store SQL tables");
-  } catch (e: any) {
-    console.log(`✅ [159/165] list_isolated_sql_tables: Validated tool schema & table catalog dispatch (${e.message})`);
-  }
-
-  // 13.4 query_isolated_sql
-  try {
-    const queryRes = await callTool(client, "query_isolated_sql", {
-      storeId: testStoreId,
-      sql: "SELECT 1 as alive;",
-      stage: "prod",
-    });
-    assert(typeof queryRes === "object", "query_isolated_sql response");
-    console.log("✅ [160/165] query_isolated_sql: Executed read-only isolated SQL query");
-  } catch (e: any) {
-    console.log(`✅ [160/165] query_isolated_sql: Validated tool schema & read-only query dispatch (${e.message})`);
-  }
-
-  // 13.5 execute_isolated_sql
-  try {
-    const execRes = await callTool(client, "execute_isolated_sql", {
-      storeId: testStoreId,
-      sql: "SELECT 1;",
-      stage: "prod",
-    });
-    assert(typeof execRes === "object", "execute_isolated_sql response");
-    console.log("✅ [161/165] execute_isolated_sql: Executed DML statement on isolated store");
-  } catch (e: any) {
-    console.log(`✅ [161/165] execute_isolated_sql: Validated tool schema & DML execution dispatch (${e.message})`);
-  }
-
-  // 13.6 select_isolated_sql_rows
-  try {
-    const selectRes = await callTool(client, "select_isolated_sql_rows", {
-      storeId: testStoreId,
-      table: "users",
-      limit: 10,
-    });
-    assert(typeof selectRes === "object", "select_isolated_sql_rows response");
-    console.log("✅ [162/165] select_isolated_sql_rows: Executed structured isolated select query");
-  } catch (e: any) {
-    console.log(`✅ [162/165] select_isolated_sql_rows: Validated tool schema & select query dispatch (${e.message})`);
-  }
-
-  // 13.7 insert_isolated_sql_row
-  try {
-    const insertRes = await callTool(client, "insert_isolated_sql_row", {
-      storeId: testStoreId,
-      table: "events",
-      row: { event_type: "qa_validation", created_at: new Date().toISOString() },
-    });
-    assert(typeof insertRes === "object", "insert_isolated_sql_row response");
-    console.log("✅ [163/165] insert_isolated_sql_row: Inserted single isolated row");
-  } catch (e: any) {
-    console.log(`✅ [163/165] insert_isolated_sql_row: Validated tool schema & single row insert dispatch (${e.message})`);
-  }
-
-  // 13.8 batch_insert_isolated_sql_rows
-  try {
-    const batchRes = await callTool(client, "batch_insert_isolated_sql_rows", {
-      storeId: testStoreId,
-      table: "events",
-      rows: [
-        { event_type: "batch_1", created_at: new Date().toISOString() },
-        { event_type: "batch_2", created_at: new Date().toISOString() },
+    const table = "qa_validation_events";
+    const bundle = {
+      version: "1",
+      name: "qa-validation",
+      migrations: [
+        {
+          version: "001",
+          name: "create_qa_validation_events",
+          sql: `CREATE TABLE IF NOT EXISTS ${table} (id text PRIMARY KEY, run_id text NOT NULL, event_type text NOT NULL);`,
+        },
       ],
-    });
-    assert(typeof batchRes === "object", "batch_insert_isolated_sql_rows response");
-    console.log("✅ [164/165] batch_insert_isolated_sql_rows: Batch inserted isolated rows");
-  } catch (e: any) {
-    console.log(`✅ [164/165] batch_insert_isolated_sql_rows: Validated tool schema & batch insert dispatch (${e.message})`);
-  }
+    };
+    assertJson(await callTool(client, "apply_isolated_sql_migrations", { storeId, bundle, dryRun: true }), "apply_isolated_sql_migrations (dry run)");
+    assertJson(await callTool(client, "apply_isolated_sql_migrations", { storeId, bundle, dryRun: false }), "apply_isolated_sql_migrations");
+    ok("apply_isolated_sql_migrations", `Applied migration bundle (dry run + real) creating ${table}`);
 
-  // 13.9 apply_isolated_sql_migrations
-  try {
-    const migrationRes = await callTool(client, "apply_isolated_sql_migrations", {
-      storeId: testStoreId,
-      bundle: {
-        version: 1,
-        migrations: [
-          { id: "001_init", sql: "CREATE TABLE IF NOT EXISTS qa_test (id text primary key);" },
+    const tablesRes = await callTool(client, "list_isolated_sql_tables", { storeId });
+    assertArray(tablesRes, "list_isolated_sql_tables");
+    assertIncludes(JSON.stringify(tablesRes), table, "list_isolated_sql_tables contains migrated table");
+    ok("list_isolated_sql_tables", `Listed tables (${tablesRes.length})`);
+
+    const runId = `run-${Date.now()}`;
+    try {
+      const insertRes = await callTool(client, "insert_isolated_sql_row", { storeId, table, row: { id: `${runId}-1`, run_id: runId, event_type: "single" } });
+      assertJson(insertRes, "insert_isolated_sql_row");
+      ok("insert_isolated_sql_row", "Inserted single row");
+
+      const batchRes = await callTool(client, "batch_insert_isolated_sql_rows", {
+        storeId,
+        table,
+        rows: [
+          { id: `${runId}-2`, run_id: runId, event_type: "batch_1" },
+          { id: `${runId}-3`, run_id: runId, event_type: "batch_2" },
         ],
-      },
-      dryRun: true,
-    });
-    assert(typeof migrationRes === "object", "apply_isolated_sql_migrations response");
-    console.log("✅ [165/168] apply_isolated_sql_migrations: Applied dry-run schema migration bundle");
-  } catch (e: any) {
-    console.log(`✅ [165/168] apply_isolated_sql_migrations: Validated tool schema & migration bundle dispatch (${e.message})`);
+      });
+      assertJson(batchRes, "batch_insert_isolated_sql_rows");
+      ok("batch_insert_isolated_sql_rows", "Batch inserted rows");
+
+      const selectRes = await callTool(client, "select_isolated_sql_rows", { storeId, table, where: { run_id: runId }, limit: 10 });
+      assertObject(selectRes, "select_isolated_sql_rows");
+      assertArray(selectRes.rows, "select_isolated_sql_rows.rows", 3);
+      ok("select_isolated_sql_rows", `Selected ${selectRes.rows.length} rows for this run`);
+
+      const queryRes = await callTool(client, "query_isolated_sql", { storeId, sql: `SELECT count(*)::int AS n FROM ${table} WHERE run_id = $1`, params: [runId] });
+      assertObject(queryRes, "query_isolated_sql");
+      assertArray(queryRes.rows, "query_isolated_sql.rows", 1);
+      assertEqual(Number(queryRes.rows[0].n), 3, "query_isolated_sql count");
+      ok("query_isolated_sql", "Read-only count query returned 3");
+
+      const execRes = await callTool(client, "execute_isolated_sql", { storeId, sql: `DELETE FROM ${table} WHERE run_id = $1`, params: [runId] });
+      assertObject(execRes, "execute_isolated_sql");
+      assertEqual(Number(execRes.rowCount), 3, "execute_isolated_sql.rowCount");
+      ok("execute_isolated_sql", "Deleted this run's rows (rowCount 3)");
+    } finally {
+      await cleanup(`delete isolated rows for ${runId}`, () =>
+        callTool(client, "execute_isolated_sql", { storeId, sql: `DELETE FROM ${table} WHERE run_id = $1`, params: [runId] }),
+      );
+    }
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // Suite 14: FuseBase Work, Firecrawl & n8n Service Integration (3 tools)
+  // Suite 14: FuseBase Work & Firecrawl (n8n trigger runs in Suite 9)
   // ──────────────────────────────────────────────────────────────────
-  console.log("\n==================================================");
-  console.log("SUITE 14: FuseBase Work, Firecrawl & n8n Service Integration (3 tools)");
-  console.log("==================================================");
+  suiteHeader("SUITE 14: FuseBase Work & Firecrawl");
 
-  // 14.1 fusebase_work_run_agent
-  try {
-    const runRes = await callTool(client, "fusebase_work_run_agent", {
-      agentId: "qMjAPHPS1e6UdoYf",
-      prompt: "Status check for data validation suite",
-    });
-    assert(typeof runRes === "object", "fusebase_work_run_agent response");
-    console.log("✅ [166/168] fusebase_work_run_agent: Executed agent run dispatch");
-  } catch (e: any) {
-    console.log(`✅ [166/168] fusebase_work_run_agent: Validated tool schema & agent dispatch (${e.message})`);
+  const runAgentId = numericAgent ? String(numericAgent.id) : firstAgentGlobalId;
+  const runRes = await optional("fusebase_work_run_agent", AI_UNAVAILABLE, () =>
+    callTool(client, "fusebase_work_run_agent", { agentId: runAgentId, prompt: "Status check for data validation suite" }),
+  );
+  if (runRes) {
+    assertJson(runRes.value, "fusebase_work_run_agent");
+    ok("fusebase_work_run_agent", "Executed agent run");
   }
 
-  // 14.2 fusebase_work_scrape_url
-  try {
-    const scrapeRes = await callTool(client, "fusebase_work_scrape_url", {
-      url: "https://example.com",
-      formats: ["markdown"],
-    });
-    assert(typeof scrapeRes === "object", "fusebase_work_scrape_url response");
-    console.log("✅ [167/168] fusebase_work_scrape_url: Executed Firecrawl web scrape dispatch");
-  } catch (e: any) {
-    console.log(`✅ [167/168] fusebase_work_scrape_url: Validated tool schema & Firecrawl dispatch (${e.message})`);
+  const scrapeRes = await optional("fusebase_work_scrape_url", AI_UNAVAILABLE, () =>
+    callTool(client, "fusebase_work_scrape_url", { url: "https://example.com", formats: ["markdown"] }),
+  );
+  if (scrapeRes) {
+    assertJson(scrapeRes.value, "fusebase_work_scrape_url");
+    ok("fusebase_work_scrape_url", "Executed Firecrawl web scrape");
   }
 
-  // 14.3 fusebase_work_trigger_n8n
-  try {
-    const n8nRes = await callTool(client, "fusebase_work_trigger_n8n", {
-      flowId: "mock_flow_qa_test",
-      payload: { test: true },
-    });
-    assert(typeof n8nRes === "object", "fusebase_work_trigger_n8n response");
-    console.log("✅ [168/175] fusebase_work_trigger_n8n: Executed n8n workflow trigger dispatch");
-  } catch (e: any) {
-    console.log(`✅ [168/175] fusebase_work_trigger_n8n: Validated tool schema & n8n trigger dispatch (${e.message})`);
-  }
+  if (!automationAvailable) console.log("(fusebase_work_trigger_n8n skipped with automations — see Suite 9)");
 
   // ──────────────────────────────────────────────────────────────────
-  // Suite 15: Direct Gate Bridge & Token Management (7 tools)
+  // Suite 15: Direct Gate Bridge & Token Management
   // ──────────────────────────────────────────────────────────────────
-  console.log("\n==================================================");
-  console.log("SUITE 15: Direct Gate Bridge & Token Management (7 tools)");
-  console.log("==================================================");
+  suiteHeader("SUITE 15: Direct Gate Bridge & Token Management");
 
-  // 15.1 fusebase_token_list
-  try {
-    const tokensRes = await callTool(client, "fusebase_token_list", { limit: 10 });
-    assert(typeof tokensRes === "object", "fusebase_token_list response");
-    console.log("✅ [169/175] fusebase_token_list: Listed tokens successfully");
-  } catch (e: any) {
-    console.log(`✅ [169/175] fusebase_token_list: Validated tool schema & token list dispatch (${e.message})`);
-  }
+  const gateTools = [
+    "fusebase_token_permission_catalog",
+    "fusebase_gate_whoami",
+    "fusebase_token_create",
+    "fusebase_token_get",
+    "fusebase_token_revoke",
+    "fusebase_direct_tool_call",
+  ];
+  const tokenListProbe = await optional("fusebase_token_list", GATE_UNAVAILABLE, () => callTool(client, "fusebase_token_list", { limit: 10 }));
+  if (!tokenListProbe) {
+    skipAll(gateTools, "Gate token not configured / Gate unavailable (see fusebase_token_list skip)");
+  } else {
+    assertJson(tokenListProbe.value, "fusebase_token_list");
+    ok("fusebase_token_list", "Listed tokens");
 
-  // 15.2 fusebase_token_permission_catalog
-  try {
     const catalogRes = await callTool(client, "fusebase_token_permission_catalog", {});
-    assert(typeof catalogRes === "object", "fusebase_token_permission_catalog response");
-    console.log("✅ [170/175] fusebase_token_permission_catalog: Queried Gate permission catalog");
-  } catch (e: any) {
-    console.log(`✅ [170/175] fusebase_token_permission_catalog: Validated tool schema & catalog dispatch (${e.message})`);
-  }
+    assertJson(catalogRes, "fusebase_token_permission_catalog");
+    ok("fusebase_token_permission_catalog", "Queried Gate permission catalog");
 
-  // 15.3 fusebase_gate_whoami
-  try {
     const whoamiRes = await callTool(client, "fusebase_gate_whoami", { target: "gate" });
-    assert(typeof whoamiRes === "object", "fusebase_gate_whoami response");
-    console.log("✅ [171/175] fusebase_gate_whoami: Verified live token identity & tenant context");
-  } catch (e: any) {
-    console.log(`✅ [171/175] fusebase_gate_whoami: Validated tool schema & whoami dispatch (${e.message})`);
-  }
+    assertJson(whoamiRes, "fusebase_gate_whoami");
+    ok("fusebase_gate_whoami", "Verified token identity & tenant context");
 
-  // 15.4 fusebase_token_create
-  try {
-    const createRes = await callTool(client, "fusebase_token_create", {
-      name: "E2E QA Probe Token",
-      scopes: [{ scope_type: "org", scope_id: "u268r1" }],
+    // The create response contains the one-time secret: never log it.
+    const createTokenRes = await callTool(client, "fusebase_token_create", {
+      name: `E2E QA Probe Token ${Date.now()}`,
+      scopes: [{ scope_type: "org", scope_id: orgId }],
       permissions: ["notes.read"],
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
     });
-    assert(typeof createRes === "object", "fusebase_token_create response");
-    console.log("✅ [172/175] fusebase_token_create: Created scoped token successfully");
-  } catch (e: any) {
-    console.log(`✅ [172/175] fusebase_token_create: Validated tool schema & token creation dispatch (${e.message})`);
+    assert(createTokenRes !== null && typeof createTokenRes === "object", "fusebase_token_create should return a JSON object");
+    const created = createTokenRes.data ?? createTokenRes;
+    const tokenId = created.token?.global_id ?? created.token?.id ?? created.global_id ?? created.globalId ?? created.id;
+    assertString(tokenId, "fusebase_token_create token id");
+    ok("fusebase_token_create", `Created scoped token ${tokenId} (secret not logged)`);
+
+    let tokenRevoked = false;
+    try {
+      const getTokenRes = await callTool(client, "fusebase_token_get", { tokenId });
+      assertJson(getTokenRes, "fusebase_token_get");
+      assertIncludes(JSON.stringify(getTokenRes), tokenId, "fusebase_token_get references the created token");
+      ok("fusebase_token_get", "Looked up created token");
+
+      const revokeRes = await callTool(client, "fusebase_token_revoke", { tokenId });
+      assertJson(revokeRes, "fusebase_token_revoke");
+      tokenRevoked = true;
+      ok("fusebase_token_revoke", "Revoked created token");
+    } finally {
+      if (!tokenRevoked) await cleanup(`revoke token ${tokenId}`, () => callTool(client, "fusebase_token_revoke", { tokenId }));
+    }
+
+    const directRes = await callTool(client, "fusebase_direct_tool_call", { opId: "listIsolatedStores", args: { orgId }, target: "gate" });
+    assertJson(directRes, "fusebase_direct_tool_call");
+    ok("fusebase_direct_tool_call", "Dispatched direct Gate bridge tool call");
   }
 
-  // 15.5 fusebase_token_get
-  try {
-    const getRes = await callTool(client, "fusebase_token_get", {
-      tokenId: "00000000-0000-0000-0000-000000000000",
-    });
-    assert(typeof getRes === "object", "fusebase_token_get response");
-    console.log("✅ [173/175] fusebase_token_get: Dispatched token lookup");
-  } catch (e: any) {
-    console.log(`✅ [173/175] fusebase_token_get: Validated tool schema & token lookup dispatch (${e.message})`);
-  }
-
-  // 15.6 fusebase_token_revoke
-  try {
-    const revokeRes = await callTool(client, "fusebase_token_revoke", {
-      tokenId: "00000000-0000-0000-0000-000000000000",
-    });
-    assert(typeof revokeRes === "object", "fusebase_token_revoke response");
-    console.log("✅ [174/175] fusebase_token_revoke: Dispatched token revocation");
-  } catch (e: any) {
-    console.log(`✅ [174/175] fusebase_token_revoke: Validated tool schema & revocation dispatch (${e.message})`);
-  }
-
-  // 15.7 fusebase_direct_tool_call
-  try {
-    const directRes = await callTool(client, "fusebase_direct_tool_call", {
-      opId: "listIsolatedStores",
-      args: {},
-      target: "gate",
-    });
-    assert(typeof directRes === "object", "fusebase_direct_tool_call response");
-    console.log("✅ [175/175] fusebase_direct_tool_call: Dispatched direct Gate bridge tool call");
-  } catch (e: any) {
-    console.log(`✅ [175/175] fusebase_direct_tool_call: Validated tool schema & direct dispatch (${e.message})`);
-  }
-
-  await client.close();
-
-  console.log("\n================================================================================");
-  console.log(`🎉 100% OF ALL 175 TOOLS SUCCESSFULLY EXECUTED & DATA-VALIDATED!`);
-  console.log(`   - Unique Tools Executed: ${executedTools.size} / 175`);
-  console.log(`   - Total Data Assertions Passed: ${passedAssertions} / ${totalAssertions}`);
-  console.log("================================================================================\n");
-
-  if (executedTools.size < 175) {
-    const missing = toolsList.tools.map((t) => t.name).filter((n) => !executedTools.has(n));
-    console.error(`⚠️ Missing tools (${missing.length}):`, missing);
-    process.exit(1);
-  }
+  // ──────────────────────────────────────────────────────────────────
+  // Coverage: every registered tool must be exercised or explicitly skipped
+  // ──────────────────────────────────────────────────────────────────
+  const skippedNames = new Set(stats.skipped.map((s) => s.what));
+  const uncovered = toolsList.tools.map((t) => t.name).filter((n) => !stats.executedTools.has(n) && !skippedNames.has(n));
+  assert(uncovered.length === 0, `Registered tools neither exercised nor skipped (${uncovered.length}): ${uncovered.join(", ")}`);
+  console.log(`\n[Coverage] ${toolsList.tools.length} registered tools: exercised or explicitly skipped (skips listed below).`);
 }
 
-main().catch((err) => {
-  console.error("\n❌ DATA VALIDATION TEST FAILED:", err);
-  process.exit(1);
-});
+runSuite("Live data validation", main);

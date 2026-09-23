@@ -17,7 +17,7 @@
  *   const cookieString = await refreshCookies({ host: "yourorg.nimbusweb.me" });
  */
 
-import { chromium, type BrowserContext, type Cookie } from "playwright";
+import { chromium, type Cookie } from "playwright";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
@@ -37,18 +37,6 @@ export interface AuthConfig {
   proxy?: { server: string; username: string; password: string }; // SOCKS5 proxy
 }
 
-const DEFAULT_USER_DATA_DIR = path.resolve(
-  __dirname,
-  "..",
-  ".browser-data",
-);
-
-const DEFAULT_ENV_FILE = path.resolve(
-  __dirname,
-  "..",
-  ".env",
-);
-
 function getCryptoUrl(): string {
   const distPath = path.resolve(__dirname, "..", "dist", "crypto.js");
   if (fs.existsSync(distPath)) {
@@ -64,7 +52,6 @@ export async function refreshCookies(config: AuthConfig): Promise<string> {
     host,
     headless = false,
     timeout = 120_000,
-    envFile = DEFAULT_ENV_FILE,
     profile,
   } = config;
 

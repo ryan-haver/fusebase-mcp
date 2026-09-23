@@ -27,42 +27,15 @@ import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import * as http from "node:http";
 import { FusebaseClient } from "./client.js";
 import { FusebaseGateBridge } from "./gate-bridge.js";
-import { loadEncryptedCookie, loadCredentialStore, loadEncryptedToken } from "./crypto.js";
+import { loadEncryptedCookie, loadCredentialStore } from "./crypto.js";
+import { loadDotEnv, resolveTokens, hasAnyToken } from "./config.js";
 import { startProxyRelay } from "./proxy-relay.js";
 import { registerCoreTools } from "./tools/core-tools.js";
 import { registerExtendedTools } from "./tools/extended-tools.js";
 import { registerResources } from "./resources.js";
 import { registerPrompts } from "./prompts.js";
-import * as fs from "fs";
-import * as path from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ─── Config ─────────────────────────────────────────────────────
-
-/** Load .env files from project root and apps if present */
-function loadDotEnv(): void {
-  const envPaths = [
-    path.resolve(__dirname, "..", ".env"),
-    path.resolve(__dirname, "..", "apps", "client-portal-dashboard", ".env"),
-  ];
-  for (const envPath of envPaths) {
-    if (!fs.existsSync(envPath)) continue;
-    const lines = fs.readFileSync(envPath, "utf-8").split("\n");
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
-      const eq = trimmed.indexOf("=");
-      if (eq < 0) continue;
-      const key = trimmed.slice(0, eq).trim();
-      const val = trimmed.slice(eq + 1).trim();
-      if (!process.env[key]) {
-        process.env[key] = val;
-      }
-    }
-  }
-}
 
 // Load env vars at startup
 loadDotEnv();
@@ -77,21 +50,10 @@ function getClient(profile?: string): FusebaseClient {
   const effectiveProfile = profile || _activeProfile;
 
   // 1. Resolve tokens
-  let gateToken = process.env.FUSEBASE_GATE_TOKEN || process.env.GATE_MCP_TOKEN;
-  let dashboardsToken = process.env.FUSEBASE_DASHBOARDS_TOKEN || process.env.DASHBOARDS_MCP_TOKEN;
-  let token = process.env.FUSEBASE_TOKEN;
-
-  if (!gateToken && !dashboardsToken && !token) {
-    const storedToken = loadEncryptedToken(effectiveProfile);
-    if (storedToken) {
-      gateToken = storedToken.gateToken;
-      dashboardsToken = storedToken.dashboardsToken;
-      token = storedToken.token;
-    }
-  }
+  const { gateToken, dashboardsToken, token } = resolveTokens(effectiveProfile);
 
   // 2. Resolve or reuse bridge
-  if ((gateToken || dashboardsToken || token) && !_gateBridge) {
+  if (hasAnyToken({ gateToken, dashboardsToken, token }) && !_gateBridge) {
     _gateBridge = new FusebaseGateBridge({
       gateToken,
       dashboardsToken,
@@ -99,8 +61,8 @@ function getClient(profile?: string): FusebaseClient {
     });
   }
 
-  let host = process.env.FUSEBASE_HOST;
-  let orgId = process.env.FUSEBASE_ORG_ID;
+  const host = process.env.FUSEBASE_HOST;
+  const orgId = process.env.FUSEBASE_ORG_ID;
 
   let cookie = process.env.FUSEBASE_COOKIE || "";
   // If a profile is requested, or if no default cookie was provided in env, load from disk
@@ -198,20 +160,9 @@ Content & Sync Guidelines:
 
 async function main() {
   // Check for tokens and auto-discover identity
-  let gateToken = process.env.FUSEBASE_GATE_TOKEN || process.env.GATE_MCP_TOKEN;
-  let dashboardsToken = process.env.FUSEBASE_DASHBOARDS_TOKEN || process.env.DASHBOARDS_MCP_TOKEN;
-  let token = process.env.FUSEBASE_TOKEN;
+  const { gateToken, dashboardsToken, token } = resolveTokens(_activeProfile);
 
-  if (!gateToken && !dashboardsToken && !token) {
-    const storedToken = loadEncryptedToken(_activeProfile);
-    if (storedToken) {
-      gateToken = storedToken.gateToken;
-      dashboardsToken = storedToken.dashboardsToken;
-      token = storedToken.token;
-    }
-  }
-
-  if (gateToken || dashboardsToken || token) {
+  if (hasAnyToken({ gateToken, dashboardsToken, token })) {
     _gateBridge = new FusebaseGateBridge({
       gateToken,
       dashboardsToken,

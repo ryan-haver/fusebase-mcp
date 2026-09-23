@@ -1859,7 +1859,9 @@ export class FusebaseClient {
               entity,
             });
           }
-        } catch {}
+        } catch {
+          // TODO(COR-16): per-entity lookup failures are skipped silently
+        }
       }
       return fallbackResults;
     } catch {
@@ -4607,7 +4609,8 @@ export class FusebaseClient {
   }
 
   /** Get active feature trial subscriptions for an organization */
-  async getOrgTrials(orgId?: string): Promise<unknown[]> {
+  // TODO(COR-16): orgId is accepted but not sent; the endpoint is scoped by host.
+  async getOrgTrials(_orgId?: string): Promise<unknown[]> {
     return this.request<unknown[]>("/v2/api/orgs/trials");
   }
 

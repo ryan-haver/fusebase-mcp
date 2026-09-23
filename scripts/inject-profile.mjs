@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const indexPath = path.resolve(__dirname, "../src/index.ts");
-let content = fs.readFileSync(indexPath, "utf-8");
+const content = fs.readFileSync(indexPath, "utf-8");
 
 // Regex to find server.tool( "name", "desc", { ... }, async ({ ... }) => { ... } )
 // We want to inject `profile: z.string().optional().describe("Agent profile for auth"),` into the schema
@@ -18,8 +18,6 @@ let content = fs.readFileSync(indexPath, "utf-8");
 
 const lines = content.split("\n");
 let inTool = false;
-let inSchema = false;
-let inHandler = false;
 
 for (let i = 0; i < lines.length; i++) {
     const line = lines[i];

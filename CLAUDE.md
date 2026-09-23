@@ -11,10 +11,11 @@ This file provides project commands, architecture guidelines, and best practices
 - **Run Server (Stdio)**: `node dist/index.js`
 - **Run Server (SSE)**: `node dist/index.js --transport sse --port 3000`
 - **Run Tests**:
-  - Direct Token Test: `npm run test:token`
-  - Deep Data Validation: `npm run test:data-validation`
-  - Full Regression Suite: `npm run test:regression`
-  - All Tests: `npm run test:all`
+  - Offline unit tests: `npm test`
+  - Typecheck / lint: `npm run typecheck` / `npm run lint`
+  - All offline stages (what CI runs): `npm run test:all -- --offline`
+  - Live suites (need credentials + `FUSEBASE_WORKSPACE_ID` sandbox): `npm run test:live`
+  - Known bugs are pinned as `it.fails` / `knownGap()` with IDs from `docs/PLAN-review-remediation.md`; remove the marker when you fix one.
 
 ---
 

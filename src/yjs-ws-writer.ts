@@ -130,8 +130,10 @@ function genBlockId(): string {
  *
  * CRITICAL: characters is Y.Text, supporting .insert(pos, text, {bold: true}) etc.
  * Every block's characters MUST end with "\n".
+ *
+ * @internal Exported for offline round-trip tests.
  */
-function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
+export function addBlocksToDoc(doc: Y.Doc, blocks: ContentBlock[]): void {
   const blocksMap = doc.getMap("blocks");
   const rootChildren = doc.getArray<string>("rootChildren");
 
@@ -1129,7 +1131,7 @@ export async function writeContentViaWebSocket(
     let resolved = false;
     const done = (result: { success: boolean; error?: string }) => {
       if (!resolved) { resolved = true; clearTimeout(timeoutId); resolve(result); }
-      try { ws.close(); } catch { }
+      try { ws.close(); } catch { /* already closed */ }
     };
 
     const timeoutId = setTimeout(() => done({ success: false, error: "Timeout" }), timeout);
@@ -1190,10 +1192,10 @@ export async function writeContentViaWebSocket(
 
         // Apply server state using V2 encoding (encv2=true mode)
         let applied = false;
-        try { Y.applyUpdateV2(ydoc, updateData); applied = true; } catch { }
+        try { Y.applyUpdateV2(ydoc, updateData); applied = true; } catch { /* not V2-encoded; V1 fallback below */ }
         if (!applied) {
           // Fallback to V1 just in case
-          try { Y.applyUpdate(ydoc, updateData); applied = true; } catch { }
+          try { Y.applyUpdate(ydoc, updateData); applied = true; } catch { /* handled by !applied check */ }
         }
 
         if (!applied) {
@@ -1251,7 +1253,7 @@ export async function writeContentViaWebSocket(
         const [uLen, uStart] = readVarUint(data, subOff);
         const updateData = data.slice(uStart, uStart + uLen);
         try { Y.applyUpdateV2(ydoc, updateData); } catch {
-          try { Y.applyUpdate(ydoc, updateData); } catch { }
+          try { Y.applyUpdate(ydoc, updateData); } catch { /* TODO(CON-8): undecodable update is silently dropped */ }
         }
       }
     });
@@ -1322,14 +1324,14 @@ export async function readContentViaWebSocket(
         settleTimer = null;
       }
       if (!resolved) { resolved = true; clearTimeout(timeoutId); resolve(result); }
-      try { ws.close(); } catch { }
+      try { ws.close(); } catch { /* already closed */ }
     };
 
     const timeoutId = setTimeout(() => done({ success: false, error: "Timeout" }), timeout);
 
     ws.on("error", (e: Error) => done({ success: false, error: `WebSocket error: ${e.message}` }));
     ws.on("close", (code: number, reason: Buffer) => {
-      if (!resolved) done({ success: false, error: `Connection closed (code=${code})` });
+      if (!resolved) done({ success: false, error: `Connection closed (code=${code}${reason.length ? `, reason=${reason.toString()}` : ""})` });
     });
     (ws as any).on("unexpected-response", (_req: unknown, res: { statusCode: number }) => {
       done({ success: false, error: `WebSocket upgrade failed: HTTP ${res.statusCode}` });
@@ -1373,7 +1375,7 @@ export async function readContentViaWebSocket(
         const [uLen, uStart] = readVarUint(data, subOff);
         const updateData = data.slice(uStart, uStart + uLen);
         try { Y.applyUpdateV2(ydoc, updateData); } catch {
-          try { Y.applyUpdate(ydoc, updateData); } catch { }
+          try { Y.applyUpdate(ydoc, updateData); } catch { /* TODO(CON-8): undecodable update is silently dropped */ }
         }
 
         // Allow trailing incremental updates (subType 2) to settle before returning
@@ -1386,7 +1388,7 @@ export async function readContentViaWebSocket(
         const [uLen, uStart] = readVarUint(data, subOff);
         const updateData = data.slice(uStart, uStart + uLen);
         try { Y.applyUpdateV2(ydoc, updateData); } catch {
-          try { Y.applyUpdate(ydoc, updateData); } catch { }
+          try { Y.applyUpdate(ydoc, updateData); } catch { /* TODO(CON-8): undecodable update is silently dropped */ }
         }
 
         // Refresh settle timer if we already received the sync snapshot

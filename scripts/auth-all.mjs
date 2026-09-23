@@ -86,7 +86,7 @@ console.log(`\n📋 ${entries.length} profiles from: ${accountsPath}\n`);
 
 if (dryRun) {
     console.log("DRY RUN — listing profiles:\n");
-    for (const [role, info] of entries) {
+    for (const [, info] of entries) {
         const hasCreds = creds && creds[info.profile] ? "✅" : "❌";
         console.log(`  ${hasCreds} ${info.display_name}  →  --profile=${info.profile}  (${info.email || "no email"})`);
     }
@@ -100,7 +100,7 @@ const results = { success: [], failed: [] };
 
 console.log("─── Starting batch authentication ───\n");
 
-for (const [role, info] of entries) {
+for (const [, info] of entries) {
     const profileName = info.profile;
 
     // Validate profile name to prevent shell injection

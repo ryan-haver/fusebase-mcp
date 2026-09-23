@@ -18,8 +18,13 @@
     "prepare": "npm run build",
     "dev": "tsc --watch",
     "start": "node dist/index.js",
-    "test": "npx tsx scripts/test-mcp-e2e.ts",
-    "test:flow": "npx tsx scripts/test-cli-and-flow.ts",
+    "typecheck": "tsc -p tsconfig.check.json",
+    "lint": "eslint .",
+    "pretest": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:live": "npx tsx scripts/test-all.ts --live-only",
+    "test:mcp-e2e": "npx tsx scripts/test-mcp-e2e.ts",
     "test:database": "npx tsx scripts/test-database-e2e.ts",
     "test:data-validation": "npx tsx scripts/test-data-validation.ts",
     "test:audit": "npx tsx scripts/audit-tools.ts",
@@ -50,9 +55,13 @@
     "yjs": "^13.6.29"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@types/node": "^22.0.0",
     "@types/turndown": "^5.0.6",
     "@types/ws": "^8.18.1",
-    "typescript": "^5.7.0"
+    "eslint": "^9.39.5",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.70.1",
+    "vitest": "^5.0.1"
   }
 }

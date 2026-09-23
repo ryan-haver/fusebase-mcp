@@ -412,35 +412,23 @@ If it works, you're all set! 🎉
 You can also run automated verification directly from your terminal:
 
 ```bash
-npm run test:all              # Master 7-stage unified verification pipeline (100% full platform test)
-npm run test:database         # 13-Phase end-to-end database & relational validation suite (95 assertions)
-npm run test:flow             # ActivePieces workflow automations & FuseBase CLI suite (36 assertions)
-npm run test:data-validation  # Full deep data validation across all 165 tools & endpoints (171 assertions)
-npm run test:audit            # Validate all 165 tool schemas, parameters, and documentation
-npm test                      # Run full 15-stage platform end-to-end test suite
+npm test                      # Offline unit tests (no credentials needed)
+npm run test:all -- --offline # Typecheck, lint, build, unit tests, schema audit (what CI runs)
+npm run test:live             # Live suites against your sandbox workspace (see below)
 npm run deploy:status         # Build & deploy live status dashboard to fusebase-mcp.thefusebase.app
 npm run deploy:page           # Embed the live status dashboard into a FuseBase workspace note
 ```
 
-### Target Workspace Selection & Isolation
+### Sandbox Workspace for Live Tests
 
-By default, test suites and workspace deployments prioritize dedicated project workspaces (e.g. named `"Agent Projects"` or `"FuseBase MCP"`) to isolate test runs and prevent polluting personal or client workspaces.
+Live test suites create and delete pages, folders, databases and flows, so they only run in a workspace you name explicitly. There is no fallback to "the first workspace":
 
-You can explicitly target any workspace in your FuseBase organization:
-- **CLI flag**:
-  ```bash
-  npm run test:data-validation -- --workspace="Agent Projects"
-  npm run deploy:page -- --workspace="Agent Projects"
-  ```
-- **Environment variable**: Set `FUSEBASE_WORKSPACE_ID` in your `.env`:
-  ```env
-  FUSEBASE_WORKSPACE_ID=49b306wxd9oa7hyc
-  ```
-- **Automatic Fallback**:
-  1. CLI `--workspace=<id|name>`
-  2. `.env` `FUSEBASE_WORKSPACE_ID`
-  3. Auto-detected workspace with `"mcp"` or `"agent"` in title
-  4. First available organization workspace
+- **Environment variable** (recommended): set `FUSEBASE_WORKSPACE_ID` in your `.env`
+- **CLI flag**: `npm run test:data-validation -- --workspace=<workspace-id>`
+
+Portal invite / magic-link checks send real email and are skipped unless `FUSEBASE_TEST_INVITE_EMAIL` is set to an address you control.
+
+`npm run deploy:page` accepts the same `--workspace=<id|name>` flag and `FUSEBASE_WORKSPACE_ID`.
 
 ## 📚 Native MCP Resources & Prompts
 
@@ -595,13 +583,15 @@ src/
   content-schema.ts     → Content block IR (25+ block types)
   markdown-parser.ts    → Markdown → ContentBlock[] converter
 scripts/
-  test-all.ts           → Master 7-stage unified verification runner (`npm run test:all`)
-  test-database-e2e.ts  → Dedicated 13-phase e2e database & relational validation suite (`npm run test:database`)
-  test-cli-and-flow.ts  → ActivePieces workflow automations & FuseBase CLI test suite (`npm run test:flow`)
-  test-data-validation.ts → Deep data validation across all 165 tools (`npm run test:data-validation`)
-  test-mcp-e2e.ts       → Full 15-stage platform integration test suite (`npm test`)
-  test-regression.ts    → Y.js block type and format regression test (`npm run test:regression`)
-  audit-tools.ts        → Tool schema and parameter completeness validator (`npm run test:audit`)
+  test-all.ts           → Test runner: offline stages, then live suites (`npm run test:all`)
+  lib/live-harness.ts   → Shared live-suite harness: strict tool calls, skips, known gaps, exit codes
+  test-database-e2e.ts  → Live database & relational lifecycle suite (`npm run test:database`)
+  test-data-validation.ts → Live data validation across the tool catalog (`npm run test:data-validation`)
+  test-mcp-e2e.ts       → Live MCP protocol, resources, prompts and page lifecycle (`npm run test:mcp-e2e`)
+  test-regression.ts    → Live Y.js block/format write → read round trip (`npm run test:regression`)
+  test-token-direct-connection.ts → Live Gate/Dashboards token checks (`npm run test:token`)
+  test-token-parity.ts  → Live token vs cookie parity table (`npm run test:parity`)
+  audit-tools.ts        → Tool schema, duplicate and README coverage audit (`npm run test:audit`)
   auth.ts               → Capture/refresh session cookies via Playwright (multi-profile)
   inspect-hub.ts        → Deep inspection of client portal and workspace hubs
   deploy-status-dashboard.ts → Build & deploy live status dashboard SPA (`npm run deploy:status`)
@@ -631,52 +621,35 @@ See [ENDPOINT_REFERENCE.md](ENDPOINT_REFERENCE.md) for all discovered and implem
 
 ## 🧪 Testing & Validation
 
-The server includes automated test suites to ensure zero regressions across tool schemas, parameter types, protocol compliance, and live API synchronization:
+Tests are split into **offline** checks (fast, no credentials, run in CI) and **live** suites (talk to FuseBase, run locally against a sandbox workspace).
 
 ```bash
-# 1. Master 7-Stage Unified Verification Pipeline (Recommended before every push)
-npm run test:all
-
-# 2. Dedicated 13-Phase E2E Database Subsystem Test Suite (Dynamic creation, schema, cells, Kanban, cloning, cleanup)
-npm run test:database
-
-# 3. ActivePieces Workflow Automations & Hosted Vibe Apps CLI Suite
-npm run test:flow
-
-# 4. Full-Spectrum 165-Tool Deep Data Validation Suite (13 suites, 100% data assertions)
-npm run test:data-validation
-
-# 5. Full Live Platform End-to-End Suite (15 stages against live API)
-npm test
-
-# 6. Tool Schema, Duplicate, & Documentation Coverage Auditor
-npm run test:audit
-
-# 7. Y.js Block Schema & Inline Format Regression Suite
-npm run test:regression
-
-# 8. Live Status Dashboard Build & Deployment Pipeline (Deploy prior to commit & push)
-npm run deploy:status
+npm test                        # Offline unit tests (vitest), tests/unit/
+npm run typecheck               # Typecheck src, scripts and tests
+npm run lint                    # ESLint
+npm run test:all -- --offline   # All offline stages (same as CI)
+npm run test:live               # All live suites (needs credentials + FUSEBASE_WORKSPACE_ID)
+npm run test:all                # Offline stages, then live suites
 ```
 
-| Test Command | Coverage Area |
+| Command | What it checks |
 |---|---|
-| `npm run test:all` | **Master 7-stage unified verification runner**: runs Static Type Audit, Tool Schema Audit, Flow & CLI, Y.js block regressions, MCP protocol & prompts, E2E database suite, and Full-Spectrum Live Data Validation |
-| `npm run test:database` | **Dedicated 13-phase database lifecycle suite**: dynamically provisions isolated test databases, verifies 7 column types, schema mutations, batch row ingestion, friendly cell updates, Kanban view shifts, relations, CSV portability, database cloning, and zero-debris automated cleanup (95/95 assertions) |
-| `npm run test:flow` | **ActivePieces & CLI suite**: verifies flow creation, piece discovery, execution triggers, CLI status, app scaffolding, sidecars, secrets, and CRM alias resolution (36/36 assertions) |
-| `npm run test:data-validation` | **Deep data validation across all 165 tools**: asserts schema types, non-null values, UUID formats, round-trip state mutations, and guaranteed resource cleanup (171/171 assertions) |
-| `npm test` | **15 platform subsystems**: resources, templates, prompts, core/extended switching, Y.js WebSocket sync, CLI status, ActivePieces, portals, and swarms |
-| `npm run test:audit` | **Schema & documentation auditor**: validates that all 165 tools have descriptions, schemas, parameter docs, and 100% documentation coverage in README.md |
-| `npm run test:regression` | **Collaborative document fidelity**: validates round-trip Y.js WebSocket write → read fidelity across all 25+ block types and inline formats |
-| `npm run deploy:status` | **Live cloud status synchronization**: compiles dashboard SPA, deploys to `https://fusebase-mcp.thefusebase.app/`, and verifies live HTTP 200 health |
+| `npm test` | Offline unit tests: markdown parser, Y.js writer → decoder round trips, tool registry and tiers, input validation, path handling, CLI argument building, server process behaviour |
+| `npm run test:audit` | Every tool has a description and described parameters, no duplicate tools, every tool documented in README.md |
+| `npm run test:token` | Gate/Dashboards token identity, permission catalog, token list, isolated stores |
+| `npm run test:mcp-e2e` | MCP resources, prompts, tier switching and a full page lifecycle over stdio |
+| `npm run test:regression` | Every block type and inline format written over the Y.js WebSocket and read back |
+| `npm run test:database` | Database, column, row, view, relation, CSV and cloning lifecycle |
+| `npm run test:data-validation` | Live calls across the tool catalog with data-shape and round-trip assertions |
+| `npm run test:parity` | The same capabilities measured in token mode and cookie mode |
 
-### Pre-Commit & Push Workflow Checklist
+**How results are reported.** Suites exit non-zero on any failure. Capabilities an org may legitimately lack (CLI not installed, feature not on the plan) are reported as explicit *skips*, never as passes. Behaviour that is known to be broken is tracked as an expected failure (`it.fails` offline, `knownGap()` live) tagged with its finding ID from [docs/PLAN-review-remediation.md](docs/PLAN-review-remediation.md); when a fix lands, the marker turns red until it is removed.
 
-Before any commit and push to git:
-1. **Master Pipeline**: `npm run test:all` (runs all 7 stages: type audit, schema audit, flows, Y.js blocks, MCP protocol, database lifecycle, and deep data validation).
-2. **Audit & Lint**: `npm run test:audit` (guarantees schema descriptions and 100% README documentation coverage).
-3. **Deploy Status Dashboard**: `npm run deploy:status` (deploys latest project state & git hash to `https://fusebase-mcp.thefusebase.app/`).
-4. **Commit & Push**: Commit clean changes and push to `origin/master`.
+### Before You Push
+
+1. `npm run test:all -- --offline` (CI runs the same stages on Node 22 and 24)
+2. `npm run test:live` for any change that touches API calls, content writing or auth
+3. `npm run deploy:status` if you maintain the status dashboard
 
 ## 🤝 Contributing
 

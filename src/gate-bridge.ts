@@ -185,7 +185,7 @@ export class FusebaseGateBridge {
       throw new Error("FusebaseGateBridge is not configured with any tokens.");
     }
 
-    let primaryTarget: "gate" | "dashboards" = this.hasGate ? "gate" : "dashboards";
+    const primaryTarget: "gate" | "dashboards" = this.hasGate ? "gate" : "dashboards";
     await this.initTarget(primaryTarget);
 
     if (this.hasDashboards && primaryTarget !== "dashboards") {
@@ -214,7 +214,7 @@ export class FusebaseGateBridge {
       }
     }
 
-    let hosts = whoamiData.hosts;
+    const hosts = whoamiData.hosts;
     if (!orgDomain && hosts?.fusebaseWebClientHost && orgId) {
       orgDomain = `${orgId}.${hosts.fusebaseWebClientHost}`;
     }

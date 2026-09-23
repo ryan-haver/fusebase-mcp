@@ -312,7 +312,7 @@ export function registerExtendedTools(
         const stream = await client.getActivityStream(workspaceId);
 
         // Filter mentions/comments if a since timestamp is provided
-        let result: any = { ...stream };
+        const result: any = { ...stream };
 
         if (since) {
           const filterRecent = (items: any[]) => items?.filter(item => (item.time || item.created || item.updated || 0) > since) || [];

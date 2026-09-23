@@ -94,7 +94,6 @@ async function main() {
       type: "paragraph",
       children: [
         {
-          type: "text",
           text: "Live platform operations, real-time engineering metrics, test suite assertion results, and MCP tool catalog for the FuseBase Model Context Protocol server.",
         },
       ],

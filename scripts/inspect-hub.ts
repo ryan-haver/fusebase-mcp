@@ -10,7 +10,7 @@
  */
 
 import { FusebaseClient } from "../src/client.js";
-import { loadEncryptedCookie, listConfiguredProfiles } from "../src/crypto.js";
+import { loadEncryptedCookie } from "../src/crypto.js";
 
 async function main() {
   const profileArg = process.argv.find((a) => a.startsWith("--profile="));
