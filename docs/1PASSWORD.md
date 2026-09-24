@@ -94,6 +94,12 @@ claude mcp add fusebase --scope local \
      -- node /path/to/fusebase-mcp/dist/index.js
 ```
 
+In the VS Code extension we've seen the shared `.mcp.json` entry used instead, most likely
+because the extension looks the project up as `c:/…` while the CLI saved the entry under `C:/…`.
+That still works: started without `op run`, the server resolves the same references itself
+through the desktop app (see [Without `op run`](#without-op-run)), with the same single
+approval. Keep `FUSEBASE_OP_ACCOUNT` in `.env` so both launch paths work.
+
 `-e OP_SERVICE_ACCOUNT_TOKEN=` clears a machine-wide service account token that another tool
 may have set. When that variable is set, `op` signs in as that service account instead of
 you, and it usually can't see your FuseBase items.
