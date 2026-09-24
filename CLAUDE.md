@@ -49,6 +49,12 @@ In `%APPDATA%\Claude\claude_desktop_config.json` (Windows) or `~/Library/Applica
 
 ---
 
+## Secrets
+- Secrets (Gate/Dashboards tokens, `FUSEBASE_SECRET_KEY`) live in 1Password. `.env` (gitignored) holds only `op://` references and IDs, and the server is started with `op run --env-file=.env`. See [docs/1PASSWORD.md](docs/1PASSWORD.md).
+- Never print, log or commit secret values, and never commit anyone's real `.env` or MCP client config (vault/item names, Environment IDs, accounts). The shared `.mcp.json` stays generic; personal `op run` launches go in a local-scope entry.
+- New tokens go into 1Password; add only the reference to `.env`. Check with `scripts/check-1password.ts` (names only) under a single `op run`, not many separate `op` calls: each one needs its own approval.
+- `data/*.enc` (cookies, agent credentials) stay on disk, encrypted with `FUSEBASE_SECRET_KEY`.
+
 ## Token Hygiene & Context Management
 - FuseBase MCP boots with **Core Tier (34 tools)** to preserve your context window.
 - If your task requires relational database, dashboard, portal, or automation capabilities, dynamically call `set_tool_tier({ "tier": "all" })` to register the remaining 141 extended tools.

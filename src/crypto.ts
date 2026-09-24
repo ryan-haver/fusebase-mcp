@@ -83,6 +83,16 @@ export function getEncryptionKey(): Buffer {
     cachedKey = key;
     return key;
   }
+  // A new key can't read files written with the old one: refuse rather than orphan them
+  // (e.g. the key now lives in 1Password but FUSEBASE_SECRET_KEY didn't resolve).
+  const orphaned = encryptedV2Files();
+  if (orphaned.length > 0) {
+    throw new Error(
+      `No encryption key: FUSEBASE_SECRET_KEY is not set and ${file} is missing, but ${orphaned.length} ` +
+      `encrypted file(s) need it (${orphaned.slice(0, 3).join(", ")}). Set FUSEBASE_SECRET_KEY ` +
+      `(e.g. an op:// reference with \`op\` signed in) or restore the key file.`,
+    );
+  }
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const key = crypto.randomBytes(KEY_LENGTH);
   // "wx" fails if another process created the file first; then use theirs.
@@ -94,6 +104,27 @@ export function getEncryptionKey(): Buffer {
     cachedKey = Buffer.from(fs.readFileSync(file, "utf-8").trim(), "base64");
   }
   return cachedKey;
+}
+
+/** Names of files in the data directory encrypted with a v2 key. */
+function encryptedV2Files(): string[] {
+  const dir = getDataDir();
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir).filter((f) => {
+    if (!f.endsWith(".enc")) return false;
+    try {
+      const fd = fs.openSync(path.join(dir, f), "r");
+      try {
+        const head = Buffer.alloc(V2_PREFIX.length);
+        fs.readSync(fd, head, 0, head.length, 0);
+        return head.toString("utf-8") === V2_PREFIX;
+      } finally {
+        fs.closeSync(fd);
+      }
+    } catch {
+      return false;
+    }
+  });
 }
 
 /** Forget cached keys (tests, or after FUSEBASE_SECRET_KEY / FUSEBASE_DATA_DIR changes). */

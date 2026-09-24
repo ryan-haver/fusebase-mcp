@@ -565,7 +565,8 @@ Enable with `set_tool_tier(tier: "all")` or set `FUSEBASE_TOOLS=all` in `.env`:
 
 ## 🔐 Security
 
-- **No plaintext secrets on disk** — cookies are encrypted with AES-256-GCM using a machine-scoped key
+- **Encrypted at rest** — saved cookies, tokens and agent credentials are encrypted with AES-256-GCM using a random key in `data/.key` (owner-only) or `FUSEBASE_SECRET_KEY`
+- **1Password** — keep tokens and `FUSEBASE_SECRET_KEY` in 1Password, put only `op://` references in `.env`, and start the server with `op run --env-file=.env -- node dist/index.js`. Vault items or a 1Password Environment both work. See [docs/1PASSWORD.md](docs/1PASSWORD.md)
 - **Auto-refresh** — expired sessions are transparently refreshed via Playwright
 - **`.env` is gitignored** — credentials never enter version control
 - **Cookie via env var** — optionally pass `FUSEBASE_COOKIE` in your MCP config for environments where the encrypted store isn't available

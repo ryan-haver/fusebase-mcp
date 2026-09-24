@@ -10,16 +10,37 @@ import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import { loadEncryptedToken } from "./crypto.js";
+import { loadOnePasswordEnvironment, opRead, resolveSecretReferences } from "./secret-refs.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 
 /**
- * Load .env files from project root and apps if present. Existing env vars win.
- * Set FUSEBASE_NO_DOTENV=1 to skip (used by hermetic tests).
+ * Load configuration into process.env, in order of precedence:
+ *   1. the real environment (never overridden),
+ *   2. the 1Password Environment named by FUSEBASE_OP_ENVIRONMENT_ID,
+ *   3. .env files (project root, then apps/client-portal-dashboard).
+ * `op://` references are resolved along the way (see secret-refs.ts and docs/1PASSWORD.md).
+ * Set FUSEBASE_NO_DOTENV=1 to skip the .env files (used by hermetic tests).
  */
+export async function loadEnvironment(): Promise<void> {
+  // .env first: it may hold FUSEBASE_OP_ENVIRONMENT_ID. Its values may be replaced by the Environment.
+  const fromFiles = process.env.FUSEBASE_NO_DOTENV !== "1" ? loadDotEnvFiles() : new Set<string>();
+  // The service account token first (desktop app prompt), then the Environment it can read.
+  resolveSecretReferences(process.env, opRead, ["FUSEBASE_OP_SERVICE_ACCOUNT_TOKEN"]);
+  await loadOnePasswordEnvironment(process.env, { overridable: fromFiles });
+  resolveSecretReferences();
+}
+
+/** Synchronous variant without the 1Password Environment (.env files and op:// references only). */
 export function loadDotEnv(): void {
-  if (process.env.FUSEBASE_NO_DOTENV === "1") return;
+  if (process.env.FUSEBASE_NO_DOTENV !== "1") loadDotEnvFiles();
+  resolveSecretReferences();
+}
+
+/** Load .env files; existing env vars win. Returns the names this call set. */
+function loadDotEnvFiles(): Set<string> {
+  const set = new Set<string>();
   const envPaths = [
     path.join(PROJECT_ROOT, ".env"),
     path.join(PROJECT_ROOT, "apps", "client-portal-dashboard", ".env"),
@@ -33,12 +54,14 @@ export function loadDotEnv(): void {
       const eq = trimmed.indexOf("=");
       if (eq < 0) continue;
       const key = trimmed.slice(0, eq).trim();
-      const val = trimmed.slice(eq + 1).trim();
+      const val = trimmed.slice(eq + 1).trim().replace(/^(["'])(.*)\1$/, "$2");
       if (!process.env[key]) {
         process.env[key] = val;
+        set.add(key);
       }
     }
   }
+  return set;
 }
 
 export interface TokenConfig {

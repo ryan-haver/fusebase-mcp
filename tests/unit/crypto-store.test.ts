@@ -83,6 +83,16 @@ describe("v2 key (SEC-10)", () => {
     expect(fs.existsSync(path.join(dir, ".key"))).toBe(false);
   });
 
+  it("refuses to create a new key when files encrypted with the old one exist", () => {
+    saveEncryptedCookie("sid=1");
+    fs.rmSync(path.join(dir, ".key")); // e.g. the key moved to 1Password but didn't resolve
+    resetKeyCache();
+    expect(() => getEncryptionKey()).toThrow(/No encryption key.*cookie\.enc/);
+    expect(fs.existsSync(path.join(dir, ".key"))).toBe(false);
+    expect(loadEncryptedCookie()).toBeNull();
+    expect(() => saveEncryptedCookie("sid=2")).toThrow(/No encryption key/);
+  });
+
   it("detects tampering", () => {
     const blob = Buffer.from(encryptData("secret value").slice(3), "base64");
     blob[blob.length - 1] ^= 0xff;

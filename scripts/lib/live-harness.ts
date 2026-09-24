@@ -12,12 +12,12 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import * as path from "path";
 import { fileURLToPath } from "url";
-import { loadDotEnv } from "../../src/config.js";
+import { loadEnvironment } from "../../src/config.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const ROOT_DIR = path.resolve(__dirname, "..", "..");
 
-loadDotEnv();
+await loadEnvironment();
 
 // ─── Counters ───────────────────────────────────────────────────────
 

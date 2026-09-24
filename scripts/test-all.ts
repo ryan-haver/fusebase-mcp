@@ -16,7 +16,7 @@
 import { spawn } from "child_process";
 import * as path from "path";
 import { fileURLToPath } from "url";
-import { loadDotEnv } from "../src/config.js";
+import { loadEnvironment } from "../src/config.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
@@ -65,7 +65,7 @@ async function main() {
   const stages = [...(liveOnly ? [] : OFFLINE), ...(offlineOnly ? [] : LIVE)];
 
   if (!offlineOnly) {
-    loadDotEnv();
+    await loadEnvironment();
     if (!process.env.FUSEBASE_WORKSPACE_ID) {
       console.error("❌ Live suites need FUSEBASE_WORKSPACE_ID (a sandbox workspace). Set it in .env, or run with --offline.");
       process.exit(1);

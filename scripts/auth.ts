@@ -37,12 +37,12 @@ export interface AuthConfig {
   proxy?: { server: string; username: string; password: string }; // SOCKS5 proxy
 }
 
-function getCryptoUrl(): string {
-  const distPath = path.resolve(__dirname, "..", "dist", "crypto.js");
+function getCryptoUrl(module = "crypto.js"): string {
+  const distPath = path.resolve(__dirname, "..", "dist", module);
   if (fs.existsSync(distPath)) {
-    return new URL("../dist/crypto.js", import.meta.url).href;
+    return new URL(`../dist/${module}`, import.meta.url).href;
   }
-  return new URL("../src/crypto.js", import.meta.url).href;
+  return new URL(`../src/${module}`, import.meta.url).href;
 }
 
 // ─── Core ───────────────────────────────────────────────────────
@@ -222,6 +222,11 @@ export async function isCookieFresh(profile?: string): Promise<boolean> {
 // ─── CLI Entry Point ────────────────────────────────────────────
 
 async function main() {
+  // Load .env, the 1Password Environment and op:// references (e.g. FUSEBASE_SECRET_KEY),
+  // so files saved here are encrypted with the same key the server uses.
+  const { loadEnvironment } = await import(getCryptoUrl("config.js"));
+  await loadEnvironment();
+
   const args = process.argv.slice(2);
 
   // Parse --key=value or --key value

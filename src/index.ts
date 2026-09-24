@@ -25,14 +25,11 @@
 
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { loadCredentialStore } from "./crypto.js";
-import { loadDotEnv, resolveTokens } from "./config.js";
+import { loadEnvironment, resolveTokens } from "./config.js";
 import { startProxyRelay } from "./proxy-relay.js";
 import { resolveHttpOptions, startHttpServer } from "./http-server.js";
 import { bridgeFor, buildClient, setProxyRelayUrl } from "./client-factory.js";
 import { createFusebaseServer, SERVER_VERSION } from "./server.js";
-
-// Load env vars at startup
-loadDotEnv();
 
 /** A new MCP server for one client session; each session keeps its own active profile. */
 function newSessionServer() {
@@ -44,6 +41,9 @@ function newSessionServer() {
 }
 
 async function main() {
+  // .env, the 1Password Environment and op:// references (see config.ts)
+  await loadEnvironment();
+
   // Check for tokens and auto-discover identity
   const bridge = bridgeFor(resolveTokens(process.env.FUSEBASE_PROFILE));
   if (bridge) {
