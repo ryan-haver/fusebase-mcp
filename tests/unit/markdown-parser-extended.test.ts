@@ -438,23 +438,46 @@ describe("misc", () => {
 });
 
 describe("performance", () => {
-  const timed = <T>(fn: () => T): { result: T; ms: number } => {
-    fn(); // warm up the JIT so the bound measures the parser, not compilation
-    const t0 = performance.now();
-    const result = fn();
-    return { result, ms: performance.now() - t0 };
+  // These tests guard against quadratic parsing (2–5 s per case before the fix), not against a
+  // slow machine: they compare how time scales with input size, which holds on any runner.
+  const PERF_TIMEOUT = 60_000;
+
+  /** Median time of 3 calls, in ms. */
+  const medianMs = (fn: () => unknown): number => {
+    const times = [0, 1, 2].map(() => {
+      const t0 = performance.now();
+      fn();
+      return performance.now() - t0;
+    });
+    return times.sort((a, b) => a - b)[1];
   };
+
+  /**
+   * 4× the input should take about 4× as long; quadratic parsing takes 16×. Allow 8×, with a
+   * 50 ms floor so timer noise on fast machines can't fail the test.
+   */
+  const expectLinear = (make: (size: number) => string, parse: (input: string) => unknown, size = 100_000) => {
+    const small = make(size / 4);
+    const large = make(size);
+    parse(small); // warm up the JIT so the ratio measures the parser, not compilation
+    const smallMs = medianMs(() => parse(small));
+    const largeMs = medianMs(() => parse(large));
+    expect(largeMs, `${size / 4} chars: ${smallMs.toFixed(0)} ms, ${size} chars: ${largeMs.toFixed(0)} ms`)
+      .toBeLessThan(Math.max(smallMs * 8, 50));
+  };
+
   const PROSE =
     "Lorem ipsum dolor sit amet, **consectetur** adipiscing elit, sed do _eiusmod_ tempor incididunt ut " +
     "labore et dolore magna aliqua. See [the docs](https://example.com/docs) for `details`. ";
+  const repeatTo = (unit: string) => (size: number) => unit.repeat(Math.ceil(size / unit.length)).slice(0, size);
 
-  it("parses a 200 KB single line in < 500 ms", () => {
-    const line = PROSE.repeat(Math.ceil(200_000 / PROSE.length)).slice(0, 200_000);
-    const { result, ms } = timed(() => markdownToSchema(line));
+  it("parses a 200 KB single line in linear time", () => {
+    const line = repeatTo(PROSE)(200_000);
+    const result = markdownToSchema(line);
     expect(result).toHaveLength(1);
     expect(text((result[0] as any).children)).toContain("consectetur adipiscing");
-    expect(ms).toBeLessThan(500); // linear runs take ~50 ms; the quadratic took seconds
-  });
+    expectLinear(repeatTo(PROSE), markdownToSchema);
+  }, PERF_TIMEOUT);
 
   it("keeps formatting across the whole of a huge paragraph", () => {
     const line = PROSE.repeat(Math.ceil(200_000 / PROSE.length));
@@ -463,25 +486,23 @@ describe("performance", () => {
     expect(text(segs)).not.toContain("**");
   });
 
-  it("parses 60 KB of unclosed <u> in < 500 ms (CON-9b)", () => {
-    for (const input of ["<u>".repeat(20_000), "<u>x ".repeat(12_000)]) {
-      const { result, ms } = timed(() => ({ segs: parseInline(input), blocks: markdownToSchema(input) }));
-      expect(text(result.segs)).toBe(input.trim());
-      expect(result.blocks).toHaveLength(1);
-      expect(ms).toBeLessThan(500); // linear runs take ~50 ms; the quadratic took seconds
+  it("parses unclosed <u> in linear time (CON-9b)", () => {
+    for (const unit of ["<u>", "<u>x "]) {
+      const input = repeatTo(unit)(60_000);
+      expect(text(parseInline(input))).toBe(input.trim());
+      expect(markdownToSchema(input)).toHaveLength(1);
+      expectLinear(repeatTo(unit), (s) => ({ segs: parseInline(s), blocks: markdownToSchema(s) }));
     }
-  });
+  }, PERF_TIMEOUT);
 
-  // Worst cases for micromark's inline resolution (quadratic in one large paragraph without
-  // chunking: 2–5 s each). Generous bound: this guards against the quadratic, not the constant.
+  // Worst cases for micromark's inline resolution (quadratic in one large paragraph without chunking).
   it.each([["a **b** "], ["a <u>u</u> "], ["a * b "], ["`a "], ["[a](b "], ["word ==hl== _it_ [l](https://x.io) "]])(
     "parses 200 KB of dense %j without quadratic blow-up",
     (unit) => {
-      const input = unit.repeat(Math.ceil(200_000 / unit.length)).slice(0, 200_000);
-      const { result, ms } = timed(() => markdownToSchema(input));
-      expect(result.length).toBeGreaterThan(0);
-      expect(ms).toBeLessThan(1000);
+      expect(markdownToSchema(repeatTo(unit)(200_000)).length).toBeGreaterThan(0);
+      expectLinear(repeatTo(unit), markdownToSchema);
     },
+    PERF_TIMEOUT,
   );
 });
 
