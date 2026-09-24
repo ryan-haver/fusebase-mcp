@@ -1,7 +1,7 @@
 # ==============================================================================
 # 1. Builder Stage: Compile TypeScript
 # ==============================================================================
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -19,9 +19,9 @@ COPY docs ./docs
 RUN npm run build
 
 # ==============================================================================
-# 2. Production Runtime Stage: Lightweight Node.js image (~150MB)
+# 2. Production Runtime Stage: production dependencies and the compiled server only
 # ==============================================================================
-FROM node:20-alpine AS runtime
+FROM node:22-alpine AS runtime
 
 LABEL org.opencontainers.image.title="FuseBase MCP Server" \
       org.opencontainers.image.description="Model Context Protocol (MCP) server for FuseBase workspaces, databases, and automations" \

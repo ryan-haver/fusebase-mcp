@@ -133,7 +133,37 @@ The server also resolves `op://` values in `.env` on its own at startup, using t
 through the desktop app as `FUSEBASE_OP_ACCOUNT` (one approval per start). `op run` is the
 recommended form. This fallback is for clients that can't wrap the command.
 
-## Unattended use (CI, Docker)
+## Docker
+
+The image contains no secrets. Pass them in at start-up by wrapping `docker compose` in
+`op run`, which resolves `.env` into the environment Compose reads:
+
+```bash
+export MCP_AUTH_TOKEN=$(openssl rand -hex 32)   # clients send this as a bearer token
+op run --account <your-account>.1password.com --env-file=.env -- docker compose up -d
+```
+
+- Using a 1Password Environment, the container receives only `FUSEBASE_OP_SERVICE_ACCOUNT_TOKEN`
+  and `FUSEBASE_OP_ENVIRONMENT_ID`, and loads the tokens and key itself with the 1Password SDK.
+  The log shows `Loaded 3 variable(s) from 1Password Environment: …`, names only.
+- Mount `./data` (the compose file does) so the container can read the encrypted cookies and
+  credentials. It needs the same `FUSEBASE_SECRET_KEY` that wrote them.
+- Don't run `docker compose up` without `op run`. Compose reads `.env` on its own and would
+  pass the `op://` text instead of the value. There's no `op` CLI in the image, so the server
+  logs that it couldn't read the variable and runs without it.
+- Variables passed to a container are visible to anyone who can run `docker inspect` on this
+  host. For a shared or production host, use your platform's secret store rather than plain
+  environment variables.
+
+To run the live suites against a running server (for example this container) instead of a
+local one, set `FUSEBASE_MCP_URL` and `MCP_AUTH_TOKEN`:
+
+```bash
+op run --account <your-account>.1password.com --env-file=.env -- \
+  env FUSEBASE_MCP_URL=http://127.0.0.1:3000/mcp npx tsx scripts/test-all.ts --live-only
+```
+
+## Unattended use (CI, servers)
 
 There's no one to approve a prompt, so give the process a service account token
 (`OP_SERVICE_ACCOUNT_TOKEN` for `op run`, or `FUSEBASE_OP_SERVICE_ACCOUNT_TOKEN` for the

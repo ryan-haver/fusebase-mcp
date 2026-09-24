@@ -10,6 +10,7 @@
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import { loadEnvironment } from "../../src/config.js";
@@ -110,7 +111,22 @@ export function requireSandboxWorkspace(): string {
 
 // ─── MCP client ─────────────────────────────────────────────────────
 
+/**
+ * Connect to the server under test. By default this starts dist/index.js over stdio. With
+ * FUSEBASE_MCP_URL set (e.g. http://127.0.0.1:3000/mcp for the Docker container), it connects to
+ * that running server over Streamable HTTP, with MCP_AUTH_TOKEN as the bearer token; the tier is
+ * then switched per session with set_tool_tier, and `opts.env` does not apply.
+ */
 export async function connectMcp(name: string, opts: { tier?: "core" | "all"; env?: Record<string, string> } = {}): Promise<Client> {
+  const url = process.env.FUSEBASE_MCP_URL;
+  if (url) {
+    const token = process.env.MCP_AUTH_TOKEN;
+    const http = new StreamableHTTPClientTransport(new URL(url), token ? { requestInit: { headers: { Authorization: `Bearer ${token}` } } } : undefined);
+    const remote = new Client({ name, version: "1.0.0" }, { capabilities: {} });
+    await remote.connect(http);
+    if ((opts.tier ?? "all") === "all") await remote.callTool({ name: "set_tool_tier", arguments: { tier: "all" } });
+    return remote;
+  }
   const transport = new StdioClientTransport({
     command: process.execPath,
     args: [path.join(ROOT_DIR, "dist", "index.js")],

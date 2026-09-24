@@ -239,7 +239,7 @@ This is done together with the refactor. Adding annotations and output limits on
 | DOC-5 | Docker: Playwright can't refresh cookies on alpine; host-encrypted credentials don't decrypt in the container | ✅ | Document Docker as token-mode only; use `FUSEBASE_SECRET_KEY` (SEC-10) |
 | DOC-6 | Version hardcoded in 3 places | ✅ | Read it from `package.json` |
 | DOC-7 | `loadDotEnv` doesn't handle quoted values and also loads `apps/client-portal-dashboard/.env` | ✅ | Use Node's built-in `process.loadEnvFile` (Node ≥ 20.12) and drop the apps coupling |
-| DOC-8 | Dev tooling (vitest 5) needs Node ≥ 22.12, the Docker image uses `node:20`, and `package.json` has no `engines` field | ✅ | Declare `engines` (runtime ≥ 20.12); document Node 22+ for development; consider moving the image to `node:22-alpine` |
+| DOC-8 | Dev tooling (vitest 5) needs Node ≥ 22.12, the Docker image uses `node:20`, and `package.json` has no `engines` field | ✅ partly fixed (image now `node:22-alpine`, verified live: all six suites pass against the container with secrets from 1Password; `engines` still open) | Declare `engines` (runtime ≥ 20.12); document Node 22+ for development; consider moving the image to `node:22-alpine` |
 
 ---
 

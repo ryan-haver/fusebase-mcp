@@ -26,6 +26,11 @@ services:
       - FUSEBASE_HOST=${FUSEBASE_HOST}
       - FUSEBASE_ORG_ID=${FUSEBASE_ORG_ID}
       - FUSEBASE_COOKIE=${FUSEBASE_COOKIE}
+      # Key for the encrypted files in ./data (see docs/1PASSWORD.md)
+      - FUSEBASE_SECRET_KEY=${FUSEBASE_SECRET_KEY}
+      # Or load secrets from a 1Password Environment with a read-only service account
+      - FUSEBASE_OP_ENVIRONMENT_ID=${FUSEBASE_OP_ENVIRONMENT_ID}
+      - FUSEBASE_OP_SERVICE_ACCOUNT_TOKEN=${FUSEBASE_OP_SERVICE_ACCOUNT_TOKEN}
     volumes:
       - ./data:/app/data
     healthcheck:
