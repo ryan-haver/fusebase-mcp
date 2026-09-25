@@ -104,7 +104,7 @@ describe("Gate fallback shapes (COR-6)", () => {
     try {
       const res = await server.callText("list_folders", { workspaceId: "ws1" });
       expect(res.isError).toBe(false);
-      expect(JSON.parse(res.text)).toEqual([{ id: "f1", name: "Projects", parentId: "default", hasChildren: false, icon: "" }]);
+      expect(JSON.parse(res.text)).toEqual([{ id: "f1", name: "Projects", parentId: "default", hasChildren: false, icon: "", children: [] }]);
     } finally {
       await server.close();
     }

@@ -44,6 +44,8 @@ export interface FusebaseConfig {
 }
 
 import type {
+  FusebaseTask,
+  FusebaseComment,
   FusebaseWorkspace,
   FusebaseNote,
   FusebaseFolder,
@@ -119,6 +121,32 @@ async function reserveRequestSlot(host: string): Promise<void> {
 
 /** One cookie refresh at a time per host+profile (COR-5). */
 const refreshesInFlight = new Map<string, Promise<boolean>>();
+
+/**
+ * The parent id to send when moving a page (COR-27). Top-level pages live in the built-in
+ * "default" (Unsorted) folder; FuseBase accepts a move to "root" but silently leaves the page
+ * where it was.
+ */
+export function moveDestination(folderId?: string): string {
+  return !folderId || folderId === "root" ? "default" : folderId;
+}
+
+/** Plain text of a Quill Delta (a JSON string or an ops array); non-text inserts are skipped. */
+export function deltaToPlainText(delta: unknown): string {
+  let ops: unknown = delta;
+  if (typeof delta === "string") {
+    try {
+      ops = JSON.parse(delta);
+    } catch {
+      return delta;
+    }
+  }
+  const list = Array.isArray(ops) ? ops : Array.isArray((ops as any)?.ops) ? (ops as any).ops : [];
+  return list
+    .map((op: any) => (typeof op?.insert === "string" ? op.insert : ""))
+    .join("")
+    .replace(/\n$/, "");
+}
 
 /**
  * From a JSON object cut off part-way, keep the top-level fields that arrived complete:
@@ -873,7 +901,7 @@ export class FusebaseClient {
     } = {},
   ): Promise<{ id: string }> {
     const targetWorkspace = options.targetWorkspaceId || workspaceId;
-    const parent = options.folderId || options.parentId || "root";
+    const parent = moveDestination(options.folderId || options.parentId);
     return this.request<{ id: string }>(
       apiPath`/v2/api/workspaces/${workspaceId}/notes/${noteId}/move`,
       {
@@ -883,6 +911,43 @@ export class FusebaseClient {
           parentId: parent,
         }),
       },
+    );
+  }
+
+  /**
+   * Move a page and return its id afterwards (COR-26). FuseBase runs the move as a background
+   * operation that can recreate the page under a NEW id in the destination; the old id then
+   * returns "Note not found". The new id is found in the destination by title and creation time.
+   */
+  async movePageAndResolve(
+    workspaceId: string,
+    noteId: string,
+    options: { targetWorkspaceId?: string; folderId?: string } = {},
+    wait: { attempts?: number; delayMs?: number } = {},
+  ): Promise<{ pageId: string; previousPageId: string; idChanged: boolean; operationId?: string }> {
+    const before = await this.getPage(workspaceId, noteId);
+    const startedSec = Math.floor(Date.now() / 1000) - 5; // allow for clock skew
+    const res = await this.movePage(workspaceId, noteId, options);
+    const targetWorkspace = options.targetWorkspaceId || workspaceId;
+    const folder = moveDestination(options.folderId);
+    const attempts = wait.attempts ?? 10;
+    for (let i = 0; i < attempts; i++) {
+      await new Promise((r) => setTimeout(r, wait.delayMs ?? 1000));
+      // Same id, now in the destination folder: the page was moved in place.
+      try {
+        const page = await this.getPage(targetWorkspace, noteId);
+        if (page.parentId === folder) return { pageId: noteId, previousPageId: noteId, idChanged: false, operationId: res.id };
+      } catch {
+        // gone under the old id: look for the recreated page
+      }
+      const listed = await this.listPages(targetWorkspace, { rootId: folder, limit: 500, orderBy: "createdAt", orderDir: "DESC" }).catch(() => undefined);
+      const match = (listed?.items ?? []).find(
+        (p) => p.globalId !== noteId && p.title === before.title && (p.createdAt ?? 0) >= startedSec,
+      );
+      if (match) return { pageId: match.globalId, previousPageId: noteId, idChanged: true, operationId: res.id };
+    }
+    throw new Error(
+      `FuseBase accepted the move of page ${noteId} (operation ${res.id ?? "?"}), but the page wasn't found in the destination afterwards (neither under its old id nor as a new page titled "${before.title}"). Check with list_pages.`,
     );
   }
 
@@ -1137,11 +1202,29 @@ export class FusebaseClient {
 
   // ─── Tasks ────────────────────────────────────────────────────
 
-  /** Search tasks in a workspace */
+  /**
+   * Search tasks in a workspace. With `query`, tasks whose title contains it (case-insensitive)
+   * are matched across all the workspace's tasks (up to 5,000), then offset/limit apply to the matches.
+   */
   async searchTasks(
     workspaceId: string,
-    options?: { noteId?: string; offset?: number; limit?: number },
+    options?: { noteId?: string; offset?: number; limit?: number; query?: string },
   ): Promise<FusebaseTaskSearchResult> {
+    const query = options?.query?.trim().toLowerCase();
+    if (query) {
+      const matches: FusebaseTask[] = [];
+      let first: FusebaseTaskSearchResult | undefined;
+      for (let offset = 0; offset < 5000; offset += 100) {
+        const page = await this.searchTasks(workspaceId, { noteId: options?.noteId, offset, limit: 100 });
+        first ??= page;
+        const tasks = page.tasks ?? [];
+        for (const t of tasks) if (String(t.title ?? "").toLowerCase().includes(query)) matches.push(t);
+        if (tasks.length < 100 || offset + 100 >= (page.total ?? 0)) break;
+      }
+      const offset = options?.offset ?? 0;
+      const limit = options?.limit ?? 50;
+      return { ...(first as FusebaseTaskSearchResult), offset, limit, total: matches.length, tasks: matches.slice(offset, offset + limit) };
+    }
     const opts = { offset: 0, limit: 50, ...options };
     const filters: Record<string, unknown> = {
       workspaceIds: [workspaceId],
@@ -1172,6 +1255,26 @@ export class FusebaseClient {
     return this.request<FusebaseCommentThread[]>(
       apiPath`/gwapi2/svc:comment/workspaces/${workspaceId}/notes/${noteId}/threadsInfo`,
     );
+  }
+
+  /**
+   * The comments in a thread, oldest first. Comment text is stored as a Quill Delta; it is
+   * returned as plain text.
+   */
+  async getThreadComments(workspaceId: string, threadId: string): Promise<FusebaseComment[]> {
+    const raw = await this.request<unknown>(
+      `/gwapi2/ft:comments/comments?workspace=${encodeURIComponent(workspaceId)}&thread=${encodeURIComponent(threadId)}`,
+    );
+    const list = Array.isArray(raw) ? (raw as Array<Record<string, any>>) : [];
+    return list.map((c) => ({
+      id: String(c.globalId ?? c.id ?? ""),
+      threadId: String(c.threadId ?? threadId),
+      userId: c.userId,
+      replyTo: c.replyTo ?? null,
+      text: deltaToPlainText(c.text),
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+    }));
   }
 
   /**
@@ -2079,6 +2182,7 @@ export class FusebaseClient {
   ): Promise<{
     success: boolean;
     rowUuid?: string;
+    note?: string;
     data?: unknown;
     dashboardId: string;
     viewId: string;
@@ -2191,6 +2295,10 @@ export class FusebaseClient {
       }
     }
 
+    // FuseBase returns the new row's id only when values are written (COR-28). For an empty
+    // row, note the existing ids first so the new one can be found afterwards.
+    const rowIdsBefore = rowValues.length === 0 ? await this.rowIdSet(dashboardId, viewId) : undefined;
+
     // Canonical row creation via batchPutDashboardData with create_new_row: true
     const res = await this.batchPutDashboardData(dashboardId, viewId, [
       {
@@ -2208,17 +2316,35 @@ export class FusebaseClient {
 
     const items = Array.isArray(res) ? res : (res?.data ?? res?.rows ?? []);
     const createdItem = Array.isArray(items) ? items[0] : undefined;
-    const rowUuid =
+    let rowUuid: string | undefined =
       createdItem?.root_index_value ?? createdItem?.id ?? createdItem?.global_id;
+    let note: string | undefined;
+    if (!rowUuid && rowIdsBefore) {
+      const added = [...(await this.rowIdSet(dashboardId, viewId))].filter((id) => !rowIdsBefore.has(id));
+      if (added.length === 1) rowUuid = added[0];
+      else note = `The row was created, but FuseBase didn't return its id and ${added.length} new rows were found, so it can't be identified. Use get_database_rows.`;
+    }
 
     return {
       success: res?.success ?? true,
       rowUuid,
+      ...(note ? { note } : {}),
       data: res,
       dashboardId,
       viewId,
       entity,
     };
+  }
+
+  /** Ids of all rows in a view (up to 5,000). */
+  private async rowIdSet(dashboardId: string, viewId: string): Promise<Set<string>> {
+    const ids = new Set<string>();
+    for (let page = 1; page <= 10; page++) {
+      const { rows } = await this.getDatabaseRows(dashboardId, viewId, { page, limit: 500, resolveNames: false });
+      for (const r of rows) ids.add(r.rowUuid);
+      if (rows.length < 500) break;
+    }
+    return ids;
   }
 
   /**
@@ -4446,7 +4572,10 @@ export class FusebaseClient {
     );
   }
 
-  /** Publish or unpublish a page to the client portal */
+  /**
+   * Publish or unpublish a page to the client portal. The upsert endpoint takes camelCase
+   * fields: the snake_case `is_portal_share` sent before was silently ignored (COR-29).
+   */
   async setPagePortalShare(
     workspaceId: string,
     pageId: string,
@@ -4456,11 +4585,7 @@ export class FusebaseClient {
       apiPath`/v2/api/workspaces/${workspaceId}/notes/${pageId}/upsert`,
       {
         method: "POST",
-        body: JSON.stringify({
-          note: {
-            is_portal_share: isPortalShare,
-          },
-        }),
+        body: JSON.stringify({ note: { isPortalShare } }),
       },
     );
   }

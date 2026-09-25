@@ -190,8 +190,9 @@ describe("COR-17: fusebase_swarm_init builds a usable swarm board", () => {
       const body = JSON.parse(res.text);
 
       const columns = calls.filter((x) => x.method === "addDatabaseColumn");
-      expect(columns).toHaveLength(2);
-      const [status, role] = columns.map((x) => x.args as any[]);
+      expect(columns).toHaveLength(3);
+      const [status, role, audit] = columns.map((x) => x.args as any[]);
+      expect(audit.slice(0, 4)).toEqual(["dash_swarm", "view_swarm", "Audit Log", "multiline"]);
       expect(status.slice(0, 4)).toEqual(["dash_swarm", "view_swarm", "Status", "label"]);
       expect(status[4].labels.map((l: any) => l.name)).toEqual(["Backlog", "In Progress", "Review", "Done"]);
       expect(status[4].multiSelect).toBe(false);
@@ -199,7 +200,7 @@ describe("COR-17: fusebase_swarm_init builds a usable swarm board", () => {
       expect(role[4].labels.map((l: any) => l.name)).toEqual(body.availableRoles);
 
       expect(calls.find((x) => x.method === "setViewGrouping")?.args).toEqual(["dash_swarm", "view_swarm", "key_1", "kanban"]);
-      expect(body).toMatchObject({ success: true, dashboardId: "dash_swarm", viewId: "view_swarm", statusColumnKey: "key_1", roleColumnKey: "key_2" });
+      expect(body).toMatchObject({ success: true, dashboardId: "dash_swarm", viewId: "view_swarm", statusColumnKey: "key_1", roleColumnKey: "key_2", auditColumnKey: "key_3" });
     } finally {
       await srv.close();
     }

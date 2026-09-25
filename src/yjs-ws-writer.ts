@@ -1053,7 +1053,9 @@ export async function writeContentViaWebSocket(
     const sent = await sendContentUpdate(host, workspaceId, pageId, cookie, blocks, options);
     if (!sent.success || !sent.pending) return { success: sent.success, error: sent.error };
     // CON-4: confirm the server actually holds our update instead of trusting a timer.
-    return confirmUpdate(host, workspaceId, pageId, cookie, sent.pending);
+    const confirmed = await confirmUpdate(host, workspaceId, pageId, cookie, sent.pending);
+    if (!confirmed.success || options.replace === false || !confirmed.doc || !sent.rootIds) return stripDoc(confirmed);
+    return finishReplace(host, workspaceId, pageId, cookie, sent.rootIds, confirmed.doc, options.timeout);
   });
 }
 
@@ -1062,6 +1064,71 @@ export interface WriteResult {
   error?: string;
   /** Set when the update was sent but the server could not be shown to hold it. Don't blindly retry an append. */
   unconfirmed?: boolean;
+}
+
+function stripDoc(result: WriteResult & { doc?: Y.Doc }): WriteResult {
+  const { doc: _doc, ...rest } = result;
+  return rest;
+}
+
+// ─── Replace completion (CON-10) ───
+//
+// A replace deletes the blocks in the copy of the page it received when it connected. If
+// another write (or a just-confirmed append that hasn't reached this copy yet) added blocks
+// that copy didn't have, they survive the replace. After a replace is confirmed, the page is
+// re-read; any top-level block we didn't write is removed in a follow-up update.
+
+/** Top-level blocks in `doc` that aren't among `own` (the blocks a replace wrote). */
+export function foreignRootBlocks(doc: Y.Doc, own: readonly string[]): string[] {
+  const mine = new Set(own);
+  return doc.getArray<string>("rootChildren").toArray().filter((id) => !mine.has(id));
+}
+
+/** Remove top-level blocks from `doc`, with everything nested under them. */
+export function removeRootBlocks(doc: Y.Doc, ids: readonly string[]): void {
+  const blocks = doc.getMap("blocks");
+  const remove = new Set(ids);
+  const rch = doc.getArray<string>("rootChildren");
+  for (let i = rch.length - 1; i >= 0; i--) if (remove.has(rch.get(i))) rch.delete(i, 1);
+  const drop = (id: string, depth = 0) => {
+    const b = blocks.get(id);
+    const children = b instanceof Y.Map ? b.get("children") : undefined;
+    if (children instanceof Y.Array && depth < 50) for (const c of children.toArray()) if (typeof c === "string") drop(c, depth + 1);
+    blocks.delete(id);
+  };
+  for (const id of ids) drop(id);
+}
+
+async function finishReplace(
+  host: string,
+  workspaceId: string,
+  pageId: string,
+  cookie: string,
+  own: string[],
+  doc: Y.Doc,
+  timeout?: number,
+  passes = 2,
+): Promise<WriteResult> {
+  let foreign = foreignRootBlocks(doc, own);
+  for (let pass = 0; foreign.length > 0 && pass < passes; pass++) {
+    const sent = await sendContentUpdate(host, workspaceId, pageId, cookie, [], { replace: false, timeout, removeRootIds: foreign });
+    if (!sent.success) return { success: false, error: `Replace wrote the new content, but removing ${foreign.length} leftover block(s) failed: ${sent.error}` };
+    // Deletes can't be confirmed through the state vector: re-read until they're gone.
+    for (const delayMs of CONFIRM_DELAYS_MS) {
+      await new Promise((r) => setTimeout(r, delayMs));
+      const read = await readContentViaWebSocket(host, workspaceId, pageId, cookie, { timeout: 10000 });
+      if (!read.success || !read.doc) continue;
+      foreign = foreignRootBlocks(read.doc, own);
+      if (foreign.length === 0) break;
+    }
+  }
+  if (foreign.length > 0) {
+    return {
+      success: false,
+      error: `Replace wrote the new content, but ${foreign.length} block(s) added to the page at the same time are still there. Read the page and replace again.`,
+    };
+  }
+  return { success: true };
 }
 
 // ─── Per-page write lock (CON-5) ───
@@ -1092,21 +1159,23 @@ export function docHasUpdate(doc: Y.Doc, pending: PendingUpdate): boolean {
   return (Y.decodeStateVector(Y.encodeStateVector(doc)).get(pending.clientId) ?? 0) >= pending.clock;
 }
 
+/** Waits between confirmation reads (~10 s in total): FuseBase can take several seconds to show a write. */
+const CONFIRM_DELAYS_MS = [700, 700, 1000, 1000, 1500, 1500, 2000, 2000];
+
 async function confirmUpdate(
   host: string,
   workspaceId: string,
   pageId: string,
   cookie: string,
   pending: PendingUpdate,
-  attempts = 5,
-  delayMs = 700,
-): Promise<WriteResult> {
+): Promise<WriteResult & { doc?: Y.Doc }> {
   let lastError = "";
-  for (let i = 0; i < attempts; i++) {
+  const attempts = CONFIRM_DELAYS_MS.length;
+  for (const delayMs of CONFIRM_DELAYS_MS) {
     await new Promise((resolve) => setTimeout(resolve, delayMs));
     const read = await readContentViaWebSocket(host, workspaceId, pageId, cookie, { timeout: 10000 });
     if (read.success && read.doc) {
-      if (docHasUpdate(read.doc, pending)) return { success: true };
+      if (docHasUpdate(read.doc, pending)) return { success: true, doc: read.doc };
     } else {
       lastError = read.error ?? "read failed";
     }
@@ -1128,9 +1197,9 @@ async function sendContentUpdate(
   pageId: string,
   cookie: string,
   blocks: ContentBlock[],
-  options: { replace?: boolean; timeout?: number },
-): Promise<{ success: boolean; error?: string; pending?: PendingUpdate }> {
-  const { replace = true, timeout = 20000 } = options;
+  options: { replace?: boolean; timeout?: number; removeRootIds?: string[] },
+): Promise<{ success: boolean; error?: string; pending?: PendingUpdate; rootIds?: string[] }> {
+  const { replace = true, timeout = 20000, removeRootIds } = options;
 
   // Step 1: Get JWT
   let jwt: string;
@@ -1178,14 +1247,16 @@ async function sendContentUpdate(
 
     let resolved = false;
     let pending: PendingUpdate | undefined; // set once our update has been sent
-    const done = (result: { success: boolean; error?: string; pending?: PendingUpdate }) => {
+    let rootIds: string[] | undefined; // top-level blocks a replace wrote
+    const done = (result: { success: boolean; error?: string; pending?: PendingUpdate; rootIds?: string[] }) => {
       if (!resolved) { resolved = true; clearTimeout(timeoutId); resolve(result); }
       try { ws.close(); } catch { /* already closed */ }
     };
     // Once the update is on the wire, let confirmation decide instead of reporting failure.
-    const doneAfterSend = () => done({ success: true, pending });
+    const doneAfterSend = () => done({ success: true, pending, rootIds });
 
-    const timeoutId = setTimeout(() => (pending ? doneAfterSend() : done({ success: false, error: "Timeout" })), timeout);
+    let sent = false; // the update is on the wire
+    const timeoutId = setTimeout(() => (pending || sent ? doneAfterSend() : done({ success: false, error: "Timeout" })), timeout);
 
     ws.on("error", (e: Error) => (pending ? doneAfterSend() : done({ success: false, error: `WebSocket error: ${e.message}` })));
     ws.on("close", (code: number, reason: Buffer) => {
@@ -1263,6 +1334,10 @@ async function sendContentUpdate(
           const beforeSv = Y.encodeStateVector(ydoc);
 
           ydoc.transact(() => {
+            if (removeRootIds) {
+              removeRootBlocks(ydoc, removeRootIds);
+              return;
+            }
             if (replace) {
               // Clear existing content from both structures
               const rch = ydoc.getArray<string>("rootChildren");
@@ -1281,6 +1356,7 @@ async function sendContentUpdate(
             }
             addBlocksToDoc(ydoc, blocks);
           });
+          if (replace && !removeRootIds) rootIds = ydoc.getArray<string>("rootChildren").toArray();
 
           // Send token auth (type 300) before content update — browser sends this after sync
           const jwtBytes = new TextEncoder().encode(jwt);
@@ -1295,11 +1371,16 @@ async function sendContentUpdate(
           // Server expects V1 outbound update encoding
           const diff = Y.encodeStateAsUpdate(ydoc, beforeSv);
           const clock = Y.decodeStateVector(Y.encodeStateVector(ydoc)).get(ydoc.clientID) ?? 0;
-          if (clock === 0) {
+          // Deletes don't advance our clock, so a delete-only update (e.g. removing leftover
+          // blocks after a replace) is recognised by its delete set.
+          const hasDeletes = Y.decodeUpdate(diff).ds.clients.size > 0;
+          if (clock === 0 && !hasDeletes) {
             done({ success: true }); // nothing to write (e.g. an empty append)
             return;
           }
-          pending = { clientId: ydoc.clientID, clock };
+          // Inserts are confirmed through the state vector; delete-only updates by re-reading.
+          if (clock > 0) pending = { clientId: ydoc.clientID, clock };
+          sent = true;
           ws.send(Buffer.from(encodeSyncMessage(0x02, diff)), () => {
             // Handed to the socket; give the server a moment to process before closing.
             setTimeout(doneAfterSend, 300);

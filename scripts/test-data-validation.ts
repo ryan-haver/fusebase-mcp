@@ -40,6 +40,11 @@ import {
   skip,
   stats,
   ToolError,
+  duringCleanup,
+  verifyWrite,
+  noReadBack,
+  readViewRepresentations,
+  findUserVar,
 } from "./lib/live-harness.js";
 import * as path from "path";
 
@@ -94,7 +99,7 @@ function skipAll(tools: string[], reason: string): void {
 /** Best-effort cleanup: never marks anything passed, never masks the original failure. */
 async function cleanup(what: string, fn: () => Promise<unknown>): Promise<void> {
   try {
-    await fn();
+    await duringCleanup(fn);
   } catch (e) {
     console.error(`⚠️  Cleanup failed (${what}): ${errMsg(e).slice(0, 300)}`);
   }
@@ -107,6 +112,136 @@ function parseTrailingJson(text: unknown, field: string, statusPrefix: string): 
   const nl = text.indexOf("\n");
   assert(nl >= 0, `Expected '${field}' to contain a JSON body after the status line`);
   return JSON.parse(text.slice(nl + 1));
+}
+
+// ─── Read-back helpers (used inside verifyWrite checks) ─────────────
+
+/** Errors that mean the entity no longer exists. */
+const NOT_FOUND = /\b(404|410)\b|not[ _-]?found|does not exist|no longer exists/i;
+
+/**
+ * Run a read that should fail once its entity is deleted. Resolves `{ gone: true }` on a
+ * not-found error, `{ gone: false, value }` when the read still succeeds; any other error is rethrown.
+ */
+async function readUnlessGone<T>(read: () => Promise<T>): Promise<{ gone: true } | { gone: false; value: T }> {
+  try {
+    return { gone: false, value: await read() };
+  } catch (e) {
+    if (e instanceof ToolError && NOT_FOUND.test(e.detail)) return { gone: true };
+    throw e;
+  }
+}
+
+/** Title (get_page) and, optionally, markdown content (get_page_content) of a page. */
+async function expectPage(client: Client, workspaceId: string, pageId: string, title: string, texts: string[] = []): Promise<void> {
+  const meta = await callTool(client, "get_page", { workspaceId, pageId });
+  assertObject(meta, "get_page");
+  assertEqual(meta.title, title, "page title");
+  if (texts.length === 0) return;
+  const md = await callTool(client, "get_page_content", { workspaceId, pageId, format: "markdown" });
+  for (const text of texts) assertIncludes(md, text, `page ${pageId} content`);
+}
+
+/** A deleted page reads back as not found, or at least no longer appears in its folder listing. */
+async function expectPageGone(client: Client, workspaceId: string, pageId: string, folderId = "root"): Promise<void> {
+  const res = await readUnlessGone(() => callTool(client, "get_page", { workspaceId, pageId }));
+  if (res.gone) return;
+  const listed = await callTool(client, "list_pages", { workspaceId, folderId, limit: 1000 });
+  assertArray(listed?.pages, "list_pages.pages");
+  assert(!listed.pages.some((p: any) => p.id === pageId), `Deleted page ${pageId} is still readable and still listed in folder '${folderId}'`);
+}
+
+/** Rows of a database view (up to 200). */
+async function readRows(client: Client, dashboardId: string, viewId: string): Promise<any[]> {
+  const res = await callTool(client, "get_database_rows", { dashboardId, viewId, limit: 200 });
+  assertObject(res, "get_database_rows response");
+  assertArray(res.rows, "get_database_rows.rows");
+  return res.rows;
+}
+
+/** Column schema of a database view. */
+async function readSchema(client: Client, dashboardId: string, viewId: string): Promise<any[]> {
+  const cols = await callTool(client, "get_database_schema", { dashboardId, viewId });
+  assertArray(cols, "get_database_schema");
+  return cols;
+}
+
+/** Assert a view's schema has column `key` with the given name (and type, if given). */
+async function expectColumn(client: Client, dashboardId: string, viewId: string, key: string, name: string, type?: string): Promise<any> {
+  const col = (await readSchema(client, dashboardId, viewId)).find((c: any) => c.key === key);
+  assert(!!col, `Column ${key} ('${name}') not found in get_database_schema`);
+  assertEqual(col.name, name, `column ${key} name`);
+  if (type !== undefined) assertEqual(col.type, type, `column ${key} type`);
+  return col;
+}
+
+/** get_database_detail's database object. */
+async function readDatabase(client: Client, databaseId: string): Promise<any> {
+  const detail = await callTool(client, "get_database_detail", { databaseId });
+  const db = detail?.data ?? detail;
+  assertObject(db, "get_database_detail.data");
+  return db;
+}
+
+/** get_dashboard_detail's views. */
+async function readViews(client: Client, dashboardId: string): Promise<any[]> {
+  const detail = await callTool(client, "get_dashboard_detail", { dashboardId });
+  const views = detail?.data?.views ?? detail?.views;
+  assertArray(views, "get_dashboard_detail.data.views");
+  return views;
+}
+
+/** The sidebarCollapsed user var in a get_user_preferences payload, or undefined when it isn't there. */
+function sidebarCollapsedOf(prefs: unknown): boolean | undefined {
+  // Live shape: a list of user vars, e.g. { name: "sidebarCollapsed", value: "0" }.
+  const found = findUserVar(prefs, "sidebarCollapsed");
+  if (!found) return undefined;
+  const v = (found.value as any)?.value ?? found.value;
+  if (v === "1" || v === 1 || v === true || v === "true") return true;
+  if (v === "0" || v === 0 || v === false || v === "false") return false;
+  return undefined;
+}
+
+/** Label cells hold label nanoids; map them back to option names (a value the API kept as a name stays). */
+function labelNames(col: { labels?: Array<{ nanoid: string; name: string }> }, value: unknown): string[] {
+  const items = value === null || value === undefined ? [] : Array.isArray(value) ? value : [value];
+  return items.map((v) => {
+    const s = String(v);
+    return col.labels?.find((l) => l.nanoid === s)?.name ?? s;
+  });
+}
+
+/** True when some object in a relation payload maps `source` to `target`. */
+function hasRelationLink(payload: unknown, source: string, target: string): boolean {
+  if (Array.isArray(payload)) return payload.some((v) => hasRelationLink(v, source, target));
+  if (payload && typeof payload === "object") {
+    const values = Object.values(payload as Record<string, unknown>);
+    if (values.includes(source) && values.includes(target)) return true;
+    return values.some((v) => hasRelationLink(v, source, target));
+  }
+  return false;
+}
+
+/** Tasks of a task list (list_task_lists) plus the workspace tasks whose title contains `query` (search_tasks). */
+async function readTasks(client: Client, workspaceId: string, taskListId: string, query: string): Promise<any[]> {
+  const listed = await callTool(client, "list_task_lists", { workspaceId, taskListId });
+  const tasks: any[] = Array.isArray(listed?.tasks) ? [...listed.tasks] : [];
+  const found = await callTool(client, "search_tasks", { workspaceId, query, limit: 100 });
+  assertArray(found?.tasks, "search_tasks.tasks");
+  tasks.push(...found.tasks);
+  return tasks;
+}
+
+function taskIdOf(t: any): string {
+  return String(t?.globalId ?? t?.id ?? t?.taskId ?? "");
+}
+
+/** Automation flow runs as an array (list_flow_runs returns a page object or an array). */
+async function readFlowRuns(client: Client): Promise<any[]> {
+  const runs = await callTool(client, "list_flow_runs", { limit: 50 });
+  const list = Array.isArray(runs) ? runs : runs?.data;
+  assertArray(list, "list_flow_runs (array or { data })");
+  return list;
 }
 
 function suiteHeader(title: string): void {
@@ -216,18 +351,32 @@ async function runAllSuites(client: Client, targetWsId: string) {
   assertString(folderId, "created folderId");
   ok("create_folder", `Created folder '${folderTitle}' with ID ${folderId}`);
 
-  let folders: any[] = [];
-  let foundFolder: any = null;
-  for (let attempt = 1; attempt <= 4 && !foundFolder; attempt++) {
-    await sleep(1200);
-    folders = await callTool(client, "list_folders", { workspaceId: targetWsId });
-    assertArray(folders, "list_folders", 1);
-    foundFolder = folders.find((f: any) => f.name === folderTitle || f.title === folderTitle || f.id === folderId || f.globalId === folderId);
-  }
-  assert(!!foundFolder, `Expected newly created folder ${folderId} to appear in list_folders`);
-  ok("list_folders", `Verified folder presence in workspace (${folders.length} folders)`);
   // Folders are notes, so delete_page removes them; there is no dedicated delete_folder tool.
-  await cleanup(`delete folder ${folderId}`, () => callTool(client, "delete_page", { workspaceId: targetWsId, pageId: folderId }));
+  // The folder is kept until Suite 3 has moved a page into it and back out.
+  const deleteFolder = () => cleanup(`delete folder ${folderId}`, () => callTool(client, "delete_page", { workspaceId: targetWsId, pageId: folderId }));
+  let folders: any[] = [];
+  try {
+    await verifyWrite("create_folder", `folder ${folderId} listed with name '${folderTitle}'`, async () => {
+      folders = await callTool(client, "list_folders", { workspaceId: targetWsId });
+      assertArray(folders, "list_folders", 1);
+      // list_folders nests subfolders under `children`.
+      const flat: any[] = [];
+      const collect = (items: any[]): void => {
+        for (const f of items) {
+          flat.push(f);
+          if (Array.isArray(f.children)) collect(f.children);
+        }
+      };
+      collect(folders);
+      const foundFolder = flat.find((f: any) => f.id === folderId || f.globalId === folderId || f.name === folderTitle || f.title === folderTitle);
+      assert(!!foundFolder, `Expected newly created folder ${folderId} to appear in list_folders`);
+      assertEqual(foundFolder.name ?? foundFolder.title, folderTitle, "listed folder name");
+    });
+  } catch (e) {
+    await deleteFolder();
+    throw e;
+  }
+  ok("list_folders", `Verified folder presence in workspace (${folders.length} folders)`);
 
   // ──────────────────────────────────────────────────────────────────
   // Suite 3: Pages & Collaborative Y.js Content
@@ -241,15 +390,15 @@ async function runAllSuites(client: Client, targetWsId: string) {
     markdown: "# Original Header\n\nThis is the initial body text.",
   });
   assertObject(createPageRes, "create_page response");
-  const pageId = createPageRes.id;
+  let pageId = createPageRes.id;
   assertString(pageId, "created pageId");
   ok("create_page", `Created page '${testPageTitle}' with ID ${pageId}`);
 
   let pageDeleted = false;
   try {
-    const pageMeta = await callTool(client, "get_page", { workspaceId: targetWsId, pageId });
-    assertObject(pageMeta, "get_page");
-    assertEqual(pageMeta.title, testPageTitle, "page title");
+    await verifyWrite("create_page", `page ${pageId} has title '${testPageTitle}' and its initial markdown`, () =>
+      expectPage(client, targetWsId, pageId, testPageTitle, ["Original Header", "This is the initial body text."]),
+    );
     ok("get_page", "Verified metadata matches created note");
 
     const listPagesData = await callTool(client, "list_pages", { workspaceId: targetWsId });
@@ -271,8 +420,10 @@ async function runAllSuites(client: Client, targetWsId: string) {
     const updatedTitle = `${testPageTitle} (Renamed)`;
     const updatePageRes = await callTool(client, "update_page", { workspaceId: targetWsId, pageId, title: updatedTitle });
     assertIncludes(updatePageRes, `Page ${pageId} updated`, "update_page response");
-    const recheckMeta = await callTool(client, "get_page", { workspaceId: targetWsId, pageId });
-    assertEqual(recheckMeta.title, updatedTitle, "renamed page title");
+    await verifyWrite("update_page", `page ${pageId} title reads back as '${updatedTitle}'`, async () => {
+      const recheckMeta = await callTool(client, "get_page", { workspaceId: targetWsId, pageId });
+      assertEqual(recheckMeta.title, updatedTitle, "renamed page title");
+    });
     ok("update_page", "Verified title update round-trip");
 
     await sleep(2000);
@@ -284,26 +435,20 @@ async function runAllSuites(client: Client, targetWsId: string) {
     assertIncludes(appendRes, "Successfully appended content", "append_page_content response");
     ok("append_page_content", "Append acknowledged");
 
-    let readHtml: unknown = "";
-    for (let i = 0; i < 5; i++) {
-      await sleep(1500);
-      readHtml = await callTool(client, "get_page_content", { workspaceId: targetWsId, pageId, format: "html" });
-      if (typeof readHtml === "string" && readHtml.includes("Appended Verification Section")) break;
-    }
-    assertString(readHtml, "get_page_content (html)");
-    assertIncludes(readHtml, "Original Header", "readHtml original header");
-    assertIncludes(readHtml, "Appended Verification Section", "readHtml appended section");
-    ok("get_page_content (html)", "Verified original + appended HTML content fidelity");
+    // verifyWrite retries both reads until the appended section has synced.
+    await verifyWrite("append_page_content", `page ${pageId} keeps its original header and gains the appended section (html + markdown)`, async () => {
+      const readHtml = await callTool(client, "get_page_content", { workspaceId: targetWsId, pageId, format: "html" });
+      assertString(readHtml, "get_page_content (html)");
+      assertIncludes(readHtml, "Original Header", "readHtml original header");
+      assertIncludes(readHtml, "Appended Verification Section", "readHtml appended section");
 
-    let readMd: unknown = "";
-    for (let i = 0; i < 5; i++) {
-      readMd = await callTool(client, "get_page_content", { workspaceId: targetWsId, pageId, format: "markdown" });
-      if (typeof readMd === "string" && readMd.includes("987654")) break;
-      await sleep(1500);
-    }
-    assertString(readMd, "get_page_content (markdown)");
-    assertIncludes(readMd, "Original Header", "readMd original header");
-    assertIncludes(readMd, "987654", "readMd unique token");
+      const readMd = await callTool(client, "get_page_content", { workspaceId: targetWsId, pageId, format: "markdown" });
+      assertString(readMd, "get_page_content (markdown)");
+      assertIncludes(readMd, "Original Header", "readMd original header");
+      assertIncludes(readMd, "Appended Verification Section", "readMd appended section");
+      assertIncludes(readMd, "987654", "readMd unique token");
+    });
+    ok("get_page_content (html)", "Verified original + appended HTML content fidelity");
     ok("get_page_content (markdown)", "Verified markdown format fidelity");
 
     const replaceRes = await callTool(client, "update_page_content", {
@@ -312,27 +457,70 @@ async function runAllSuites(client: Client, targetWsId: string) {
       markdown: "# Replaced Entire Note\n\nAll previous content replaced by clean validation text.",
     });
     assertIncludes(replaceRes, "Content written successfully", "update_page_content response");
-    let replacedMd: unknown = "";
-    for (let i = 0; i < 5; i++) {
-      await sleep(1500);
-      replacedMd = await callTool(client, "get_page_content", { workspaceId: targetWsId, pageId, format: "markdown" });
-      if (typeof replacedMd === "string" && replacedMd.includes("Replaced Entire Note")) break;
-    }
-    assertIncludes(replacedMd, "Replaced Entire Note", "update_page_content readback");
+    await verifyWrite("update_page_content", `page ${pageId} content replaced: new text present, original and appended text gone`, async () => {
+      const replacedMd = await callTool(client, "get_page_content", { workspaceId: targetWsId, pageId, format: "markdown" });
+      assertIncludes(replacedMd, "Replaced Entire Note", "update_page_content readback");
+      assertIncludes(replacedMd, "All previous content replaced by clean validation text.", "update_page_content readback body");
+      assert(!String(replacedMd).includes("Original Header"), "Replaced page should no longer contain 'Original Header'");
+      assert(!String(replacedMd).includes("987654"), "Replaced page should no longer contain the appended token 987654");
+    });
     ok("update_page_content", "Verified full content replacement round-trip");
+
+    // Move the page (created at root) into the Suite 2 folder, then back to root.
+    const rootMeta = await callTool(client, "get_page", { workspaceId: targetWsId, pageId });
+    const rootParentId = rootMeta?.parentId;
+    assertString(rootParentId, "get_page.parentId before the move");
+    assert(rootParentId !== folderId, `Page ${pageId} should start outside folder ${folderId}`);
+    /** Assert get_page reports `parentId`. */
+    const expectParent = async (parentId: string): Promise<void> => {
+      const meta = await callTool(client, "get_page", { workspaceId: targetWsId, pageId });
+      assertObject(meta, "get_page");
+      assertEqual(meta.parentId, parentId, "get_page.parentId");
+    };
+
+    // move_page may give the page a new id (COR-26); follow the id it returns.
+    const idBeforeMoveIn = pageId;
+    const moveInRes = await callTool(client, "move_page", { workspaceId: targetWsId, pageId, folderId });
+    assertObject(moveInRes, "move_page response (into folder)");
+    assertEqual(moveInRes.success, true, "move_page.success (into folder)");
+    assertEqual(moveInRes.destinationFolderId, folderId, "move_page.destinationFolderId (into folder)");
+    assertString(moveInRes.pageId, "move_page.pageId (into folder)");
+    pageId = moveInRes.pageId;
+    await verifyWrite("move_page", `page ${pageId} has parentId ${folderId} (the Suite 2 folder)`, async () => {
+      await expectParent(folderId);
+      if (pageId !== idBeforeMoveIn) {
+        const old = await readUnlessGone(() => callTool(client, "get_page", { workspaceId: targetWsId, pageId: idBeforeMoveIn }));
+        assert(old.gone, `page ${idBeforeMoveIn} should be gone under its old id after move_page gave it id ${pageId}`);
+      }
+    });
 
     const moveRes = await callTool(client, "move_page", { workspaceId: targetWsId, pageId, folderId: "root" });
     assertObject(moveRes, "move_page response");
     assertEqual(moveRes.success, true, "move_page.success");
     assertEqual(moveRes.destinationFolderId, "root", "move_page.destinationFolderId");
-    ok("move_page", "Moved page to workspace root");
+    assertString(moveRes.pageId, "move_page.pageId (to root)");
+    pageId = moveRes.pageId;
+    await verifyWrite("move_page", `page ${pageId} is back at the top level: parentId ${rootParentId}, listed in the default folder and no longer in folder ${folderId}`, async () => {
+      await expectParent(rootParentId);
+      // Top-level pages live in the default (Unsorted) folder; the "root" listing covers the whole workspace.
+      const topLevel = await callTool(client, "list_pages", { workspaceId: targetWsId, folderId: "default", limit: 1000 });
+      assertArray(topLevel?.pages, "list_pages(default).pages", 1);
+      assert(topLevel.pages.some((p: any) => p.id === pageId), `Moved page ${pageId} should be listed at the top level (default folder)`);
+      const inFolder = await callTool(client, "list_pages", { workspaceId: targetWsId, folderId, limit: 1000 });
+      assert(!(inFolder?.pages ?? []).some((p: any) => p.id === pageId), `Moved page ${pageId} should no longer be in folder ${folderId}`);
+    });
+    ok("move_page", "Moved page into a folder and back to workspace root");
 
     const deletePageRes = await callTool(client, "delete_page", { workspaceId: targetWsId, pageId });
     assertIncludes(deletePageRes, "deleted successfully", "delete_page response");
     pageDeleted = true;
+    await verifyWrite("delete_page", `page ${pageId} is gone (get_page not found, or no longer listed in root)`, () =>
+      expectPageGone(client, targetWsId, pageId),
+    );
     ok("delete_page", `Deleted test page ${pageId}`);
   } finally {
     if (!pageDeleted) await cleanup(`delete page ${pageId}`, () => callTool(client, "delete_page", { workspaceId: targetWsId, pageId }));
+    await deleteFolder();
   }
 
   // ──────────────────────────────────────────────────────────────────
@@ -340,9 +528,10 @@ async function runAllSuites(client: Client, targetWsId: string) {
   // ──────────────────────────────────────────────────────────────────
   suiteHeader("SUITE 4: Tags, Files & Attachments");
 
+  const tagPageTitle = `Tags & Files Test Page ${Date.now()}`;
   const tagNoteRes = await callTool(client, "create_page", {
     workspaceId: targetWsId,
-    title: `Tags & Files Test Page ${Date.now()}`,
+    title: tagPageTitle,
     markdown: "# Tags and Attachments Testing",
   });
   assertObject(tagNoteRes, "create_page (tags page)");
@@ -350,6 +539,10 @@ async function runAllSuites(client: Client, targetWsId: string) {
   assertString(tagPageId, "tagPageId");
 
   try {
+    await verifyWrite("create_page", `tags page ${tagPageId} has its title and heading`, () =>
+      expectPage(client, targetWsId, tagPageId, tagPageTitle, ["Tags and Attachments Testing"]),
+    );
+
     const tagsData = await callTool(client, "get_tags", { workspaceId: targetWsId });
     const tagsList = Array.isArray(tagsData) ? tagsData : tagsData?.tags;
     assertArray(tagsList, "get_tags (array or { tags: [] })");
@@ -360,9 +553,11 @@ async function runAllSuites(client: Client, targetWsId: string) {
     assertIncludes(tagUpdateRes, `Tags updated on page ${tagPageId}`, "update_page_tags response");
     ok("update_page_tags", "Updated page tags");
 
-    const noteTags = await callTool(client, "get_note_tags", { workspaceId: targetWsId, pageId: tagPageId });
-    assertJson(noteTags, "get_note_tags");
-    assertIncludes(JSON.stringify(noteTags), "qa-audit-test", "get_note_tags contains applied tag");
+    await verifyWrite("update_page_tags", `page ${tagPageId} carries tags ${testTags.join(", ")}`, async () => {
+      const noteTags = await callTool(client, "get_note_tags", { workspaceId: targetWsId, pageId: tagPageId });
+      assertJson(noteTags, "get_note_tags");
+      for (const tag of testTags) assertIncludes(JSON.stringify(noteTags), tag, `get_note_tags contains applied tag '${tag}'`);
+    });
     ok("get_note_tags", "Verified page tags round-trip");
 
     const fileCount = await callTool(client, "get_file_count", { workspaceId: targetWsId });
@@ -387,18 +582,25 @@ async function runAllSuites(client: Client, targetWsId: string) {
     assertString(attachmentId, "upload_file.attachmentId");
     ok("upload_file", `Uploaded fixture file (Attachment ID: ${attachmentId})`);
 
-    const attachments = await callTool(client, "get_page_attachments", { workspaceId: targetWsId, pageId: tagPageId });
-    assertArray(attachments, "get_page_attachments");
-    ok("get_page_attachments", `Validated page attachments list (${attachments.length} items)`);
+    let attachmentCount = 0;
+    await verifyWrite("upload_file", `attachment ${attachmentId} listed on page ${tagPageId} as 'qa-val-fixture.txt' and downloads with the fixture bytes`, async () => {
+      const attachments = await callTool(client, "get_page_attachments", { workspaceId: targetWsId, pageId: tagPageId });
+      assertArray(attachments, "get_page_attachments", 1);
+      attachmentCount = attachments.length;
+      const listed = attachments.find((a: any) => a.id === attachmentId);
+      assert(!!listed, `Uploaded attachment ${attachmentId} should be listed by get_page_attachments`);
+      assertEqual(listed.name, "qa-val-fixture.txt", "listed attachment name");
 
-    const downloadRes = await callTool(client, "download_attachment", {
-      workspaceId: targetWsId,
-      attachmentId,
-      filename: "qa-val-fixture.txt",
+      const downloadRes = await callTool(client, "download_attachment", {
+        workspaceId: targetWsId,
+        attachmentId,
+        filename: "qa-val-fixture.txt",
+      });
+      assertObject(downloadRes, "download_attachment response");
+      assertString(downloadRes.base64, "download_attachment.base64");
+      assertIncludes(Buffer.from(downloadRes.base64, "base64").toString("utf8"), fixtureText, "downloaded fixture bytes");
     });
-    assertObject(downloadRes, "download_attachment response");
-    assertString(downloadRes.base64, "download_attachment.base64");
-    assertIncludes(Buffer.from(downloadRes.base64, "base64").toString("utf8"), fixtureText, "downloaded fixture bytes");
+    ok("get_page_attachments", `Validated page attachments list (${attachmentCount} items)`);
     ok("download_attachment", "Downloaded attachment and verified content round-trip");
   } finally {
     await cleanup(`delete page ${tagPageId}`, () => callTool(client, "delete_page", { workspaceId: targetWsId, pageId: tagPageId }));
@@ -421,9 +623,10 @@ async function runAllSuites(client: Client, targetWsId: string) {
   assertJson(mentionEntities, "get_mention_entities");
   ok("get_mention_entities", "Validated mentionable entities list");
 
+  const commentPageTitle = `Comment Lifecycle Test Page ${Date.now()}`;
   const commentPageRes = await callTool(client, "create_page", {
     workspaceId: targetWsId,
-    title: `Comment Lifecycle Test Page ${Date.now()}`,
+    title: commentPageTitle,
     markdown: "# Comments Testing",
   });
   assertObject(commentPageRes, "create_page (comment page)");
@@ -431,33 +634,61 @@ async function runAllSuites(client: Client, targetWsId: string) {
   assertString(commentPageId, "commentPageId");
 
   try {
+    await verifyWrite("create_page", `comment page ${commentPageId} has its title and heading`, () =>
+      expectPage(client, targetWsId, commentPageId, commentPageTitle, ["Comments Testing"]),
+    );
+
+    const commentText = "Data validation automated thread comment";
     const postCommentRes = await callTool(client, "fusebase_post_comment", {
       workspaceId: targetWsId,
       noteId: commentPageId,
-      text: "Data validation automated thread comment",
+      text: commentText,
     });
     const postedThread = parseTrailingJson(postCommentRes, "fusebase_post_comment", "Comment posted successfully.");
     assertJson(postedThread, "fusebase_post_comment body");
     ok("fusebase_post_comment", `Posted comment to note ${commentPageId}`);
 
-    const threads = await callTool(client, "get_comment_threads", { workspaceId: targetWsId, pageId: commentPageId });
-    // Live shape: [{ thread: { globalId, noteGlobalId, resolved, ... }, comments, unreadComments }]
-    assertArray(threads, "get_comment_threads", 1);
-    const threadId = threads[0].thread?.globalId;
-    assertString(threadId, "get_comment_threads[0].thread.globalId");
-    assertEqual(threads[0].thread?.noteGlobalId, commentPageId, "get_comment_threads[0].thread.noteGlobalId");
+    // Live shape: [{ thread: { globalId, noteGlobalId, resolved, ... }, comments, unreadComments,
+    //   commentList: [{ id, text, replyTo, userId, createdAt }] }]
+    /** The thread on the comment page with a comment whose text is exactly `text`. */
+    const findThread = async (text: string): Promise<any> => {
+      const threads = await callTool(client, "get_comment_threads", { workspaceId: targetWsId, pageId: commentPageId });
+      assertArray(threads, "get_comment_threads", 1);
+      const entry = threads.find((t: any) => Array.isArray(t.commentList) && t.commentList.some((c: any) => c.text === text));
+      assert(!!entry, `get_comment_threads should contain a thread with the comment '${text}'`);
+      return entry;
+    };
+    let threadId = "";
+    await verifyWrite("fusebase_post_comment", `thread on page ${commentPageId} contains '${commentText}'`, async () => {
+      const entry = await findThread(commentText);
+      assertString(entry.thread?.globalId, "comment thread.globalId");
+      assertEqual(entry.thread?.noteGlobalId, commentPageId, "comment thread.noteGlobalId");
+      threadId = entry.thread.globalId;
+    });
     ok("get_comment_threads", `Verified thread retrieval (Thread: ${threadId})`);
 
+    const replyText = "Automated reply comment test";
     const replyRes = await callTool(client, "fusebase_reply_comment", {
       workspaceId: targetWsId,
       threadId,
-      text: "Automated reply comment test",
+      text: replyText,
     });
     parseTrailingJson(replyRes, "fusebase_reply_comment", "Reply posted successfully.");
+    await verifyWrite("fusebase_reply_comment", `thread ${threadId} contains the reply '${replyText}'`, async () => {
+      const entry = await findThread(replyText);
+      assertEqual(entry.thread?.globalId, threadId, "replied thread.globalId");
+    });
     ok("fusebase_reply_comment", "Posted comment reply");
 
     const resolveRes = await callTool(client, "fusebase_resolve_thread", { workspaceId: targetWsId, threadId });
     parseTrailingJson(resolveRes, "fusebase_resolve_thread", "Thread resolved successfully.");
+    await verifyWrite("fusebase_resolve_thread", `thread ${threadId} reads back as resolved`, async () => {
+      const threads = await callTool(client, "get_comment_threads", { workspaceId: targetWsId, pageId: commentPageId });
+      assertArray(threads, "get_comment_threads", 1);
+      const entry = threads.find((t: any) => t.thread?.globalId === threadId);
+      assert(!!entry, `Resolved thread ${threadId} should still be returned by get_comment_threads`);
+      assertEqual(entry.thread?.resolved, true, "thread.resolved");
+    });
     ok("fusebase_resolve_thread", "Resolved comment thread");
   } finally {
     await cleanup(`delete page ${commentPageId}`, () => callTool(client, "delete_page", { workspaceId: targetWsId, pageId: commentPageId }));
@@ -504,6 +735,12 @@ async function runAllSuites(client: Client, targetWsId: string) {
 
     let taskDeleted = false;
     try {
+      await verifyWrite("create_task", `task ${taskId} exists in list ${taskListId} with title '${taskTitle}'`, async () => {
+        const task = (await readTasks(client, targetWsId, taskListId, taskTitle)).find((t) => taskIdOf(t) === taskId);
+        assert(!!task, `Created task ${taskId} should be returned by list_task_lists / search_tasks`);
+        assertEqual(task.title, taskTitle, "task title");
+      });
+
       const taskDesc = await callTool(client, "get_task_description", { workspaceId: targetWsId, taskId });
       assertJson(taskDesc, "get_task_description");
       ok("get_task_description", "Verified task details readback");
@@ -515,16 +752,30 @@ async function runAllSuites(client: Client, targetWsId: string) {
       const updatedTaskTitle = `${taskTitle} (Updated & Done)`;
       const updateTaskRes = await callTool(client, "update_task", { workspaceId: targetWsId, taskId, title: updatedTaskTitle, completed: true });
       assertObject(updateTaskRes, "update_task response");
+      await verifyWrite("update_task", `task ${taskId} reads back with title '${updatedTaskTitle}' and done: true`, async () => {
+        const task = (await readTasks(client, targetWsId, taskListId, taskTitle)).find((t) => taskIdOf(t) === taskId);
+        assert(!!task, `Updated task ${taskId} should be returned by list_task_lists / search_tasks`);
+        assertEqual(task.title, updatedTaskTitle, "updated task title");
+        assertEqual(task.done, true, "updated task done");
+      });
       ok("update_task", "Updated task title and marked completed");
 
       const searchTasksRes = await callTool(client, "search_tasks", { workspaceId: targetWsId, query: taskTitle });
       assertJson(searchTasksRes, "search_tasks");
-      const hits = Array.isArray(searchTasksRes) ? searchTasksRes.length : searchTasksRes?.tasks?.length;
-      ok("search_tasks", `Searched tasks by query (${hits ?? "n/a"} hits)`);
+      assertArray(searchTasksRes.tasks, "search_tasks.tasks", 1);
+      const hit = searchTasksRes.tasks.find((t: any) => taskIdOf(t) === taskId);
+      assert(!!hit, `search_tasks(query '${taskTitle}') should find task ${taskId}`);
+      assertEqual(hit.title, updatedTaskTitle, "search_tasks hit title");
+      assert(searchTasksRes.tasks.every((t: any) => String(t.title ?? "").toLowerCase().includes(taskTitle.toLowerCase())), "search_tasks should only return tasks whose title contains the query");
+      ok("search_tasks", `Searched tasks by query (${searchTasksRes.tasks.length} hits)`);
 
       const deleteTaskRes = await callTool(client, "delete_task", { workspaceId: targetWsId, taskId });
       assertIncludes(deleteTaskRes, "deleted successfully", "delete_task response");
       taskDeleted = true;
+      await verifyWrite("delete_task", `task ${taskId} no longer returned by list_task_lists / search_tasks`, async () => {
+        const tasks = await readTasks(client, targetWsId, taskListId, taskTitle);
+        assert(!tasks.some((t) => taskIdOf(t) === taskId), `Deleted task ${taskId} is still returned`);
+      });
       ok("delete_task", `Deleted test task ${taskId}`);
     } finally {
       if (!taskDeleted) await cleanup(`delete task ${taskId}`, () => callTool(client, "delete_task", { workspaceId: targetWsId, taskId }));
@@ -549,8 +800,12 @@ async function runAllSuites(client: Client, targetWsId: string) {
 
   let databaseDeleted = false;
   try {
-    const dbDetail = await callTool(client, "get_database_detail", { databaseId });
-    assertObject(dbDetail, "get_database_detail");
+    await verifyWrite("create_database", `database ${databaseId} has title '${dbTitle}' and dashboard ${dashboardId}`, async () => {
+      const db = await readDatabase(client, databaseId);
+      assertEqual(db.title, dbTitle, "get_database_detail.data.title");
+      assertArray(db.dashboards, "get_database_detail.data.dashboards", 1);
+      assert(db.dashboards.some((d: any) => d.global_id === dashboardId), `Database ${databaseId} should contain dashboard ${dashboardId}`);
+    });
     ok("get_database_detail", "Verified database root metadata");
 
     const dbSchema = await callTool(client, "get_database_schema", { dashboardId, viewId });
@@ -576,23 +831,43 @@ async function runAllSuites(client: Client, targetWsId: string) {
     assertObject(addColRes, "add_database_column response");
     const columnKey = addColRes.columnKey || addColRes.column?.key || addColRes.key;
     assertString(columnKey, "columnKey");
+    await verifyWrite("add_database_column", `schema has column ${columnKey} named '${colName}' of type string`, () =>
+      expectColumn(client, dashboardId, viewId, columnKey, colName, "string"),
+    );
     ok("add_database_column", `Added column '${colName}' (Key: ${columnKey})`);
 
     const renamedColName = "ValidationStatusRenamed";
     const renameColRes = await callTool(client, "rename_database_column", { dashboardId, viewId, columnKey, newName: renamedColName });
     assertJson(renameColRes, "rename_database_column");
+    await verifyWrite("rename_database_column", `column ${columnKey} is now named '${renamedColName}'`, () =>
+      expectColumn(client, dashboardId, viewId, columnKey, renamedColName),
+    );
     ok("rename_database_column", `Renamed column to '${renamedColName}'`);
 
     const setWidthRes = await callTool(client, "set_column_width", { dashboardId, viewId, columnKey, width: 240 });
     assertJson(setWidthRes, "set_column_width");
+    await verifyWrite("set_column_width", `column ${columnKey} has metadata.width 240`, async () => {
+      const col = await expectColumn(client, dashboardId, viewId, columnKey, renamedColName);
+      assertEqual(col.metadata?.width, 240, `column ${columnKey} metadata.width`);
+    });
     ok("set_column_width", "Updated column width to 240px");
 
     const reorderRes = await callTool(client, "reorder_database_columns", { dashboardId, viewId, orderedKeys: [columnKey] });
     assertJson(reorderRes, "reorder_database_columns");
+    await verifyWrite("reorder_database_columns", `column ${columnKey} is first in the view schema`, async () => {
+      const cols = await readSchema(client, dashboardId, viewId);
+      assertEqual(cols[0]?.key, columnKey, "first column key after reorder");
+    });
     ok("reorder_database_columns", "Reordered column display sequence");
 
     const addRowRes = await callTool(client, "add_database_row", { databaseId, dashboardId, viewId, entity: "custom" });
     assertJson(addRowRes, "add_database_row");
+    const addedRowUuid = addRowRes.rowUuid;
+    assertString(addedRowUuid, "add_database_row.rowUuid");
+    await verifyWrite("add_database_row", `row ${addedRowUuid} is returned by get_database_rows`, async () => {
+      const rows = await readRows(client, dashboardId, viewId);
+      assert(rows.some((r: any) => r.rowUuid === addedRowUuid), `Added row ${addedRowUuid} should be returned by get_database_rows`);
+    });
     ok("add_database_row", "Added row");
 
     const rowsRes = await callTool(client, "get_database_rows", { dashboardId, viewId });
@@ -608,6 +883,11 @@ async function runAllSuites(client: Client, targetWsId: string) {
 
     const cellRes = await callTool(client, "update_database_cell", { dashboardId, viewId, rowUuid: targetRowUuid, columnKey, value: "Verified 100%" });
     assertJson(cellRes, "update_database_cell");
+    await verifyWrite("update_database_cell", `row ${targetRowUuid} cell ${columnKey} reads 'Verified 100%'`, async () => {
+      const row = (await readRows(client, dashboardId, viewId)).find((r: any) => r.rowUuid === targetRowUuid);
+      assert(!!row, `Row ${targetRowUuid} should be returned by get_database_rows`);
+      assertEqual(row.cells?.[columnKey], "Verified 100%", `row ${targetRowUuid} cells.${columnKey}`);
+    });
     ok("update_database_cell", "Updated cell value to 'Verified 100%'");
 
     const batchPutRes = await callTool(client, "batch_put_database_data", {
@@ -616,10 +896,29 @@ async function runAllSuites(client: Client, targetWsId: string) {
       rows: [{ create_new_row: true, values: [{ item_key: columnKey, value: "Batch Put Data Item" }] }],
     });
     assertJson(batchPutRes, "batch_put_database_data");
+    await verifyWrite("batch_put_database_data", `a row with cell ${columnKey} = 'Batch Put Data Item' exists`, async () => {
+      const rows = await readRows(client, dashboardId, viewId);
+      assert(rows.some((r: any) => r.cells?.[columnKey] === "Batch Put Data Item"), `A row with ${columnKey} = 'Batch Put Data Item' should be returned by get_database_rows`);
+    });
     ok("batch_put_database_data", "Batch row creation accepted");
 
-    const reorderRowsRes = await callTool(client, "reorder_database_rows", { dashboardId, viewId, rowOrders: [{ rowUuid: targetRowUuid, order: 1 }] });
+    // Move the last row to the top (sending the full order so no two rows share a position).
+    const rowsBefore = await readRows(client, dashboardId, viewId);
+    assert(rowsBefore.length >= 2, `reorder_database_rows needs at least 2 rows, got ${rowsBefore.length}`);
+    const previousFirst: string = rowsBefore[0].rowUuid;
+    const movedRow: string = rowsBefore[rowsBefore.length - 1].rowUuid;
+    const newOrder = [movedRow, ...rowsBefore.map((r: any) => r.rowUuid as string).filter((id: string) => id !== movedRow)];
+    const reorderRowsRes = await callTool(client, "reorder_database_rows", {
+      dashboardId,
+      viewId,
+      rowOrders: newOrder.map((rowUuid, i) => ({ rowUuid, order: i + 1 })),
+    });
     assertJson(reorderRowsRes, "reorder_database_rows");
+    await verifyWrite("reorder_database_rows", `row ${movedRow} (previously last) is now first, followed by the previous first row ${previousFirst}`, async () => {
+      const rows = await readRows(client, dashboardId, viewId);
+      assertEqual(rows[0]?.rowUuid, movedRow, "first row after reorder");
+      assertEqual(rows[1]?.rowUuid, previousFirst, "second row after reorder (the previous first)");
+    });
     ok("reorder_database_rows", "Verified row reordering mutation");
 
     const aliasRes = await callTool(client, "resolve_database_alias", { alias: dbTitle });
@@ -632,32 +931,71 @@ async function runAllSuites(client: Client, targetWsId: string) {
     assertObject(createViewRes, "create_view response");
     const newViewId = createViewRes.viewId || createViewRes.data?.global_id || createViewRes.id;
     assertString(newViewId, "created newViewId");
+    /** Assert the dashboard lists view `id` with `name`. */
+    const expectView = async (id: string, name: string): Promise<void> => {
+      const view = (await readViews(client, dashboardId)).find((v: any) => v.global_id === id);
+      assert(!!view, `View ${id} should be listed by get_dashboard_detail`);
+      assertEqual(view.name, name, `view ${id} name`);
+    };
+    await verifyWrite("create_view", `dashboard lists view ${newViewId} named 'Kanban Validation View', whose default representation is kanban`, async () => {
+      await expectView(newViewId, "Kanban Validation View");
+      const reps = await readViewRepresentations(client, dashboardId, newViewId);
+      assert(
+        reps.some((r) => r.global_id === "kanban" && r.is_default === true),
+        `View ${newViewId} should have kanban as its default representation, got: ${JSON.stringify(reps).slice(0, 300)}`,
+      );
+    });
     ok("create_view", `Created view '${newViewId}'`);
 
     const dupViewRes = await callTool(client, "duplicate_view", { dashboardId, sourceViewId: newViewId, name: "Kanban Validation View (Copy)" });
     assertObject(dupViewRes, "duplicate_view response");
     const dupViewId = dupViewRes.viewId || dupViewRes.data?.global_id || dupViewRes.id;
     assertString(dupViewId, "duplicated view id");
+    await verifyWrite("duplicate_view", `dashboard lists view ${dupViewId} named 'Kanban Validation View (Copy)' with the source schema (column ${columnKey})`, async () => {
+      await expectView(dupViewId, "Kanban Validation View (Copy)");
+      const cols = await readSchema(client, dashboardId, dupViewId);
+      assert(cols.some((c: any) => c.key === columnKey), `Duplicated view ${dupViewId} should carry column ${columnKey} from its source`);
+    });
     ok("duplicate_view", `Duplicated view (New View ID: ${dupViewId})`);
 
     const updateViewRes = await callTool(client, "update_view", { dashboardId, viewId: newViewId, name: "Kanban Validation View (Renamed)" });
     assertJson(updateViewRes, "update_view");
+    await verifyWrite("update_view", `view ${newViewId} is now named 'Kanban Validation View (Renamed)'`, () => expectView(newViewId, "Kanban Validation View (Renamed)"));
     ok("update_view", "Updated view name");
 
     const groupRes = await callTool(client, "set_view_grouping", { dashboardId, viewId: newViewId, groupByColumnKey: columnKey });
     assertJson(groupRes, "set_view_grouping");
+    await verifyWrite("set_view_grouping", `view ${newViewId}'s kanban representation is grouped by ${columnKey}`, async () => {
+      const kanban = (await readViewRepresentations(client, dashboardId, newViewId)).find((r) => r.global_id === "kanban");
+      assert(!!kanban, `View ${newViewId} should have a kanban representation`);
+      assertEqual(kanban.settings?.groupByField, columnKey, "kanban settings.groupByField");
+    });
     ok("set_view_grouping", "Configured kanban column grouping");
 
     const repRes = await callTool(client, "set_view_representation", { dashboardId, viewId: newViewId, representationType: "table" });
     assertJson(repRes, "set_view_representation");
+    await verifyWrite("set_view_representation", `view ${newViewId}'s default representation is no longer kanban (table if one is marked default)`, async () => {
+      const reps = await readViewRepresentations(client, dashboardId, newViewId);
+      const defaults = reps.filter((r) => r.is_default === true);
+      assert(
+        defaults.every((r) => r.global_id === "table"),
+        `After switching to table, the default representation should be table, got: ${JSON.stringify(reps).slice(0, 300)}`,
+      );
+    });
     ok("set_view_representation", "Switched representation to 'table'");
 
     assertJson(await callTool(client, "delete_view", { dashboardId, viewId: dupViewId }), "delete_view (duplicate)");
     assertJson(await callTool(client, "delete_view", { dashboardId, viewId: newViewId }), "delete_view");
+    await verifyWrite("delete_view", `views ${dupViewId} and ${newViewId} are no longer listed by the dashboard`, async () => {
+      const ids = (await readViews(client, dashboardId)).map((v: any) => v.global_id);
+      assert(!ids.includes(dupViewId), `Deleted view ${dupViewId} is still listed`);
+      assert(!ids.includes(newViewId), `Deleted view ${newViewId} is still listed`);
+    }, { count: 2 });
     ok("delete_view", "Deleted created and duplicated views");
 
     // Second database as relation target
-    const targetDbRes = await callTool(client, "create_database", { title: `Target Relation DB ${Date.now()}` });
+    const targetDbTitle = `Target Relation DB ${Date.now()}`;
+    const targetDbRes = await callTool(client, "create_database", { title: targetDbTitle });
     assertObject(targetDbRes, "create_database (relation target)");
     const targetDbId = targetDbRes.databaseId || targetDbRes.id;
     const targetDashId = targetDbRes.dashboardId;
@@ -667,7 +1005,21 @@ async function runAllSuites(client: Client, targetWsId: string) {
     assertString(targetViewId, "targetViewId");
 
     try {
-      assertJson(await callTool(client, "add_database_row", { databaseId: targetDbId, dashboardId: targetDashId, viewId: targetViewId, entity: "custom" }), "add_database_row (target)");
+      await verifyWrite("create_database", `relation target database ${targetDbId} has title '${targetDbTitle}' and dashboard ${targetDashId}`, async () => {
+        const db = await readDatabase(client, targetDbId);
+        assertEqual(db.title, targetDbTitle, "target get_database_detail.data.title");
+        assertArray(db.dashboards, "target get_database_detail.data.dashboards", 1);
+        assert(db.dashboards.some((d: any) => d.global_id === targetDashId), `Database ${targetDbId} should contain dashboard ${targetDashId}`);
+      });
+
+      const targetAddRowRes = await callTool(client, "add_database_row", { databaseId: targetDbId, dashboardId: targetDashId, viewId: targetViewId, entity: "custom" });
+      assertJson(targetAddRowRes, "add_database_row (target)");
+      const targetAddedRowUuid = targetAddRowRes.rowUuid;
+      assertString(targetAddedRowUuid, "add_database_row (target).rowUuid");
+      await verifyWrite("add_database_row", `target row ${targetAddedRowUuid} is returned by get_database_rows`, async () => {
+        const rows = await readRows(client, targetDashId, targetViewId);
+        assert(rows.some((r: any) => r.rowUuid === targetAddedRowUuid), `Added target row ${targetAddedRowUuid} should be returned by get_database_rows`);
+      });
       const targetRows = await callTool(client, "get_database_rows", { dashboardId: targetDashId, viewId: targetViewId });
       assertArray(targetRows?.rows, "target get_database_rows.rows", 1);
       const targetDbRowUuid = targetRows.rows[0].rowUuid;
@@ -685,11 +1037,13 @@ async function runAllSuites(client: Client, targetWsId: string) {
       const relationId = relRes.relationId;
       assertString(relationKey, "add_relation_column.columnKey");
       assertString(relationId, "add_relation_column.relationId");
+      await verifyWrite("add_relation_column", `schema has relation column ${relationKey} 'LinkedTargetDB' and list_database_relations includes relation ${relationId}`, async () => {
+        await expectColumn(client, dashboardId, viewId, relationKey, "LinkedTargetDB");
+        const relations = await callTool(client, "list_database_relations", { dashboardId });
+        assertJson(relations, "list_database_relations");
+        assertIncludes(JSON.stringify(relations), relationId, "list_database_relations contains created relation");
+      });
       ok("add_relation_column", `Added relation to target DB (Key: ${relationKey}, Relation: ${relationId})`);
-
-      const relations = await callTool(client, "list_database_relations", { dashboardId });
-      assertJson(relations, "list_database_relations");
-      assertIncludes(JSON.stringify(relations), relationId, "list_database_relations contains created relation");
       ok("list_database_relations", "Queried cross-table relations");
 
       const relRows = await callTool(client, "get_relation_rows", { relationId });
@@ -698,23 +1052,46 @@ async function runAllSuites(client: Client, targetWsId: string) {
 
       const linkRes = await callTool(client, "link_database_rows", { relationId, sourceRowUuid: targetRowUuid, targetRowUuid: targetDbRowUuid });
       assertJson(linkRes, "link_database_rows");
+      await verifyWrite("link_database_rows", `relation ${relationId} maps row ${targetRowUuid} to ${targetDbRowUuid}`, async () => {
+        const linked = await callTool(client, "get_relation_rows", { relationId });
+        assert(hasRelationLink(linked, targetRowUuid, targetDbRowUuid), `get_relation_rows should map ${targetRowUuid} -> ${targetDbRowUuid}, got: ${JSON.stringify(linked).slice(0, 300)}`);
+      });
       ok("link_database_rows", "Established row-level relation");
 
       const unlinkRes = await callTool(client, "unlink_database_rows", { relationId, sourceRowUuid: targetRowUuid, targetRowUuid: targetDbRowUuid });
       assertJson(unlinkRes, "unlink_database_rows");
+      await verifyWrite("unlink_database_rows", `relation ${relationId} no longer maps row ${targetRowUuid} to ${targetDbRowUuid}`, async () => {
+        const unlinked = await callTool(client, "get_relation_rows", { relationId });
+        assertJson(unlinked, "get_relation_rows");
+        assert(!hasRelationLink(unlinked, targetRowUuid, targetDbRowUuid), `get_relation_rows still maps ${targetRowUuid} -> ${targetDbRowUuid}`);
+      });
       ok("unlink_database_rows", "Removed row-level relation link");
 
       const lookupRes = await callTool(client, "add_lookup_column", { dashboardId, viewId, name: "TargetTitleLookup", relationColumnKey: relationKey });
       assertObject(lookupRes, "add_lookup_column response");
       assertString(lookupRes.columnKey, "add_lookup_column.columnKey");
+      await verifyWrite("add_lookup_column", `schema has lookup column ${lookupRes.columnKey} named 'TargetTitleLookup'`, () =>
+        expectColumn(client, dashboardId, viewId, lookupRes.columnKey, "TargetTitleLookup"),
+      );
       ok("add_lookup_column", "Created lookup column targeting relation");
 
       const delRelRes = await callTool(client, "delete_relation", { relationId });
       assertJson(delRelRes, "delete_relation");
+      await verifyWrite("delete_relation", `relation ${relationId} reads back as not found (or soft-deleted)`, async () => {
+        const res = await readUnlessGone(() => callTool(client, "get_relation_rows", { relationId }));
+        assert(res.gone || /"deleted_at"\s*:\s*"[^"]+"/.test(JSON.stringify(res.value)), `Deleted relation ${relationId} is still readable: ${res.gone ? "" : JSON.stringify(res.value).slice(0, 300)}`);
+      });
       ok("delete_relation", `Deleted relation ${relationId}`);
 
       const delDashRes = await callTool(client, "delete_dashboard", { dashboardId: targetDashId });
       assertJson(delDashRes, "delete_dashboard");
+      await verifyWrite("delete_dashboard", `dashboard ${targetDashId} is not found, or no longer part of database ${targetDbId}`, async () => {
+        const res = await readUnlessGone(() => callTool(client, "get_dashboard_detail", { dashboardId: targetDashId }));
+        if (res.gone) return;
+        const db = await readDatabase(client, targetDbId);
+        assertArray(db.dashboards, "target get_database_detail.data.dashboards");
+        assert(!db.dashboards.some((d: any) => d.global_id === targetDashId), `Deleted dashboard ${targetDashId} is still readable and still listed in database ${targetDbId}`);
+      });
       ok("delete_dashboard", `Deleted relation-target dashboard ${targetDashId}`);
     } finally {
       await cleanup(`delete relation target database ${targetDbId}`, () => callTool(client, "delete_database", { databaseId: targetDbId }));
@@ -722,6 +1099,10 @@ async function runAllSuites(client: Client, targetWsId: string) {
 
     const delRowRes = await callTool(client, "delete_database_row", { dashboardId, rowId: targetRowUuid });
     assertJson(delRowRes, "delete_database_row");
+    await verifyWrite("delete_database_row", `row ${targetRowUuid} is no longer returned by get_database_rows`, async () => {
+      const rows = await readRows(client, dashboardId, viewId);
+      assert(!rows.some((r: any) => r.rowUuid === targetRowUuid), `Deleted row ${targetRowUuid} is still returned`);
+    });
     ok("delete_database_row", `Deleted row ${targetRowUuid}`);
 
     const exportCsvRes = await callTool(client, "export_csv", { dashboardId, viewId });
@@ -736,21 +1117,59 @@ async function runAllSuites(client: Client, targetWsId: string) {
       csvContent: `Title,${renamedColName}\nTask Alpha,Active\nTask Beta,Closed`,
     });
     assertJson(importCsvRes, "import_csv");
+    // The import runs as a server-side job, so allow it longer to land.
+    await verifyWrite("import_csv", "rows 'Task Alpha'/'Active' and 'Task Beta'/'Closed' are returned by get_database_rows", async () => {
+      const rows = await readRows(client, dashboardId, viewId);
+      for (const [title, status] of [["Task Alpha", "Active"], ["Task Beta", "Closed"]]) {
+        assert(
+          rows.some((r: any) => {
+            const values = Object.values(r.cells ?? {});
+            return values.includes(title) && values.includes(status);
+          }),
+          `Imported row '${title}' with '${status}' should be returned by get_database_rows`,
+        );
+      }
+    }, { timeoutMs: 60_000, intervalMs: 3000 });
     ok("import_csv", "Imported CSV dataset into database");
 
-    const dupDbRes = await callTool(client, "duplicate_database", { sourceDbId: databaseId, title: `${dbTitle} (Clone)` });
+    const clonedDbTitle = `${dbTitle} (Clone)`;
+    const dupDbRes = await callTool(client, "duplicate_database", { sourceDbId: databaseId, title: clonedDbTitle });
     assertObject(dupDbRes, "duplicate_database response");
     const clonedDbId = dupDbRes.databaseId;
     assertString(clonedDbId, "duplicate_database.databaseId");
+    try {
+      await verifyWrite("duplicate_database", `clone ${clonedDbId} is titled '${clonedDbTitle}' with a table whose view carries column '${renamedColName}'`, async () => {
+        const clone = await readDatabase(client, clonedDbId);
+        assertEqual(clone.global_id, clonedDbId, "clone get_database_detail.data.global_id");
+        assertEqual(clone.title, clonedDbTitle, "clone get_database_detail.data.title");
+        assertArray(clone.dashboards, "clone get_database_detail.data.dashboards", 1);
+        const cloneDashId = clone.dashboards[0].global_id;
+        assertString(cloneDashId, "clone dashboards[0].global_id");
+        const cloneViews = await readViews(client, cloneDashId);
+        assertArray(cloneViews, "clone views", 1);
+        const cols = await readSchema(client, cloneDashId, cloneViews[0].global_id);
+        assert(cols.some((c: any) => c.name === renamedColName), `Cloned table should carry column '${renamedColName}'`);
+      });
+    } finally {
+      await cleanup(`delete cloned database ${clonedDbId}`, () => callTool(client, "delete_database", { databaseId: clonedDbId }));
+    }
     ok("duplicate_database", `Cloned database (New DB ID: ${clonedDbId})`);
-    await cleanup(`delete cloned database ${clonedDbId}`, () => callTool(client, "delete_database", { databaseId: clonedDbId }));
 
     const delColRes = await callTool(client, "delete_database_column", { dashboardId, viewId, columnKey });
     assertJson(delColRes, "delete_database_column");
+    await verifyWrite("delete_database_column", `column ${columnKey} is no longer in the view schema`, async () => {
+      const cols = await readSchema(client, dashboardId, viewId);
+      assert(!cols.some((c: any) => c.key === columnKey), `Deleted column ${columnKey} is still in the schema`);
+    });
     ok("delete_database_column", `Deleted column ${columnKey}`);
 
-    const updateDbRes = await callTool(client, "update_database", { databaseId, title: `${dbTitle} (Renamed)` });
+    const renamedDbTitle = `${dbTitle} (Renamed)`;
+    const updateDbRes = await callTool(client, "update_database", { databaseId, title: renamedDbTitle });
     assertJson(updateDbRes, "update_database");
+    await verifyWrite("update_database", `database ${databaseId} title reads back as '${renamedDbTitle}'`, async () => {
+      const db = await readDatabase(client, databaseId);
+      assertEqual(db.title, renamedDbTitle, "database title after update_database");
+    });
     ok("update_database", "Updated database properties");
 
     // Look up the test's own table: generic names like "custom" are ambiguous by design (COR-2).
@@ -768,10 +1187,25 @@ async function runAllSuites(client: Client, targetWsId: string) {
       if (!(err instanceof ToolError)) throw err;
     }
     knownGap("COR-21", "create_dashboard_table adds a table", tableCreated);
+    if (tableCreated) {
+      await verifyWrite("create_dashboard_table", "a table or view named 'Secondary Test Table' is listed in the database or dashboard", async () => {
+        const db = await readDatabase(client, databaseId);
+        const views = await readViews(client, dashboardId);
+        assert(
+          JSON.stringify(db).includes("Secondary Test Table") || views.some((v: any) => v.name === "Secondary Test Table"),
+          "'Secondary Test Table' should appear in get_database_detail or get_dashboard_detail",
+        );
+      });
+    }
 
     const delDbRes = await callTool(client, "delete_database", { databaseId });
     assertJson(delDbRes, "delete_database");
     databaseDeleted = true;
+    await verifyWrite("delete_database", `database ${databaseId} is no longer listed by list_all_databases`, async () => {
+      const remaining = await callTool(client, "list_all_databases");
+      assertArray(remaining?.data, "list_all_databases.data");
+      assert(!remaining.data.some((d: any) => d.global_id === databaseId), `Deleted database ${databaseId} is still listed`);
+    });
     ok("delete_database", `Deleted database ${databaseId}`);
   } finally {
     if (!databaseDeleted) await cleanup(`delete database ${databaseId}`, () => callTool(client, "delete_database", { databaseId }));
@@ -841,17 +1275,26 @@ async function runAllSuites(client: Client, targetWsId: string) {
       assertArray(portalClients, "list_portal_clients");
       ok("list_portal_clients", `Queried portal client accounts (${portalClients.length} clients)`);
 
+      const pubTestTitle = `Portal Publish Test ${Date.now()}`;
       const pubTestPage = await callTool(client, "create_page", {
         workspaceId: targetWsId,
-        title: `Portal Publish Test ${Date.now()}`,
+        title: pubTestTitle,
         markdown: "# Portal Publishing",
       });
       assertObject(pubTestPage, "create_page (portal page)");
       const pubTestPageId = pubTestPage.id;
       assertString(pubTestPageId, "pubTestPageId");
       try {
+        await verifyWrite("create_page", `portal test page ${pubTestPageId} has its title and heading`, () =>
+          expectPage(client, targetWsId, pubTestPageId, pubTestTitle, ["Portal Publishing"]),
+        );
         const pubRes = await callTool(client, "publish_page_to_portal", { workspaceId: targetWsId, pageId: pubTestPageId, publish: true });
         assertIncludes(pubRes, "published to", "publish_page_to_portal response");
+        await verifyWrite("publish_page_to_portal", `page ${pubTestPageId} reads back with isPortalShare: true`, async () => {
+          const meta = await callTool(client, "get_page", { workspaceId: targetWsId, pageId: pubTestPageId });
+          assertObject(meta, "get_page (portal page)");
+          assertEqual(meta.isPortalShare, true, "get_page.isPortalShare");
+        });
         ok("publish_page_to_portal", "Published page to client portal");
 
         const portalPages = await callTool(client, "get_portal_pages", { workspaceId: targetWsId, noteId: pubTestPageId });
@@ -869,10 +1312,15 @@ async function runAllSuites(client: Client, targetWsId: string) {
       } else {
         const magicLinkRes = await callTool(client, "create_portal_magic_link", { portalId, email: inviteEmail });
         assertJson(magicLinkRes, "create_portal_magic_link");
+        noReadBack("create_portal_magic_link", "the link is returned once and emailed; no tool lists issued magic links");
         ok("create_portal_magic_link", "Generated magic link");
 
         const inviteClientRes = await callTool(client, "invite_portal_client", { portalId, email: inviteEmail });
         assertJson(inviteClientRes, "invite_portal_client");
+        await verifyWrite("invite_portal_client", "the invited address is listed by list_portal_clients", async () => {
+          const clients = await callTool(client, "list_portal_clients", { portalId });
+          assert(JSON.stringify(clients).toLowerCase().includes(inviteEmail.toLowerCase()), "Invited address should be listed by list_portal_clients");
+        });
         ok("invite_portal_client", "Dispatched portal client invitation");
       }
     }
@@ -921,16 +1369,32 @@ async function runAllSuites(client: Client, targetWsId: string) {
     assertArray(autoFolders.data, "list_automation_folders.data");
     ok("list_automation_folders", `Queried automation folders (${autoFolders.data.length})`);
 
-    const createdFolder = await callTool(client, "create_automation_folder", { displayName: `QA Auto Folder ${Date.now()}` });
+    const autoFolderName = `QA Auto Folder ${Date.now()}`;
+    const createdFolder = await callTool(client, "create_automation_folder", { displayName: autoFolderName });
     assertObject(createdFolder, "create_automation_folder");
     const autoFolderId = createdFolder.id;
     assertString(autoFolderId, "create_automation_folder.id");
-    ok("create_automation_folder", `Created automation folder ${autoFolderId}`);
+    /** Automation folders as listed by list_automation_folders. */
+    const readAutoFolders = async (): Promise<any[]> => {
+      const res = await callTool(client, "list_automation_folders");
+      assertArray(res?.data, "list_automation_folders.data");
+      return res.data;
+    };
     let autoFolderDeleted = false;
     try {
+      await verifyWrite("create_automation_folder", `automation folder ${autoFolderId} listed as '${autoFolderName}'`, async () => {
+        const folder = (await readAutoFolders()).find((f: any) => f.id === autoFolderId);
+        assert(!!folder, `Created automation folder ${autoFolderId} should be listed`);
+        assertEqual(folder.displayName, autoFolderName, "automation folder displayName");
+      });
+      ok("create_automation_folder", `Created automation folder ${autoFolderId}`);
+
       const delFolderRes = await callTool(client, "delete_automation_folder", { folderId: autoFolderId });
       assertIncludes(delFolderRes, "deleted successfully", "delete_automation_folder response");
       autoFolderDeleted = true;
+      await verifyWrite("delete_automation_folder", `automation folder ${autoFolderId} is no longer listed`, async () => {
+        assert(!(await readAutoFolders()).some((f: any) => f.id === autoFolderId), `Deleted automation folder ${autoFolderId} is still listed`);
+      });
       ok("delete_automation_folder", `Deleted automation folder ${autoFolderId}`);
     } finally {
       if (!autoFolderDeleted) await cleanup(`delete automation folder ${autoFolderId}`, () => callTool(client, "delete_automation_folder", { folderId: autoFolderId }));
@@ -940,7 +1404,8 @@ async function runAllSuites(client: Client, targetWsId: string) {
     assertJson(flowsList, "list_automation_flows");
     ok("list_automation_flows", "Listed automation flows");
 
-    const createFlowRes = await callTool(client, "create_automation_flow", { displayName: `QA Test Flow ${Date.now()}` });
+    const flowName = `QA Test Flow ${Date.now()}`;
+    const createFlowRes = await callTool(client, "create_automation_flow", { displayName: flowName });
     assertObject(createFlowRes, "create_automation_flow");
     const flowId = createFlowRes.id;
     assertString(flowId, "create_automation_flow.id");
@@ -948,30 +1413,60 @@ async function runAllSuites(client: Client, targetWsId: string) {
 
     let flowDeleted = false;
     try {
-      const flow = await callTool(client, "get_automation_flow", { flowId });
-      assertObject(flow, "get_automation_flow");
-      assertEqual(flow.id, flowId, "get_automation_flow.id");
+      /** Assert get_automation_flow returns this flow with the given display name. */
+      const expectFlowName = async (name: string): Promise<void> => {
+        const flow = await callTool(client, "get_automation_flow", { flowId });
+        assertObject(flow, "get_automation_flow");
+        assertEqual(flow.id, flowId, "get_automation_flow.id");
+        assertEqual(flow.version?.displayName, name, "get_automation_flow.version.displayName");
+      };
+      await verifyWrite("create_automation_flow", `flow ${flowId} reads back with displayName '${flowName}'`, () => expectFlowName(flowName));
       ok("get_automation_flow", "Verified flow definition");
 
       const updateFlowRes = await callTool(client, "update_automation_flow", { flowId, displayName: "QA Test Flow (Updated)", type: "CHANGE_NAME" });
       assertJson(updateFlowRes, "update_automation_flow");
+      await verifyWrite("update_automation_flow", `flow ${flowId} reads back with displayName 'QA Test Flow (Updated)'`, () => expectFlowName("QA Test Flow (Updated)"));
       ok("update_automation_flow", "Updated flow display name");
 
       const runs = await callTool(client, "list_flow_runs", { limit: 5 });
       assertJson(runs, "list_flow_runs");
       ok("list_flow_runs", "Queried flow execution runs");
 
+      /**
+       * Prove a trigger by the run it reports. The test flow is an unpublished draft with an empty
+       * trigger: when FuseBase answers without a run, there is nothing a read can observe.
+       */
+      const proveTrigger = async (tool: string, res: any): Promise<void> => {
+        const reported = typeof res?.id === "string" ? res : res?.data;
+        const runId: string | undefined =
+          typeof reported?.id === "string" && (reported.flowId === flowId || "status" in reported) ? reported.id : undefined;
+        if (!runId) {
+          noReadBack(tool, "the trigger response carries no run: the test flow is an unpublished draft with an empty trigger, which ActivePieces doesn't execute, so list_flow_runs has no run to show (no tool can give a flow a real trigger)");
+          return;
+        }
+        await verifyWrite(tool, `list_flow_runs shows run ${runId} of flow ${flowId}`, async () => {
+          const run = (await readFlowRuns(client)).find((r: any) => r.id === runId);
+          assert(!!run, `list_flow_runs should include run ${runId} reported by ${tool}`);
+          assertEqual(run.flowId, flowId, "flow run flowId");
+        }, { timeoutMs: 30_000 });
+      };
       const triggerRes = await callTool(client, "trigger_automation_flow", { flowId, payload: { qa: true } });
       assertJson(triggerRes, "trigger_automation_flow");
+      await proveTrigger("trigger_automation_flow", triggerRes);
       ok("trigger_automation_flow", "Triggered flow");
 
       const n8nRes = await callTool(client, "fusebase_work_trigger_n8n", { flowId, payload: { test: true } });
       assertJson(n8nRes, "fusebase_work_trigger_n8n");
+      await proveTrigger("fusebase_work_trigger_n8n", n8nRes);
       ok("fusebase_work_trigger_n8n", "Triggered flow via FuseBase Work n8n bridge");
 
       const delFlowRes = await callTool(client, "delete_automation_flow", { flowId });
       assertIncludes(delFlowRes, "deleted successfully", "delete_automation_flow response");
       flowDeleted = true;
+      await verifyWrite("delete_automation_flow", `flow ${flowId} reads back as not found`, async () => {
+        const res = await readUnlessGone(() => callTool(client, "get_automation_flow", { flowId }));
+        assert(res.gone, `Deleted flow ${flowId} is still readable via get_automation_flow`);
+      });
       ok("delete_automation_flow", `Deleted test flow ${flowId}`);
     } finally {
       if (!flowDeleted) await cleanup(`delete automation flow ${flowId}`, () => callTool(client, "delete_automation_flow", { flowId }));
@@ -1022,8 +1517,9 @@ async function runAllSuites(client: Client, targetWsId: string) {
   assert(/^AI Usage: \S+\/\S+/.test(aiUsage), `get_ai_usage should report 'AI Usage: x/y', got: ${aiUsage}`);
   ok("get_ai_usage", aiUsage);
 
+  const swarmTitle = `QA Swarm Data Validation ${Date.now()}`;
   const swarmRes = await callTool(client, "fusebase_swarm_init", {
-    title: `QA Swarm Data Validation ${Date.now()}`,
+    title: swarmTitle,
     description: "Automated swarm verification",
   });
   assertObject(swarmRes, "fusebase_swarm_init");
@@ -1037,12 +1533,40 @@ async function runAllSuites(client: Client, targetWsId: string) {
   ok("fusebase_swarm_init", `Initialized swarm database ${swarmDbId}`);
 
   try {
+    const roleKey: string = swarmRes.roleColumnKey;
+    const auditKey: string = swarmRes.auditColumnKey;
+    assertString(roleKey, "fusebase_swarm_init.roleColumnKey");
+    assertString(auditKey, "fusebase_swarm_init.auditColumnKey");
+    await verifyWrite("fusebase_swarm_init", `swarm database ${swarmDbId} titled '${swarmTitle}' with label columns Status and Role and an Audit Log column`, async () => {
+      const db = await readDatabase(client, swarmDbId);
+      assertEqual(db.title, swarmTitle, "swarm get_database_detail.data.title");
+      await expectColumn(client, swarmDashId, swarmViewId, swarmRes.statusColumnKey, "Status", "label");
+      await expectColumn(client, swarmDashId, swarmViewId, roleKey, "Role", "label");
+      await expectColumn(client, swarmDashId, swarmViewId, auditKey, "Audit Log", "string");
+    });
+
     // Swarm init does not create a status column, so add one to group/move cards by.
     const statusCol = await callTool(client, "add_database_column", { dashboardId: swarmDashId, viewId: swarmViewId, name: "Status", columnType: "text" });
     const statusKey = statusCol?.columnKey;
     assertString(statusKey, "swarm status columnKey");
+    await verifyWrite("add_database_column", `swarm schema has text column ${statusKey} named 'Status'`, () =>
+      expectColumn(client, swarmDashId, swarmViewId, statusKey, "Status", "string"),
+    );
 
-    assertJson(await callTool(client, "add_database_row", { databaseId: swarmDbId, dashboardId: swarmDashId, viewId: swarmViewId, entity: "custom" }), "add_database_row (swarm)");
+    const swarmAddRowRes = await callTool(client, "add_database_row", { databaseId: swarmDbId, dashboardId: swarmDashId, viewId: swarmViewId, entity: "custom" });
+    assertJson(swarmAddRowRes, "add_database_row (swarm)");
+    const swarmAddedRowUuid = swarmAddRowRes.rowUuid;
+    assertString(swarmAddedRowUuid, "add_database_row (swarm).rowUuid");
+    await verifyWrite("add_database_row", `swarm row ${swarmAddedRowUuid} is returned by get_database_rows`, async () => {
+      const rows = await readRows(client, swarmDashId, swarmViewId);
+      assert(rows.some((r: any) => r.rowUuid === swarmAddedRowUuid), `Added swarm row ${swarmAddedRowUuid} should be returned by get_database_rows`);
+    });
+    /** Assert the swarm card's status cell reads `value`. */
+    const expectSwarmStatus = async (rowId: string, value: string): Promise<void> => {
+      const row = (await readRows(client, swarmDashId, swarmViewId)).find((r: any) => r.rowUuid === rowId);
+      assert(!!row, `Swarm row ${rowId} should be returned by get_database_rows`);
+      assertEqual(row.cells?.[statusKey], value, `swarm row ${rowId} cells.${statusKey}`);
+    };
     const swarmRows = await callTool(client, "get_database_rows", { dashboardId: swarmDashId, viewId: swarmViewId });
     assertArray(swarmRows?.rows, "swarm get_database_rows.rows", 1);
     const swarmRowId = swarmRows.rows[0].rowUuid;
@@ -1056,19 +1580,39 @@ async function runAllSuites(client: Client, targetWsId: string) {
       newValue: "In Progress",
     });
     assertJson(moveCardRes, "move_kanban_card");
+    await verifyWrite("move_kanban_card", `card ${swarmRowId} status cell reads 'In Progress'`, () => expectSwarmStatus(swarmRowId, "In Progress"));
     ok("move_kanban_card", "Moved kanban card to 'In Progress'");
 
+    const transitionComment = "QA transition verification complete";
     const transitionRes = await callTool(client, "fusebase_swarm_task_transition", {
       dashboardId: swarmDashId,
       viewId: swarmViewId,
       rowId: swarmRowId,
       groupByColumnKey: statusKey,
       newStatus: "Review",
-      comment: "QA transition verification complete",
+      comment: transitionComment,
+      nextRole: "agent-qa",
+      auditColumnKey: auditKey,
+      roleColumnKey: roleKey,
     });
     assertObject(transitionRes, "fusebase_swarm_task_transition");
     assertEqual(transitionRes.success, true, "fusebase_swarm_task_transition.success");
     assertEqual(transitionRes.audit?.newStatus, "Review", "fusebase_swarm_task_transition.audit.newStatus");
+    assertEqual(transitionRes.auditStored, true, "fusebase_swarm_task_transition.auditStored");
+    assertEqual(transitionRes.handoverStored, true, "fusebase_swarm_task_transition.handoverStored");
+    await verifyWrite("fusebase_swarm_task_transition", `card ${swarmRowId}: status 'Review', Audit Log contains the comment, Role is agent-qa`, async () => {
+      await expectSwarmStatus(swarmRowId, "Review");
+      const row = (await readRows(client, swarmDashId, swarmViewId)).find((r: any) => r.rowUuid === swarmRowId);
+      assert(!!row, `Swarm row ${swarmRowId} should be returned by get_database_rows`);
+      const audit = String(row.cells?.[auditKey] ?? "");
+      assertIncludes(audit, transitionComment, "Audit Log cell");
+      assertIncludes(audit, "→ Review", "Audit Log cell status");
+      assertIncludes(audit, "(handed over to agent-qa)", "Audit Log cell handover");
+      // Label cells hold label nanoids; map them back to option names via the schema.
+      const roleCol = (await readSchema(client, swarmDashId, swarmViewId)).find((c: any) => c.key === roleKey);
+      assert(!!roleCol, `Role column ${roleKey} should be in the schema`);
+      assertEqual(JSON.stringify(labelNames(roleCol, row.cells?.[roleKey])), JSON.stringify(["agent-qa"]), "Role cell (label names)");
+    });
     ok("fusebase_swarm_task_transition", "Transitioned task with audit log");
   } finally {
     await cleanup(`delete swarm database ${swarmDbId}`, () => callTool(client, "delete_database", { databaseId: swarmDbId }));
@@ -1131,8 +1675,19 @@ async function runAllSuites(client: Client, targetWsId: string) {
   assertObject(vibePageRes, "create_interactive_app_page response");
   const vibePageId = vibePageRes.id;
   assertString(vibePageId, "vibePageId");
+  try {
+    await verifyWrite("create_interactive_app_page", `page ${vibePageId} titled 'QA Vibe Code Widget' embeds https://example.com/vibe-widget under its description`, async () => {
+      const meta = await callTool(client, "get_page", { workspaceId: targetWsId, pageId: vibePageId });
+      assertObject(meta, "get_page (vibe page)");
+      assertEqual(meta.title, "QA Vibe Code Widget", "vibe page title");
+      const html = await callTool(client, "get_page_content", { workspaceId: targetWsId, pageId: vibePageId, format: "html" });
+      assertIncludes(html, "Custom Vibe App", "vibe page description");
+      assertIncludes(html, "https://example.com/vibe-widget", "vibe page remote-frame src");
+    });
+  } finally {
+    await cleanup(`delete page ${vibePageId}`, () => callTool(client, "delete_page", { workspaceId: targetWsId, pageId: vibePageId }));
+  }
   ok("create_interactive_app_page", `Created remote-frame page ${vibePageId}`);
-  await cleanup(`delete page ${vibePageId}`, () => callTool(client, "delete_page", { workspaceId: targetWsId, pageId: vibePageId }));
 
   // ──────────────────────────────────────────────────────────────────
   // Suite 12: Diagnostics, Preferences & Offline Guides
@@ -1183,9 +1738,33 @@ async function runAllSuites(client: Client, targetWsId: string) {
   assertObject(userPrefs, "get_user_preferences");
   ok("get_user_preferences", "Validated user UI preferences");
 
-  const sidebarRes = await callTool(client, "set_sidebar_collapsed", { collapsed: false });
-  assertObject(sidebarRes, "set_sidebar_collapsed");
-  assertEqual(sidebarRes.success, true, "sidebarRes.success");
+  // The sidebar state is the user var sidebarCollapsed ("1"/"0"). Flip it, prove it, then restore it.
+  /** sidebarCollapsed as reported by get_user_preferences. */
+  const readSidebarCollapsed = async (): Promise<boolean | undefined> => sidebarCollapsedOf(await callTool(client, "get_user_preferences"));
+  const setSidebar = async (collapsed: boolean): Promise<void> => {
+    const sidebarRes = await callTool(client, "set_sidebar_collapsed", { collapsed });
+    assertObject(sidebarRes, "set_sidebar_collapsed");
+    assertEqual(sidebarRes.success, true, "sidebarRes.success");
+  };
+  const expectSidebar = (collapsed: boolean) => async (): Promise<void> => {
+    assertEqual(await readSidebarCollapsed(), collapsed, "get_user_preferences sidebarCollapsed");
+  };
+  // This is the account owner's real UI setting: never write it without knowing the value to
+  // restore, and always restore it, even if a check fails.
+  const initialCollapsed = sidebarCollapsedOf(userPrefs);
+  assert(initialCollapsed !== undefined, `get_user_preferences should expose the sidebarCollapsed user var, got: ${JSON.stringify(userPrefs).slice(0, 300)}`);
+  let sidebarRestored = false;
+  try {
+    await setSidebar(!initialCollapsed);
+    await verifyWrite("set_sidebar_collapsed", `sidebarCollapsed flipped to ${!initialCollapsed}`, expectSidebar(!initialCollapsed));
+    await setSidebar(initialCollapsed);
+    await verifyWrite("set_sidebar_collapsed", `sidebarCollapsed restored to ${initialCollapsed}`, expectSidebar(initialCollapsed));
+    sidebarRestored = true;
+  } finally {
+    if (!sidebarRestored) {
+      await cleanup("restore sidebarCollapsed", () => callTool(client, "set_sidebar_collapsed", { collapsed: initialCollapsed }));
+    }
+  }
   ok("set_sidebar_collapsed", "Updated sidebar collapsed state");
 
   const billingInfo = await callTool(client, "get_billing_info");
@@ -1271,6 +1850,14 @@ async function runAllSuites(client: Client, targetWsId: string) {
       assertObject(createdStore, "create_isolated_store");
       storeId = createdStore.id ?? createdStore.globalId;
       assertString(storeId, "create_isolated_store.id");
+      const createdStoreId = storeId;
+      await verifyWrite("create_isolated_store", `list_isolated_stores lists '${SANDBOX_STORE_ALIAS}' as ${createdStoreId}`, async () => {
+        const listedStores = await callTool(client, "list_isolated_stores", { orgId });
+        assertArray(listedStores, "list_isolated_stores");
+        const listed = listedStores.find((s: any) => s.alias === SANDBOX_STORE_ALIAS);
+        assert(!!listed, `Created store '${SANDBOX_STORE_ALIAS}' should be listed`);
+        assertEqual(listed.id ?? listed.globalId, createdStoreId, "listed store id");
+      });
       ok("create_isolated_store", `Provisioned sandbox store '${SANDBOX_STORE_ALIAS}' (${storeId}); it persists for reuse`);
     } else {
       skipAll(sqlTools, `no '${SANDBOX_STORE_ALIAS}' store and stores can't be deleted; set FUSEBASE_TEST_CREATE_SQL_STORE=1 to create one`);
@@ -1291,18 +1878,32 @@ async function runAllSuites(client: Client, targetWsId: string) {
       ],
     };
     assertJson(await callTool(client, "apply_isolated_sql_migrations", { storeId, stage: SQL_STAGE, bundle, dryRun: true }), "apply_isolated_sql_migrations (dry run)");
+    noReadBack("apply_isolated_sql_migrations", "dry run: validates the bundle without applying it, so nothing is stored (the real run below is verified)");
     assertJson(await callTool(client, "apply_isolated_sql_migrations", { storeId, stage: SQL_STAGE, bundle, dryRun: false }), "apply_isolated_sql_migrations");
+    let tableCount = 0;
+    await verifyWrite("apply_isolated_sql_migrations", `list_isolated_sql_tables includes ${table}`, async () => {
+      const tablesRes = await callTool(client, "list_isolated_sql_tables", { storeId, stage: SQL_STAGE });
+      assertArray(tablesRes, "list_isolated_sql_tables");
+      assertIncludes(JSON.stringify(tablesRes), table, "list_isolated_sql_tables contains migrated table");
+      tableCount = tablesRes.length;
+    });
     ok("apply_isolated_sql_migrations", `Applied migration bundle (dry run + real) creating ${table}`);
-
-    const tablesRes = await callTool(client, "list_isolated_sql_tables", { storeId, stage: SQL_STAGE });
-    assertArray(tablesRes, "list_isolated_sql_tables");
-    assertIncludes(JSON.stringify(tablesRes), table, "list_isolated_sql_tables contains migrated table");
-    ok("list_isolated_sql_tables", `Listed tables (${tablesRes.length})`);
+    ok("list_isolated_sql_tables", `Listed tables (${tableCount})`);
 
     const runId = `run-${Date.now()}`;
+    /** This run's rows, keyed by id. */
+    const readRunRows = async (): Promise<Map<string, any>> => {
+      const res = await callTool(client, "select_isolated_sql_rows", { storeId, stage: SQL_STAGE, table, where: { run_id: runId }, limit: 10 });
+      assertObject(res, "select_isolated_sql_rows");
+      assertArray(res.rows, "select_isolated_sql_rows.rows");
+      return new Map(res.rows.map((r: any) => [r.id, r]));
+    };
     try {
       const insertRes = await callTool(client, "insert_isolated_sql_row", { storeId, stage: SQL_STAGE, table, row: { id: `${runId}-1`, run_id: runId, event_type: "single" } });
       assertJson(insertRes, "insert_isolated_sql_row");
+      await verifyWrite("insert_isolated_sql_row", `row ${runId}-1 reads back with event_type 'single'`, async () => {
+        assertEqual((await readRunRows()).get(`${runId}-1`)?.event_type, "single", `${runId}-1 event_type`);
+      });
       ok("insert_isolated_sql_row", "Inserted single row");
 
       const batchRes = await callTool(client, "batch_insert_isolated_sql_rows", {
@@ -1315,6 +1916,11 @@ async function runAllSuites(client: Client, targetWsId: string) {
         ],
       });
       assertJson(batchRes, "batch_insert_isolated_sql_rows");
+      await verifyWrite("batch_insert_isolated_sql_rows", `rows ${runId}-2 / -3 read back with event_type batch_1 / batch_2`, async () => {
+        const rows = await readRunRows();
+        assertEqual(rows.get(`${runId}-2`)?.event_type, "batch_1", `${runId}-2 event_type`);
+        assertEqual(rows.get(`${runId}-3`)?.event_type, "batch_2", `${runId}-3 event_type`);
+      });
       ok("batch_insert_isolated_sql_rows", "Batch inserted rows");
 
       const selectRes = await callTool(client, "select_isolated_sql_rows", { storeId, stage: SQL_STAGE, table, where: { run_id: runId }, limit: 10 });
@@ -1331,6 +1937,11 @@ async function runAllSuites(client: Client, targetWsId: string) {
       const execRes = await callTool(client, "execute_isolated_sql", { storeId, stage: SQL_STAGE, sql: `DELETE FROM ${table} WHERE run_id = $1`, params: [runId] });
       assertObject(execRes, "execute_isolated_sql");
       assertEqual(Number(execRes.rowCount), 3, "execute_isolated_sql.rowCount");
+      await verifyWrite("execute_isolated_sql", `no rows left for ${runId}`, async () => {
+        const countRes = await callTool(client, "query_isolated_sql", { storeId, stage: SQL_STAGE, sql: `SELECT count(*)::int AS n FROM ${table} WHERE run_id = $1`, params: [runId] });
+        assertArray(countRes?.rows, "query_isolated_sql.rows", 1);
+        assertEqual(Number(countRes.rows[0].n), 0, "rows left for this run after DELETE");
+      });
       ok("execute_isolated_sql", "Deleted this run's rows (rowCount 3)");
     } finally {
       await cleanup(`delete isolated rows for ${runId}`, () =>
@@ -1349,19 +1960,35 @@ async function runAllSuites(client: Client, targetWsId: string) {
   // server expects is still unknown (it answers 500). Tracked as a known gap until the web
   // app's request is captured.
   const runAgentId = numericAgent ? String(numericAgent.id) : firstAgentGlobalId;
-  const tryWork = async (tool: string, args: Record<string, unknown>): Promise<boolean> => {
+  /** The tool's payload, or undefined when it fails (ToolError). */
+  const tryWork = async (tool: string, args: Record<string, unknown>): Promise<any> => {
     try {
-      assertJson(await callTool(client, tool, args), tool);
-      return true;
+      const res = await callTool(client, tool, args);
+      assertJson(res, tool);
+      return res;
     } catch (err) {
       if (!(err instanceof ToolError)) throw err;
-      return false;
+      return undefined;
     }
   };
-  knownGap("COR-25", "fusebase_work_run_agent starts an agent thread",
-    await tryWork("fusebase_work_run_agent", { workspaceId: targetWsId, agentId: runAgentId, prompt: "Status check for data validation suite" }));
+  const runAgentRes = await tryWork("fusebase_work_run_agent", { workspaceId: targetWsId, agentId: runAgentId, prompt: "Status check for data validation suite" });
+  knownGap("COR-25", "fusebase_work_run_agent starts an agent thread", runAgentRes !== undefined);
+  if (runAgentRes !== undefined) {
+    // A failed call records no write; a successful one must show up as a thread of the agent.
+    const threadId = String(runAgentRes.globalId ?? runAgentRes.id ?? runAgentRes.threadId ?? runAgentRes.thread?.globalId ?? runAgentRes.thread?.id ?? "");
+    if (!numericAgent) {
+      noReadBack("fusebase_work_run_agent", "list_ai_agent_threads needs a numeric agent id and list_agents returned none");
+    } else {
+      await verifyWrite("fusebase_work_run_agent", `agent ${numericAgent.id} lists the new thread ${threadId}`, async () => {
+        assertString(threadId, "fusebase_work_run_agent thread id");
+        const threads = await callTool(client, "list_ai_agent_threads", { agentId: String(numericAgent.id) });
+        assertArray(threads, "list_ai_agent_threads");
+        assertIncludes(JSON.stringify(threads), threadId, "list_ai_agent_threads contains the started thread");
+      });
+    }
+  }
   knownGap("COR-25", "fusebase_work_scrape_url starts a scraping agent thread",
-    await tryWork("fusebase_work_scrape_url", { workspaceId: targetWsId, url: "https://example.com", formats: ["markdown"] }));
+    (await tryWork("fusebase_work_scrape_url", { workspaceId: targetWsId, url: "https://example.com", formats: ["markdown"] })) !== undefined);
 
   if (!automationAvailable) console.log("(fusebase_work_trigger_n8n skipped with automations — see Suite 9)");
 
@@ -1394,8 +2021,9 @@ async function runAllSuites(client: Client, targetWsId: string) {
     ok("fusebase_gate_whoami", "Verified token identity & tenant context");
 
     // The create response contains the one-time secret: never log it.
+    const tokenName = `E2E QA Probe Token ${Date.now()}`;
     const createTokenRes = await callTool(client, "fusebase_token_create", {
-      name: `E2E QA Probe Token ${Date.now()}`,
+      name: tokenName,
       scopes: [{ scope_type: "org", scope_id: orgId }],
       permissions: ["notes.read"],
       expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
@@ -1408,14 +2036,29 @@ async function runAllSuites(client: Client, targetWsId: string) {
 
     let tokenRevoked = false;
     try {
-      const getTokenRes = await callTool(client, "fusebase_token_get", { tokenId });
-      assertJson(getTokenRes, "fusebase_token_get");
-      assertIncludes(JSON.stringify(getTokenRes), tokenId, "fusebase_token_get references the created token");
+      // Token payloads are never echoed in failure messages, in case one carries a secret.
+      await verifyWrite("fusebase_token_create", `token ${tokenId} reads back with its name and the notes.read permission`, async () => {
+        const getTokenRes = await callTool(client, "fusebase_token_get", { tokenId });
+        assertJson(getTokenRes, "fusebase_token_get");
+        const text = JSON.stringify(getTokenRes);
+        assert(text.includes(tokenId), "fusebase_token_get should reference the created token id");
+        assert(text.includes(tokenName), "fusebase_token_get should show the created token's name");
+        assert(text.includes("notes.read"), "fusebase_token_get should show the notes.read permission");
+      });
       ok("fusebase_token_get", "Looked up created token");
 
       const revokeRes = await callTool(client, "fusebase_token_revoke", { tokenId });
       assertJson(revokeRes, "fusebase_token_revoke");
       tokenRevoked = true;
+      await verifyWrite("fusebase_token_revoke", `token ${tokenId} reads back as revoked (or not found)`, async () => {
+        const res = await readUnlessGone(() => callTool(client, "fusebase_token_get", { tokenId }));
+        if (res.gone) return;
+        const text = JSON.stringify(res.value);
+        assert(
+          /"(revoked_at|revokedAt)"\s*:\s*"[^"]+"|"(revoked|is_revoked|isRevoked)"\s*:\s*true|"status"\s*:\s*"revoked"|"(is_active|isActive|active)"\s*:\s*false/i.test(text),
+          "fusebase_token_get should show the token as revoked (revoked_at / revoked / status / is_active field)",
+        );
+      });
       ok("fusebase_token_revoke", "Revoked created token");
     } finally {
       if (!tokenRevoked) await cleanup(`revoke token ${tokenId}`, () => callTool(client, "fusebase_token_revoke", { tokenId }));

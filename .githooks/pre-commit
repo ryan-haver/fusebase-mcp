@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Gate: every commit must pass the offline checks (typecheck, lint, build, unit tests, tool audit).
+# Install once per clone: npm run hooks:install
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+echo "🔒 [pre-commit] Offline checks (typecheck, lint, build, unit tests, tool audit)…"
+if ! npx tsx scripts/test-all.ts --offline; then
+  echo ""
+  echo "❌ [pre-commit] Offline checks failed; commit blocked. Fix the failures above."
+  exit 1
+fi

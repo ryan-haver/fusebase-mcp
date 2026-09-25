@@ -74,7 +74,7 @@ export function registerExtendedTools(
 
   server.tool(
     "get_comment_threads",
-    "Get all comment threads on a specific page, including thread status (resolved/open) and nested comments. Useful for reviewing feedback, discussions, or collaborative annotations on a page.",
+    "Get all comment threads on a specific page: thread status (resolved/open), comment counts, and each thread's comments (commentList: id, text, replyTo, userId, createdAt). Useful for reviewing feedback, discussions, or collaborative annotations on a page.",
     {
       workspaceId: z.string().describe("Workspace ID"),
       pageId: z.string().describe("Page (note) ID"),
@@ -83,9 +83,17 @@ export function registerExtendedTools(
       const client = getClient(profile);
       try {
         const threads = await client.getCommentThreads(workspaceId, pageId);
+        // threadsInfo only has counts; add each thread's comments (text as plain text).
+        const withComments = await Promise.all(
+          (Array.isArray(threads) ? threads : []).map(async (t: any) => {
+            const threadId = t?.thread?.globalId;
+            if (!threadId) return t;
+            return { ...t, commentList: await client.getThreadComments(workspaceId, threadId) };
+          }),
+        );
         return {
           content: [
-            { type: "text" as const, text: JSON.stringify(threads, null, 2) },
+            { type: "text" as const, text: JSON.stringify(withComments, null, 2) },
           ],
         };
       } catch (error) {
@@ -1320,8 +1328,9 @@ export function registerExtendedTools(
       databaseId: z.string().optional().describe("Global ID of the database to duplicate (alias for sourceDbId)"),
       dashboardId: z.string().optional().describe("Global ID of the database to duplicate (alias for sourceDbId)"),
       copyData: z.boolean().optional().default(true).describe("Copy row data too (default true). Set false for structure-only copy."),
+      title: z.string().optional().describe("Title for the copy (default: FuseBase's own copy name)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ sourceDbId, databaseId, dashboardId, copyData, profile }) => {
+    }, async ({ sourceDbId, databaseId, dashboardId, copyData, title, profile }) => {
       const client = getClient(profile);
       try {
         const effectiveId = sourceDbId || databaseId || dashboardId;
@@ -1333,9 +1342,16 @@ export function registerExtendedTools(
         }
         const result = await client.duplicateDatabase(effectiveId, { copyData });
         const newDbId = (result as any)?.data?.global_id || (result as any)?.global_id;
+        // The copy endpoint takes no title, so rename the copy afterwards.
+        let renamed: string | undefined;
+        if (title) {
+          if (!newDbId) throw new Error("Database was duplicated, but its id is missing from the response, so it couldn't be renamed");
+          await client.updateDatabase(newDbId, { title });
+          renamed = title;
+        }
         return {
           content: [
-            { type: "text" as const, text: JSON.stringify({ ...result, databaseId: newDbId }, null, 2) },
+            { type: "text" as const, text: JSON.stringify({ ...result, databaseId: newDbId, ...(renamed ? { title: renamed } : {}) }, null, 2) },
           ],
         };
       } catch (error) {
@@ -1346,19 +1362,30 @@ export function registerExtendedTools(
 
   server.tool(
     "create_view",
-    "Create a new view within a dashboard (table). Each view can have its own filters, sorts, grouping, column visibility, and display mode. Use set_view_representation afterwards to change the view type.",
+    "Create a new view within a dashboard (table). Each view can have its own filters, sorts, grouping, column visibility, and display mode. Optionally set its display mode (representationType) and, for kanban/board, the column to group by.",
     {
       dashboardId: z.string().describe("Dashboard UUID"),
       name: z.string().optional().describe("View name (defaults to auto-generated name)"),
+      representationType: z.enum(["table", "kanban", "board", "calendar", "timeline", "gallery", "list", "grid"]).optional().describe("Display mode for the new view (default: table)"),
+      groupByColumnKey: z.string().optional().describe("Column key to group a kanban/board view by"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ dashboardId, name, profile }) => {
+    }, async ({ dashboardId, name, representationType, groupByColumnKey, profile }) => {
       const client = getClient(profile);
       try {
         const result = await client.createView(dashboardId, name);
         const viewId = (result as any)?.data?.global_id || (result as any)?.global_id;
+        if ((representationType && representationType !== "table") || groupByColumnKey) {
+          if (!viewId) throw new Error("View was created, but its id is missing from the response, so its display mode couldn't be set");
+          if (groupByColumnKey) {
+            const mode = representationType === "board" ? "board" : "kanban";
+            await client.setViewGrouping(dashboardId, viewId, groupByColumnKey, mode);
+          } else {
+            await client.setViewRepresentation(dashboardId, viewId, representationType as any);
+          }
+        }
         return {
           content: [
-            { type: "text" as const, text: JSON.stringify({ ...result, viewId }, null, 2) },
+            { type: "text" as const, text: JSON.stringify({ ...result, viewId, representationType: representationType ?? "table", ...(groupByColumnKey ? { groupByColumnKey } : {}) }, null, 2) },
           ],
         };
       } catch (error) {
@@ -2619,6 +2646,7 @@ export function registerExtendedTools(
         viewId?: string;
         statusColumnKey?: string;
         roleColumnKey?: string;
+        auditColumnKey?: string;
         kanbanGroupedByStatus?: boolean;
       } = {};
       let step = "create database";
@@ -2691,6 +2719,14 @@ export function registerExtendedTools(
           "Role",
         );
 
+        step = "create Audit Log column";
+        created.auditColumnKey = keyOf(
+          await client.addDatabaseColumn(dashboardId, viewId, "Audit Log", "multiline", {
+            description: "Transitions recorded by fusebase_swarm_task_transition",
+          }),
+          "Audit Log",
+        );
+
         step = "switch view to kanban grouped by Status";
         await client.setViewGrouping(dashboardId, viewId, created.statusColumnKey, "kanban");
         created.kanbanGroupedByStatus = true;
@@ -2702,12 +2738,13 @@ export function registerExtendedTools(
               text: JSON.stringify(
                 {
                   success: true,
-                  message: `Swarm Kanban Database "${title}" (${isFlow ? "FuseBase Flow 8-Phase" : "Standard"}) initialized with Status and Role columns and a kanban view grouped by Status.`,
+                  message: `Swarm Kanban Database "${title}" (${isFlow ? "FuseBase Flow 8-Phase" : "Standard"}) initialized with Status, Role and Audit Log columns and a kanban view grouped by Status.`,
                   databaseId: created.databaseId,
                   dashboardId,
                   viewId,
                   statusColumnKey: created.statusColumnKey,
                   roleColumnKey: created.roleColumnKey,
+                  auditColumnKey: created.auditColumnKey,
                   template: isFlow ? "flow" : "standard",
                   availableRoles,
                   workflowStages,
@@ -2750,7 +2787,7 @@ export function registerExtendedTools(
 
   server.tool(
     "fusebase_swarm_task_transition",
-    "Transition a swarm task across lifecycle stages (e.g. Backlog -> In Progress -> Review -> Done, or Flow 8-phase stages), record agent audit comments, and trigger next-agent handover.",
+    "Transition a swarm task across lifecycle stages (e.g. Backlog -> In Progress -> Review -> Done, or Flow 8-phase stages). With auditColumnKey the audit comment is appended to the task's Audit Log; with roleColumnKey and nextRole the task is handed over by setting its Role.",
     {
       dashboardId: z.string().describe("Dashboard/Table ID of the swarm board"),
       viewId: z.string().describe("View ID of the swarm board"),
@@ -2759,9 +2796,11 @@ export function registerExtendedTools(
       newStatus: z.string().describe("New status stage for the task (e.g. 'Backlog', 'In Progress', 'Review', 'Done', or Flow stages: 'Specify', 'Clarify', 'Plan', 'Decisions', 'Tasks', 'Verify Gate', 'Implement', 'Review & Deploy')"),
       comment: z.string().describe("Audit log / review comment explaining the work done or reason for transition"),
       nextRole: z.string().optional().describe("Next agent profile assigned to take over the task (e.g. 'ai-developer', 'agent-dev', 'agent-qa')"),
+      auditColumnKey: z.string().optional().describe("Column key of the Audit Log column (from fusebase_swarm_init). When set, the transition is appended to the task's audit log."),
+      roleColumnKey: z.string().optional().describe("Column key of the Role column (from fusebase_swarm_init). When set with nextRole, the task's Role becomes nextRole."),
       profile: z.string().optional().describe("Acting agent profile"),
     },
-    async ({ dashboardId, viewId, rowId, groupByColumnKey, newStatus, comment, nextRole, profile }) => {
+    async ({ dashboardId, viewId, rowId, groupByColumnKey, newStatus, comment, nextRole, auditColumnKey, roleColumnKey, profile }) => {
       const client = getClient(profile);
       try {
         const moveRes = await client.moveKanbanCard(
@@ -2780,6 +2819,24 @@ export function registerExtendedTools(
           handedOverTo: nextRole || null,
         };
 
+        // Store the audit entry and the handover on the task's row when the columns are given;
+        // otherwise say plainly that they were not stored.
+        let auditStored = false;
+        if (auditColumnKey) {
+          const { rows } = await client.getDatabaseRows(dashboardId, viewId, { limit: 500 });
+          const row = rows.find((r) => r.rowUuid === rowId);
+          if (!row) throw new Error(`Task ${rowId} was moved to "${newStatus}", but the row wasn't found to record the audit entry`);
+          const previous = typeof row.cells?.[auditColumnKey] === "string" ? (row.cells[auditColumnKey] as string) : "";
+          const line = `[${auditEntry.timestamp}] ${auditEntry.actingProfile} → ${newStatus}: ${comment}${nextRole ? ` (handed over to ${nextRole})` : ""}`;
+          await client.updateDatabaseCell(dashboardId, viewId, rowId, auditColumnKey, previous ? `${previous}\n${line}` : line);
+          auditStored = true;
+        }
+        let handoverStored = false;
+        if (nextRole && roleColumnKey) {
+          await client.updateDatabaseCell(dashboardId, viewId, rowId, roleColumnKey, nextRole);
+          handoverStored = true;
+        }
+
         return {
           content: [
             {
@@ -2789,6 +2846,9 @@ export function registerExtendedTools(
                   success: true,
                   message: `Task ${rowId} moved to "${newStatus}".`,
                   audit: auditEntry,
+                  auditStored,
+                  handoverStored,
+                  ...(!auditStored ? { note: "The audit entry was not stored: pass auditColumnKey (from fusebase_swarm_init) to record it on the task." } : {}),
                   moveResult: moveRes,
                 },
                 null,

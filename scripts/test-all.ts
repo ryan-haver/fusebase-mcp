@@ -14,6 +14,8 @@
  */
 
 import { spawn } from "child_process";
+import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import { loadEnvironment } from "../src/config.js";
@@ -42,7 +44,43 @@ const LIVE: Stage[] = [
   { name: "Database engine", command: "npx", args: ["tsx", "scripts/test-database-e2e.ts"] },
   { name: "Live data validation", command: "npx", args: ["tsx", "scripts/test-data-validation.ts"] },
   { name: "Token vs cookie parity", command: "npx", args: ["tsx", "scripts/test-token-parity.ts"] },
+  // Last: everything the suites created must be gone.
+  { name: "Leftover sweep", command: "npx", args: ["tsx", "scripts/sweep-sandbox.ts"] },
 ];
+
+/**
+ * Only one live run at a time: two runs in the same sandbox see each other's content as
+ * leftovers and can flip the same account settings. Returns a release function.
+ */
+function acquireLiveLock(): () => void {
+  const lock = path.join(os.tmpdir(), "fusebase-mcp-live-tests.lock");
+  try {
+    fs.writeFileSync(lock, String(process.pid), { flag: "wx" });
+  } catch {
+    const holder = Number(fs.readFileSync(lock, "utf-8").trim());
+    let alive = false;
+    try {
+      process.kill(holder, 0);
+      alive = true;
+    } catch {
+      // stale lock from a run that ended without releasing it
+    }
+    if (alive) {
+      console.error(`❌ Another live test run (pid ${holder}) is in progress. Wait for it to finish; two runs in one sandbox interfere.`);
+      process.exit(1);
+    }
+    fs.writeFileSync(lock, String(process.pid));
+  }
+  const release = () => {
+    try {
+      if (fs.readFileSync(lock, "utf-8").trim() === String(process.pid)) fs.unlinkSync(lock);
+    } catch {
+      // already gone
+    }
+  };
+  process.on("exit", release);
+  return release;
+}
 
 function runStage(stage: Stage, index: number, total: number): Promise<{ passed: boolean; secs: string }> {
   console.log(`\n${"=".repeat(80)}\n[${index + 1}/${total}] ${stage.name}\n$ ${stage.command} ${stage.args.join(" ")}\n${"=".repeat(80)}`);
@@ -65,7 +103,10 @@ async function main() {
   const stages = [...(liveOnly ? [] : OFFLINE), ...(offlineOnly ? [] : LIVE)];
 
   if (!offlineOnly) {
+    acquireLiveLock();
     await loadEnvironment();
+    // The leftover sweep flags anything in the sandbox created after this moment.
+    process.env.LIVE_RUN_STARTED_AT = String(Date.now());
     if (!process.env.FUSEBASE_WORKSPACE_ID) {
       console.error("❌ Live suites need FUSEBASE_WORKSPACE_ID (a sandbox workspace). Set it in .env, or run with --offline.");
       process.exit(1);

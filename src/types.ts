@@ -127,6 +127,16 @@ export interface FusebaseOrgMember {
   };
 }
 
+export interface FusebaseComment {
+  id: string;
+  threadId: string;
+  userId?: number;
+  replyTo: string | null;
+  text: string;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
 export interface FusebaseTag {
   workspaceId: string;
   tags: string[];

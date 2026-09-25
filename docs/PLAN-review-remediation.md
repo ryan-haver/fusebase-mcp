@@ -201,6 +201,35 @@ Bugs that only showed up live, each reproduced offline with a failing test first
 
 ---
 
+## Write verification and the validation gate (2026-09-24)
+
+The owner's rule: every write a test makes must be proven by a separate read showing the data
+was stored as intended. A write's own response is not proof. Nothing is committed or pushed
+without passing validation. See [TESTING.md](TESTING.md).
+
+> **Status:** done. All seven live stages pass with every write proven by a fresh read: MCP
+> end-to-end 17, database 36, data validation 65 (two exempt with stated reasons: triggers on draft
+> automation flows, which FuseBase never runs), and the leftover sweep finds nothing. Proving the
+> writes found seven real bugs (CON-10, COR-26 to COR-29, MCP-13, MCP-14), listed below.
+
+| ID | Finding | Status | Fix |
+|---|---|---|---|
+| TST-11 | All six live suites passed while none of their ~130 writes was proven by a read of the stored data (111 write sites) | ✅ fixed | The harness records every successful write; `verifyWrite()` must prove each with a fresh read of the specific values (retried); `noReadBack()` only with a stated reason; unproven writes fail the suite |
+| TST-12 | Nothing checked that tests cleaned up; a killed run left content behind silently | ✅ fixed | `scripts/sweep-sandbox.ts` (last live stage) reads FuseBase directly and fails on anything created during the run; reports test-named orphans; `--clean` deletes only test-named items |
+| TST-13 | No gate: code could be committed and pushed without running the checks | ✅ fixed | `.githooks/pre-commit` (offline checks) and `.githooks/pre-push` (offline + live suites under one `op run`), installed with `npm run hooks:install` |
+| TST-15 | Two live runs at once in one sandbox interfered (each sweep saw the other's content; both flipped the same account setting) | ✅ fixed | `test-all` takes a lock; a second live run is refused while one is in progress |
+| TST-14 | Some checks passed without proving a change: move a page to where it already was, reorder a row that was already first, write the sidebar setting with its current value | ✅ fixed | Make a visible change, read it back, then restore and read back |
+| CON-10 | `update_page_content` (replace) intermittently left behind content appended just before it: the replace deletes only the blocks in its copy of the page, and a just-confirmed append hadn't reached that copy | ✅ fixed, verified live | After a confirmed replace, re-read the page and remove top-level blocks it didn't write (up to two passes, each confirmed); report failure if any remain. Unit test reproduces the race. Found on the next live run: a delete-only update was never sent (deletes don't advance the Y.js clock, which the writer used as "nothing to write"); fixed by checking the delete set, and the removal is confirmed by re-reading. Write confirmation now waits up to ~10 s with back-off (was 3.5 s) |
+| MCP-13 | `get_comment_threads` promised "nested comments" but returned only counts, so nothing could prove a comment was stored | ✅ fixed | Each thread now includes `commentList` (id, plain text, replyTo, userId, createdAt) from the comments endpoint |
+| SEC-11 | Gate errors relayed FuseBase's internal request objects to MCP clients and logs, including an internal Authorization header and what looks like a service secret (FuseBase-side leak; worth reporting to them) | ✅ fixed on our side | `redactUpstreamDetail()`: keep message/name/code/status, redact secret-looking values, cap length |
+| COR-26 | `move_page` into a folder: FuseBase recreates the page under a **new id** (a background operation) and the old id returns "Note not found", but the tool reported success with the old, dead id | ✅ fixed, verified live | `movePageAndResolve()` finds the page afterwards (same id still readable, or the new page with the same title created since the move in the destination) and returns `pageId`, `previousPageId`, `idChanged`; fails loudly if it can't be found |
+| COR-27 | `move_page` to `root` (as its own description instructed) was silently ignored by FuseBase: the page stayed in its folder, and the tool reported success. Top-level pages live in the built-in `default` (Unsorted) folder; the `root` page listing also covers the whole workspace, not just the top level | ✅ fixed, verified live | `moveDestination()` sends top-level moves to `default`; a move only counts when the page is found in the destination; tests use the `default` listing for the top level |
+| COR-28 | `add_database_row` without initial values created the row but returned no `rowUuid` (FuseBase only reports ids for written values), so the caller couldn't refer to the new row | ✅ fixed, verified live | For an empty row, note the existing row ids first and return the one new id; a `note` explains when it can't be identified |
+| COR-29 | `publish_page_to_portal` reported "published" but never changed anything: it sent `is_portal_share` (snake_case), which the upsert endpoint silently ignores | ✅ fixed, verified live | Send camelCase `isPortalShare` (confirmed live: both `isPortalShare` and `isSharedForPortal` become true) |
+| MCP-14 | Tools silently ignored arguments callers passed: `duplicate_database` title, `create_view` view type, `search_tasks` query; `fusebase_swarm_task_transition` echoed its audit comment and handover but stored neither; `list_folders` dropped subfolders | ✅ fixed | Added `title`, `representationType`/`groupByColumnKey`, `query`; swarm init creates an Audit Log column and the transition appends to it and sets Role (`auditStored`/`handoverStored` in the response); `list_folders` returns the full tree |
+
+---
+
 ## Phase 5: MCP best practices and tool-layer refactor (L)
 
 This is done together with the refactor. Adding annotations and output limits one tool at a time across 141 hand-written handlers would add yet more duplication.

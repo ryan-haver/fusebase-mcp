@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Gate: every push must pass the offline checks AND the live suites against the sandbox
+# workspace, with every write proven by a fresh read and a leftover sweep (see
+# docs/TESTING.md). Secrets come from 1Password through a single `op run` (one approval).
+# Install once per clone: npm run hooks:install
+set -uo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+fail() {
+  echo ""
+  echo "❌ [pre-push] $1"
+  echo "   Push blocked. (git push --no-verify bypasses the gate; don't use it for normal work.)"
+  exit 1
+}
+
+echo "🔒 [pre-push] 1/2 Offline checks…"
+npx tsx scripts/test-all.ts --offline || fail "Offline checks failed."
+
+# Non-secret settings from .env: the sandbox workspace and the 1Password account.
+env_value() { grep -E "^$1=" .env 2>/dev/null | tail -1 | cut -d= -f2- | sed -E "s/^[\"']|[\"']$//g"; }
+workspace="${FUSEBASE_WORKSPACE_ID:-$(env_value FUSEBASE_WORKSPACE_ID)}"
+account="${FUSEBASE_OP_ACCOUNT:-$(env_value FUSEBASE_OP_ACCOUNT)}"
+[ -n "$workspace" ] || fail "Set FUSEBASE_WORKSPACE_ID (the sandbox workspace) in .env to run the live suites."
+
+echo ""
+echo "🔒 [pre-push] 2/2 Live suites against sandbox $workspace (writes proven by read-back, leftover sweep)…"
+if command -v op >/dev/null 2>&1 && grep -qE "=\s*[\"']?op://" .env 2>/dev/null; then
+  echo "   Approve the 1Password prompt to load secrets."
+  OP_SERVICE_ACCOUNT_TOKEN= FUSEBASE_WORKSPACE_ID="$workspace" \
+    op run ${account:+--account "$account"} --env-file=.env -- npx tsx scripts/test-all.ts --live-only \
+    || fail "Live validation failed."
+else
+  FUSEBASE_WORKSPACE_ID="$workspace" npx tsx scripts/test-all.ts --live-only || fail "Live validation failed."
+fi
+
+echo ""
+echo "✅ [pre-push] All checks passed."
+
+# Chain a personal hook in .git/hooks/pre-push, if there is one (e.g. a deploy step).
+legacy="$(git rev-parse --git-common-dir)/hooks/pre-push"
+if [ -x "$legacy" ]; then
+  echo "↪ [pre-push] Running local hook $legacy"
+  exec "$legacy" "$@"
+fi
