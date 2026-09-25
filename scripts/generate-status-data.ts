@@ -131,13 +131,13 @@ const totalAssertions = Object.values(recorded).reduce((acc, r) => acc + (r.asse
 const passedAssertions = Object.values(recorded).reduce((acc, r) => acc + (r.assertions?.passed ?? 0), 0);
 
 const milestones = [
-  { id: "m1", title: "Reverse-Engineered Core Protocol Architecture", status: "completed", date: "Sept 2026", description: "Wire protocol analysis, SOCKS5 proxy relay, AES-256-GCM cookie storage, and automated re-auth" },
+  { id: "m1", title: "Web App API Integration", status: "completed", date: "Sept 2026", description: "Integration with the FuseBase web app's APIs, SOCKS5 proxy relay, AES-256-GCM credential storage, and automated re-auth" },
   { id: "m2", title: "Collaborative Y.js WebSocket Engine", status: "completed", date: "Sept 2026", description: "Real-time non-destructive document append, subType 2 incremental updates, HTML/Markdown conversion" },
   { id: "m3", title: "Relational Database & Managed Templates", status: "completed", date: "Sept 2026", description: "Complete database engine: Kanban boards, cross-table relations, lookup columns, and CSV data pipelines" },
   { id: "m4", title: "Client Portal Hub Platform", status: "completed", date: "Sept 2026", description: "Whitelabel client portals, theme configuration, navigation trees, passwordless magic links" },
   { id: "m5", title: "ActivePieces Automations Integration", status: "completed", date: "Sept 2026", description: "72-piece automation connector library, flow execution trigger engine, and folder organization" },
   { id: "m6", title: "Multi-Agent Swarm Orchestration Engine", status: "completed", date: "Sept 2026", description: "Kanban state machine database for 6 agent roles (PM, Architect, Dev, QA, Review, DevOps)" },
-  { id: "m7", title: "182-Route Exhaustive Discovery & Error Diagnostic", status: "completed", date: "Sept 2026", description: "Full API crawl cataloging live vs decommissioned endpoints, container root-cause diagnostics, and move_page promotion" },
+  { id: "m7", title: "Endpoint Reference & Error Diagnostics", status: "completed", date: "Sept 2026", description: "Endpoint reference documenting live and retired endpoints, container diagnostics, and move_page fixes" },
   { id: "m8", title: "Write-Verified Live Test Suites", status: "completed", date: "Sept 2026", description: "Every write the live suites make is proven by a fresh read of the stored data, and a leftover sweep checks the sandbox is clean. Current figures are on the Tests tab" },
   { id: "m9", title: "Official Remote Gate & Dashboards MCP Token Bridge", status: "completed", date: "Sept 2026", description: "Zero-browser direct API token connection to gate-mcp and dashboards-mcp over Streamable HTTP SSE with automatic tenant identity discovery and first-class token lifecycle management" },
   { id: "m10", title: "Token-Only Coverage Measured", status: "completed", date: "Sept 2026", description: "Every tool measured with only Gate and Dashboards tokens: 14 of 129 measured work without a session cookie (docs/TOKEN-COVERAGE.md). Page and folder listing, creation and appends fall back to Gate" },
