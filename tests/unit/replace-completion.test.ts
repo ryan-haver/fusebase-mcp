@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import * as Y from "yjs";
-import { addBlocksToDoc, foreignRootBlocks, removeRootBlocks } from "../../src/yjs-ws-writer.js";
+import { addBlocksToDoc, composeUpdate, foreignRootBlocks, removeRootBlocks } from "../../src/yjs-ws-writer.js";
 import { markdownToSchema } from "../../src/markdown-parser.js";
 
 function textOf(doc: Y.Doc): string {
@@ -83,5 +83,64 @@ describe("replace completion (CON-10)", () => {
     expect(Y.decodeUpdate(diff).ds.clients.size).toBeGreaterThan(0);
     Y.applyUpdate(server, diff);
     expect(server.getArray("rootChildren").length).toBe(0);
+  });
+
+  // CON-11, seen live: an append, then a replace that received a copy without the append.
+  // The replace reported success and the appended section stayed above the new content.
+  describe("replace right after this process appended (CON-11)", () => {
+    const setup = () => {
+      const fresh = new Y.Doc(); // a server copy that has the append
+      addBlocksToDoc(fresh, markdownToSchema("# Original Header\n\nOriginal body."));
+      const stale = new Y.Doc(); // a server copy that doesn't yet
+      Y.applyUpdate(stale, Y.encodeStateAsUpdate(fresh));
+      const appender = new Y.Doc();
+      Y.applyUpdate(appender, Y.encodeStateAsUpdate(fresh));
+      addBlocksToDoc(appender, markdownToSchema("## Appended\n\nToken 987654."));
+      Y.applyUpdate(fresh, Y.encodeStateAsUpdate(appender));
+      const known = Y.encodeStateAsUpdate(appender); // what this process last wrote
+      return { fresh, stale, known };
+    };
+    const replace = (doc: Y.Doc) => () => {
+      const rch = doc.getArray<string>("rootChildren");
+      rch.delete(0, rch.length);
+      const blocks = doc.getMap("blocks");
+      for (const k of Array.from(blocks.keys())) blocks.delete(k);
+      addBlocksToDoc(doc, markdownToSchema("# Replaced\n\nNew body."));
+    };
+
+    it("without the known state, the append survives on an up-to-date server (the bug)", () => {
+      const { fresh, stale } = setup();
+      const writer = new Y.Doc();
+      Y.applyUpdate(writer, Y.encodeStateAsUpdate(stale));
+      Y.applyUpdate(fresh, composeUpdate(writer, undefined, replace(writer)));
+      expect(textOf(fresh)).toContain("987654");
+    });
+
+    it("with the known state, both a lagging and an up-to-date server end with only the new content", () => {
+      const { fresh, stale, known } = setup();
+      const writer = new Y.Doc();
+      Y.applyUpdate(writer, Y.encodeStateAsUpdate(stale));
+      const update = composeUpdate(writer, known, replace(writer));
+      for (const server of [stale, fresh]) {
+        Y.applyUpdate(server, update);
+        expect(textOf(server)).not.toContain("987654");
+        expect(textOf(server)).not.toContain("Original Header");
+        expect(textOf(server)).toContain("Replaced");
+      }
+    });
+
+    it("merging the known state never resurrects content someone else deleted", () => {
+      const { fresh, known } = setup();
+      // Another client deletes everything after our append.
+      const other = new Y.Doc();
+      Y.applyUpdate(other, Y.encodeStateAsUpdate(fresh));
+      other.transact(() => removeRootBlocks(other, other.getArray<string>("rootChildren").toArray()));
+      Y.applyUpdate(fresh, Y.encodeStateAsUpdate(other));
+      const writer = new Y.Doc();
+      Y.applyUpdate(writer, Y.encodeStateAsUpdate(fresh));
+      Y.applyUpdate(fresh, composeUpdate(writer, known, () => addBlocksToDoc(writer, markdownToSchema("Appended later."))));
+      expect(textOf(fresh)).not.toContain("987654");
+      expect(textOf(fresh)).toContain("Appended later.");
+    });
   });
 });

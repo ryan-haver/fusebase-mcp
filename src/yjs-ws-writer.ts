@@ -1131,6 +1131,37 @@ async function finishReplace(
   return { success: true };
 }
 
+// ─── Latest state this process wrote, per page (CON-11) ───
+//
+// FuseBase's editor servers can briefly hand a new connection a copy of a page that lacks a
+// write made seconds earlier (seen live: an append followed by a replace). A replace made on
+// that copy leaves the append behind, and an update that builds on content the server hasn't
+// seen can sit unapplied until it catches up. So the writer remembers the state it last wrote
+// to each page, merges it into the copy it receives, and sends the server everything its copy
+// lacks. Y.js merges are idempotent and keep everyone's deletions, so this never resurrects
+// content. Reads are never merged with this state: read-backs must come from FuseBase.
+
+const knownPageState = new Map<string, Uint8Array>();
+const MAX_KNOWN_PAGES = 200;
+
+function rememberPageState(key: string, doc: Y.Doc): void {
+  knownPageState.delete(key); // re-insert: most recent last
+  knownPageState.set(key, Y.encodeStateAsUpdate(doc));
+  if (knownPageState.size > MAX_KNOWN_PAGES) knownPageState.delete(knownPageState.keys().next().value!);
+}
+
+/**
+ * Merge `known` (what this process last wrote to the page) into `doc` (the server's copy),
+ * apply `change` in one transaction, and return the V1 update to send: everything the server's
+ * copy lacks, including earlier writes it hasn't caught up on, plus the change.
+ */
+export function composeUpdate(doc: Y.Doc, known: Uint8Array | undefined, change: () => void): Uint8Array {
+  const serverSv = Y.encodeStateVector(doc);
+  if (known) Y.applyUpdate(doc, known);
+  doc.transact(change);
+  return Y.encodeStateAsUpdate(doc, serverSv);
+}
+
 // ─── Per-page write lock (CON-5) ───
 
 const pageLocks = new Map<string, Promise<unknown>>();
@@ -1331,9 +1362,10 @@ async function sendContentUpdate(
 
         // Now write our content and send the update
         try {
-          const beforeSv = Y.encodeStateVector(ydoc);
-
-          ydoc.transact(() => {
+          const pageKey = `${host}/${workspaceId}/${pageId}`;
+          // The update goes out relative to the server's copy, so it also carries our earlier
+          // writes that copy hasn't caught up on (CON-11).
+          const diff = composeUpdate(ydoc, knownPageState.get(pageKey), () => {
             if (removeRootIds) {
               removeRootBlocks(ydoc, removeRootIds);
               return;
@@ -1357,6 +1389,7 @@ async function sendContentUpdate(
             addBlocksToDoc(ydoc, blocks);
           });
           if (replace && !removeRootIds) rootIds = ydoc.getArray<string>("rootChildren").toArray();
+          rememberPageState(pageKey, ydoc);
 
           // Send token auth (type 300) before content update — browser sends this after sync
           const jwtBytes = new TextEncoder().encode(jwt);
@@ -1368,8 +1401,7 @@ async function sendContentUpdate(
           tokenMsg.set(jwtBytes, tokenHeader.length);
           ws.send(Buffer.from(tokenMsg));
 
-          // Server expects V1 outbound update encoding
-          const diff = Y.encodeStateAsUpdate(ydoc, beforeSv);
+          // Server expects V1 outbound update encoding (composeUpdate encodes V1)
           const clock = Y.decodeStateVector(Y.encodeStateVector(ydoc)).get(ydoc.clientID) ?? 0;
           // Deletes don't advance our clock, so a delete-only update (e.g. removing leftover
           // blocks after a replace) is recognised by its delete set.
