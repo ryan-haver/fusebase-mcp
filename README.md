@@ -1,6 +1,6 @@
 # FuseBase MCP Server
 
-[![Version](https://img.shields.io/badge/Version-v1.0.0-3b82f6?style=for-the-badge)](https://github.com/ryan-haver/fusebase-mcp)
+[![Version](https://img.shields.io/badge/Version-v2.0.0-3b82f6?style=for-the-badge)](https://github.com/ryan-haver/fusebase-mcp)
 [![Live Status Dashboard](https://img.shields.io/badge/Live%20Status-Operational-10b981?style=for-the-badge&logo=googlecloud&logoColor=white)](https://fusebase-mcp.thefusebase.app/)
 [![Production Tools](https://img.shields.io/badge/Production%20Tools-175%20Verified-6366f1?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 [![Automated Assertions](https://img.shields.io/badge/Automated%20Assertions-212%20Passing-10b981?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
