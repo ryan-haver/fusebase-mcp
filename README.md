@@ -6,9 +6,9 @@
 [![Automated Assertions](https://img.shields.io/badge/Automated%20Assertions-212%20Passing-10b981?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 [![Docker Ready](https://img.shields.io/badge/Docker-Stdio%20%26%20SSE-2496ed?style=for-the-badge&logo=docker&logoColor=white)](https://github.com/ryan-haver/fusebase-mcp)
 [![Token-only coverage](https://img.shields.io/badge/Token--only%20tools-14%20of%20129%20measured-8b5cf6?style=for-the-badge)](docs/TOKEN-COVERAGE.md)
-[![Deep Data Validation](https://img.shields.io/badge/Deep%20Data%20Validation-100%25%20Verified-0ea5e9?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
+[![Write-verified live tests](https://img.shields.io/badge/Live%20tests-every%20write%20read%20back-0ea5e9?style=for-the-badge)](docs/TESTING.md)
 
-An enterprise-grade [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server enabling autonomous AI coding agents and developers to programmatically manage [FuseBase](https://www.fusebase.com/) (formerly Nimbus Note) workspaces - collaborative Y.js documents, relational tables, ActivePieces automations, client portals, hosted web apps, and multi-agent swarm boards with 100% deep data validation.
+An unofficial [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server enabling autonomous AI coding agents and developers to programmatically manage [FuseBase](https://www.fusebase.com/) (formerly Nimbus Note) workspaces - collaborative Y.js documents, relational tables, ActivePieces automations, client portals, hosted web apps, and multi-agent swarm boards. Live test suites prove every write by reading the data back from FuseBase ([docs/TESTING.md](docs/TESTING.md)).
 
 ---
 
@@ -451,7 +451,7 @@ Clients can attach FuseBase data directly into their context window:
 
 | URI Pattern | Type | Description |
 | --- | --- | --- |
-| `fusebase://status` | Static | Live operational status, 168-tool catalog, 14 test suites, and web dashboard URL |
+| `fusebase://status` | Static | Tool counts by tier and the status dashboard URL |
 | `fusebase://workspaces` | Static | JSON array of all accessible workspaces |
 | `fusebase://guides/index` | Static | Comprehensive index of all 278 FuseBase documentation guides |
 | `fusebase://work/connectors` | Static | Catalog of integrated third-party services and automation connectors |
@@ -625,7 +625,8 @@ See [ENDPOINT_REFERENCE.md](docs/ENDPOINT_REFERENCE.md) for all discovered and i
 - [x] **Native AI Assistant & Agent Threads** — AI suggestions, threads, and user preferences.
 - [x] **Token Economics & Binary Safety** — HTML-to-Markdown conversion and native image / local disk file staging.
 - [x] **RFC 6570 Resource Templates & Prompts** — Direct URI data mounting and pre-engineered workflows.
-- [x] **Full-Spectrum 165-Tool Deep Data Validation** — 100% live verification with field, type, and lifecycle assertions.
+- [x] **Write-Verified Live Testing** — every write the live suites make is proven by a fresh read; a leftover sweep checks the sandbox; commits and pushes are gated on the checks.
+- [x] **Token-Only Coverage Measured** — per-tool results in [docs/TOKEN-COVERAGE.md](docs/TOKEN-COVERAGE.md).
 
 ### Future Opportunities
 - **Bidirectional Webhook Listeners** — Local webhook listener bridge for real-time external event triggers into FuseBase.

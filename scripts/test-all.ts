@@ -11,14 +11,18 @@
  *
  * Every stage runs even if an earlier one fails, so one run shows the full picture.
  * Exits 1 if any stage failed.
+ *
+ * Each stage's outcome (and, where the stage prints one, its assertion and tool counts) is
+ * recorded in .cache/test-results.json; scripts/generate-status-data.ts publishes it.
  */
 
-import { spawn } from "child_process";
+import { execSync, spawn } from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import { loadEnvironment } from "../src/config.js";
+import { parseCounts, type StageCounts } from "./lib/stage-counts.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
@@ -82,19 +86,52 @@ function acquireLiveLock(): () => void {
   return release;
 }
 
-function runStage(stage: Stage, index: number, total: number): Promise<{ passed: boolean; secs: string }> {
+function runStage(stage: Stage, index: number, total: number): Promise<{ passed: boolean; secs: string; output: string }> {
   console.log(`\n${"=".repeat(80)}\n[${index + 1}/${total}] ${stage.name}\n$ ${stage.command} ${stage.args.join(" ")}\n${"=".repeat(80)}`);
   const started = Date.now();
   return new Promise((resolve) => {
     // shell is needed on Windows to resolve npx.cmd; args are fixed strings above.
-    const child = spawn(stage.command, stage.args, { cwd: rootDir, stdio: "inherit", shell: process.platform === "win32" });
-    const finish = (passed: boolean) => resolve({ passed, secs: ((Date.now() - started) / 1000).toFixed(1) });
+    const child = spawn(stage.command, stage.args, { cwd: rootDir, stdio: ["inherit", "pipe", "pipe"], shell: process.platform === "win32" });
+    // Show the output as it arrives, and keep the tail to read the stage's counts from.
+    let output = "";
+    const keep = (chunk: Buffer, to: NodeJS.WriteStream) => {
+      to.write(chunk);
+      output = (output + chunk.toString()).slice(-20_000);
+    };
+    child.stdout?.on("data", (c: Buffer) => keep(c, process.stdout));
+    child.stderr?.on("data", (c: Buffer) => keep(c, process.stderr));
+    const finish = (passed: boolean) => resolve({ passed, secs: ((Date.now() - started) / 1000).toFixed(1), output });
     child.on("close", (code) => finish(code === 0));
     child.on("error", (err) => {
       console.error(`failed to start: ${err.message}`);
       finish(false);
     });
   });
+}
+
+const RESULTS_FILE = path.join(rootDir, ".cache", "test-results.json");
+
+/** Merge one stage's outcome into .cache/test-results.json (latest run per stage). */
+function recordResult(stage: Stage, result: { passed: boolean; secs: string }, counts: StageCounts): void {
+  let commit = "";
+  try {
+    commit = execSync("git rev-parse --short HEAD", { cwd: rootDir, encoding: "utf-8" }).trim();
+  } catch { /* not a git checkout */ }
+  let data: { stages: Record<string, unknown> } = { stages: {} };
+  try {
+    data = JSON.parse(fs.readFileSync(RESULTS_FILE, "utf-8"));
+  } catch { /* first run */ }
+  data.stages[stage.name] = {
+    kind: LIVE.includes(stage) ? "live" : "offline",
+    order: [...OFFLINE, ...LIVE].indexOf(stage),
+    passed: result.passed,
+    secs: Number(result.secs),
+    runAt: new Date().toISOString(),
+    commit,
+    ...counts,
+  };
+  fs.mkdirSync(path.dirname(RESULTS_FILE), { recursive: true });
+  fs.writeFileSync(RESULTS_FILE, JSON.stringify(data, null, 2));
 }
 
 async function main() {
@@ -115,7 +152,9 @@ async function main() {
 
   const results: Array<{ name: string; passed: boolean; secs: string }> = [];
   for (let i = 0; i < stages.length; i++) {
-    results.push({ name: stages[i].name, ...(await runStage(stages[i], i, stages.length)) });
+    const { output, ...result } = await runStage(stages[i], i, stages.length);
+    results.push({ name: stages[i].name, ...result });
+    recordResult(stages[i], result, parseCounts(output));
   }
 
   console.log(`\n${"=".repeat(80)}\nSUMMARY\n${"=".repeat(80)}`);

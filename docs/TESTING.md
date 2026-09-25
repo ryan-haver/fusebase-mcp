@@ -24,6 +24,8 @@ npx tsx scripts/test-all.ts --offline
 These need no credentials. Known bugs are pinned with `it.fails` / `knownGap()`, using IDs from
 [PLAN-review-remediation.md](PLAN-review-remediation.md). Remove the marker when you fix one.
 
+Every run of `scripts/test-all.ts` records each stage's outcome in `.cache/test-results.json`: pass or fail, duration, and the assertion, skip and tool counts the stage printed. `scripts/generate-status-data.ts` publishes those figures on the status dashboard; nothing there is written by hand.
+
 ## Live suites
 
 ```bash
