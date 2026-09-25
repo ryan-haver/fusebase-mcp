@@ -10,6 +10,7 @@ This project follows [Semantic Versioning](https://semver.org/). Each release is
   - `resolve_database_alias` answered "not found" when it couldn't read the database list; it now reports the error.
   - `get_user_preferences` and `get_billing_info` returned nulls when their requests failed; they now fail when every part fails and name the parts that did.
 - Two timing-sensitive unit tests no longer fail on a busy machine.
+- The status dashboard's test figures now come from real runs: `test-all` records each stage's outcome and counts, and the dashboard publishes only those. The `fusebase://status` resource no longer reports made-up assertion totals, and the README's "100% verified" badge and headline claims are replaced with what the tests prove.
 - Repository reorganised:
   - Live test suites moved to `tests/live/`.
   - `ENDPOINT_REFERENCE.md` moved to `docs/`.

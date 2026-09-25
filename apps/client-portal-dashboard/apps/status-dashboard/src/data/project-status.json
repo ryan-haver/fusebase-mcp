@@ -1,11 +1,11 @@
 {
   "project": "FuseBase MCP Server",
-  "version": "1.0.0",
-  "lastUpdated": "2026-09-23T04:48:21.524Z",
+  "version": "2.0.0",
+  "lastUpdated": "2026-09-25T18:44:17.987Z",
   "git": {
-    "commit": "0100d69",
+    "commit": "8803358",
     "branch": "master",
-    "commitDate": "2026-09-19T19:34:17-06:00"
+    "commitDate": "2026-09-25T11:49:08-06:00"
   },
   "protocol": {
     "specification": "JSON-RPC 2.0",
@@ -16,148 +16,52 @@
     "totalTools": 175,
     "coreTools": 34,
     "extendedTools": 141,
-    "totalSuites": 17,
-    "totalAssertions": 212,
-    "passedAssertions": 212,
+    "totalSuites": 5,
+    "totalAssertions": 394,
+    "passedAssertions": 394,
     "passRatePercent": 100,
     "documentationGuides": 278
   },
   "testSuites": [
     {
       "id": 1,
-      "name": "Workspaces & Organizations",
-      "toolsCount": 12,
-      "assertionsCount": 12,
+      "name": "Typecheck (src, scripts, tests)",
+      "toolsCount": 0,
+      "assertionsCount": 0,
       "status": "passed",
-      "description": "Workspace metadata, membership catalogs, org limits, features, and billing usage"
+      "description": "Offline; last run 2026-09-25 18:43 UTC on 8803358 (3s)."
     },
     {
       "id": 2,
-      "name": "Folders & Taxonomy",
-      "toolsCount": 3,
-      "assertionsCount": 3,
+      "name": "Lint",
+      "toolsCount": 0,
+      "assertionsCount": 0,
       "status": "passed",
-      "description": "Folder tree query, folder creation with root normalization, and tag labels"
+      "description": "Offline; last run 2026-09-25 18:43 UTC on 8803358 (3.1s)."
     },
     {
       "id": 3,
-      "name": "Pages & Collaborative Y.js Content",
-      "toolsCount": 11,
-      "assertionsCount": 15,
+      "name": "Build",
+      "toolsCount": 0,
+      "assertionsCount": 0,
       "status": "passed",
-      "description": "Page creation, HTML/Markdown reading, append_page_content, move_page, deletion"
+      "description": "Offline; last run 2026-09-25 18:44 UTC on 8803358 (2.6s)."
     },
     {
       "id": 4,
-      "name": "Tags, Files & Attachments",
-      "toolsCount": 8,
-      "assertionsCount": 9,
+      "name": "Unit tests",
+      "toolsCount": 0,
+      "assertionsCount": 394,
       "status": "passed",
-      "description": "Tag assignments, file counting, multipart uploads, attachment binary downloads"
+      "description": "Offline; last run 2026-09-25 18:44 UTC on 8803358 (13.7s). 394/394 assertions passed, 6 known gaps."
     },
     {
       "id": 5,
-      "name": "Comments, Threads & Mentions",
-      "toolsCount": 7,
-      "assertionsCount": 8,
+      "name": "Tool schema & README audit",
+      "toolsCount": 0,
+      "assertionsCount": 0,
       "status": "passed",
-      "description": "Live activity stream, entity mention queries, comment threads, replies, resolution"
-    },
-    {
-      "id": 6,
-      "name": "Tasks & Project Management",
-      "toolsCount": 10,
-      "assertionsCount": 11,
-      "status": "passed",
-      "description": "Task creation with globalId, task search, time tracking, summary, update, delete"
-    },
-    {
-      "id": 7,
-      "name": "Databases, Views, Columns & Relations",
-      "toolsCount": 28,
-      "assertionsCount": 34,
-      "status": "passed",
-      "description": "Full table lifecycle, column CRUD, rows, cell edits, kanban views, relations, CSV"
-    },
-    {
-      "id": 8,
-      "name": "Client Portals & Clients",
-      "toolsCount": 9,
-      "assertionsCount": 10,
-      "status": "passed",
-      "description": "Portal availability, themes, navigation trees, client access, magic links, page publishing"
-    },
-    {
-      "id": 9,
-      "name": "ActivePieces Workflow Automations",
-      "toolsCount": 12,
-      "assertionsCount": 14,
-      "status": "passed",
-      "description": "Community Edition flags, JWT auth, piece catalog, flow creation, execution, deletion"
-    },
-    {
-      "id": 10,
-      "name": "AI Assistant, Personas & Swarm",
-      "toolsCount": 10,
-      "assertionsCount": 12,
-      "status": "passed",
-      "description": "32 AI personas, taxonomy categories, usage inspection, swarm state machine, kanban transitions"
-    },
-    {
-      "id": 11,
-      "name": "Developer CLI & Hosted Vibe Apps",
-      "toolsCount": 12,
-      "assertionsCount": 16,
-      "status": "passed",
-      "description": "Native CLI status, apps list, scaffolding, sidecars, secrets, remote logs, view permissions"
-    },
-    {
-      "id": 12,
-      "name": "Diagnostics, Preferences & Offline Guides",
-      "toolsCount": 16,
-      "assertionsCount": 28,
-      "status": "passed",
-      "description": "Version check, headless cookie refresh, session health, preferences, templates, 278 offline guides"
-    },
-    {
-      "id": 13,
-      "name": "PostgreSQL Gate Isolated SQL Stores",
-      "toolsCount": 9,
-      "assertionsCount": 9,
-      "status": "passed",
-      "description": "Isolated store discovery, provisioning, SQL table catalog, read/write queries, and migration bundles"
-    },
-    {
-      "id": 14,
-      "name": "FuseBase Work, Firecrawl & n8n Integration",
-      "toolsCount": 3,
-      "assertionsCount": 3,
-      "status": "passed",
-      "description": "AI agent prompt dispatch, Firecrawl web content extraction, and n8n workflow triggers"
-    },
-    {
-      "id": 15,
-      "name": "Direct Gate Bridge & Token Management",
-      "toolsCount": 7,
-      "assertionsCount": 7,
-      "status": "passed",
-      "description": "Direct token connection, whoami tenant resolution, scoped token creation, revocation, and direct MCP tool calls"
-    },
-    {
-      "id": 16,
-      "name": "Authentication Modes & Feature Parity Validation",
-      "toolsCount": 11,
-      "assertionsCount": 15,
-      "status": "passed",
-      "description": "Empirical side-by-side validation of Pure Token Mode vs Session Cookie Mode across all 11 platform domains"
-    },
-    {
-      "id": 17,
-      "name": "Containerization & Dual Transport Validation",
-      "toolsCount": 2,
-      "assertionsCount": 6,
-      "status": "passed",
-      "description": "Local Stdio JSON-RPC protocol initialization, multi-stage Docker build, container Stdio execution, and network SSE streaming with health check"
+      "description": "Offline; last run 2026-09-25 18:44 UTC on 8803358 (1.4s)."
     }
   ],
   "milestones": [
@@ -212,10 +116,10 @@
     },
     {
       "id": "m8",
-      "title": "Full-Spectrum 175-Tool Deep Data Validation",
+      "title": "Write-Verified Live Test Suites",
       "status": "completed",
       "date": "Sept 2026",
-      "description": "100% live data assertion test harness: 175/175 tools, 172/172 passed data assertions, 0 leaks"
+      "description": "Every write the live suites make is proven by a fresh read of the stored data, and a leftover sweep checks the sandbox is clean. Current figures are on the Tests tab"
     },
     {
       "id": "m9",
@@ -226,10 +130,10 @@
     },
     {
       "id": "m10",
-      "title": "Authentication Feature Parity & Gate CRUD Fallbacks",
+      "title": "Token-Only Coverage Measured",
       "status": "completed",
       "date": "Sept 2026",
-      "description": "Full empirical parity test suite validating Pure Token Mode vs Cookie Session Mode across 11 core domains, seamless Gate MCP page/note/folder CRUD fallback in client, and comprehensive architectural documentation"
+      "description": "Every tool measured with only Gate and Dashboards tokens: 14 of 129 measured work without a session cookie (docs/TOKEN-COVERAGE.md). Page and folder listing, creation and appends fall back to Gate"
     },
     {
       "id": "m11",
@@ -362,7 +266,7 @@
     },
     {
       "name": "move_page",
-      "description": "Move a page to a different folder within the workspace, move it back to workspace root, or migrate it to an entirely different workspace. Specify targetWorkspaceId to migrate across workspaces, and/or folderId (or parentId) to move between folders.",
+      "description": "Move a page to a different folder within the workspace, move it back to workspace root, or migrate it to an entirely different workspace. Specify targetWorkspaceId to migrate across workspaces, and/or folderId (or parentId) to move between folders. Use folderId 'root' (or omit it) for the top level. FuseBase may give the moved page a NEW id: always use the returned pageId afterwards (idChanged tells you).",
       "tier": "core",
       "category": "Pages & Collaborative Y.js",
       "parameters": [
@@ -518,16 +422,18 @@
         "markdown",
         "blocks",
         "replace",
+        "allowEmpty",
         "profile"
       ]
     },
     {
       "name": "search_tasks",
-      "description": "Search tasks in a workspace with full task details, assignees, labels, and board info. Optionally filter by page to see only tasks linked to a specific note. Supports pagination with offset and limit.",
+      "description": "Search tasks in a workspace with full task details, assignees, labels, and board info. Optionally filter by page to see only tasks linked to a specific note, and by text in the task title (query). Supports pagination with offset and limit.",
       "tier": "core",
       "category": "Tasks & Projects",
       "parameters": [
         "workspaceId",
+        "query",
         "pageId",
         "limit",
         "offset",
@@ -596,7 +502,7 @@
     },
     {
       "name": "search_guides",
-      "description": "Search the local FuseBase guide documentation (231 guides across 17 sections). Returns matching guide titles, sections, and slugs. Use get_guide to read the full content of a specific result. Great for looking up how any FuseBase feature works.",
+      "description": "Search the FuseBase guide documentation (FuseBase's help-center articles, downloaded with npm run guides:fetch). Returns matching guide titles, sections, and slugs. Use get_guide to read the full content of a specific result. Great for looking up how any FuseBase feature works.",
       "tier": "core",
       "category": "Diagnostics, Preferences & Guides",
       "parameters": [
@@ -652,7 +558,7 @@
     },
     {
       "name": "get_comment_threads",
-      "description": "Get all comment threads on a specific page, including thread status (resolved/open) and nested comments. Useful for reviewing feedback, discussions, or collaborative annotations on a page.",
+      "description": "Get all comment threads on a specific page: thread status (resolved/open), comment counts, and each thread's comments (commentList: id, text, replyTo, userId, createdAt). Useful for reviewing feedback, discussions, or collaborative annotations on a page.",
       "tier": "extended",
       "category": "Comments, Threads & Mentions",
       "parameters": [
@@ -1013,13 +919,14 @@
     },
     {
       "name": "unlink_database_rows",
-      "description": "Remove a link between two rows in related tables. If sourceRowUuid and targetRowUuid are omitted, removes all links for the relation.",
+      "description": "Remove links between rows in related tables. Pass sourceRowUuid and targetRowUuid to remove one link; pass only one of them to remove every link of that row. At least one row UUID is required unless unlinkAll is true.",
       "tier": "extended",
       "category": "Databases & Relations",
       "parameters": [
         "relationId",
         "sourceRowUuid",
         "targetRowUuid",
+        "unlinkAll",
         "profile"
       ]
     },
@@ -1200,17 +1107,20 @@
         "databaseId",
         "dashboardId",
         "copyData",
+        "title",
         "profile"
       ]
     },
     {
       "name": "create_view",
-      "description": "Create a new view within a dashboard (table). Each view can have its own filters, sorts, grouping, column visibility, and display mode. Use set_view_representation afterwards to change the view type.",
+      "description": "Create a new view within a dashboard (table). Each view can have its own filters, sorts, grouping, column visibility, and display mode. Optionally set its display mode (representationType) and, for kanban/board, the column to group by.",
       "tier": "extended",
       "category": "Databases & Relations",
       "parameters": [
         "dashboardId",
         "name",
+        "representationType",
+        "groupByColumnKey",
         "profile"
       ]
     },
@@ -1688,7 +1598,7 @@
     },
     {
       "name": "fusebase_cli_logs",
-      "description": "Retrieve remote deployment logs or local dev logs for a FuseBase app.",
+      "description": "Retrieve runtime or build logs for a deployed FuseBase app (fusebase remote-logs).",
       "tier": "extended",
       "category": "Developer CLI & Hosted Apps",
       "parameters": [
@@ -1805,7 +1715,7 @@
     },
     {
       "name": "fusebase_swarm_task_transition",
-      "description": "Transition a swarm task across lifecycle stages (e.g. Backlog -> In Progress -> Review -> Done, or Flow 8-phase stages), record agent audit comments, and trigger next-agent handover.",
+      "description": "Transition a swarm task across lifecycle stages (e.g. Backlog -> In Progress -> Review -> Done, or Flow 8-phase stages). With auditColumnKey the audit comment is appended to the task's Audit Log; with roleColumnKey and nextRole the task is handed over by setting its Role.",
       "tier": "extended",
       "category": "Tasks & Projects",
       "parameters": [
@@ -1816,6 +1726,8 @@
         "newStatus",
         "comment",
         "nextRole",
+        "auditColumnKey",
+        "roleColumnKey",
         "profile"
       ]
     },
@@ -1930,11 +1842,10 @@
     },
     {
       "name": "get_org_trials",
-      "description": "List active feature trial subscriptions and trial expiration records for the organization.",
+      "description": "List active feature trial subscriptions and trial expiration records for the signed-in organization.",
       "tier": "extended",
       "category": "Workspaces & Org",
       "parameters": [
-        "orgId",
         "profile"
       ]
     },
@@ -2117,6 +2028,7 @@
       "tier": "extended",
       "category": "FuseBase Work, Firecrawl & n8n",
       "parameters": [
+        "workspaceId",
         "agentId",
         "prompt",
         "threadId",
@@ -2129,6 +2041,7 @@
       "tier": "extended",
       "category": "FuseBase Work, Firecrawl & n8n",
       "parameters": [
+        "workspaceId",
         "url",
         "agentId",
         "formats",

@@ -270,7 +270,7 @@ export function registerResources(
     "status",
     "fusebase://status",
     {
-      description: "Live platform status, 175-tool catalog, 15 test suite validation metrics, and web dashboard URL.",
+      description: "Tool counts by tier and the status dashboard URL (test results are published there).",
       mimeType: "application/json",
     },
     async (uri) => {
@@ -287,8 +287,7 @@ export function registerResources(
                 totalTools: 175,
                 coreTools: 34,
                 extendedTools: 141,
-                totalSuites: 16,
-                passedAssertions: "206 / 206 (100%)",
+                testing: "Test results: see dashboardUrl. How the live suites prove writes: docs/TESTING.md",
                 protocolCompliance: "RFC 6570 + JSON-RPC 2.0",
                 documentationGuides: 278,
                 transports: ["stdio", "Streamable HTTP (Gate/Dashboards)", "WebSocket Y.js", "REST HTTP"],
