@@ -32,7 +32,7 @@ To protect your context window, this server implements a **Two-Tier System**:
 FuseBase MCP supports three authentication methods:
 
 ### Mode 1: Pure Token Mode (Recommended for Autonomous Agents)
-Autonomous agents cannot solve interactive browser captchas. Token mode connects directly to official FuseBase Gate & Dashboards remote MCP endpoints with zero browser dependency:
+Autonomous agents cannot solve interactive browser captchas. Token mode connects directly to official FuseBase Gate & Dashboards remote MCP endpoints with zero browser dependency. It covers only part of the tool set (pages and folders: list, read, create, append; database listing; isolated SQL stores; Gate tokens). Tasks, comments, tags, members, page rename/move/delete, automations and most database tools need Mode 2 or 3; see [docs/TOKEN-COVERAGE.md](docs/TOKEN-COVERAGE.md).
 ```bash
 # In your agent config or .env:
 FUSEBASE_GATE_TOKEN=your_gate_mcp_token
