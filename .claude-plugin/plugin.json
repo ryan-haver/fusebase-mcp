@@ -1,6 +1,6 @@
 {
   "name": "fusebase",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Unofficial, community-maintained MCP server for FuseBase: workspaces, pages (Y.js live content), databases and dashboards, client portals, automations, and Gate PostgreSQL stores. Not affiliated with FuseBase.",
   "keywords": [
     "fusebase",

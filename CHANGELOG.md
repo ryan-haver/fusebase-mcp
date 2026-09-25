@@ -4,6 +4,10 @@ This project follows [Semantic Versioning](https://semver.org/). Each release is
 
 ## Unreleased
 
+## 2.1.0 — 2026-09-25
+
+Measured token-only coverage, fixes it found, and documentation that states only what's tested. See the [release notes](https://github.com/ryan-haver/fusebase-mcp/releases/tag/v2.1.0).
+
 - Token-only coverage: the live harness can measure which tools work with only Gate and Dashboards tokens (`LIVE_TOKEN_COVERAGE=1`, report with `npm run coverage:tokens`). Results in [docs/TOKEN-COVERAGE.md](docs/TOKEN-COVERAGE.md): 14 of 129 measured tools work without a session cookie. The README badge that claimed 100% parity now shows the measured figure.
 - Fixed, found by that measurement:
   - `list_pages` ignored the folder in token mode and returned the top-level pages instead.
