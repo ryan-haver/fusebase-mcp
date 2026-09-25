@@ -1,3 +1,4 @@
+import { guidesAvailable as guidesAvailableNow, GUIDES_MISSING as GUIDES_MISSING_TEXT } from "../guide-loader.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { FusebaseClient } from "../client.js";
@@ -1503,13 +1504,14 @@ export function registerCoreTools(
 
   server.tool(
     "search_guides",
-    "Search the local FuseBase guide documentation (231 guides across 17 sections). Returns matching guide titles, sections, and slugs. Use get_guide to read the full content of a specific result. Great for looking up how any FuseBase feature works.",
+    "Search the FuseBase guide documentation (FuseBase's help-center articles, downloaded with npm run guides:fetch). Returns matching guide titles, sections, and slugs. Use get_guide to read the full content of a specific result. Great for looking up how any FuseBase feature works.",
     {
       query: z.string().describe("Search query (e.g. 'toggle', 'table filtering', 'portal branding')"),
       limit: z.number().optional().describe("Max results to return (default: 10)"),
     }, async ({ query, limit }) => {
       try {
         const { searchGuides } = await import("../guide-loader.js");
+        if (!guidesAvailableNow()) return { content: [{ type: "text" as const, text: GUIDES_MISSING_TEXT }], isError: true };
         const results = searchGuides(query, limit);
         return {
           content: [
@@ -1547,6 +1549,7 @@ export function registerCoreTools(
     }, async ({ section, slug }) => {
       try {
         const { getGuideContent } = await import("../guide-loader.js");
+        if (!guidesAvailableNow()) return { content: [{ type: "text" as const, text: GUIDES_MISSING_TEXT }], isError: true };
         const content = getGuideContent(section, slug);
         if (!content) {
           return {
@@ -1570,6 +1573,7 @@ export function registerCoreTools(
     {}, async () => {
       try {
         const { listGuideSections, loadGuideIndex } = await import("../guide-loader.js");
+        if (!guidesAvailableNow()) return { content: [{ type: "text" as const, text: GUIDES_MISSING_TEXT }], isError: true };
         const sections = listGuideSections();
         const total = loadGuideIndex().length;
         return {

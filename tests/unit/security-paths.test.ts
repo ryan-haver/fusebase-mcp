@@ -23,7 +23,7 @@ describe("getGuideContent (SEC-3)", () => {
     ["basics", "../../PLAN-content-formats"],
     ["basics/..", "index"],
     ["C:", "x"],
-  ])("refuses to read outside docs/guides: section %j slug %j", (section, slug) => {
+  ])("refuses to read outside the guides directory: section %j slug %j", (section, slug) => {
     expect(getGuideContent(section, slug)).toBeNull();
   });
 });

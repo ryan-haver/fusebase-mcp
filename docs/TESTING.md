@@ -41,7 +41,7 @@ op run --account <your-account>.1password.com --env-file=.env -- npx tsx scripts
 ### Every write is proven by a fresh read
 
 A write's own response (an id, "created", "updated") is **not** proof that FuseBase stored the
-data. The harness (`scripts/lib/live-harness.ts`) records every successful call to a tool in
+data. The harness (`tests/live/lib/harness.ts`) records every successful call to a tool in
 `WRITE_TOOLS`. At the end of a suite, any write that wasn't proven **fails the suite**, and the
 report lists each one with the file and line that made it.
 
@@ -76,14 +76,14 @@ await verifyWrite("create_page", "title and content stored", async () => {
 
 ### Leftover sweep
 
-The last live stage (`scripts/sweep-sandbox.ts`) reads FuseBase directly, not through the MCP
+The last live stage (`tests/live/sweep-sandbox.ts`) reads FuseBase directly, not through the MCP
 tools. It fails if anything created in the sandbox during the run still exists: pages, tasks,
 and test-named databases, automations or tokens. It also reports test-named orphans from earlier,
 interrupted runs.
 
 ```bash
-npx tsx scripts/sweep-sandbox.ts --since=<ISO time>   # report
-npx tsx scripts/sweep-sandbox.ts --clean              # delete leftovers and orphans with test-style names only
+npx tsx tests/live/sweep-sandbox.ts --since=<ISO time>   # report
+npx tsx tests/live/sweep-sandbox.ts --clean              # delete leftovers and orphans with test-style names only
 ```
 
 ## Writing a new live test

@@ -18,6 +18,11 @@ COPY docs ./docs
 # Compile TypeScript to dist/
 RUN npm run build
 
+# FuseBase guides for search_guides / get_guide (not committed; downloaded at build).
+# A failed download leaves an empty folder; the guide tools then say how to fetch them.
+COPY scripts/scrape-guides.ts ./scripts/scrape-guides.ts
+RUN mkdir -p .cache/guides && (npx tsx scripts/scrape-guides.ts || echo "guides download failed; continuing without them")
+
 # ==============================================================================
 # 2. Production Runtime Stage: production dependencies and the compiled server only
 # ==============================================================================
@@ -44,7 +49,8 @@ RUN npm ci --omit=dev --ignore-scripts
 # Copy built distribution files and documentation from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/docs ./docs
-COPY README.md AGENTS.md ENDPOINT_REFERENCE.md ./
+COPY --from=builder /app/.cache/guides ./.cache/guides
+COPY README.md AGENTS.md ./
 
 # Create data directory for volume mounting (encrypted credentials, downloads)
 RUN mkdir -p /app/data && chown -R node:node /app

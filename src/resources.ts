@@ -7,7 +7,7 @@
 
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { FusebaseClient } from "./client.js";
-import { loadGuideIndex, listGuideSections, getGuideContent } from "./guide-loader.js";
+import { loadGuideIndex, listGuideSections, getGuideContent, guidesAvailable, GUIDES_MISSING } from "./guide-loader.js";
 
 export function registerResources(
   server: McpServer,
@@ -45,6 +45,9 @@ export function registerResources(
       mimeType: "text/markdown",
     },
     async (uri) => {
+      if (!guidesAvailable()) {
+        return { contents: [{ uri: uri.href, mimeType: "text/markdown", text: GUIDES_MISSING }] };
+      }
       const sections = listGuideSections();
       const allGuides = loadGuideIndex();
 
@@ -81,6 +84,7 @@ export function registerResources(
     async (uri, { section, slug }) => {
       const guideSection = Array.isArray(section) ? section[0] : section;
       const guideSlug = Array.isArray(slug) ? slug[0] : slug;
+      if (!guidesAvailable()) throw new Error(GUIDES_MISSING);
       const content = getGuideContent(guideSection, guideSlug);
       if (!content) {
         throw new Error(`Guide with slug '${guideSlug}' in section '${guideSection}' not found.`);

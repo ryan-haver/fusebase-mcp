@@ -1,2 +1,5 @@
+# Normalise line endings: LF in the repository and in working copies.
+* text=auto eol=lf
+
 # Git hooks run under bash: keep LF line endings on every platform.
 .githooks/* text eol=lf

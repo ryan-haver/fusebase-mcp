@@ -1,7 +1,8 @@
 /**
  * Guide Loader — reads and searches the local FuseBase guide corpus.
  *
- * The guides live in docs/guides/<section>/<slug>.md with YAML frontmatter.
+ * The guides are FuseBase's help-center articles, downloaded (not committed) by
+ * `npm run guides:fetch` into .cache/guides/<section>/<slug>.md, or FUSEBASE_GUIDES_DIR.
  * This module provides fast, in-memory search and retrieval.
  *
  * @module guide-loader
@@ -12,7 +13,19 @@ import * as path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const GUIDES_DIR = path.resolve(__dirname, "..", "docs", "guides");
+/** Where the downloaded guides live (read at call time so .env can set FUSEBASE_GUIDES_DIR). */
+export function guidesDir(): string {
+  return path.resolve(process.env.FUSEBASE_GUIDES_DIR || path.join(__dirname, "..", ".cache", "guides"));
+}
+
+export const GUIDES_MISSING =
+  "The FuseBase guides haven't been downloaded. Run `npm run guides:fetch` (it downloads FuseBase's help-center articles into .cache/guides).";
+
+/** True once the guides have been downloaded. */
+export function guidesAvailable(): boolean {
+  const dir = guidesDir();
+  return fs.existsSync(path.join(dir, "index.md")) || (fs.existsSync(dir) && fs.readdirSync(dir).length > 0);
+}
 const GUIDE_SEGMENT = /^[a-z0-9][a-z0-9%-]*$/i; // "%" appears in some scraped slugs; paths are never URL-decoded
 
 // ─── Types ───
@@ -37,7 +50,7 @@ export interface GuideSection {
 let cachedIndex: GuideEntry[] | null = null;
 
 /**
- * Load the guide index by scanning the docs/guides directory.
+ * Load the guide index by scanning the guides directory.
  * Reads index.md for structured entries, falls back to filesystem scan.
  * Results are cached after first call.
  */
@@ -45,7 +58,7 @@ export function loadGuideIndex(): GuideEntry[] {
     if (cachedIndex) return cachedIndex;
 
     const entries: GuideEntry[] = [];
-    const indexPath = path.join(GUIDES_DIR, "index.md");
+    const indexPath = path.join(guidesDir(), "index.md");
 
     if (fs.existsSync(indexPath)) {
         // Parse index.md for structured guide list
@@ -67,7 +80,7 @@ export function loadGuideIndex(): GuideEntry[] {
                 const title = entryMatch[1];
                 const relativePath = entryMatch[2];
                 const slug = path.basename(relativePath, ".md");
-                const absolutePath = path.join(GUIDES_DIR, relativePath);
+                const absolutePath = path.join(guidesDir(), relativePath);
 
                 if (!seenPaths.has(absolutePath) && fs.existsSync(absolutePath)) {
                     seenPaths.add(absolutePath);
@@ -78,12 +91,12 @@ export function loadGuideIndex(): GuideEntry[] {
     }
 
     // Fallback: scan filesystem if index.md didn't yield results
-    if (entries.length === 0) {
-        const sections = fs.readdirSync(GUIDES_DIR, { withFileTypes: true })
+    if (entries.length === 0 && fs.existsSync(guidesDir())) {
+        const sections = fs.readdirSync(guidesDir(), { withFileTypes: true })
             .filter(d => d.isDirectory());
 
         for (const section of sections) {
-            const sectionDir = path.join(GUIDES_DIR, section.name);
+            const sectionDir = path.join(guidesDir(), section.name);
             const files = fs.readdirSync(sectionDir)
                 .filter(f => f.endsWith(".md"));
 
@@ -110,7 +123,8 @@ export function loadGuideIndex(): GuideEntry[] {
         }
     }
 
-    cachedIndex = entries;
+    // Don't cache an empty index: the guides may be downloaded later.
+    if (entries.length > 0) cachedIndex = entries;
     return entries;
 }
 
@@ -153,10 +167,10 @@ export function searchGuides(query: string, limit: number = 10): GuideEntry[] {
  */
 export function getGuideContent(section: string, slug: string): string | null {
     // section and slug come from tool arguments: only plain path segments are allowed,
-    // and the resolved file must stay inside docs/guides.
+    // and the resolved file must stay inside the guides directory.
     if (!GUIDE_SEGMENT.test(section) || !GUIDE_SEGMENT.test(slug)) return null;
-    const filePath = path.resolve(GUIDES_DIR, section, `${slug}.md`);
-    if (!filePath.startsWith(GUIDES_DIR + path.sep)) return null;
+    const filePath = path.resolve(guidesDir(), section, `${slug}.md`);
+    if (!filePath.startsWith(guidesDir() + path.sep)) return null;
     if (!fs.existsSync(filePath)) return null;
 
     try {

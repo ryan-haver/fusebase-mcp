@@ -7,7 +7,7 @@
 > - **Schema & Parsing:** [src/content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts) & [src/markdown-parser.ts](file:///c:/scripts/fusebase-mcp/src/markdown-parser.ts)
 > - **WebSocket CRDT Writer:** [src/yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts)
 > - **HTML Decoder:** [src/yjs-html-decoder.ts](file:///c:/scripts/fusebase-mcp/src/yjs-html-decoder.ts)
-> - **Regression Verification:** [scripts/test-regression.ts](file:///c:/scripts/fusebase-mcp/scripts/test-regression.ts)
+> - **Regression Verification:** [tests/live/block-regression.ts](file:///c:/scripts/fusebase-mcp/tests/live/block-regression.ts)
 >
 > Retained for architectural provenance. For active tool documentation, see [README.md](file:///c:/scripts/fusebase-mcp/README.md) and [ENDPOINT_REFERENCE.md](file:///c:/scripts/fusebase-mcp/ENDPOINT_REFERENCE.md).
 

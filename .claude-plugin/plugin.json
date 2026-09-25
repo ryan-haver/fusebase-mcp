@@ -1,7 +1,7 @@
 {
   "name": "fusebase",
   "version": "2.0.0",
-  "description": "Comprehensive FuseBase MCP server and agent platform tool suite for workspaces, Y.js live collaboration, dashboards, visual tables, CRM pipelines, client portals, automations, and Gate PostgreSQL stores.",
+  "description": "Unofficial, community-maintained MCP server for FuseBase: workspaces, pages (Y.js live content), databases and dashboards, client portals, automations, and Gate PostgreSQL stores. Not affiliated with FuseBase.",
   "keywords": [
     "fusebase",
     "mcp",
@@ -14,10 +14,10 @@
     "activepieces"
   ],
   "author": {
-    "name": "FuseBase",
-    "url": "https://thefusebase.com"
+    "name": "Ryan Haver",
+    "url": "https://github.com/ryan-haver"
   },
-  "homepage": "https://thefusebase.com",
+  "homepage": "https://github.com/ryan-haver/fusebase-mcp",
   "repository": "https://github.com/ryan-haver/fusebase-mcp",
   "license": "MIT",
   "server": {

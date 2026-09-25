@@ -38,14 +38,14 @@ const OFFLINE: Stage[] = [
 ];
 
 const LIVE: Stage[] = [
-  { name: "Direct token connection", command: "npx", args: ["tsx", "scripts/test-token-direct-connection.ts"] },
-  { name: "MCP protocol & page lifecycle", command: "npx", args: ["tsx", "scripts/test-mcp-e2e.ts"] },
-  { name: "Block model regression", command: "npx", args: ["tsx", "scripts/test-regression.ts"] },
-  { name: "Database engine", command: "npx", args: ["tsx", "scripts/test-database-e2e.ts"] },
-  { name: "Live data validation", command: "npx", args: ["tsx", "scripts/test-data-validation.ts"] },
-  { name: "Token vs cookie parity", command: "npx", args: ["tsx", "scripts/test-token-parity.ts"] },
+  { name: "Direct token connection", command: "npx", args: ["tsx", "tests/live/token-direct-connection.ts"] },
+  { name: "MCP protocol & page lifecycle", command: "npx", args: ["tsx", "tests/live/mcp-e2e.ts"] },
+  { name: "Block model regression", command: "npx", args: ["tsx", "tests/live/block-regression.ts"] },
+  { name: "Database engine", command: "npx", args: ["tsx", "tests/live/database-e2e.ts"] },
+  { name: "Live data validation", command: "npx", args: ["tsx", "tests/live/data-validation.ts"] },
+  { name: "Token vs cookie parity", command: "npx", args: ["tsx", "tests/live/token-parity.ts"] },
   // Last: everything the suites created must be gone.
-  { name: "Leftover sweep", command: "npx", args: ["tsx", "scripts/sweep-sandbox.ts"] },
+  { name: "Leftover sweep", command: "npx", args: ["tsx", "tests/live/sweep-sandbox.ts"] },
 ];
 
 /**
