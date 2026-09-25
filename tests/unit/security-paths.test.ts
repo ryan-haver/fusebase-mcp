@@ -10,12 +10,34 @@ vi.mock("child_process", async (importOriginal) => {
 
 import { spawn } from "child_process";
 import { EventEmitter } from "events";
-import { getGuideContent } from "../../src/guide-loader.js";
+import { getGuideContent, guidesAvailable } from "../../src/guide-loader.js";
 import { FusebaseCliManager } from "../../src/cli-manager.js";
 
 describe("getGuideContent (SEC-3)", () => {
-  it("reads a real guide", () => {
-    expect(getGuideContent("basics", "hint-object")).toBeTruthy();
+  // A fixture guides folder, with a file just outside it that path traversal would reach.
+  let root: string;
+  const saved = process.env.FUSEBASE_GUIDES_DIR;
+  beforeEach(() => {
+    root = fs.mkdtempSync(path.join(os.tmpdir(), "fusebase-guides-"));
+    fs.mkdirSync(path.join(root, "guides", "basics"), { recursive: true });
+    fs.writeFileSync(path.join(root, "guides", "basics", "hint-object.md"), "# Hint object\n");
+    fs.writeFileSync(path.join(root, "PLAN-content-formats.md"), "outside the guides folder");
+    process.env.FUSEBASE_GUIDES_DIR = path.join(root, "guides");
+  });
+  afterEach(() => {
+    if (saved === undefined) delete process.env.FUSEBASE_GUIDES_DIR;
+    else process.env.FUSEBASE_GUIDES_DIR = saved;
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  it("reads a guide", () => {
+    expect(getGuideContent("basics", "hint-object")).toContain("Hint object");
+  });
+
+  it("says the guides aren't downloaded when the folder is missing", () => {
+    process.env.FUSEBASE_GUIDES_DIR = path.join(root, "missing");
+    expect(guidesAvailable()).toBe(false);
+    expect(getGuideContent("basics", "hint-object")).toBeNull();
   });
 
   it.each([
