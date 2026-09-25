@@ -41,3 +41,6 @@ _archive/
 **/.codex/
 **/.vscode/
 **/.idea/
+
+# Downloaded FuseBase guides (npm run guides:fetch) and other caches
+.cache/

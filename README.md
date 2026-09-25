@@ -178,7 +178,7 @@ Supply both tokens (`FUSEBASE_GATE_TOKEN`, `FUSEBASE_DASHBOARDS_TOKEN`) and a se
 
 ### 3. Authentication Modes Feature Parity & Empirical Comparison
 
-The table below reflects **100% empirical validation results** obtained by running `npm run test:parity` (`scripts/test-token-parity.ts`) against live FuseBase production infrastructure:
+The table below reflects **100% empirical validation results** obtained by running `npm run test:parity` (`tests/live/token-parity.ts`) against live FuseBase production infrastructure:
 
 | Domain | Feature | Pure Token Mode | Cookie / Session Mode | Parity Category | Technical Notes |
 |---|---|:---:|:---:|:---:|---|
@@ -575,45 +575,45 @@ Enable with `set_tool_tier(tier: "all")` or set `FUSEBASE_TOOLS=all` in `.env`:
 
 ```text
 src/
-  index.ts              → MCP server (175 tools, stdio transport, tier system, instructions)
-  client.ts             → HTTP client (cookie auth, ActivePieces token exchange, 401 auto-retry, logging)
-  gate-bridge.ts        → Streamable HTTP MCP client for official Gate & Dashboards endpoints
-  crypto.ts             → AES-256-GCM encryption for multi-profile secrets and API tokens at rest
-  types.ts              → TypeScript interfaces for API responses
-  resources.ts          → Native MCP resources & RFC 6570 templates
-  prompts.ts            → Native MCP pre-engineered workflow prompts
-  proxy-relay.ts        → HTTP CONNECT proxy relay for SOCKS5 upstream proxies
-  guide-loader.ts       → Guide search index (278 guides, 19 sections)
-  tools/
-    core-tools.ts       → 34 Core tools (full CRUD and organization for pages, tasks, folders, content, profiles)
-    extended-tools.ts   → 141 Extended tools (databases, views, relations, batch mutations, SQL stores, automations, portals, admin, CLI, Gate tokens, FuseBase Work)
-    helpers.ts          → HTML-to-markdown converter, MIME detection, error formatting
-  yjs-ws-writer.ts      → Y.js WebSocket writer (write + read via WS sync)
-  yjs-html-decoder.ts   → Y.js document → HTML decoder (20+ block types)
-  content-schema.ts     → Content block IR (25+ block types)
-  markdown-parser.ts    → Markdown → ContentBlock[] converter
+  index.ts              → Entry point: loads configuration, starts stdio or HTTP transport
+  server.ts             → Builds one MCP server per session (tools, resources, prompts, tier switching)
+  http-server.ts        → Streamable HTTP (+ legacy SSE) transport with bearer auth and Host/Origin checks
+  config.ts             → .env, 1Password Environment and op:// reference loading; token resolution
+  secret-refs.ts        → 1Password integration (op read, SDK Environment loading)
+  client.ts             → FuseBase web API client (one request path: auth, timeouts, refresh, logging)
+  client-factory.ts     → Builds clients per profile; caches Gate bridges per token set
+  gate-bridge.ts        → Client for the official Gate & Dashboards MCP endpoints
+  write-safety.ts       → When a failed write may be retried on another path
+  crypto.ts             → Encrypted credential store (random key, legacy migration)
+  yjs-ws-writer.ts      → Y.js WebSocket writer/reader for page content (confirmed writes)
+  yjs-html-decoder.ts   → Y.js document → HTML / markdown
+  markdown-parser.ts    → Markdown (mdast + GFM) → content blocks
+  content-schema.ts     → Content block types
+  resources.ts, prompts.ts → MCP resources and prompts
+  guide-loader.ts       → Search over the downloaded FuseBase guides
+  cli-manager.ts, proxy-relay.ts, ids.ts, types.ts
+  tools/                → Tool definitions (core and extended tiers)
+tests/
+  unit/                 → Offline unit tests (vitest), run by CI and the pre-commit hook
+  live/                 → Live suites against a sandbox workspace; every write proven by a read (docs/TESTING.md)
+    lib/harness.ts      → Live-suite harness: strict tool calls, write verification, skips, exit codes
+    sweep-sandbox.ts    → Leftover sweep run after the live suites
 scripts/
-  test-all.ts           → Test runner: offline stages, then live suites (`npm run test:all`)
-  lib/live-harness.ts   → Shared live-suite harness: strict tool calls, skips, known gaps, exit codes
-  test-database-e2e.ts  → Live database & relational lifecycle suite (`npm run test:database`)
-  test-data-validation.ts → Live data validation across the tool catalog (`npm run test:data-validation`)
-  test-mcp-e2e.ts       → Live MCP protocol, resources, prompts and page lifecycle (`npm run test:mcp-e2e`)
-  test-regression.ts    → Live Y.js block/format write → read round trip (`npm run test:regression`)
-  test-token-direct-connection.ts → Live Gate/Dashboards token checks (`npm run test:token`)
-  test-token-parity.ts  → Live token vs cookie parity table (`npm run test:parity`)
-  audit-tools.ts        → Tool schema, duplicate and README coverage audit (`npm run test:audit`)
-  auth.ts               → Capture/refresh session cookies via Playwright (multi-profile)
-  inspect-hub.ts        → Deep inspection of client portal and workspace hubs
-  deploy-status-dashboard.ts → Build & deploy live status dashboard SPA (`npm run deploy:status`)
-  deploy-workspace-page.ts   → Embed status dashboard into workspace note (`npm run deploy:page`)
-docs/
-  guides/               → 278 FuseBase guides across 19 sections (auto-scraped)
-data/                   → (gitignored) Cookie store, downloads, API logs, workspace cache
+  test-all.ts           → Runs the offline stages and/or the live suites (`npm run test:all`)
+  audit-tools.ts        → Tool schema, duplicate and README coverage audit
+  auth.ts               → Capture/refresh session cookies with a browser (`npm run setup:browser` first)
+  check-1password.ts    → Shows where each secret comes from (names only)
+  scrape-guides.ts      → Downloads the FuseBase guides (`npm run guides:fetch`)
+  deploy-status-dashboard.ts → Builds and deploys the status dashboard app
+docs/                   → Testing, 1Password, remediation plan and design notes
+apps/                   → The status dashboard FuseBase app
+.githooks/              → Commit and push validation gate (`npm run hooks:install`)
+.cache/guides/          → (gitignored) Downloaded FuseBase guides
+data/                   → (gitignored) Encrypted credentials, browser profiles, downloads, logs
 ```
-
 ## 🗺️ Roadmap & Implemented Milestones
 
-See [ENDPOINT_REFERENCE.md](ENDPOINT_REFERENCE.md) for all discovered and implemented API endpoints.
+See [ENDPOINT_REFERENCE.md](docs/ENDPOINT_REFERENCE.md) for all discovered and implemented API endpoints.
 
 ### Completed Milestones
 - [x] **Core Tier CRUD Completeness** — 34 core tools providing full CRUD for pages, folders, content, tasks, and files.

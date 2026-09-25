@@ -18,6 +18,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as cheerio from 'cheerio';
 import TurndownService from 'turndown';
+import { guidesDir } from '../src/guide-loader.js';
 
 // ---------------------------------------------------------------------------
 // Config
@@ -25,8 +26,7 @@ import TurndownService from 'turndown';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const PROJECT_ROOT = join(__dirname, '..');
-const OUTPUT_DIR = join(PROJECT_ROOT, 'docs', 'guides');
+const OUTPUT_DIR = guidesDir();
 const META_FILE = join(OUTPUT_DIR, '.scrape-meta.json');
 const INDEX_FILE = join(OUTPUT_DIR, 'index.md');
 

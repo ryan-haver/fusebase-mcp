@@ -267,7 +267,7 @@ describe("htmlToMarkdown mapping", () => {
   });
 });
 
-// Every block type from the live regression suite (scripts/test-regression.ts).
+// Every block type from the live regression suite (tests/live/block-regression.ts).
 const BLOCKS: ContentBlock[] = [
   { type: "heading", level: 1, children: [{ text: "Full Regression Test" }] },
   { type: "heading", level: 2, children: [{ text: "Heading H2" }] },

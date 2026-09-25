@@ -55,13 +55,10 @@ export async function refreshCookies(config: AuthConfig): Promise<string> {
     profile,
   } = config;
 
+  // Persistent browser profile (keeps the FuseBase login): data/browser-profiles/<profile>.
   const userDataDir =
     config.userDataDir ??
-    path.resolve(
-      __dirname,
-      "..",
-      ".browser-data" + (profile ? `_${profile}` : "")
-    );
+    path.resolve(process.env.FUSEBASE_DATA_DIR || path.join(__dirname, "..", "data"), "browser-profiles", profile || "default");
 
   const baseUrl = `https://${host}`;
   const MAX_ATTEMPTS = 3;

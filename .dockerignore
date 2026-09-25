@@ -14,3 +14,4 @@ apps
 .DS_Store
 Thumbs.db
 data
+.cache

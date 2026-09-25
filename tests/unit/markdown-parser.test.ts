@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { markdownToSchema, parseInline } from "../../src/markdown-parser.js";
 
-// Moved from the offline half of scripts/test-regression.ts.
+// Moved from the offline half of tests/live/block-regression.ts.
 describe("markdownToSchema: GFM table", () => {
   const md = `| Name | Role | Salary | Active |
 |:-----|:----:|-------:|:------:|

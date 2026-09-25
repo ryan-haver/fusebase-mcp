@@ -2,6 +2,19 @@
   "name": "fusebase-mcp",
   "version": "2.0.0",
   "description": "MCP server for FuseBase (formerly Nimbus Note) — 175 tools (34 Core, 141 Extended), 8 native resources & 17 prompts for full-stack AI-powered workspace, portal lifecycle, vibe coding apps, automations, swarm orchestration, direct Gate & Dashboards MCP token connection, and AI assistant threads",
+  "license": "MIT",
+  "author": "Ryan Haver (https://github.com/ryan-haver)",
+  "homepage": "https://github.com/ryan-haver/fusebase-mcp#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryan-haver/fusebase-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ryan-haver/fusebase-mcp/issues"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -9,9 +22,8 @@
   },
   "files": [
     "dist",
-    "docs/guides",
     "README.md",
-    "ENDPOINT_REFERENCE.md"
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc",
@@ -24,15 +36,15 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:live": "npx tsx scripts/test-all.ts --live-only",
-    "test:mcp-e2e": "npx tsx scripts/test-mcp-e2e.ts",
-    "test:database": "npx tsx scripts/test-database-e2e.ts",
-    "test:data-validation": "npx tsx scripts/test-data-validation.ts",
+    "test:mcp-e2e": "npx tsx tests/live/mcp-e2e.ts",
+    "test:database": "npx tsx tests/live/database-e2e.ts",
+    "test:data-validation": "npx tsx tests/live/data-validation.ts",
     "test:audit": "npx tsx scripts/audit-tools.ts",
-    "test:regression": "npx tsx scripts/test-regression.ts",
-    "test:token": "npx tsx scripts/test-token-direct-connection.ts",
-    "test:parity": "npx tsx scripts/test-token-parity.ts",
+    "test:regression": "npx tsx tests/live/block-regression.ts",
+    "test:token": "npx tsx tests/live/token-direct-connection.ts",
+    "test:parity": "npx tsx tests/live/token-parity.ts",
     "test:all": "npx tsx scripts/test-all.ts",
-    "scrape:guides": "npx tsx scripts/scrape-guides.ts",
+    "scrape:guides": "npm run guides:fetch --",
     "deploy:status": "npx tsx scripts/deploy-status-dashboard.ts",
     "deploy:page": "npx tsx scripts/deploy-workspace-page.ts",
     "docker:build": "docker build -t fusebase-mcp:latest .",
@@ -40,9 +52,11 @@
     "docker:http": "docker run -d --name fusebase-mcp -p 127.0.0.1:3000:3000 -e MCP_TRANSPORT=http -e MCP_HOST=0.0.0.0 -e MCP_AUTH_TOKEN fusebase-mcp:latest",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "postinstall": "npx playwright install chromium || true",
+    "postinstall": "node scripts/postinstall.mjs",
     "hooks:install": "git config core.hooksPath .githooks",
-    "test:sweep": "tsx scripts/sweep-sandbox.ts"
+    "test:sweep": "tsx tests/live/sweep-sandbox.ts",
+    "guides:fetch": "tsx scripts/scrape-guides.ts",
+    "setup:browser": "playwright install chromium"
   },
   "dependencies": {
     "@1password/sdk": "0.5.0",
