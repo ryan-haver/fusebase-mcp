@@ -16,6 +16,7 @@ This file provides project commands, architecture guidelines, and best practices
   - All offline stages (what CI runs): `npm run test:all -- --offline`
   - Live suites (need credentials + `FUSEBASE_WORKSPACE_ID` sandbox): `npm run test:live`
   - Known bugs are pinned as `it.fails` / `knownGap()` with IDs from `docs/PLAN-review-remediation.md`; remove the marker when you fix one.
+- **Validation gate** (see [docs/TESTING.md](docs/TESTING.md)): install with `npm run hooks:install`. Every commit runs the offline checks; every push also runs the live suites. In live tests every write must be proven by a fresh read (`verifyWrite`), and a leftover sweep checks the sandbox is clean.
 
 ---
 

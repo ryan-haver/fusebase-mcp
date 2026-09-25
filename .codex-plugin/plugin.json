@@ -1,6 +1,6 @@
 {
   "name": "fusebase",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Comprehensive FuseBase MCP server and agent platform tool suite for workspaces, Y.js live collaboration, dashboards, visual tables, CRM pipelines, client portals, automations, and Gate PostgreSQL stores.",
   "keywords": [
     "fusebase",

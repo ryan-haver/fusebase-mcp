@@ -11,7 +11,8 @@
  *  4. Profiles & session: list_agent_profiles (>= 1), switch_active_profile, check_session_health
  *     reports an authenticated session.
  *  5. Page lifecycle in the sandbox: create (content written) -> append -> HTML and markdown readback
- *     -> page resource template readback -> move_page -> delete.
+ *     -> page resource template readback -> create_folder -> move_page into the folder and back to
+ *     root -> delete (the folder is deleted in cleanup).
  *  6. create_interactive_app_page embeds an iframe; page deleted afterwards.
  *  7. fusebase_cli_status returns a well-formed status (installed or not).
  *  8. Automations: list_automation_pieces, create/delete flow, flags, user, folder create/delete.
@@ -22,10 +23,11 @@
  * 11. AI: assistant state, agent categories, favorites; for the first listed agent, public profile
  *     and threads (skipped if the org has no AI agents).
  * 12. Misc read endpoints: dashboard templates, member roles, workspace members, task summary,
- *     billing, user preferences, set_sidebar_collapsed, premium status, import status, org trials,
+ *     billing, user preferences, set_sidebar_collapsed (flipped, then restored), premium status, import status, org trials,
  *     database entity templates.
  * 13. get_task_time_tracking on a task created (and deleted) in the sandbox's first task list
  *     (skipped if the sandbox has no task list).
+ * Every write is proven by a separate fresh read (verifyWrite) of the exact values written.
  * Everything created is deleted in a finally block; cleanup failures are reported with ⚠️.
  */
 import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -43,6 +45,10 @@ import {
   runSuite,
   skip,
   ToolError,
+  duringCleanup,
+  verifyWrite,
+  readViewRepresentations,
+  findUserVar,
 } from "./lib/live-harness.js";
 
 const EXPECTED_CORE_TOOLS = 34;
@@ -88,16 +94,82 @@ async function automation<T>(tool: string, fn: () => Promise<T>): Promise<T | un
   }
 }
 
-async function readPageUntil(client: Client, args: Record<string, unknown>, needles: string[]): Promise<string> {
-  let text = "";
-  for (let attempt = 1; attempt <= 4; attempt++) {
-    await new Promise((r) => setTimeout(r, 1500));
-    const res = await callTool(client, "get_page_content", args);
-    text = typeof res === "string" ? res : JSON.stringify(res);
-    if (needles.every((n) => text.includes(n))) break;
-  }
-  return text;
+/** One fresh get_page_content read, as text. (verifyWrite retries while FuseBase catches up.) */
+async function readPage(client: Client, args: Record<string, unknown>): Promise<string> {
+  const res = await callTool(client, "get_page_content", args);
+  return typeof res === "string" ? res : JSON.stringify(res);
 }
+
+/** Error text meaning "this entity doesn't exist" (web API 404/410, Gate "no note", ActivePieces ENTITY_NOT_FOUND). */
+const NOT_FOUND = /\b(404|410)\b|not[ _-]?found|no note|does not exist/i;
+
+/** Prove a deleted entity is gone: `read` must fail with a not-found error (any other error propagates). */
+async function assertGone(what: string, read: () => Promise<unknown>): Promise<void> {
+  try {
+    await read();
+  } catch (err) {
+    if (!(err instanceof ToolError)) throw err;
+    assert(NOT_FOUND.test(err.detail), `${what}: expected a not-found error, got: ${firstLine(err.detail)}`);
+    return;
+  }
+  assert(false, `${what} should be gone, but it can still be read`);
+}
+
+const PAGE_SIZE = 100;
+const MAX_PAGES = 50;
+
+/** Every page list_pages returns for a folder (default: the workspace root), following offset pagination to the end. */
+async function allPages(client: Client, workspaceId: string, folderId = "root"): Promise<any[]> {
+  const all: any[] = [];
+  for (let n = 0; n < MAX_PAGES; n++) {
+    const res = await callTool(client, "list_pages", { workspaceId, folderId, limit: PAGE_SIZE, offset: n * PAGE_SIZE });
+    assertArray(res?.pages, "list_pages.pages");
+    all.push(...res.pages);
+    if (res.pages.length < PAGE_SIZE || (typeof res.total === "number" && all.length >= res.total)) return all;
+  }
+  throw new Error(`list_pages returned more than ${MAX_PAGES * PAGE_SIZE} pages; cannot scan them all`);
+}
+
+/** Every task search_tasks returns for the workspace, following offset pagination to the end. */
+async function allTasks(client: Client, workspaceId: string): Promise<any[]> {
+  const all: any[] = [];
+  for (let n = 0; n < MAX_PAGES; n++) {
+    const res = await callTool(client, "search_tasks", { workspaceId, limit: PAGE_SIZE, offset: n * PAGE_SIZE });
+    assertArray(res?.tasks, "search_tasks.tasks");
+    all.push(...res.tasks);
+    if (res.tasks.length < PAGE_SIZE || (typeof res.total === "number" && all.length >= res.total)) return all;
+  }
+  throw new Error(`search_tasks returned more than ${MAX_PAGES * PAGE_SIZE} tasks; cannot scan them all`);
+}
+
+function isTask(t: any, taskId: string): boolean {
+  return t?.globalId === taskId || t?.id === taskId || t?.taskId === taskId;
+}
+
+/** Find a folder by id anywhere in list_folders' nested tree (each node has `children`). */
+function findFolder(nodes: unknown, folderId: string): any {
+  if (!Array.isArray(nodes)) return undefined;
+  for (const node of nodes) {
+    if (node?.id === folderId) return node;
+    const hit = findFolder(node?.children, folderId);
+    if (hit) return hit;
+  }
+  return undefined;
+}
+
+/** Parse the sidebarCollapsed user var ("1"/"0", or a number/boolean); fail on anything else. */
+function collapsedValue(value: unknown): boolean {
+  if (value === "1" || value === 1 || value === true) return true;
+  if (value === "0" || value === 0 || value === false) return false;
+  assert(false, `sidebarCollapsed should be "1" or "0", got ${JSON.stringify(value)}`);
+}
+
+
+/** ActivePieces keeps a flow's name on its current version; accept it top-level too. */
+function flowDisplayName(flow: any): unknown {
+  return flow?.version?.displayName ?? flow?.displayName;
+}
+
 
 async function main() {
   const workspaceId = requireSandboxWorkspace();
@@ -106,6 +178,7 @@ async function main() {
   const client = await connectMcp("fusebase-test-client", { tier: "core" });
 
   const pagesToCleanup = new Set<string>();
+  const foldersToCleanup: string[] = [];
   const databasesToCleanup: string[] = [];
   const flowsToCleanup: string[] = [];
   const automationFoldersToCleanup: string[] = [];
@@ -299,15 +372,36 @@ async function main() {
 
     // ─── 5. Page lifecycle ────────────────────────────────────────
     console.log("\n── 5. Page lifecycle ──");
+    const pageTitle = "MCP Lifecycle & Append Test";
     const createPageData = await callTool(client, "create_page", {
       workspaceId,
-      title: "MCP Lifecycle & Append Test",
+      title: pageTitle,
       markdown: "# Base Header\n\nThis is the initial content.\n\n- Initial Point 1",
     });
     assertString(createPageData?.id, "create_page.id");
-    const pageId: string = createPageData.id;
+    let pageId: string = createPageData.id;
+    /** move_page may give the page a new id (COR-26): follow it and keep cleanup on the live page. */
+    const followMove = (res: any, oldId: string): string => {
+      assertString(res?.pageId, "move_page.pageId");
+      if (res.pageId !== oldId) {
+        pagesToCleanup.delete(oldId);
+        pagesToCleanup.add(res.pageId);
+        console.log(`   move_page gave the page a new id: ${oldId} → ${res.pageId}`);
+      }
+      return res.pageId;
+    };
     pagesToCleanup.add(pageId);
     assertEqual(createPageData.contentWritten, true, `create_page.contentWritten (contentError: ${createPageData.contentError ?? "none"})`);
+    await verifyWrite("create_page", `page ${pageId} has title '${pageTitle}' and the initial markdown content`, async () => {
+      const page = await callTool(client, "get_page", { workspaceId, pageId });
+      assertObject(page, "get_page");
+      assertEqual(page.globalId, pageId, "get_page.globalId");
+      assertEqual(page.title, pageTitle, "get_page.title");
+      const md = await readPage(client, { workspaceId, pageId, format: "markdown" });
+      for (const needle of ["Base Header", "This is the initial content.", "Initial Point 1"]) {
+        assertIncludes(md, needle, "get_page_content (markdown) after create_page");
+      }
+    });
 
     await new Promise((r) => setTimeout(r, 2000));
     await callTool(client, "append_page_content", {
@@ -315,45 +409,112 @@ async function main() {
       pageId,
       markdown: "## Appended Section\n\nThis section was appended dynamically.\n\n- Appended Point 2",
     });
+    await verifyWrite("append_page_content", `page ${pageId} has the appended section after the original content`, async () => {
+      const readHtml = await readPage(client, { workspaceId, pageId });
+      for (const needle of ["Base Header", "Initial Point 1", "Appended Section", "Appended Point 2"]) {
+        assertIncludes(readHtml, needle, "get_page_content (html)");
+      }
 
-    const readHtml = await readPageUntil(client, { workspaceId, pageId }, ["Base Header", "Appended Section"]);
-    for (const needle of ["Base Header", "Initial Point 1", "Appended Section", "Appended Point 2"]) {
-      assertIncludes(readHtml, needle, "get_page_content (html)");
-    }
-
-    const readMd = await readPageUntil(client, { workspaceId, pageId, format: "markdown" }, ["Base Header", "Appended Section"]);
-    assertIncludes(readMd, "Base Header", "get_page_content (markdown)");
-    assertIncludes(readMd, "Appended Section", "get_page_content (markdown)");
+      const readMd = await readPage(client, { workspaceId, pageId, format: "markdown" });
+      assertIncludes(readMd, "Base Header", "get_page_content (markdown)");
+      assertIncludes(readMd, "Appended Section", "get_page_content (markdown)");
+      assertIncludes(readMd, "This section was appended dynamically.", "get_page_content (markdown)");
+      assertIncludes(readMd, "Appended Point 2", "get_page_content (markdown)");
+      assert(
+        readMd.indexOf("Base Header") < readMd.indexOf("Appended Section"),
+        "append_page_content should add the new section after the existing content, not before it",
+      );
+    });
 
     const pageUri = `fusebase://workspaces/${workspaceId}/pages/${pageId}`;
     const pageResourceHtml = resourceText(await client.readResource({ uri: pageUri }), pageUri);
     assertIncludes(pageResourceHtml, "Base Header", "page resource template readback");
 
+    // A folder to move the page into, so each move is a real change of parent.
+    const moveFolderTitle = `E2E Move Target ${Date.now()}`;
+    const moveFolderData = await callTool(client, "create_folder", { workspaceId, title: moveFolderTitle });
+    assertString(moveFolderData?.id, "create_folder.id");
+    const moveFolderId: string = moveFolderData.id;
+    foldersToCleanup.push(moveFolderId);
+    await verifyWrite("create_folder", `folder ${moveFolderId} is listed with name '${moveFolderTitle}'`, async () => {
+      const tree = await callTool(client, "list_folders", { workspaceId });
+      assertArray(tree, "list_folders");
+      const stored = findFolder(tree, moveFolderId);
+      assert(stored !== undefined, `list_folders should include created folder ${moveFolderId}`);
+      assertEqual(stored.name, moveFolderTitle, "list_folders[].name");
+    });
+
+    const idBeforeMoveIn = pageId;
+    const moveInRes = await callTool(client, "move_page", { workspaceId, pageId, folderId: moveFolderId });
+    assertEqual(moveInRes?.success, true, "move_page.success (into folder)");
+    pageId = followMove(moveInRes, pageId);
+    await verifyWrite("move_page", `page ${pageId} is inside folder ${moveFolderId}, not at the root`, async () => {
+      if (pageId !== idBeforeMoveIn) await assertGone(`page ${idBeforeMoveIn} under its old id`, () => callTool(client, "get_page", { workspaceId, pageId: idBeforeMoveIn }));
+      const page = await callTool(client, "get_page", { workspaceId, pageId });
+      assertObject(page, "get_page");
+      assertEqual(page.parentId, moveFolderId, "get_page.parentId after move_page into the folder");
+      const folderPages = await allPages(client, workspaceId, moveFolderId);
+      assert(folderPages.some((p: any) => p.id === pageId), `list_pages (folder ${moveFolderId}) should include moved page ${pageId}`);
+      // The "root" listing covers the whole workspace; top-level pages are in the default (Unsorted) folder.
+      const topLevel = await allPages(client, workspaceId, "default");
+      assert(!topLevel.some((p: any) => p.id === pageId), `list_pages (top level, "default") should no longer include page ${pageId} moved into a folder`);
+    });
+
+    const idBeforeMoveOut = pageId;
     const moveRes = await callTool(client, "move_page", { workspaceId, pageId, folderId: "root" });
     assertEqual(moveRes?.success, true, "move_page.success");
+    pageId = followMove(moveRes, pageId);
+    await verifyWrite("move_page", `page ${pageId} is back at the workspace root, out of folder ${moveFolderId}`, async () => {
+      if (pageId !== idBeforeMoveOut) await assertGone(`page ${idBeforeMoveOut} under its old id`, () => callTool(client, "get_page", { workspaceId, pageId: idBeforeMoveOut }));
+      const page = await callTool(client, "get_page", { workspaceId, pageId });
+      assertObject(page, "get_page");
+      assertEqual(page.parentId, "default", "get_page.parentId after move_page to the top level (the default folder)");
+      const topLevel = await allPages(client, workspaceId, "default");
+      assert(topLevel.some((p: any) => p.id === pageId), `list_pages (top level, "default") should include moved page ${pageId}`);
+      const folderPages = await allPages(client, workspaceId, moveFolderId);
+      assert(!folderPages.some((p: any) => p.id === pageId), `list_pages (folder ${moveFolderId}) should no longer include page ${pageId}`);
+    });
 
     const deletePageRes = await callTool(client, "delete_page", { workspaceId, pageId });
     assertIncludes(deletePageRes, "deleted successfully", "delete_page response");
+    await verifyWrite("delete_page", `page ${pageId} is gone (get_page not found, absent from list_pages)`, async () => {
+      await assertGone(`page ${pageId}`, () => callTool(client, "get_page", { workspaceId, pageId }));
+      const rootPages = await allPages(client, workspaceId);
+      assert(!rootPages.some((p: any) => p.id === pageId), `list_pages (root) should no longer include deleted page ${pageId}`);
+    });
     pagesToCleanup.delete(pageId);
     console.log("✅ Create/append/readback (html, markdown, resource)/move/delete verified");
 
     // ─── 6. Interactive app page ──────────────────────────────────
     console.log("\n── 6. Interactive app page ──");
+    const appPageTitle = "Vibe Code Interactive Widget";
     const appPageData = await callTool(client, "create_interactive_app_page", {
       workspaceId,
-      title: "Vibe Code Interactive Widget",
+      title: appPageTitle,
       appUrl: "https://example.com/interactive-widget",
       description: "### Custom Antigravity Embedded App\nLive widget embedded below:",
     });
     assertString(appPageData?.id, "create_interactive_app_page.id");
     const appPageId: string = appPageData.id;
     pagesToCleanup.add(appPageId);
-
-    const appHtml = await readPageUntil(client, { workspaceId, pageId: appPageId }, ["iframe", "interactive-widget"]);
-    assertIncludes(appHtml, "iframe", "app page content");
-    assertIncludes(appHtml, "interactive-widget", "app page content");
+    await verifyWrite("create_interactive_app_page", `page ${appPageId} has title '${appPageTitle}', the intro text and an iframe of the app URL`, async () => {
+      const page = await callTool(client, "get_page", { workspaceId, pageId: appPageId });
+      assertObject(page, "get_page");
+      assertEqual(page.title, appPageTitle, "get_page.title (app page)");
+      const appHtml = await readPage(client, { workspaceId, pageId: appPageId });
+      assertIncludes(appHtml, "iframe", "app page content");
+      assertIncludes(appHtml, "interactive-widget", "app page content");
+      assertIncludes(appHtml, "example.com/interactive-widget", "app page content (iframe src)");
+      assertIncludes(appHtml, "Custom Antigravity Embedded App", "app page content (intro heading)");
+      assertIncludes(appHtml, "Live widget embedded below:", "app page content (intro text)");
+    });
 
     await callTool(client, "delete_page", { workspaceId, pageId: appPageId });
+    await verifyWrite("delete_page", `app page ${appPageId} is gone (get_page not found, absent from list_pages)`, async () => {
+      await assertGone(`app page ${appPageId}`, () => callTool(client, "get_page", { workspaceId, pageId: appPageId }));
+      const rootPages = await allPages(client, workspaceId);
+      assert(!rootPages.some((p: any) => p.id === appPageId), `list_pages (root) should no longer include deleted app page ${appPageId}`);
+    });
     pagesToCleanup.delete(appPageId);
     console.log("✅ App page iframe embed verified");
 
@@ -370,14 +531,25 @@ async function main() {
     const pieces = await automation("list_automation_pieces", () => callTool(client, "list_automation_pieces"));
     if (pieces !== undefined) listOf(pieces, "list_automation_pieces");
 
+    const flowName = `E2E Test Flow ${Date.now()}`;
     const flow = await automation("create_automation_flow", () =>
-      callTool(client, "create_automation_flow", { displayName: `E2E Test Flow ${Date.now()}` }),
+      callTool(client, "create_automation_flow", { displayName: flowName }),
     );
     if (flow !== undefined) {
       assertString(flow?.id, "create_automation_flow.id");
-      flowsToCleanup.push(flow.id);
-      await callTool(client, "delete_automation_flow", { flowId: flow.id });
-      flowsToCleanup.splice(flowsToCleanup.indexOf(flow.id), 1);
+      const flowId: string = flow.id;
+      flowsToCleanup.push(flowId);
+      await verifyWrite("create_automation_flow", `flow ${flowId} exists with name '${flowName}'`, async () => {
+        const stored = await callTool(client, "get_automation_flow", { flowId });
+        assertObject(stored, "get_automation_flow");
+        assertEqual(stored.id, flowId, "get_automation_flow.id");
+        assertEqual(flowDisplayName(stored), flowName, "get_automation_flow version.displayName");
+      });
+      await callTool(client, "delete_automation_flow", { flowId });
+      await verifyWrite("delete_automation_flow", `flow ${flowId} is gone (get_automation_flow not found)`, async () => {
+        await assertGone(`automation flow ${flowId}`, () => callTool(client, "get_automation_flow", { flowId }));
+      });
+      flowsToCleanup.splice(flowsToCleanup.indexOf(flowId), 1);
     }
 
     const flags = await automation("get_automation_flags", () => callTool(client, "get_automation_flags"));
@@ -392,14 +564,27 @@ async function main() {
     const folders = await automation("list_automation_folders", () => callTool(client, "list_automation_folders"));
     if (folders !== undefined) {
       listOf(folders, "list_automation_folders");
+      const folderName = `E2E Test Automation Folder ${Date.now()}`;
       const folder = await automation("create_automation_folder", () =>
-        callTool(client, "create_automation_folder", { displayName: `E2E Test Automation Folder ${Date.now()}` }),
+        callTool(client, "create_automation_folder", { displayName: folderName }),
       );
       if (folder !== undefined) {
         assertString(folder?.id, "create_automation_folder.id");
-        automationFoldersToCleanup.push(folder.id);
-        await callTool(client, "delete_automation_folder", { folderId: folder.id });
-        automationFoldersToCleanup.splice(automationFoldersToCleanup.indexOf(folder.id), 1);
+        const folderId: string = folder.id;
+        automationFoldersToCleanup.push(folderId);
+        // There is no get_automation_folder; list_automation_folders is the read.
+        await verifyWrite("create_automation_folder", `automation folder ${folderId} is listed with name '${folderName}'`, async () => {
+          const listed = listOf(await callTool(client, "list_automation_folders"), "list_automation_folders");
+          const stored = listed.find((f: any) => f?.id === folderId);
+          assert(stored !== undefined, `list_automation_folders should include created folder ${folderId}`);
+          assertEqual(stored.displayName, folderName, "list_automation_folders[].displayName");
+        });
+        await callTool(client, "delete_automation_folder", { folderId });
+        await verifyWrite("delete_automation_folder", `automation folder ${folderId} is no longer listed`, async () => {
+          const listed = listOf(await callTool(client, "list_automation_folders"), "list_automation_folders");
+          assert(!listed.some((f: any) => f?.id === folderId), `list_automation_folders should no longer include deleted folder ${folderId}`);
+        });
+        automationFoldersToCleanup.splice(automationFoldersToCleanup.indexOf(folderId), 1);
       }
     }
 
@@ -438,13 +623,64 @@ async function main() {
 
     // ─── 10. Multi-agent swarm ────────────────────────────────────
     console.log("\n── 10. Multi-agent swarm ──");
+    const swarmTitle = `E2E Test Swarm Sprint ${Date.now()}`;
+    const swarmDescription = "Automated test swarm state machine for E2E verification";
     const swarmData = await callTool(client, "fusebase_swarm_init", {
-      title: `E2E Test Swarm Sprint ${Date.now()}`,
-      description: "Automated test swarm state machine for E2E verification",
+      title: swarmTitle,
+      description: swarmDescription,
     });
     assertEqual(swarmData?.success, true, "fusebase_swarm_init.success");
     assertString(swarmData?.databaseId, "fusebase_swarm_init.databaseId");
     databasesToCleanup.push(swarmData.databaseId);
+    assertString(swarmData?.dashboardId, "fusebase_swarm_init.dashboardId");
+    assertString(swarmData?.viewId, "fusebase_swarm_init.viewId");
+    assertString(swarmData?.statusColumnKey, "fusebase_swarm_init.statusColumnKey");
+    assertString(swarmData?.roleColumnKey, "fusebase_swarm_init.roleColumnKey");
+    assertString(swarmData?.auditColumnKey, "fusebase_swarm_init.auditColumnKey");
+    const swarm: {
+      databaseId: string;
+      dashboardId: string;
+      viewId: string;
+      statusColumnKey: string;
+      roleColumnKey: string;
+      auditColumnKey: string;
+    } = swarmData;
+    await verifyWrite(
+      "fusebase_swarm_init",
+      `swarm database ${swarm.databaseId} has its title, description, Status/Role label columns, an Audit Log column and a kanban grouped by Status`,
+      async () => {
+        const detail = await callTool(client, "get_database_detail", { databaseId: swarm.databaseId });
+        assertObject(detail?.data, "get_database_detail.data");
+        assertEqual(detail.data.global_id, swarm.databaseId, "get_database_detail.data.global_id");
+        assertEqual(detail.data.title, swarmTitle, "get_database_detail.data.title");
+        assertEqual(detail.data.metadata?.description, swarmDescription, "get_database_detail.data.metadata.description");
+        assertArray(detail.data.dashboards, "get_database_detail.data.dashboards", 1);
+        const dashboard = detail.data.dashboards.find((d: any) => d?.global_id === swarm.dashboardId);
+        assert(dashboard !== undefined, `get_database_detail should list swarm dashboard ${swarm.dashboardId}`);
+
+        const schema = await callTool(client, "get_database_schema", { dashboardId: swarm.dashboardId, viewId: swarm.viewId });
+        assertArray(schema, "get_database_schema", 3);
+        const expectLabelColumn = (key: string, name: string, labels: string[]) => {
+          const col = schema.find((c: any) => c?.key === key);
+          assert(col !== undefined, `get_database_schema should contain the ${name} column (${key})`);
+          assertEqual(col.name, name, `${name} column name`);
+          assertEqual(col.type, "label", `${name} column type`);
+          assertArray(col.labels, `${name} column labels`);
+          assertEqual(JSON.stringify(col.labels.map((l: any) => l.name)), JSON.stringify(labels), `${name} column label names`);
+        };
+        expectLabelColumn(swarm.statusColumnKey, "Status", ["Backlog", "In Progress", "Review", "Done"]);
+        expectLabelColumn(swarm.roleColumnKey, "Role", ["agent-pm", "agent-architect", "agent-dev", "agent-qa", "agent-review", "agent-devops"]);
+        const auditCol = schema.find((c: any) => c?.key === swarm.auditColumnKey);
+        assert(auditCol !== undefined, `get_database_schema should contain the Audit Log column (${swarm.auditColumnKey})`);
+        assertEqual(auditCol.name, "Audit Log", "Audit Log column name");
+
+        const reps = await readViewRepresentations(client, swarm.dashboardId, swarm.viewId);
+        const kanban = reps.find((r) => r.global_id === "kanban");
+        assert(kanban !== undefined, `swarm view should have a kanban representation, got: ${JSON.stringify(reps).slice(0, 300)}`);
+        assertEqual(kanban.is_default, true, "swarm view kanban representation is the default");
+        assertEqual(kanban.settings?.groupByField, swarm.statusColumnKey, "swarm kanban groupByField (Status column)");
+      },
+    );
     console.log(`✅ Swarm initialized (DB ${swarmData.databaseId})`);
 
     // ─── 11. AI assistant & agents ────────────────────────────────
@@ -482,8 +718,33 @@ async function main() {
     listOf(await callTool(client, "get_workspace_members_v1", { workspaceId }), "get_workspace_members_v1");
     listOf(await callTool(client, "get_tasks_workspace_summary"), "get_tasks_workspace_summary");
     assertObject(await callTool(client, "get_billing_info"), "get_billing_info");
-    assertObject(await callTool(client, "get_user_preferences"), "get_user_preferences");
-    assertObject(await callTool(client, "set_sidebar_collapsed", { collapsed: false }), "set_sidebar_collapsed");
+    // Sidebar state: flip it, prove the flip, then restore the original and prove that too, so
+    // each write is a real change rather than re-writing the value already stored.
+    const readSidebarCollapsed = async (): Promise<boolean> => {
+      const prefs = await callTool(client, "get_user_preferences");
+      assertObject(prefs, "get_user_preferences");
+      const sidebar = findUserVar(prefs, "sidebarCollapsed");
+      assert(sidebar !== undefined, `get_user_preferences should expose the sidebarCollapsed user var, got: ${JSON.stringify(prefs).slice(0, 300)}`);
+      return collapsedValue(sidebar.value);
+    };
+    const sidebarWasCollapsed = await readSidebarCollapsed();
+    let sidebarRestored = false;
+    try {
+      for (const collapsed of [!sidebarWasCollapsed, sidebarWasCollapsed]) {
+        assertObject(await callTool(client, "set_sidebar_collapsed", { collapsed }), "set_sidebar_collapsed");
+        const what = collapsed === sidebarWasCollapsed ? "restored to its original value" : "changed";
+        await verifyWrite("set_sidebar_collapsed", `user var sidebarCollapsed ${what}: reads back as ${collapsed ? "collapsed ('1')" : "expanded ('0')"}`, async () => {
+          assertEqual(await readSidebarCollapsed(), collapsed, "sidebarCollapsed read back after set_sidebar_collapsed");
+        });
+      }
+      sidebarRestored = true;
+    } finally {
+      // This is the account owner's real UI setting: put it back even if a check above failed.
+      if (!sidebarRestored) {
+        await duringCleanup(() => callTool(client, "set_sidebar_collapsed", { collapsed: sidebarWasCollapsed })).catch((err) =>
+          console.error(`⚠️ Could not restore sidebarCollapsed: ${err instanceof Error ? err.message : err}`));
+      }
+    }
     assertObject(await callTool(client, "get_workspace_premium_status", { workspaceId }), "get_workspace_premium_status");
     const importStatus = await callTool(client, "get_active_import_status", { workspaceId });
     assert(importStatus !== undefined, "get_active_import_status should return a payload");
@@ -502,20 +763,41 @@ async function main() {
     } else {
       const taskListId = taskLists[0].globalId ?? taskLists[0].id;
       assertString(taskListId, "task list id");
+      const taskTitle = `E2E Time Tracking Task ${Date.now()}`;
       const task = await callTool(client, "create_task", {
         workspaceId,
         taskListId,
-        title: `E2E Time Tracking Task ${Date.now()}`,
+        title: taskTitle,
       });
       assertObject(task, "create_task");
       const taskId = task.globalId ?? task.id ?? task.taskId;
       assertString(taskId, "create_task id");
       taskToCleanup = taskId;
+      await verifyWrite(
+        "create_task",
+        `task ${taskId} exists in task list ${taskListId} with title '${taskTitle}'`,
+        async () => {
+          const stored = (await allTasks(client, workspaceId)).find((t: any) => isTask(t, taskId));
+          assert(stored !== undefined, `search_tasks should find created task ${taskId}`);
+          assertEqual(stored.title, taskTitle, "search_tasks[].title");
+          assertEqual(stored.taskListId, taskListId, "search_tasks[].taskListId");
+        },
+        { timeoutMs: 30_000 },
+      );
 
       const timeData = await callTool(client, "get_task_time_tracking", { workspaceId, taskId });
       assertObject(timeData, "get_task_time_tracking");
 
       await callTool(client, "delete_task", { workspaceId, taskId });
+      await verifyWrite(
+        "delete_task",
+        `task ${taskId} no longer appears in search_tasks`,
+        async () => {
+          const tasks = await allTasks(client, workspaceId);
+          assert(!tasks.some((t: any) => isTask(t, taskId)), `search_tasks should no longer find deleted task ${taskId}`);
+        },
+        { timeoutMs: 30_000 },
+      );
       taskToCleanup = undefined;
       console.log("✅ get_task_time_tracking verified on a freshly created task");
     }
@@ -523,13 +805,15 @@ async function main() {
     console.log("\n── Cleanup ──");
     const cleanup = async (what: string, tool: string, args: Record<string, unknown>) => {
       try {
-        await callTool(client, tool, args);
+        await duringCleanup(() => callTool(client, tool, args));
         console.log(`Cleaned up ${what}`);
       } catch (err) {
         console.error(`⚠️ Failed to clean up ${what}:`, err instanceof Error ? err.message : err);
       }
     };
     for (const id of pagesToCleanup) await cleanup(`page ${id}`, "delete_page", { workspaceId, pageId: id });
+    // There is no delete_folder tool; delete_page removes a folder by its id (after the pages above).
+    for (const id of foldersToCleanup) await cleanup(`folder ${id}`, "delete_page", { workspaceId, pageId: id });
     if (taskToCleanup) await cleanup(`task ${taskToCleanup}`, "delete_task", { workspaceId, taskId: taskToCleanup });
     for (const id of flowsToCleanup) await cleanup(`automation flow ${id}`, "delete_automation_flow", { flowId: id });
     for (const id of automationFoldersToCleanup) await cleanup(`automation folder ${id}`, "delete_automation_folder", { folderId: id });

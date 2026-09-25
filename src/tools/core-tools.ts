@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { FusebaseClient } from "../client.js";
-import type { FusebaseMember, FusebaseOrgMember } from "../types.js";
+import type { FusebaseFolder, FusebaseMember, FusebaseOrgMember } from "../types.js";
 import { assertValidProfile, loadEncryptedCookie, loadEncryptedToken, listConfiguredProfiles } from "../crypto.js";
 import { markdownToSchema } from "../markdown-parser.js";
 import type { ContentBlock } from "../content-schema.js";
@@ -539,7 +539,7 @@ export function registerCoreTools(
 
   server.tool(
     "move_page",
-    "Move a page to a different folder within the workspace, move it back to workspace root, or migrate it to an entirely different workspace. Specify targetWorkspaceId to migrate across workspaces, and/or folderId (or parentId) to move between folders.",
+    "Move a page to a different folder within the workspace, move it back to workspace root, or migrate it to an entirely different workspace. Specify targetWorkspaceId to migrate across workspaces, and/or folderId (or parentId) to move between folders. Use folderId 'root' (or omit it) for the top level. FuseBase may give the moved page a NEW id: always use the returned pageId afterwards (idChanged tells you).",
     {
       workspaceId: z.string().describe("Current workspace ID containing the page"),
       pageId: z.string().describe("Page (note) ID to move"),
@@ -560,7 +560,7 @@ export function registerCoreTools(
       const client = getClient(profile);
       try {
         const effectiveFolder = folderId || parentId;
-        const res = await client.movePage(workspaceId, pageId, {
+        const moved = await client.movePageAndResolve(workspaceId, pageId, {
           targetWorkspaceId,
           folderId: effectiveFolder,
         });
@@ -571,11 +571,15 @@ export function registerCoreTools(
               text: JSON.stringify(
                 {
                   success: true,
-                  message: `Page ${pageId} moved successfully.`,
-                  pageId,
+                  message: moved.idChanged
+                    ? `Page moved. FuseBase gave it a new id: use ${moved.pageId} from now on (${pageId} no longer exists).`
+                    : `Page ${pageId} moved successfully.`,
+                  pageId: moved.pageId,
+                  previousPageId: moved.previousPageId,
+                  idChanged: moved.idChanged,
                   destinationWorkspaceId: targetWorkspaceId || workspaceId,
                   destinationFolderId: effectiveFolder || "root",
-                  operationId: res.id,
+                  operationId: moved.operationId,
                 },
                 null,
                 2,
@@ -601,18 +605,22 @@ export function registerCoreTools(
       const client = getClient(profile);
       try {
         const folders = await client.listFolders(workspaceId);
+        // Keep the whole tree: subfolders were dropped before, so nested folders were invisible.
+        type FolderNode = { id: string; name: string; parentId: string; hasChildren: boolean; icon: string; children: FolderNode[] };
+        const toNode = (f: FusebaseFolder, depth = 0): FolderNode => ({
+          id: f.id.replace("notesFolder#", ""),
+          name: f.name,
+          parentId: f.parentId?.replace("notesFolder#", "") ?? "",
+          hasChildren: f.hasChildren,
+          icon: f.icon,
+          children: depth < 50 ? (f.children ?? []).map((c) => toNode(c, depth + 1)) : [],
+        });
         return {
           content: [
             {
               type: "text" as const,
               text: JSON.stringify(
-                folders.map((f) => ({
-                  id: f.id.replace("notesFolder#", ""),
-                  name: f.name,
-                  parentId: f.parentId,
-                  hasChildren: f.hasChildren,
-                  icon: f.icon,
-                })),
+                folders.map((f) => toNode(f)),
                 null,
                 2,
               ),
@@ -1184,9 +1192,10 @@ export function registerCoreTools(
 
   server.tool(
     "search_tasks",
-    "Search tasks in a workspace with full task details, assignees, labels, and board info. Optionally filter by page to see only tasks linked to a specific note. Supports pagination with offset and limit.",
+    "Search tasks in a workspace with full task details, assignees, labels, and board info. Optionally filter by page to see only tasks linked to a specific note, and by text in the task title (query). Supports pagination with offset and limit.",
     {
       workspaceId: z.string().describe("Workspace ID"),
+      query: z.string().optional().describe("Only tasks whose title contains this text (case-insensitive)"),
       pageId: z
         .string()
         .optional()
@@ -1194,11 +1203,12 @@ export function registerCoreTools(
       limit: z.number().optional().describe("Max results (default: 50)"),
       offset: z.number().optional().describe("Pagination offset (default: 0)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, pageId, limit, offset, profile }) => {
+    }, async ({ workspaceId, pageId, query, limit, offset, profile }) => {
       const client = getClient(profile);
       try {
         const result = await client.searchTasks(workspaceId, {
           noteId: pageId,
+          query,
           limit,
           offset,
         });

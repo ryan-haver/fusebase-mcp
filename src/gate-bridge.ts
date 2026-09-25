@@ -57,12 +57,37 @@ function describeRpc(payload: Record<string, unknown>): string {
 }
 
 function describeUpstreamError(err: unknown): string {
-  if (typeof err === "string") return err;
+  if (typeof err === "string") return redactUpstreamDetail(err);
   if (err && typeof err === "object") {
     const { code, message } = err as { code?: unknown; message?: unknown };
-    if (typeof message === "string") return code !== undefined ? `${String(code)}: ${message}` : message;
+    if (typeof message === "string") return redactUpstreamDetail(code !== undefined ? `${String(code)}: ${message}` : message);
   }
-  return JSON.stringify(err);
+  return redactUpstreamDetail(JSON.stringify(err));
+}
+
+const SECRET_HEADER = /("?(?:x-secret|authorization|cookie|set-cookie|x-api-key|api[-_]?key|token|password)"?\s*[:=]\s*)("[^"]*"|[^\s,}]+)/gi;
+const MAX_UPSTREAM_DETAIL = 500;
+
+/**
+ * Upstream error text as safe to show and log (SEC-11). FuseBase has returned whole internal
+ * request objects in error messages (axios config with internal auth headers and a service
+ * secret, stack traces). Keep an embedded JSON error's message/name/code/status, redact
+ * secret-looking values, and cap the length.
+ */
+export function redactUpstreamDetail(text: string): string {
+  let out = text;
+  const start = out.indexOf("{");
+  if (start >= 0) {
+    try {
+      const obj = JSON.parse(out.slice(start)) as Record<string, unknown>;
+      const keep = ["message", "name", "code", "status"].filter((k) => obj[k] !== undefined && typeof obj[k] !== "object");
+      if (keep.length > 0) out = out.slice(0, start) + JSON.stringify(Object.fromEntries(keep.map((k) => [k, obj[k]])));
+    } catch {
+      // not a single JSON object: fall through to redaction
+    }
+  }
+  out = out.replace(SECRET_HEADER, "$1\"[redacted]\"");
+  return out.length > MAX_UPSTREAM_DETAIL ? out.slice(0, MAX_UPSTREAM_DETAIL) + "…" : out;
 }
 
 /** Split an SSE stream into events and return each event's `data` payload parsed as JSON. */
@@ -218,7 +243,7 @@ export class FusebaseGateBridge {
     }
 
     if (!res.ok && !json.result && !json.error) {
-      throw new Error(`HTTP ${res.status} from ${url}: ${text.slice(0, 300)}`);
+      throw new Error(`HTTP ${res.status} from ${url}: ${redactUpstreamDetail(text.slice(0, 2000))}`);
     }
 
     return { data: json, sessionId: sessionId || undefined };
@@ -234,7 +259,7 @@ export class FusebaseGateBridge {
         method: "initialize",
         params: {
           protocolVersion: "2024-11-05",
-          clientInfo: { name: "fusebase-mcp-bridge", version: "1.0.0" },
+          clientInfo: { name: "fusebase-mcp-bridge", version: "2.0.0" },
           capabilities: {},
         },
       },
@@ -481,14 +506,14 @@ export class FusebaseGateBridge {
 
     if (isError) {
       const errMsg = contentText || res.data.error?.message || JSON.stringify(res.data);
-      throw new Error(`Upstream FuseBase [${opId}] error: ${errMsg}`);
+      throw new Error(`Upstream FuseBase [${opId}] error: ${redactUpstreamDetail(String(errMsg))}`);
     }
 
     if (contentText) {
       try {
         const parsed = JSON.parse(contentText);
         if (parsed && typeof parsed === "object" && parsed.ok === false && parsed.error) {
-          throw new Error(`Upstream FuseBase [${opId}] failed: ${parsed.error.message || JSON.stringify(parsed.error)}`);
+          throw new Error(`Upstream FuseBase [${opId}] failed: ${redactUpstreamDetail(String(parsed.error.message || JSON.stringify(parsed.error)))}`);
         }
         return parsed;
       } catch (err: any) {
