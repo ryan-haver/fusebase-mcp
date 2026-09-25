@@ -442,14 +442,15 @@ describe("performance", () => {
   // slow machine: they compare how time scales with input size, which holds on any runner.
   const PERF_TIMEOUT = 60_000;
 
-  /** Median time of 3 calls, in ms. */
-  const medianMs = (fn: () => unknown): number => {
-    const times = [0, 1, 2].map(() => {
+  /** Fastest of 5 calls, in ms: noise from a busy machine only ever adds time, so the minimum is the stable measure. */
+  const fastestMs = (fn: () => unknown): number => {
+    let best = Infinity;
+    for (let i = 0; i < 5; i++) {
       const t0 = performance.now();
       fn();
-      return performance.now() - t0;
-    });
-    return times.sort((a, b) => a - b)[1];
+      best = Math.min(best, performance.now() - t0);
+    }
+    return best;
   };
 
   /**
@@ -460,8 +461,8 @@ describe("performance", () => {
     const small = make(size / 4);
     const large = make(size);
     parse(small); // warm up the JIT so the ratio measures the parser, not compilation
-    const smallMs = medianMs(() => parse(small));
-    const largeMs = medianMs(() => parse(large));
+    const smallMs = fastestMs(() => parse(small));
+    const largeMs = fastestMs(() => parse(large));
     expect(largeMs, `${size / 4} chars: ${smallMs.toFixed(0)} ms, ${size} chars: ${largeMs.toFixed(0)} ms`)
       .toBeLessThan(Math.max(smallMs * 8, 50));
   };

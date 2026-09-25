@@ -32,14 +32,16 @@ async function freePort(): Promise<number> {
   });
 }
 
-async function waitForHealth(port: number, host = "127.0.0.1"): Promise<void> {
-  for (let i = 0; i < 50; i++) {
+/** Wait for the server to answer; a busy machine can take several seconds to start it. */
+async function waitForHealth(port: number, host = "127.0.0.1", timeoutMs = 15_000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
     try {
       if ((await fetch(`http://${host}:${port}/health`)).ok) return;
     } catch { /* not up yet */ }
     await new Promise((r) => setTimeout(r, 100));
   }
-  throw new Error("HTTP server did not start");
+  throw new Error(`HTTP server did not start within ${timeoutMs} ms`);
 }
 
 const children: ChildProcess[] = [];
