@@ -258,18 +258,68 @@ This is done together with the refactor. Adding annotations and output limits on
 
 ---
 
+### Phase 5 additions: MCP best-practice gap analysis (2026-09-25)
+
+The MCP specification's current revision is **2026-07-28**, which makes the protocol stateless: no `initialize`, no session id, and `tools/list` must not change per connection or as a side effect of other requests. That affects two designs here: the per-session tool tier (`set_tool_tier`, MCP-3) and the per-session active profile (COR-13). SDK: 1.26.0 is installed; the latest 1.x is 1.30.1 (security fixes: request body limits, SSE keep-alives, a dependency advisory); v2 (split packages, 2026 spec) is current, and 1.x gets fixes until about January 2027.
+
+| ID | Finding | Priority | Fix |
+|---|---|---|---|
+| P5-1 | SDK 1.26 with range `^1.0.0`; `zod` undeclared | P0 | Bump to `^1.30.1`; declare `zod ^4.2`. Write the refactor against APIs present in both 1.x and v2 (`registerTool`, `enable()/disable()`), then migrate to v2 as its own step (P5-12) |
+| P5-2 | `fusebase_direct_tool_call` runs any Gate/Dashboards operation, bypassing every other safeguard | P0 | `destructiveHint`, and an allow-list or separate read/write variants |
+| P5-3 | HTTP sessions are never evicted: after 50 abandoned sessions every new client gets 503; no rate limit on tool calls (the spec requires one) | P0 | Idle TTL and maximum session age; per-principal rate limit |
+| P5-4 | Over HTTP, callers can pick any stored profile, spawn CLI processes, start a browser login, and write host paths | P0 | A "remote mode": disable the CLI/local toolsets and saving to disk; bind the profile to the authenticated principal |
+| P5-5 | `fusebase_token_create` and `fusebase_cli_secret_create` return secrets into model context | P0 | Mark with `audience: ["user"]`, return once, redact from logs |
+| P5-6 | `tools/list` for all tools is 121k characters (the `profile` parameter alone is 11%); 48 tools have no required parameter (alias pattern); unbounded numbers; 18 `unknown`/`any` inputs | P1 | Canonical required ids with aliases via `z.preprocess`; `.int().min().max()`; strict objects; enums; a real schema for `blocks`. Budget: ≤ 60k characters for all tools |
+| P5-7 | No `outputSchema`/`structuredContent`; outputs are pretty-printed JSON | P1 | Structured output for ~20 high-traffic tools (compact JSON also in the text block) |
+| P5-8 | Output caps must truncate data, not strings (MCP-2 detail); `list_pages` has no `hasMore`; `get_page_content` defaults to HTML; `export_csv` and attachments uncapped | P1 | `capList()` with `truncated` and `nextCursor`; markdown default with `maxLength`/`offset`; resources or resource links for blobs |
+| P5-9 | No cancellation or progress | P1 | Pass the request's abort signal through the client, writer and CLI; progress notifications for long operations |
+| P5-10 | Resources and prompts use the removed `server.resource()`/`server.prompt()`; no completions; page resource served as HTML | P1 | `registerResource`/`registerPrompt`, completions for ids, markdown |
+| P5-11 | Tool outputs carrying page content, comments or activity aren't marked untrusted; errors thrown before a handler's `try` are unredacted; `instructions` hard-code counts | P1 | Delimit untrusted content; one error mapper in `defineTool`; generate `instructions` from the registry |
+| P5-12 | Adopt SDK v2 and the 2026-07-28 spec | P2 | `createMcpHandler` (stateless; 2025 clients still served), `serveStdio`; drop `/sse` (deprecated in the spec); toolsets from configuration or auth scopes instead of `set_tool_tier`; profile from the principal |
+| P5-13 | Remote/public hosting needs real auth | P2 | OAuth 2.1 resource server (external authorization server, protected-resource metadata, audience check, scopes from each tool's access level) for multi-user; a long static bearer token is acceptable for a private single-user deployment |
+| MCP-15 | `fusebase_cli_secret_list` calls `fusebase secret list`, which doesn't exist (CLI 0.29 has only `create`/`delete`) | P1 | Read the app's declared secrets from `fusebase.json`, or remove the tool |
+
+**Design for MNT-1 (`defineTool`):** each tool declares `name`, `title`, `description`, `toolset`, `access` (`read` / `write` / `destructive`), `idempotent`, `local`, an `input` zod object and optional `output` schema, and `run(args, ctx)`. The wrapper derives the annotations from `access` (so they can't drift), adds `profile` unless the tool is local, resolves the client inside one `try`, builds `ctx.signal` and `ctx.progress`, returns compact JSON plus `structuredContent`, caps outputs at the data level, and maps errors (config/auth with a fix hint, redacted upstream, validation, cancelled). Tools live in a static array per domain (`src/tools/<domain>.ts`); the audit and unit tests iterate the same array. Tier switching on 1.x: register everything, `disable()` what's off, and use `debouncedNotificationMethods` for a single `list_changed`.
+
+---
+
+## Phase 7: Hosting the MCP server in a FuseBase app (investigation, 2026-09-25)
+
+**Verdict: feasible, with conditions.** A FuseBase app is a static SPA unless it has a `backend/` (a Node container, port 3000, on Azure Container Apps). A backend can have up to 3 sidecars (pre-built Docker images, reachable on `localhost`), secrets injected as environment variables, and WebSockets. Sources: the app's own skills (`apps/client-portal-dashboard/.claude/skills/app-backend`, `app-sidecar`, `app-secrets`, `fusebase-gate/references/fusebase-auth.md`) and `fusebase --help`.
+
+Constraints that shape the design:
+- Only `/api/*` reaches the backend, and it sits behind the platform's login wall, **except** `/api/webhooks/*`, which the proxy doesn't authenticate. An MCP client can therefore only reach `https://<app>/api/webhooks/<unguessable>`, and the server must enforce its own bearer token.
+- The backend is **stateless** (ephemeral disk): token mode only (no saved cookie, no `data/*.enc`, no browser login), so cookie-only features (live page editing, automations) don't work.
+- Up to **3 replicas** with no `maxReplicas`: in-memory sessions break without sticky routing, so the server needs a stateless HTTP mode (P5-12).
+- A **30 s** proxy ceiling (CloudFront) on requests; long silent calls may be cut.
+- Cold starts of about 10 s unless `minReplicas: 1`; backend apps are billed higher; every app deploy restarts the backend.
+- The backend's own deploy address is publicly reachable without platform auth, so the bearer token is the real control.
+- The app's own identity (`FBS_FEATURE_TOKEN`, sent as `x-app-feature-token`) is not a drop-in for our Gate/Dashboards MCP tokens; keep those as app secrets.
+
+| Option | How | Notes |
+|---|---|---|
+| **1. Backend + sidecar (recommended to try first)** | Publish our Docker image to a public registry (GHCR); run it as a sidecar on `127.0.0.1:3001`; a small Hono backend forwards `/api/webhooks/mcp-<random>` to `/mcp`, streaming, passing `Authorization`, `mcp-session-id`, `mcp-protocol-version`, `accept`, `content-type`, `last-event-id` | No server code changes; secrets whitelisted to the sidecar |
+| 2. The MCP server as the backend | Vendor `dist` into `backend/`; add a configurable base path (`/mcp` and `/health` are fixed today) | One container; directly reachable on the deploy address, so it relies on the token alone |
+| 3. Host elsewhere | Our own container host or a tunnel, with the existing image | Persistent `data/` (cookie mode works); no replica or 30 s limits |
+
+**Recommendation:** a separate app in the same FuseBase product (for example subdomain `fusebase-mcp-api`) rather than adding a backend to the status dashboard, so dashboard deploys don't restart the MCP server and the risks stay separate.
+
+**Live experiments needed before committing:** whether the proxy passes `Authorization`/`mcp-session-id` and streams `text/event-stream` unbuffered on `/api/webhooks/*`; what the 30 s limit cuts; replica stickiness; the `Host` header the backend sees; pulling a sidecar image from GHCR and confirming a `127.0.0.1` sidecar isn't reachable from outside; the backend deploy address; the cost of a backend app with and without `minReplicas: 1`.
+
+---
+
 ## Phase 6: Docs, packaging and honesty (M)
 
 | ID | Finding | Status | Fix |
 |---|---|---|---|
 | DOC-1 | README and badges claim "100% verified" and give inconsistent counts (165/168/175 tools, 206/212 assertions) | ✅ | Generate counts and pass rates from test output (`scripts/generate-status-data.ts`); remove the hand-maintained badges; make the status resource show real data |
 | DOC-2 | `GATE_MCP_TOKEN` vs `FUSEBASE_GATE_TOKEN` naming | ✅ | Use `FUSEBASE_*` names everywhere; accept the old names and warn that they're deprecated; one `config.ts` loader, validated with zod |
-| DOC-3 | The plugin manifests say author "FuseBase" with homepage thefusebase.com, which reads as official; they say "MIT" but the repo has no LICENSE | ✅ | Set yourself as author and the GitHub repo as homepage, add "unofficial" to the description, add a `LICENSE` file (see D6) |
-| DOC-4 | `package.json`: no `engines` or `license`; `zod` not declared; `@modelcontextprotocol/sdk` range `^1.0.0` too loose; `postinstall` downloads Chromium for every user; `turndown` unused (until CON-8) | ✅ | Fix each; make the Playwright install opt-in (`npm run setup:browser`) |
+| DOC-3 | The plugin manifests say author "FuseBase" with homepage thefusebase.com, which reads as official; they say "MIT" but the repo has no LICENSE | ✅ fixed (manifests: maintainer, repo homepage, "unofficial"; MIT LICENSE added) | Set yourself as author and the GitHub repo as homepage, add "unofficial" to the description, add a `LICENSE` file (see D6) |
+| DOC-4 | `package.json`: no `engines` or `license`; `zod` not declared; `@modelcontextprotocol/sdk` range `^1.0.0` too loose; `postinstall` downloads Chromium for every user; `turndown` unused (until CON-8) | ✅ partly fixed (`license`, `engines`, Playwright opt-in via `setup:browser`; `zod`/SDK range still open, see P5-1) | Fix each; make the Playwright install opt-in (`npm run setup:browser`) |
 | DOC-5 | Docker: Playwright can't refresh cookies on alpine; host-encrypted credentials don't decrypt in the container | ✅ | Document Docker as token-mode only; use `FUSEBASE_SECRET_KEY` (SEC-10) |
 | DOC-6 | Version hardcoded in 3 places | ✅ | Read it from `package.json` |
 | DOC-7 | `loadDotEnv` doesn't handle quoted values and also loads `apps/client-portal-dashboard/.env` | ✅ | Use Node's built-in `process.loadEnvFile` (Node ≥ 20.12) and drop the apps coupling |
-| DOC-8 | Dev tooling (vitest 5) needs Node ≥ 22.12, the Docker image uses `node:20`, and `package.json` has no `engines` field | ✅ partly fixed (image now `node:22-alpine`, verified live: all six suites pass against the container with secrets from 1Password; `engines` still open) | Declare `engines` (runtime ≥ 20.12); document Node 22+ for development; consider moving the image to `node:22-alpine` |
+| DOC-8 | Dev tooling (vitest 5) needs Node ≥ 22.12, the Docker image uses `node:20`, and `package.json` has no `engines` field | ✅ fixed (image `node:22-alpine`, verified live; `engines: node >= 22.12`) | Declare `engines` (runtime ≥ 20.12); document Node 22+ for development; consider moving the image to `node:22-alpine` |
 
 ---
 
