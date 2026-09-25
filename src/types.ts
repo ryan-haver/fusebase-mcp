@@ -417,6 +417,8 @@ export interface DatabaseAliasResolution {
   title?: string;
   views?: Array<{ id: string; name: string; type?: string; isDefault?: boolean }>;
   childTables?: Array<{ dashboardId: string; name: string; alias: string }>;
+  /** Set when the database list couldn't be read, so `found: false` means "unknown", not "absent". */
+  lookupError?: string;
 }
 
 // === Gate Isolated SQL Store Types ===

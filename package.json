@@ -55,6 +55,7 @@
     "postinstall": "node scripts/postinstall.mjs",
     "hooks:install": "git config core.hooksPath .githooks",
     "test:sweep": "tsx tests/live/sweep-sandbox.ts",
+    "coverage:tokens": "tsx scripts/token-coverage-report.ts",
     "guides:fetch": "tsx scripts/scrape-guides.ts",
     "setup:browser": "playwright install chromium"
   },

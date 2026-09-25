@@ -108,3 +108,20 @@ describe("former raw-fetch calls use the shared request path (COR-4)", () => {
     await expect(newClient().downloadAttachment("ws", "att", "big.bin")).rejects.toThrow(/saveToDisk/);
   });
 });
+
+// Found by the token-only coverage run: every part failing came back as all-null "preferences".
+describe("multi-part reads don't hide failures (getUserPreferences, getBillingInfo)", () => {
+  it("throws when every part fails", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => json({ error: "Unauthorized" }, 401)));
+    await expect(newClient({ autoRefresh: false }).getUserPreferences()).rejects.toThrow(/401/);
+    await expect(newClient({ autoRefresh: false }).getBillingInfo()).rejects.toThrow(/401/);
+  });
+
+  it("returns the parts that worked and names the ones that didn't", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => (String(url).includes("/notification/options") ? json({ email: true }) : json({ error: "Unauthorized" }, 401))));
+    const prefs = await newClient({ autoRefresh: false }).getUserPreferences();
+    expect(prefs.notificationOptions).toEqual({ email: true });
+    expect(prefs.webEditorVars).toBeNull();
+    expect(Object.keys(prefs.unavailable ?? {}).sort()).toEqual(["lastOpenedWorkspaces", "webEditorVars"]);
+  });
+});

@@ -5,7 +5,7 @@
 [![Production Tools](https://img.shields.io/badge/Production%20Tools-175%20Verified-6366f1?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 [![Automated Assertions](https://img.shields.io/badge/Automated%20Assertions-212%20Passing-10b981?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 [![Docker Ready](https://img.shields.io/badge/Docker-Stdio%20%26%20SSE-2496ed?style=for-the-badge&logo=docker&logoColor=white)](https://github.com/ryan-haver/fusebase-mcp)
-[![Feature Parity](https://img.shields.io/badge/Token%20vs%20Cookie%20Parity-100%25%20Verified-8b5cf6?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
+[![Token-only coverage](https://img.shields.io/badge/Token--only%20tools-14%20of%20129%20measured-8b5cf6?style=for-the-badge)](docs/TOKEN-COVERAGE.md)
 [![Deep Data Validation](https://img.shields.io/badge/Deep%20Data%20Validation-100%25%20Verified-0ea5e9?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
 
 An enterprise-grade [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server enabling autonomous AI coding agents and developers to programmatically manage [FuseBase](https://www.fusebase.com/) (formerly Nimbus Note) workspaces - collaborative Y.js documents, relational tables, ActivePieces automations, client portals, hosted web apps, and multi-agent swarm boards with 100% deep data validation.
@@ -178,7 +178,9 @@ Supply both tokens (`FUSEBASE_GATE_TOKEN`, `FUSEBASE_DASHBOARDS_TOKEN`) and a se
 
 ### 3. Authentication Modes Feature Parity & Empirical Comparison
 
-The table below reflects **100% empirical validation results** obtained by running `npm run test:parity` (`tests/live/token-parity.ts`) against live FuseBase production infrastructure:
+Most tools need a session cookie today: with only Gate and Dashboards tokens, **14 of the 129 tools measured work** (2026-09-25). The per-tool results, and which gaps have an official route, are in [docs/TOKEN-COVERAGE.md](docs/TOKEN-COVERAGE.md).
+
+The table below compares the core capabilities in both modes, measured by `npm run test:parity` (`tests/live/token-parity.ts`) against live FuseBase:
 
 | Domain | Feature | Pure Token Mode | Cookie / Session Mode | Parity Category | Technical Notes |
 |---|---|:---:|:---:|:---:|---|

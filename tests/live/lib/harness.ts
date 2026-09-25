@@ -12,6 +12,8 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import { loadEnvironment } from "../../../src/config.js";
@@ -136,7 +138,104 @@ export async function connectMcp(name: string, opts: { tier?: "core" | "all"; en
   });
   const client = new Client({ name, version: "1.0.0" }, { capabilities: {} });
   await client.connect(transport);
+  if (COVERAGE) await attachTokenTwin(client, name, opts);
   return client;
+}
+
+// ─── Token-only coverage (LIVE_TOKEN_COVERAGE=1) ────────────────────
+//
+// Measures which tools work with only Gate/Dashboards tokens (no session cookie). Each
+// suite client gets a twin server with an empty data folder and no cookie. Every tool call
+// goes to the twin first; if it fails, the failure is recorded and the call is repeated on
+// the normal server so the suite carries on with real data. A twin write counts as working
+// only when the suite's verifyWrite() proves it. Results are appended to a JSONL file and
+// summarised by scripts/token-coverage-report.ts.
+
+const COVERAGE = process.env.LIVE_TOKEN_COVERAGE === "1";
+const COVERAGE_FILE = process.env.LIVE_TOKEN_COVERAGE_FILE || path.join(os.tmpdir(), "fusebase-token-coverage.jsonl");
+/** Tools that change the session itself: applied to both servers. */
+const SESSION_TOOLS = new Set(["set_tool_tier", "switch_active_profile"]);
+/**
+ * Tools that act on the local machine (profiles, guides, CLI), not on FuseBase: sent only to the
+ * normal server. Keep in step with LOCAL in scripts/token-coverage-report.ts.
+ */
+const isLocalTool = (name: string) =>
+  name.startsWith("fusebase_cli_") ||
+  ["refresh_auth", "list_agent_profiles", "check_session_health", "check_version", "search_guides", "get_guide", "list_guide_sections"].includes(name);
+const tokenTwins = new WeakMap<Client, Client>();
+const suiteName = path.basename(process.argv[1] ?? "unknown", ".ts");
+
+interface CoverageCall {
+  suite: string;
+  tool: string;
+  ok: boolean;
+  write: boolean;
+  writeId?: number;
+  /** For a write made by the twin: how the suite proved it. */
+  verified?: "read-back" | "exempt" | "cleanup" | "unproven";
+  error?: string;
+  /** The normal server failed too, so this failure isn't about tokens. */
+  bothFailed?: boolean;
+  at: string;
+}
+const coverage: CoverageCall[] = [];
+
+async function attachTokenTwin(client: Client, name: string, opts: { tier?: "core" | "all"; env?: Record<string, string> }): Promise<void> {
+  const emptyDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "fusebase-token-only-"));
+  const twin = new Client({ name: name + "-token-only", version: "1.0.0" }, { capabilities: {} });
+  await twin.connect(new StdioClientTransport({
+    command: process.execPath,
+    args: [path.join(ROOT_DIR, "dist", "index.js")],
+    env: {
+      ...(process.env as Record<string, string>),
+      FUSEBASE_TOOLS: opts.tier ?? "all",
+      ...opts.env,
+      FUSEBASE_DATA_DIR: emptyDataDir,
+      FUSEBASE_COOKIE: "",
+    },
+    stderr: process.env.LIVE_TEST_VERBOSE ? "inherit" : "ignore",
+  }));
+  const health = await parseToolResult("check_session_health", await twin.callTool({ name: "check_session_health", arguments: {} }));
+  const mode = JSON.stringify(health);
+  if (!/DIRECT_TOKEN/.test(mode) || /HYBRID|SESSION_COOKIE/.test(mode)) {
+    throw new AssertionError("❌ token-only twin is not in token-only mode: " + mode.slice(0, 300));
+  }
+  tokenTwins.set(client, twin);
+  const close = client.close.bind(client);
+  client.close = async () => {
+    await twin.close().catch(() => undefined);
+    fs.rmSync(emptyDataDir, { recursive: true, force: true });
+    return close();
+  };
+  console.log("🪙 token-only coverage: twin server connected (" + name + ")");
+}
+
+/** Try the call on the token-only twin; return undefined (after recording why) if it fails. */
+async function callOnTwin(twin: Client, name: string, args: Record<string, unknown>): Promise<{ data: any } | undefined> {
+  const at = callSite();
+  const write = WRITE_TOOLS.has(name);
+  try {
+    const data = await parseToolResult(name, await twin.callTool({ name, arguments: args }));
+    coverage.push({ suite: suiteName, tool: name, ok: true, write, writeId: write ? writes.length + 1 : undefined, at });
+    return { data };
+  } catch (err) {
+    const error = (err instanceof Error ? err.message : String(err)).replace(/\s+/g, " ").slice(0, 300);
+    coverage.push({ suite: suiteName, tool: name, ok: false, write, error, at });
+    return undefined;
+  }
+}
+
+/** Append this suite's calls, plus a line saying whether the suite ran to the end. */
+function flushCoverage(completed: boolean): void {
+  if (!COVERAGE) return;
+  for (const c of coverage) {
+    if (c.writeId === undefined) continue;
+    const w = writes.find((x) => x.id === c.writeId);
+    c.verified = w?.proof ? "read-back" : w?.exempt ? "exempt" : w?.cleanup ? "cleanup" : "unproven";
+  }
+  const lines = [...coverage.map((c) => JSON.stringify(c)), JSON.stringify({ suite: suiteName, completed })];
+  fs.appendFileSync(COVERAGE_FILE, lines.join("\n") + "\n");
+  console.log("🪙 token-only coverage: " + coverage.length + " calls recorded in " + COVERAGE_FILE);
 }
 
 export class ToolError extends Error {
@@ -166,7 +265,29 @@ export function isErrorPayload(data: unknown): boolean {
 export async function callTool(client: Client, name: string, args: Record<string, unknown> = {}): Promise<any> {
   stats.executedTools.add(name);
   noteRead(name);
-  const data = await parseToolResult(name, await client.callTool({ name, arguments: args }));
+  const twin = tokenTwins.get(client);
+  let twinFailure: CoverageCall | undefined;
+  if (twin && SESSION_TOOLS.has(name)) {
+    await parseToolResult(name, await twin.callTool({ name, arguments: args }));
+  } else if (twin && !isLocalTool(name)) {
+    const proofRead = readCallsInVerification !== undefined && !WRITE_TOOLS.has(name);
+    const viaTwin = await callOnTwin(twin, name, args);
+    // A read that proves a write takes its answer from the normal server (the ground truth);
+    // the twin's answer is only recorded, so a token-mode read gap can't fake or block a proof.
+    if (viaTwin && !proofRead) {
+      noteWrite(name, args);
+      return viaTwin.data;
+    }
+    if (!viaTwin) twinFailure = coverage[coverage.length - 1];
+  }
+  let data: any;
+  try {
+    data = await parseToolResult(name, await client.callTool({ name, arguments: args }));
+  } catch (err) {
+    // Failing in both modes (e.g. reading a page that was just deleted) says nothing about tokens.
+    if (twinFailure) twinFailure.bothFailed = true;
+    throw err;
+  }
   // Only a successful response claims a write happened, so only then does it need proof.
   noteWrite(name, args);
   return data;
@@ -391,6 +512,7 @@ export function runSuite(title: string, main: () => Promise<void>): void {
   main()
     .then(() => {
       const unproven = writeReport();
+      flushCoverage(unproven.length === 0 || process.env.LIVE_VERIFY_WRITES === "report");
       if (unproven.length > 0 && process.env.LIVE_VERIFY_WRITES !== "report") {
         throw new AssertionError("❌ " + unproven.length + " write(s) were not proven by a fresh read (listed above). Add verifyWrite() after each, or noReadBack() with a reason.");
       }
@@ -402,6 +524,11 @@ export function runSuite(title: string, main: () => Promise<void>): void {
       process.exit(0);
     })
     .catch((err) => {
+      try {
+        flushCoverage(false);
+      } catch (e) {
+        console.error("⚠️  could not write token coverage:", e);
+      }
       console.error(`\n❌ ${title} FAILED after ${stats.passed}/${stats.total} assertions:\n`, err instanceof Error ? err.message : err);
       if (err instanceof Error && !(err instanceof AssertionError) && !(err instanceof ToolError)) console.error(err.stack);
       process.exit(1);

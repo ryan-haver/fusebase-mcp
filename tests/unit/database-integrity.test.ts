@@ -51,6 +51,21 @@ describe("COR-2: database alias resolution and addDatabaseRow", () => {
     expect(res).toMatchObject({ found: true, dashboardId: "dash_ideal" });
   });
 
+  // Found by the token-only coverage run: an unreadable database list was reported as "not found".
+  it("says the lookup failed, rather than 'not found', when the database list can't be read", async () => {
+    const c = stubbedClient({ listAllDatabases: async () => { throw new Error("401 Unauthorized"); } });
+    expect(await c.resolveDatabaseAlias("deals")).toMatchObject({ found: false, lookupError: "401 Unauthorized" });
+
+    const srv = await startServer(fakeClient({ resolveDatabaseAlias: async () => ({ alias: "deals", found: false, lookupError: "401 Unauthorized" }) }), { tier: "all" });
+    try {
+      const res = await srv.callText("resolve_database_alias", { alias: "deals" });
+      expect(res.isError).toBe(true);
+      expect(res.text).toMatch(/Couldn't read the database list.*401/);
+    } finally {
+      await srv.close();
+    }
+  });
+
   it("fails with the candidate list when several tables tie", async () => {
     const c = stubbedClient({
       listAllDatabases: async () => ({

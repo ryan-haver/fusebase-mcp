@@ -4,6 +4,12 @@ This project follows [Semantic Versioning](https://semver.org/). Each release is
 
 ## Unreleased
 
+- Token-only coverage: the live harness can measure which tools work with only Gate and Dashboards tokens (`LIVE_TOKEN_COVERAGE=1`, report with `npm run coverage:tokens`). Results in [docs/TOKEN-COVERAGE.md](docs/TOKEN-COVERAGE.md): 14 of 129 measured tools work without a session cookie. The README badge that claimed 100% parity now shows the measured figure.
+- Fixed, found by that measurement:
+  - `list_pages` ignored the folder in token mode and returned the top-level pages instead.
+  - `resolve_database_alias` answered "not found" when it couldn't read the database list; it now reports the error.
+  - `get_user_preferences` and `get_billing_info` returned nulls when their requests failed; they now fail when every part fails and name the parts that did.
+- Two timing-sensitive unit tests no longer fail on a busy machine.
 - Repository reorganised:
   - Live test suites moved to `tests/live/`.
   - `ENDPOINT_REFERENCE.md` moved to `docs/`.

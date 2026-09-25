@@ -231,6 +231,22 @@ without passing validation. See [TESTING.md](TESTING.md).
 
 ---
 
+## Token-only coverage (2026-09-25)
+
+Measured which tools work with only Gate and Dashboards tokens: **14 of 129 exercised** ([TOKEN-COVERAGE.md](TOKEN-COVERAGE.md)). The measurement also found three silent wrong answers in token mode.
+
+| ID | Finding | Status | Fix |
+|---|---|---|---|
+| TST-16 | README claimed "Token vs Cookie Parity 100% Verified" from 11 capabilities; nothing measured the tools | ✅ fixed | Coverage mode in the live harness (`LIVE_TOKEN_COVERAGE=1`) and `scripts/token-coverage-report.ts`; badge shows the measured figure |
+| COR-30 | `list_pages` with a folder in token mode returned the top-level pages: the Gate fallback never passed `parentId` | ✅ fixed | Pass the folder as `parentId`; "root" lists the top level (Gate has no workspace-wide listing) |
+| COR-31 | `resolve_database_alias` reported `found: false` when the database list couldn't be read | ✅ fixed | `lookupError` on the resolution; the tool reports it as an error; internal callers still fall back |
+| COR-32 | `get_user_preferences` / `get_billing_info` turned every request error into `null` | ✅ fixed | `readParts()`: throw when all parts fail, name failed parts in `unavailable` |
+| P5-14 | 41 database tools call the web app's dashboard service, which rejects tokens, though the Dashboards MCP has operations for most of them | Open (P1 for a hosted edition) | Route rows, cells, relations, row order, view data, tables and views through the Dashboards MCP in token mode |
+| P5-15 | About 75 tools have no official token route (tasks, comments, tags, members, usage, page rename/move/delete, automations, most portal tools) | Open (needs FuseBase) | Raise with FuseBase; a hosted edition can't offer them until official routes exist |
+| TST-17 | Intermittent: after a move into a folder, the top-level listing still showed the page after 15 s (read through the cookie), in one coverage run | Watch | Seen once; if it recurs in normal runs, lengthen that verification's timeout |
+
+---
+
 ## Phase 5: MCP best practices and tool-layer refactor (L)
 
 This is done together with the refactor. Adding annotations and output limits one tool at a time across 141 hand-written handlers would add yet more duplication.
