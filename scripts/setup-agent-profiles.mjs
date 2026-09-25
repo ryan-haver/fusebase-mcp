@@ -98,7 +98,7 @@ if (hasCredentials) {
 
     const results = { success: [], failed: [] };
 
-    for (const [role, info] of entries) {
+    for (const [, info] of entries) {
         // Validate profile name to prevent shell injection
         if (!/^[a-z0-9-]+$/i.test(info.profile)) {
             console.log(`⏭️  ${info.display_name} — invalid profile name, skipping`);
@@ -113,7 +113,7 @@ if (hasCredentials) {
             );
             console.log("✅");
             results.success.push(info.profile);
-        } catch (err) {
+        } catch {
             console.log("❌");
             results.failed.push(info.profile);
         }

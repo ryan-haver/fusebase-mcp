@@ -2,11 +2,11 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { FusebaseClient } from "../client.js";
 import type { FusebaseMember, FusebaseOrgMember } from "../types.js";
-import { loadEncryptedCookie, loadEncryptedToken, listConfiguredProfiles } from "../crypto.js";
+import { assertValidProfile, loadEncryptedCookie, loadEncryptedToken, listConfiguredProfiles } from "../crypto.js";
 import { markdownToSchema } from "../markdown-parser.js";
 import type { ContentBlock } from "../content-schema.js";
 import { writeContentViaWebSocket } from "../yjs-ws-writer.js";
-import { errorResult, guessMime, htmlToMarkdown } from "./helpers.js";
+import { errorResult, guessMime, htmlToMarkdown, resolveDownloadPath } from "./helpers.js";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
@@ -112,8 +112,10 @@ export function registerCoreTools(
     },
     async ({ profile }) => {
       try {
+        const next = profile === "default" ? undefined : profile;
+        assertValidProfile(next);
         if (options.setActiveProfile) {
-          options.setActiveProfile(profile === "default" ? undefined : profile);
+          options.setActiveProfile(next);
         }
         return {
           content: [
@@ -165,25 +167,36 @@ export function registerCoreTools(
       const ageMs = stored?.savedAt ? Date.now() - new Date(stored.savedAt).getTime() : 0;
       const ageHours = Math.round(ageMs / 3600000);
 
-      // Verify active connectivity
-      let isValid = false;
-      let workspaceCount = 0;
+      // Verify each configured route separately, so a bad token can't hide a working
+      // session (or the other way round) — COR-19.
       let gateIdentity: any;
-      let errorMsg: string | undefined;
-
-      try {
-        if (client.gateBridge?.isConfigured) {
+      let gateError: string | undefined;
+      let gateOk = false;
+      if (client.gateBridge?.isConfigured) {
+        try {
           gateIdentity = await client.gateBridge.getIdentity();
-          isValid = true;
+          gateOk = true;
+        } catch (err: any) {
+          gateError = err.message;
         }
-        const ws = await client.listWorkspaces();
-        isValid = true;
-        workspaceCount = ws.length;
-      } catch (err: any) {
-        if (!isValid) errorMsg = err.message;
       }
 
-      const status = !isValid ? "EXPIRED" : (!hasCookie && hasToken) ? "HEALTHY" : ageHours > 100 ? "WARNING" : "HEALTHY";
+      let workspaceCount = 0;
+      let workspacesError: string | undefined;
+      let workspacesOk = false;
+      try {
+        const ws = await client.listWorkspaces();
+        workspacesOk = true;
+        workspaceCount = ws.length;
+      } catch (err: any) {
+        workspacesError = err.message;
+      }
+
+      const isValid = gateOk || workspacesOk;
+      const partialFailure = Boolean(gateError || workspacesError);
+      const errorMsg = [gateError && `Gate: ${gateError}`, workspacesError && `Workspaces: ${workspacesError}`].filter(Boolean).join("; ") || undefined;
+
+      const status = !isValid ? "EXPIRED" : partialFailure ? "WARNING" : hasCookie && ageHours > 100 ? "WARNING" : "HEALTHY";
 
       return {
         content: [
@@ -196,7 +209,9 @@ export function registerCoreTools(
                 profile: activeProfile || "default",
                 authenticated: isValid,
                 ageHours: hasCookie ? ageHours : null,
-                gateConnected: Boolean(client.gateBridge?.isConfigured),
+                gateConfigured: Boolean(client.gateBridge?.isConfigured),
+                gateConnected: gateOk,
+                gateError,
                 gateOrgId: gateIdentity?.orgId,
                 gateDomain: gateIdentity?.orgDomain,
                 permissionsCount: gateIdentity?.permissions?.length,
@@ -208,6 +223,10 @@ export function registerCoreTools(
                 recommendation:
                   status === "HEALTHY"
                     ? `Session is active and healthy (${authMode} mode).`
+                    : status === "WARNING" && gateError
+                    ? "The session works but the Gate/Dashboards token was rejected; Gate-only tools (isolated SQL, tokens, token-mode writes) will fail. Regenerate the tokens."
+                    : status === "WARNING" && workspacesError
+                    ? "Gate works but the web session failed; cookie-only tools (Y.js content, automations) will fail. Re-authenticate: npx tsx scripts/auth.ts"
                     : status === "WARNING"
                     ? `Cookie is ${ageHours}h old. Still valid, but consider refreshing soon: npx tsx scripts/auth.ts${activeProfile ? ` --profile=${activeProfile}` : ""}`
                     : `Session expired or invalid. Re-authenticate: npx tsx scripts/auth.ts${activeProfile ? ` --profile=${activeProfile}` : ""}`,
@@ -405,25 +424,33 @@ export function registerCoreTools(
 
         // Write initial content if provided
         if (markdown || blocks) {
-          let contentBlocks: ContentBlock[];
-          if (markdown) {
-            contentBlocks = markdownToSchema(markdown);
+          let writeResult: { success: boolean; error?: string };
+          if (client.getCookie()) {
+            const contentBlocks: ContentBlock[] = markdown ? markdownToSchema(markdown) : (blocks as ContentBlock[]);
+            writeResult = await writeContentViaWebSocket(
+              client["host"],
+              workspaceId,
+              page.globalId,
+              client.getCookie(),
+              contentBlocks,
+              { replace: true, timeout: 20000 },
+            );
+          } else if (markdown) {
+            // Token-only mode (COR-12): the page is new and empty, so appending through Gate
+            // produces the same result as writing it.
+            writeResult = await client.appendPageContent(workspaceId, page.globalId, { markdown });
           } else {
-            contentBlocks = blocks as ContentBlock[];
+            writeResult = { success: false, error: "structured 'blocks' need a session cookie; only markdown can be written in token-only mode" };
           }
-
-          const writeResult = await writeContentViaWebSocket(
-            client["host"],
-            workspaceId,
-            page.globalId,
-            client.getCookie(),
-            contentBlocks,
-            { replace: true, timeout: 20000 },
-          );
 
           result.contentWritten = writeResult.success;
           if (!writeResult.success) {
+            // The page exists but is empty: report an error so the caller doesn't assume success.
             result.contentError = writeResult.error;
+            return {
+              content: [{ type: "text" as const, text: `Page created but its content was not written. ${JSON.stringify(result, null, 2)}` }],
+              isError: true,
+            };
           }
         }
 
@@ -763,19 +790,18 @@ export function registerCoreTools(
         .optional()
         .default(false)
         .describe("If true, writes the file to local disk and returns the local file path instead of large base64 text"),
-      outputPath: z.string().optional().describe("Optional destination file path if saveToDisk is true"),
+      outputPath: z.string().optional().describe("Optional destination file name or relative path inside the download directory (data/downloads, or FUSEBASE_DOWNLOAD_DIR). Paths outside it are rejected."),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     }, async ({ workspaceId, attachmentId, filename, saveToDisk, outputPath, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.downloadAttachment(workspaceId, attachmentId, filename);
+        // Validate the destination before downloading anything.
+        const targetFile = saveToDisk || outputPath ? resolveDownloadPath(filename, outputPath) : undefined;
+        // Saving streams straight to disk, so large files never sit in memory.
+        const result = await client.downloadAttachment(workspaceId, attachmentId, filename, { toFile: targetFile });
 
         // Safe local disk saving to prevent context blowup
-        if (saveToDisk || outputPath) {
-          const downloadDir = outputPath ? path.dirname(outputPath) : path.resolve(__dirname, "..", "..", "data", "downloads");
-          if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir, { recursive: true });
-          const targetFile = outputPath || path.join(downloadDir, filename);
-          fs.writeFileSync(targetFile, Buffer.from(result.base64, "base64"));
+        if (targetFile) {
           return {
             content: [{
               type: "text" as const,
@@ -1066,14 +1092,18 @@ export function registerCoreTools(
         .boolean()
         .optional()
         .default(true)
-        .describe("Replace existing content (default: true). Set to false to append."),
+        .describe("Replace existing content (default: true). Set to false to append. Replacing requires a session cookie; in token-only mode only markdown appends are possible."),
+      allowEmpty: z
+        .boolean()
+        .optional()
+        .describe("Set true to deliberately clear the page when replacing with empty content. Without it, an empty replace is refused."),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, pageId, markdown, blocks, replace, profile }) => {
+    }, async ({ workspaceId, pageId, markdown, blocks, replace, allowEmpty, profile }) => {
       const client = getClient(profile);
       try {
         let contentBlocks: ContentBlock[];
 
-        if (markdown) {
+        if (markdown !== undefined) {
           contentBlocks = markdownToSchema(markdown);
         } else if (blocks) {
           contentBlocks = blocks as ContentBlock[];
@@ -1089,13 +1119,39 @@ export function registerCoreTools(
           };
         }
 
+        const replacing = replace !== false;
+
+        // CON-9a: whitespace-only markdown parses to no blocks; replacing with that erases the page.
+        if (contentBlocks.length === 0) {
+          if (!replacing) return errorResult("Nothing to append: the content parsed to no blocks.");
+          if (!allowEmpty) {
+            return errorResult("Refusing to replace the page with empty content, which would erase it. Pass allowEmpty: true to clear the page deliberately.");
+          }
+        }
+
+        // COR-12: without a session cookie the Y.js editor socket is unavailable.
+        if (!client.getCookie()) {
+          if (replacing) {
+            return errorResult(
+              "Replacing page content needs a session cookie (the Y.js editor); only tokens are configured. " +
+              "Use replace: false with markdown to append through Gate, or run `npx tsx scripts/auth.ts` to add a session.",
+            );
+          }
+          if (markdown === undefined) {
+            return errorResult("In token-only mode only markdown can be appended (Gate accepts text). Pass 'markdown' instead of 'blocks'.");
+          }
+          const appended = await client.appendPageContent(workspaceId, pageId, { markdown });
+          if (!appended.success) return errorResult(`Append via Gate failed: ${appended.error}`);
+          return { content: [{ type: "text" as const, text: `Content appended via Gate (token mode).` }] };
+        }
+
         const result = await writeContentViaWebSocket(
           client["host"],
           workspaceId,
           pageId,
           client.getCookie(),
           contentBlocks,
-          { replace: replace !== false, timeout: 20000 },
+          { replace: replacing, timeout: 20000 },
         );
 
         if (result.success) {

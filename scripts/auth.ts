@@ -17,7 +17,7 @@
  *   const cookieString = await refreshCookies({ host: "yourorg.nimbusweb.me" });
  */
 
-import { chromium, type BrowserContext, type Cookie } from "playwright";
+import { chromium, type Cookie } from "playwright";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
@@ -37,24 +37,12 @@ export interface AuthConfig {
   proxy?: { server: string; username: string; password: string }; // SOCKS5 proxy
 }
 
-const DEFAULT_USER_DATA_DIR = path.resolve(
-  __dirname,
-  "..",
-  ".browser-data",
-);
-
-const DEFAULT_ENV_FILE = path.resolve(
-  __dirname,
-  "..",
-  ".env",
-);
-
-function getCryptoUrl(): string {
-  const distPath = path.resolve(__dirname, "..", "dist", "crypto.js");
+function getCryptoUrl(module = "crypto.js"): string {
+  const distPath = path.resolve(__dirname, "..", "dist", module);
   if (fs.existsSync(distPath)) {
-    return new URL("../dist/crypto.js", import.meta.url).href;
+    return new URL(`../dist/${module}`, import.meta.url).href;
   }
-  return new URL("../src/crypto.js", import.meta.url).href;
+  return new URL(`../src/${module}`, import.meta.url).href;
 }
 
 // ─── Core ───────────────────────────────────────────────────────
@@ -64,7 +52,6 @@ export async function refreshCookies(config: AuthConfig): Promise<string> {
     host,
     headless = false,
     timeout = 120_000,
-    envFile = DEFAULT_ENV_FILE,
     profile,
   } = config;
 
@@ -94,14 +81,13 @@ export async function refreshCookies(config: AuthConfig): Promise<string> {
       }
 
       const launchArgs = ["--disable-blink-features=AutomationControlled"];
-      if (config.proxy) {
-        launchArgs.push(`--proxy-server=${config.proxy.server}`);
-      }
 
       const context = await chromium.launchPersistentContext(userDataDir, {
         headless,
         args: launchArgs,
         viewport: { width: 1280, height: 800 },
+        // Playwright's proxy option (unlike --proxy-server) carries the relay credentials.
+        ...(config.proxy ? { proxy: config.proxy } : {}),
       });
 
       try {
@@ -236,6 +222,11 @@ export async function isCookieFresh(profile?: string): Promise<boolean> {
 // ─── CLI Entry Point ────────────────────────────────────────────
 
 async function main() {
+  // Load .env, the 1Password Environment and op:// references (e.g. FUSEBASE_SECRET_KEY),
+  // so files saved here are encrypted with the same key the server uses.
+  const { loadEnvironment } = await import(getCryptoUrl("config.js"));
+  await loadEnvironment();
+
   const args = process.argv.slice(2);
 
   // Parse --key=value or --key value
@@ -328,11 +319,11 @@ async function main() {
       const { startProxyRelay } = await import(relayUrl);
       const relay = await startProxyRelay(store.proxy);
       relayStop = relay.stop;
-      // Give Chromium the local relay (no auth needed)
+      // Give Chromium the local relay and its per-process credentials
       proxyForBrowser = {
         server: `http://127.0.0.1:${relay.port}`,
-        username: "",
-        password: "",
+        username: relay.username,
+        password: relay.password,
       };
     }
   }

@@ -1,7 +1,7 @@
 # ==============================================================================
 # 1. Builder Stage: Compile TypeScript
 # ==============================================================================
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -19,9 +19,9 @@ COPY docs ./docs
 RUN npm run build
 
 # ==============================================================================
-# 2. Production Runtime Stage: Lightweight Node.js image (~150MB)
+# 2. Production Runtime Stage: production dependencies and the compiled server only
 # ==============================================================================
-FROM node:20-alpine AS runtime
+FROM node:22-alpine AS runtime
 
 LABEL org.opencontainers.image.title="FuseBase MCP Server" \
       org.opencontainers.image.description="Model Context Protocol (MCP) server for FuseBase workspaces, databases, and automations" \
@@ -60,5 +60,6 @@ USER node
 
 # Default entrypoint runs the MCP server.
 # By default, runs stdio mode (pipe with docker run -i).
-# Pass --transport sse --port 3000 or MCP_TRANSPORT=sse to run as a network service.
+# For a network service pass MCP_TRANSPORT=http, MCP_HOST=0.0.0.0 and MCP_AUTH_TOKEN (required when
+# listening on a non-loopback address). See docker-compose.yml.
 ENTRYPOINT ["node", "dist/index.js"]

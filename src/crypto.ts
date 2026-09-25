@@ -1,7 +1,7 @@
 /**
  * Encryption utilities for secrets at rest.
- * Uses AES-256-GCM with a machine-scoped key derived via PBKDF2.
- * Key material: hostname + username + project directory path.
+ * Uses AES-256-GCM with a random key (data/.key or FUSEBASE_SECRET_KEY); legacy files
+ * encrypted with the old path-derived PBKDF2 key are read and migrated (see Keys below).
  * Zero external dependencies — uses Node.js built-in crypto.
  */
 
@@ -9,6 +9,7 @@ import * as crypto from "crypto";
 import * as os from "os";
 import * as path from "path";
 import * as fs from "fs";
+import { execFileSync } from "child_process";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -19,68 +20,229 @@ const AUTH_TAG_LENGTH = 16;
 const SALT = "fusebase-mcp-v1"; // static salt, key uniqueness comes from machine seed
 const ITERATIONS = 100_000;
 
-/** Derive a machine-scoped encryption key via PBKDF2 */
-function deriveKey(): Buffer {
-  const seed = [
-    os.hostname(),
-    os.userInfo().username,
-    path.resolve(__dirname, ".."),
-  ].join("|");
+// ─── Keys ───────────────────────────────────────────────────────
+//
+// v2 (current): a random 256-bit key, from FUSEBASE_SECRET_KEY (Docker / CI) or a key file
+// at data/.key created on first use with owner-only permissions. Encrypted blobs are
+// written as "v2:<base64>".
+//
+// v1 (legacy, read-only): PBKDF2 of hostname + username + project path. Anyone running as
+// the same user could re-derive it, and moving the folder, changing the drive-letter case
+// or running in Docker made files unreadable (SEC-10). v1 files are still read, trying
+// drive-letter case variants of the path, and are re-encrypted as v2 on first read.
 
-  return crypto.pbkdf2Sync(seed, SALT, ITERATIONS, KEY_LENGTH, "sha256");
-}
-
-/**
- * Encrypt a string. Returns a base64 blob containing IV + authTag + ciphertext.
- */
-export function encryptData(plaintext: string): string {
-  const key = deriveKey();
-  const iv = crypto.randomBytes(IV_LENGTH);
-  const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
-
-  const encrypted = Buffer.concat([
-    cipher.update(plaintext, "utf8"),
-    cipher.final(),
-  ]);
-
-  const authTag = cipher.getAuthTag();
-
-  // Pack: IV (16) + AuthTag (16) + Ciphertext (variable)
-  const packed = Buffer.concat([iv, authTag, encrypted]);
-  return packed.toString("base64");
-}
+const V2_PREFIX = "v2:";
 
 /**
- * Decrypt a base64 blob produced by encryptData().
- * Throws on tampered or wrong-machine data.
+ * Directory holding encrypted secrets and the key file. FUSEBASE_DATA_DIR overrides the
+ * default <project>/data (e.g. a Docker volume); read at call time so .env can set it.
  */
-export function decryptData(encoded: string): string {
-  const key = deriveKey();
-  const packed = Buffer.from(encoded, "base64");
+export function getDataDir(): string {
+  return path.resolve(process.env.FUSEBASE_DATA_DIR || path.join(__dirname, "..", "data"));
+}
 
+const keyFile = () => path.join(getDataDir(), ".key");
+
+let cachedKey: Buffer | undefined;
+let cachedLegacyKeys: Buffer[] | undefined;
+
+/** Parse FUSEBASE_SECRET_KEY: 64 hex chars or base64 of 32 bytes; anything else is hashed. */
+function keyFromSecret(secret: string): Buffer {
+  const trimmed = secret.trim();
+  if (/^[0-9a-f]{64}$/i.test(trimmed)) return Buffer.from(trimmed, "hex");
+  const b64 = Buffer.from(trimmed, "base64");
+  if (b64.length === KEY_LENGTH) return b64;
+  return crypto.createHash("sha256").update(trimmed, "utf8").digest();
+}
+
+/** Restrict a file to the current user (best-effort; POSIX mode bits don't apply on Windows). */
+function restrictToOwner(file: string): void {
+  if (process.platform !== "win32") {
+    fs.chmodSync(file, 0o600);
+    return;
+  }
+  try {
+    const user = `${process.env.USERDOMAIN ? `${process.env.USERDOMAIN}\\` : ""}${os.userInfo().username}`;
+    execFileSync("icacls", [file, "/inheritance:r", "/grant:r", `${user}:F`], { stdio: "ignore", windowsHide: true });
+  } catch {
+    console.error(`[crypto] Warning: could not restrict permissions on ${path.basename(file)}`);
+  }
+}
+
+/** The current (v2) encryption key. */
+export function getEncryptionKey(): Buffer {
+  if (cachedKey) return cachedKey;
+  if (process.env.FUSEBASE_SECRET_KEY) {
+    cachedKey = keyFromSecret(process.env.FUSEBASE_SECRET_KEY);
+    return cachedKey;
+  }
+  const file = keyFile();
+  if (fs.existsSync(file)) {
+    const key = Buffer.from(fs.readFileSync(file, "utf-8").trim(), "base64");
+    if (key.length !== KEY_LENGTH) throw new Error(`Invalid key file ${file}: expected ${KEY_LENGTH} bytes`);
+    cachedKey = key;
+    return key;
+  }
+  // A new key can't read files written with the old one: refuse rather than orphan them
+  // (e.g. the key now lives in 1Password but FUSEBASE_SECRET_KEY didn't resolve).
+  const orphaned = encryptedV2Files();
+  if (orphaned.length > 0) {
+    throw new Error(
+      `No encryption key: FUSEBASE_SECRET_KEY is not set and ${file} is missing, but ${orphaned.length} ` +
+      `encrypted file(s) need it (${orphaned.slice(0, 3).join(", ")}). Set FUSEBASE_SECRET_KEY ` +
+      `(e.g. an op:// reference with \`op\` signed in) or restore the key file.`,
+    );
+  }
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const key = crypto.randomBytes(KEY_LENGTH);
+  // "wx" fails if another process created the file first; then use theirs.
+  try {
+    fs.writeFileSync(file, key.toString("base64"), { mode: 0o600, flag: "wx" });
+    restrictToOwner(file);
+    cachedKey = key;
+  } catch {
+    cachedKey = Buffer.from(fs.readFileSync(file, "utf-8").trim(), "base64");
+  }
+  return cachedKey;
+}
+
+/** Names of files in the data directory encrypted with a v2 key. */
+function encryptedV2Files(): string[] {
+  const dir = getDataDir();
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir).filter((f) => {
+    if (!f.endsWith(".enc")) return false;
+    try {
+      const fd = fs.openSync(path.join(dir, f), "r");
+      try {
+        const head = Buffer.alloc(V2_PREFIX.length);
+        fs.readSync(fd, head, 0, head.length, 0);
+        return head.toString("utf-8") === V2_PREFIX;
+      } finally {
+        fs.closeSync(fd);
+      }
+    } catch {
+      return false;
+    }
+  });
+}
+
+/** Forget cached keys (tests, or after FUSEBASE_SECRET_KEY / FUSEBASE_DATA_DIR changes). */
+export function resetKeyCache(): void {
+  cachedKey = undefined;
+}
+
+/** Legacy v1 keys, one per drive-letter spelling of the project path (computed once). */
+function legacyKeys(): Buffer[] {
+  if (cachedLegacyKeys) return cachedLegacyKeys;
+  const projectPath = path.resolve(__dirname, "..");
+  const variants = new Set([projectPath]);
+  if (/^[a-z]:/i.test(projectPath)) {
+    variants.add(projectPath[0].toUpperCase() + projectPath.slice(1));
+    variants.add(projectPath[0].toLowerCase() + projectPath.slice(1));
+  }
+  cachedLegacyKeys = [...variants].map((p) =>
+    crypto.pbkdf2Sync([os.hostname(), os.userInfo().username, p].join("|"), SALT, ITERATIONS, KEY_LENGTH, "sha256"),
+  );
+  return cachedLegacyKeys;
+}
+
+function decryptWithKey(packed: Buffer, key: Buffer): string {
   const iv = packed.subarray(0, IV_LENGTH);
   const authTag = packed.subarray(IV_LENGTH, IV_LENGTH + AUTH_TAG_LENGTH);
   const ciphertext = packed.subarray(IV_LENGTH + AUTH_TAG_LENGTH);
-
   const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
   decipher.setAuthTag(authTag);
+  return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString("utf8");
+}
 
-  const decrypted = Buffer.concat([
-    decipher.update(ciphertext),
-    decipher.final(),
-  ]);
+/**
+ * Encrypt a string with the current key. Returns "v2:" + base64(IV + authTag + ciphertext).
+ */
+export function encryptData(plaintext: string): string {
+  const iv = crypto.randomBytes(IV_LENGTH);
+  const cipher = crypto.createCipheriv(ALGORITHM, getEncryptionKey(), iv);
+  const encrypted = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
+  return V2_PREFIX + Buffer.concat([iv, cipher.getAuthTag(), encrypted]).toString("base64");
+}
 
-  return decrypted.toString("utf8");
+/**
+ * Decrypt a blob produced by encryptData() (v2) or by the legacy scheme (v1).
+ * `legacy` tells the caller to re-save the data with the current key.
+ * Throws on tampered data or when no key fits.
+ */
+export function decryptDataDetailed(encoded: string): { plaintext: string; legacy: boolean } {
+  if (encoded.startsWith(V2_PREFIX)) {
+    return { plaintext: decryptWithKey(Buffer.from(encoded.slice(V2_PREFIX.length), "base64"), getEncryptionKey()), legacy: false };
+  }
+  const packed = Buffer.from(encoded, "base64");
+  let lastError: unknown;
+  for (const key of legacyKeys()) {
+    try {
+      return { plaintext: decryptWithKey(packed, key), legacy: true };
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("Unable to decrypt legacy data");
+}
+
+/** Decrypt a blob produced by encryptData() (or a legacy v1 blob). */
+export function decryptData(encoded: string): string {
+  return decryptDataDetailed(encoded).plaintext;
+}
+
+/**
+ * Read and decrypt an encrypted file. A legacy (v1) file is re-encrypted with the current
+ * key after a one-time backup to "<file>.legacy-bak", so it keeps working if the folder
+ * moves or the key derivation inputs change.
+ */
+function readEncryptedFile(file: string): string {
+  const encoded = fs.readFileSync(file, "utf-8").trim();
+  const { plaintext, legacy } = decryptDataDetailed(encoded);
+  if (legacy) {
+    try {
+      const backup = `${file}.legacy-bak`;
+      if (!fs.existsSync(backup)) fs.copyFileSync(file, backup);
+      writeEncryptedFile(file, plaintext);
+      console.error(`[crypto] Migrated ${path.basename(file)} to the v2 key (backup: ${path.basename(backup)})`);
+    } catch (err) {
+      console.error(`[crypto] Warning: could not migrate ${path.basename(file)}: ${err instanceof Error ? err.message : err}`);
+    }
+  }
+  return plaintext;
+}
+
+/** Encrypt and write a file atomically (temp file + rename) with owner-only permissions. */
+function writeEncryptedFile(file: string, plaintext: string): void {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const tmp = `${file}.${process.pid}.tmp`;
+  fs.writeFileSync(tmp, encryptData(plaintext), { mode: 0o600 });
+  fs.renameSync(tmp, file);
 }
 
 // ─── File helpers ───────────────────────────────────────────────
 
-const DATA_DIR = path.resolve(__dirname, "..", "data");
+
+const PROFILE_NAME = /^[A-Za-z0-9_-]{1,64}$/;
+
+/**
+ * Validate an agent profile name before it is used in a file name.
+ * Profile names come from tool arguments, so anything that could escape data/ is rejected.
+ * An empty or missing profile means the default profile.
+ */
+export function assertValidProfile(profile?: string): void {
+  if (profile === undefined || profile === "") return;
+  if (!PROFILE_NAME.test(profile)) {
+    throw new Error(`Invalid profile name ${JSON.stringify(profile)}: use 1-64 letters, digits, '-' or '_'.`);
+  }
+}
 
 /** Get the path to the encrypted cookie file. Uses profile if provided. */
 export function getCookieEncPath(profile?: string): string {
+  assertValidProfile(profile);
   const filename = profile ? `cookie_${profile}.enc` : "cookie.enc";
-  return path.join(DATA_DIR, filename);
+  return path.join(getDataDir(), filename);
 }
 
 /**
@@ -96,7 +258,7 @@ export function saveEncryptedCookie(
   },
   profile?: string
 ): void {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(getDataDir(), { recursive: true });
 
   const payload = JSON.stringify({
     cookie: cookieString,
@@ -104,7 +266,7 @@ export function saveEncryptedCookie(
     savedAt: new Date().toISOString(),
   });
 
-  fs.writeFileSync(getCookieEncPath(profile), encryptData(payload), { mode: 0o600 });
+  writeEncryptedFile(getCookieEncPath(profile), payload);
   console.error(`[crypto] Cookie encrypted and saved to ${path.basename(getCookieEncPath(profile))}`);
 }
 
@@ -128,8 +290,7 @@ export function loadEncryptedCookie(profile?: string): {
   if (!fs.existsSync(cookiePath)) return null;
 
   try {
-    const encrypted = fs.readFileSync(cookiePath, "utf-8").trim();
-    const decrypted = decryptData(encrypted);
+    const decrypted = readEncryptedFile(cookiePath);
     const data = JSON.parse(decrypted);
 
     // Warn if cookie is older than 20 hours (once per profile)
@@ -166,8 +327,8 @@ export function listConfiguredProfiles(): Array<{
   ageHours?: number;
   cookieCount?: number;
 }> {
-  if (!fs.existsSync(DATA_DIR)) return [];
-  const files = fs.readdirSync(DATA_DIR);
+  if (!fs.existsSync(getDataDir())) return [];
+  const files = fs.readdirSync(getDataDir());
   const profiles: Array<{
     profile: string;
     filename: string;
@@ -189,6 +350,7 @@ export function listConfiguredProfiles(): Array<{
       });
     } else if (file.startsWith("cookie_") && file.endsWith(".enc")) {
       const profileName = file.slice(7, -4);
+      if (!PROFILE_NAME.test(profileName)) continue;
       const data = loadEncryptedCookie(profileName);
       const ageHours = data?.savedAt ? Math.round((Date.now() - new Date(data.savedAt).getTime()) / 3600000) : undefined;
       profiles.push({
@@ -238,7 +400,7 @@ export interface CredentialStore {
   host?: string; // e.g. "yourorg.nimbusweb.me"
 }
 
-const CREDENTIALS_FILE = path.join(DATA_DIR, "credentials.enc");
+const credentialsFile = () => path.join(getDataDir(), "credentials.enc");
 
 /**
  * Save agent credentials (email + password per profile) and optional proxy
@@ -249,7 +411,7 @@ export function saveCredentials(
   proxy?: ProxyConfig,
   host?: string,
 ): void {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(getDataDir(), { recursive: true });
 
   const payload = JSON.stringify({
     credentials: creds,
@@ -259,7 +421,7 @@ export function saveCredentials(
     profileCount: Object.keys(creds).length,
   });
 
-  fs.writeFileSync(CREDENTIALS_FILE, encryptData(payload), { mode: 0o600 });
+  writeEncryptedFile(credentialsFile(), payload);
   console.error(
     `[crypto] ${Object.keys(creds).length} agent credentials${proxy ? " + proxy" : ""}${host ? " + host" : ""} encrypted and saved to credentials.enc`,
   );
@@ -270,11 +432,10 @@ export function saveCredentials(
  * Returns null if file doesn't exist or decryption fails.
  */
 export function loadCredentialStore(): CredentialStore | null {
-  if (!fs.existsSync(CREDENTIALS_FILE)) return null;
+  if (!fs.existsSync(credentialsFile())) return null;
 
   try {
-    const encrypted = fs.readFileSync(CREDENTIALS_FILE, "utf-8").trim();
-    const decrypted = decryptData(encrypted);
+    const decrypted = readEncryptedFile(credentialsFile());
     const data = JSON.parse(decrypted);
     return {
       credentials: data.credentials ?? {},
@@ -302,8 +463,9 @@ export interface TokenCredentials {
 
 /** Get the path to the encrypted token file. Uses profile if provided. */
 export function getTokenEncPath(profile?: string): string {
+  assertValidProfile(profile);
   const filename = profile ? `token_${profile}.enc` : "token.enc";
-  return path.join(DATA_DIR, filename);
+  return path.join(getDataDir(), filename);
 }
 
 /**
@@ -313,13 +475,13 @@ export function saveEncryptedToken(
   tokenData: TokenCredentials,
   profile?: string
 ): void {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(getDataDir(), { recursive: true });
   const filepath = getTokenEncPath(profile);
   const payload = JSON.stringify({
     ...tokenData,
     savedAt: new Date().toISOString(),
   });
-  fs.writeFileSync(filepath, encryptData(payload), { mode: 0o600 });
+  writeEncryptedFile(filepath, payload);
   console.error(
     `[crypto] FuseBase API tokens encrypted and saved to ${path.basename(filepath)}`
   );
@@ -333,8 +495,7 @@ export function loadEncryptedToken(profile?: string): TokenCredentials | null {
   if (!fs.existsSync(filepath)) return null;
 
   try {
-    const encrypted = fs.readFileSync(filepath, "utf-8").trim();
-    const decrypted = decryptData(encrypted);
+    const decrypted = readEncryptedFile(filepath);
     const data = JSON.parse(decrypted);
     return {
       gateToken: data.gateToken || undefined,

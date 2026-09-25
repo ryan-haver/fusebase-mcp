@@ -8,8 +8,27 @@
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
+import { Readable } from "stream";
+import { pipeline } from "stream/promises";
 import { ProxyAgent } from "undici";
-import { FusebaseGateBridge } from "./gate-bridge.js";
+import {
+  FusebaseGateBridge,
+  gateFoldersToFusebase,
+  gateItem,
+  gateList,
+  gateNoteToFusebase,
+  gateWorkspaceToFusebase,
+  toGateNote,
+  toGateWorkspace,
+  type GateNoteSummary,
+  type GateWorkspace,
+} from "./gate-bridge.js";
+import { apiPath } from "./url-path.js";
+import { randomId, LOWER_ALPHANUMERIC } from "./ids.js";
+
+/** Column keys are 8-char nanoid-style ids that may include "_" and "-". */
+const COLUMN_KEY_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+import { FusebaseApiError, isSafeToRetryElsewhere, wsWriteNeverSent } from "./write-safety.js";
 
 export interface FusebaseConfig {
   host: string;
@@ -36,7 +55,7 @@ import type {
   FusebaseTag,
   FusebaseTaskSearchResult,
   FusebaseCommentThread,
-  FusebaseTaskList,
+  FusebaseTaskListsResponse,
   FusebaseCreateTaskPayload,
   FusebaseAgent,
   FusebaseMentionEntity,
@@ -71,22 +90,82 @@ const CACHE_PATH = path.join(DATA_DIR, "workspace_cache.json");
 /** Default timeouts (ms) */
 const TIMEOUT_GET = 10_000;
 const TIMEOUT_WRITE = 20_000;
+/** Attachment downloads can be large; allow longer than a normal GET. */
+const TIMEOUT_DOWNLOAD = 120_000;
+/** Largest attachment returned inline as base64; bigger files must be saved to disk. */
+const MAX_INLINE_DOWNLOAD_BYTES = 10 * 1024 * 1024;
+/** RequestInit plus client options. */
+type RequestOptions = RequestInit & {
+  /** Override the default timeout (GET 15 s / writes longer). */
+  timeoutMs?: number;
+  /** "text": return the body as-is without JSON/HTML checks. */
+  responseType?: "json" | "text";
+};
+
+/** Minimum spacing between requests to the same host, across all client instances. */
+const MIN_REQUEST_INTERVAL_MS = 200;
+const nextRequestSlot = new Map<string, number>();
+
 /**
- * Attempt to repair JSON truncated by upstream proxy serialization limits.
- * Strips dangling unclosed keys or trailing commas and closes brackets.
+ * Reserve the next request slot for a host synchronously, so concurrent requests queue up
+ * instead of all reading the same "last request" time (COR-16).
  */
-function tryRepairTruncatedJson(text: string): Record<string, unknown> | null {
-  let sanitized = text.trim();
-  sanitized = sanitized.replace(/,\s*"[^"]*"?\s*$/, "");
-  sanitized = sanitized.replace(/,\s*$/, "");
-  if (!sanitized.endsWith("}")) {
-    sanitized += "}";
+async function reserveRequestSlot(host: string): Promise<void> {
+  const now = Date.now();
+  const slot = Math.max(now, nextRequestSlot.get(host) ?? 0);
+  nextRequestSlot.set(host, slot + MIN_REQUEST_INTERVAL_MS);
+  if (slot > now) await new Promise((r) => setTimeout(r, slot - now));
+}
+
+/** One cookie refresh at a time per host+profile (COR-5). */
+const refreshesInFlight = new Map<string, Promise<boolean>>();
+
+/**
+ * From a JSON object cut off part-way, keep the top-level fields that arrived complete:
+ * cut at the last top-level comma and close the object. Returns null if nothing survives.
+ */
+export function completeTopLevelFields(text: string): Record<string, unknown> | null {
+  const cuts: number[] = [];
+  let depth = 0;
+  let inString = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inString) {
+      if (ch === "\\") i++;
+      else if (ch === '"') inString = false;
+    } else if (ch === '"') inString = true;
+    else if (ch === "{" || ch === "[") depth++;
+    else if (ch === "}" || ch === "]") depth--;
+    else if (ch === "," && depth === 1) cuts.push(i);
   }
-  try {
-    return JSON.parse(sanitized);
-  } catch {
-    return null;
+  for (const cut of cuts.reverse()) {
+    try {
+      const parsed = JSON.parse(text.slice(0, cut) + "}");
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed;
+    } catch {
+      // try an earlier cut
+    }
   }
+  return null;
+}
+
+/**
+ * Convert a label cell value to what the API expects: an array of label nanoids (a bare
+ * string is rejected with 400). Accepts label names or nanoids, singly or as an array (COR-18).
+ */
+function toLabelIds(column: { name: string; labels?: Array<{ nanoid: string; name: string }> }, value: unknown): unknown {
+  if (value === null || value === undefined) return [];
+  const items = Array.isArray(value) ? value : [value];
+  const labels = column.labels;
+  if (!labels?.length) return items; // options unknown: at least send the required array shape
+  return items.map((item) => {
+    const s = String(item);
+    const match = labels.find((l) => l.nanoid === s) ?? labels.find((l) => l.name.toLowerCase() === s.trim().toLowerCase());
+    if (!match) {
+      throw new Error(`"${s}" is not an option of label column "${column.name}". Options: ${labels.map((l) => l.name).join(", ")}`);
+    }
+    return match.nanoid;
+  });
 }
 
 export class FusebaseClient {
@@ -101,8 +180,6 @@ export class FusebaseClient {
   private autoRefresh: boolean;
   private profile?: string;
   private sessionId: string;
-  private lastRequestTime: number = 0;
-  private static readonly MIN_REQUEST_INTERVAL_MS = 200;
   private proxyDispatcher?: ProxyAgent;
   private automationToken?: string;
   private automationProjectId?: string;
@@ -139,7 +216,7 @@ export class FusebaseClient {
     fs.mkdirSync(DATA_DIR, { recursive: true });
     if (config.proxyRelayUrl) {
       this.proxyDispatcher = new ProxyAgent(config.proxyRelayUrl);
-      console.error(`[client] Using proxy relay: ${config.proxyRelayUrl}`);
+      console.error("[client] Using local proxy relay");
     }
   }
 
@@ -154,6 +231,8 @@ export class FusebaseClient {
     const match = this.cookie.match(/eversessionid=([^;]+)/);
     const sessionId = match ? match[1].trim() : this.sessionId;
     try {
+      // Deliberately a direct fetch: this bootstrap must send only the session cookie, not
+      // the Gate bearer token that send() would add.
       const res = await fetch(`${this.baseUrl}/automation/api/v1/authentication/fusebase-auth`, {
         method: "POST",
         headers: {
@@ -161,15 +240,19 @@ export class FusebaseClient {
           Cookie: this.cookie,
         },
         body: JSON.stringify({ sessionId }),
+        signal: AbortSignal.timeout(TIMEOUT_GET),
         ...(this.proxyDispatcher ? { dispatcher: this.proxyDispatcher } : {}),
       } as RequestInit);
       if (res.ok) {
         const data = (await res.json()) as { token?: string; projectId?: string };
         if (data.token) this.automationToken = data.token;
         if (data.projectId) this.automationProjectId = data.projectId;
+      } else {
+        console.error(`[client] automation auth failed: HTTP ${res.status}`);
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      // Automation calls will then fail with 401 and a clear error; log the root cause (COR-16).
+      console.error(`[client] automation auth failed: ${err instanceof Error ? err.message : err}`);
     }
     return {
       token: this.automationToken || "",
@@ -194,149 +277,162 @@ export class FusebaseClient {
 
   // ─── HTTP Layer ───────────────────────────────────────────────
 
-  private async request<T>(
-    path: string,
-    options: RequestInit = {},
-  ): Promise<T> {
-    // Rate limiting: enforce minimum interval between requests
-    const sinceLastReq = Date.now() - this.lastRequestTime;
-    if (sinceLastReq < FusebaseClient.MIN_REQUEST_INTERVAL_MS) {
-      await new Promise(r => setTimeout(r, FusebaseClient.MIN_REQUEST_INTERVAL_MS - sinceLastReq));
-    }
-    this.lastRequestTime = Date.now();
+  /**
+   * Send a request with the shared auth, proxy, timeout, rate-limit, refresh and logging
+   * behaviour, and return the successful Response (COR-4: every call goes through here).
+   * Throws FusebaseApiError for non-2xx responses.
+   */
+  private async send(path: string, options: RequestOptions = {}): Promise<Response> {
+    await reserveRequestSlot(this.host);
 
     const url = `${this.baseUrl}${path}`;
     const method = (options.method || "GET").toUpperCase();
     const startTime = Date.now();
-    const timeout = method === "GET" ? TIMEOUT_GET : TIMEOUT_WRITE;
+    const timeout = options.timeoutMs ?? (method === "GET" ? TIMEOUT_GET : TIMEOUT_WRITE);
+    const isAutomation = path.startsWith("/automation/") && !path.includes("/authentication/fusebase-auth");
 
     // For automation endpoints, resolve bearer token and projectId
-    if (path.startsWith("/automation/") && !path.includes("/authentication/fusebase-auth")) {
-      if (!this.automationToken) {
-        await this.ensureAutomationAuth();
-      }
+    if (isAutomation && !this.automationToken) {
+      await this.ensureAutomationAuth();
     }
 
-    const reqHeaders: Record<string, string> = {
-      ...this.headers,
-      ...((options.headers as Record<string, string>) || {}),
+    const buildHeaders = (): Record<string, string> => {
+      const h: Record<string, string> = {
+        ...this.headers,
+        ...((options.headers as Record<string, string>) || {}),
+      };
+      if (method === "DELETE" && !options.body) delete h["content-type"];
+      // Let fetch set the multipart boundary for form uploads.
+      if (options.body instanceof FormData) delete h["content-type"];
+      if (isAutomation) {
+        const match = this.cookie ? this.cookie.match(/eversessionid=([^;]+)/) : null;
+        if (match && match[1]) h["FBS-Session-ID"] = match[1].trim();
+        // Automation endpoints use their own JWT. Drop the generic Gate/API token header,
+        // otherwise fetch merges both into "Bearer a, Bearer b" and the call gets 401 (COR-5).
+        delete h["authorization"];
+        if (this.automationToken) h["Authorization"] = `Bearer ${this.automationToken}`;
+      }
+      return h;
     };
 
-    if (method === "DELETE" && !options.body) {
-      delete reqHeaders["content-type"];
-    }
-
-    if (path.startsWith("/automation/") && !path.includes("/authentication/fusebase-auth")) {
-      const match = this.cookie ? this.cookie.match(/eversessionid=([^;]+)/) : null;
-      if (match && match[1]) {
-        reqHeaders["FBS-Session-ID"] = match[1].trim();
-      }
-      if (this.automationToken) {
-        reqHeaders["Authorization"] = `Bearer ${this.automationToken}`;
-      }
-    }
-
-    const fetchOpts: RequestInit & { dispatcher?: unknown } = {
-      ...options,
-      headers: reqHeaders,
-      signal: AbortSignal.timeout(timeout),
-      ...(this.proxyDispatcher ? { dispatcher: this.proxyDispatcher } : {}),
+    const doFetch = () => {
+      const { timeoutMs: _timeoutMs, responseType: _responseType, ...init } = options;
+      return fetch(url, {
+        ...init,
+        headers: buildHeaders(),
+        signal: AbortSignal.timeout(timeout),
+        ...(this.proxyDispatcher ? { dispatcher: this.proxyDispatcher } : {}),
+      } as RequestInit);
     };
 
-    let res = await fetch(url, fetchOpts);
+    let res = await doFetch();
 
-    // Auto-retry on auth failure (skip on automation endpoints since automation uses JWT tokens, not main browser session)
-    const isAutomation = path.includes("/automation/");
-    if (res.status === 401 || (res.status === 403 && !isAutomation)) {
-      // If automation token failed with 401, re-fetch automation auth first
-      if (res.status === 401 && isAutomation && !path.includes("/authentication/fusebase-auth")) {
+    // An expired session is sometimes answered with a redirect to the login page (COR-8).
+    const isLoginRedirect = (r: Response) => r.redirected && /\/(auth|login|signin)\b/i.test(r.url);
+
+    if (isAutomation && res.status === 401) {
+      // The automation JWT expired: fetch a new one and retry once.
+      this.automationToken = undefined;
+      this.automationProjectId = undefined;
+      await this.ensureAutomationAuth();
+      if (this.automationToken) res = await doFetch();
+    } else if (!isAutomation && (res.status === 401 || res.status === 403 || isLoginRedirect(res)) && this.autoRefresh && this.cookie) {
+      console.error(`[client] Got ${res.status}${isLoginRedirect(res) ? " (login redirect)" : ""} — attempting cookie refresh...`);
+      if (await this.refreshAuthShared()) {
         this.automationToken = undefined;
         this.automationProjectId = undefined;
-        await this.ensureAutomationAuth();
-        if (this.automationToken) {
-          reqHeaders["Authorization"] = `Bearer ${this.automationToken}`;
-          res = await fetch(url, {
-            ...fetchOpts,
-            headers: reqHeaders,
-            signal: AbortSignal.timeout(timeout),
-          });
-        }
-      }
-
-      if (!isAutomation && !res.ok && (res.status === 401 || res.status === 403) && this.autoRefresh && Boolean(this.cookie)) {
-        // Log cookie age before attempting refresh
-        try {
-          const { loadEncryptedCookie } = await import("./crypto.js");
-          const stored = loadEncryptedCookie(this.profile);
-          if (stored?.savedAt) {
-            const ageMs = Date.now() - new Date(stored.savedAt).getTime();
-            const ageHours = (ageMs / 3_600_000).toFixed(1);
-            console.error(`[client] Cookie age: ${ageHours}h old`);
-            if (ageMs > 20 * 3_600_000) {
-              console.error(`[client] ⚠ Cookie is >20h old — may need manual re-auth: npx tsx scripts/auth.ts`);
-            }
-          }
-        } catch { /* crypto unavailable */ }
-
-        console.error(
-          `[client] Got ${res.status} — attempting cookie refresh...`,
-        );
-        const refreshed = await this.refreshAuth();
-        if (refreshed) {
-          this.automationToken = undefined;
-          this.automationProjectId = undefined;
-          const retryHeaders: Record<string, string> = {
-            ...this.headers,
-            ...((options.headers as Record<string, string>) || {}),
-          };
-          if (path.startsWith("/automation/") && !path.includes("/authentication/fusebase-auth")) {
-            await this.ensureAutomationAuth();
-            const match = this.cookie ? this.cookie.match(/eversessionid=([^;]+)/) : null;
-            if (match && match[1]) {
-              retryHeaders["FBS-Session-ID"] = match[1].trim();
-            }
-            if (this.automationToken) {
-              retryHeaders["Authorization"] = `Bearer ${this.automationToken}`;
-            }
-          }
-          res = await fetch(url, {
-            ...fetchOpts,
-            headers: retryHeaders,
-            signal: AbortSignal.timeout(timeout),
-          });
-        }
+        res = await doFetch();
       }
     }
 
     const elapsed = Date.now() - startTime;
-
+    if (isLoginRedirect(res)) {
+      this.logApiCall(method, path, 401, elapsed, 0, false);
+      throw new FusebaseApiError(
+        `Fusebase API error: 401 session expired (redirected to the login page) — ${url}`,
+        401,
+        url,
+        "",
+      );
+    }
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       this.logApiCall(method, path, res.status, elapsed, text.length, false);
-      throw new Error(
+      throw new FusebaseApiError(
         `Fusebase API error: ${res.status} ${res.statusText} — ${url}\n${text}`,
+        res.status,
+        url,
+        text,
       );
     }
+    this.logApiCall(method, path, res.status, elapsed, Number(res.headers.get("content-length") ?? 0), true);
+    return res;
+  }
 
+  /**
+   * send() + body parsing. JSON responses are parsed; a malformed or truncated JSON body is
+   * an error rather than "repaired" partial data, and an HTML page where API data was
+   * expected (e.g. a login page) is an error (COR-8). Plain-text bodies are returned as-is.
+   */
+  private async request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+    const res = await this.send(path, options);
     const rawText = await res.text();
     const contentType = res.headers.get("content-type") || "";
+    if (options.responseType === "text") return rawText as unknown as T;
+
     if (contentType.includes("application/json")) {
       try {
-        const data = JSON.parse(rawText) as T;
-        this.logApiCall(method, path, res.status, elapsed, rawText.length, true);
-        return data;
-      } catch (jsonErr) {
-        const repaired = tryRepairTruncatedJson(rawText);
-        if (repaired) {
-          this.logApiCall(method, path, res.status, elapsed, rawText.length, true);
-          return repaired as T;
-        }
-        throw jsonErr;
+        return JSON.parse(rawText) as T;
+      } catch {
+        throw new FusebaseApiError(
+          `Fusebase API returned malformed JSON (${rawText.length} bytes; possibly truncated) — ${res.url}`,
+          res.status,
+          res.url,
+          rawText.slice(0, 500),
+        );
       }
     }
-
-    this.logApiCall(method, path, res.status, elapsed, rawText.length, true);
+    // Judge by the body, not the header: some endpoints label JSON as text/html
+    // (e.g. /v1/portals/orgs/{org}/available returns `true` as text/html).
+    if (/^\s*<(?:!doctype|html|head|body|script|meta|title)\b/i.test(rawText)) {
+      throw new FusebaseApiError(
+        `Fusebase API returned an HTML page instead of data (session expired or wrong endpoint?) — ${res.url}`,
+        res.status,
+        res.url,
+        rawText.slice(0, 500),
+      );
+    }
+    if (contentType.includes("text/html")) {
+      try {
+        return JSON.parse(rawText) as T;
+      } catch {
+        // not JSON: fall through to plain text
+      }
+    }
     return rawText as unknown as T;
+  }
+
+  /**
+   * Refresh the session cookie once per host+profile, even when many requests hit 401 at
+   * the same time (COR-5). Clients that didn't run the refresh reload the saved cookie.
+   */
+  private async refreshAuthShared(): Promise<boolean> {
+    const key = `${this.host}|${this.profile ?? "default"}`;
+    let pending = refreshesInFlight.get(key);
+    const ownsRefresh = !pending;
+    if (!pending) {
+      pending = this.refreshAuth().finally(() => refreshesInFlight.delete(key));
+      refreshesInFlight.set(key, pending);
+    }
+    const ok = await pending;
+    if (ok && !ownsRefresh) {
+      try {
+        const { loadEncryptedCookie } = await import("./crypto.js");
+        const stored = loadEncryptedCookie(this.profile);
+        if (stored?.cookie) this.updateCookie(stored.cookie);
+      } catch { /* crypto unavailable: keep the current cookie */ }
+    }
+    return ok;
   }
 
   // ─── Logging ──────────────────────────────────────────────────
@@ -523,7 +619,7 @@ export class FusebaseClient {
     if (this.cookie) {
       try {
         const workspaces = await this.request<FusebaseWorkspace[]>(
-          `/gwapi2/ft%3Atasks/workspace-infos?orgId=${this.orgId}`,
+          `/gwapi2/ft%3Atasks/workspace-infos?orgId=${encodeURIComponent(this.orgId)}`,
         );
         this.updateWorkspaceCache(workspaces);
         return workspaces;
@@ -535,15 +631,12 @@ export class FusebaseClient {
     if (this.gateBridge?.hasGate) {
       try {
         const res = await this.gateBridge.toolCall("listWorkspaces", {});
-        const workspaces = (res.data?.workspaces || []).map((ws: any) => ({
-          id: ws.id,
-          title: ws.title || ws.id,
-          is_default: Boolean(ws.isDefault),
-          color: ws.color,
-          role: ws.role,
-        }));
-        this.updateWorkspaceCache(workspaces as FusebaseWorkspace[]);
-        return workspaces as FusebaseWorkspace[];
+        const workspaces: FusebaseWorkspace[] = gateList(res, "workspaces", "listWorkspaces")
+          .map(toGateWorkspace)
+          .filter((ws): ws is GateWorkspace => ws !== undefined)
+          .map((ws) => gateWorkspaceToFusebase(ws, this.orgId));
+        this.updateWorkspaceCache(workspaces);
+        return workspaces;
       } catch (err: any) {
         console.error(`[client] Gate fallback listWorkspaces failed: ${err.message}`);
         throw err;
@@ -587,7 +680,8 @@ export class FusebaseClient {
           JSON.stringify([opts.orderBy, opts.orderDir]),
         );
         return await this.request<NotesListResponse>(
-          `/v2/api/workspaces/${workspaceId}/notes?filter=${filter}&range=${range}&rootId=${opts.rootId}&order=${order}`,
+          apiPath`/v2/api/workspaces/${workspaceId}/notes` +
+            `?filter=${filter}&range=${range}&rootId=${encodeURIComponent(opts.rootId)}&order=${order}`,
         );
       } catch (err: any) {
         if (!this.gateBridge?.hasGate) throw err;
@@ -597,15 +691,15 @@ export class FusebaseClient {
     if (this.gateBridge?.hasGate) {
       try {
         const res = await this.gateBridge.toolCall("listWorkspaceNotes", { workspaceId });
-        const rawNotes = res.data?.notes || [];
-        const notes = rawNotes.map((n: any) => ({
-          globalId: n.globalId,
-          title: n.title,
-          parentId: n.parentId,
-          createdAt: 0,
-          updatedAt: 0,
-        }));
-        return { items: notes as unknown as FusebaseNote[], total: notes.length };
+        // Gate has no paging, so apply offset/limit here. (It also ignores rootId: Gate
+        // lists the workspace's default folder.)
+        const notes: FusebaseNote[] = gateList(res, "notes", "listWorkspaceNotes")
+          .map(toGateNote)
+          .filter((n): n is GateNoteSummary => n !== undefined)
+          .map((n) => gateNoteToFusebase(n, workspaceId));
+        const offset = options?.offset ?? 0;
+        const limit = options?.limit ?? 100;
+        return { items: notes.slice(offset, offset + limit), total: notes.length };
       } catch (err: any) {
         console.error(`[client] Gate fallback listPages failed: ${err.message}`);
         throw err;
@@ -619,7 +713,7 @@ export class FusebaseClient {
     if (this.cookie) {
       try {
         return await this.request<FusebaseNote>(
-          `/v2/api/web-editor/space/${workspaceId}/note/${noteId}`,
+          apiPath`/v2/api/web-editor/space/${workspaceId}/note/${noteId}`,
         );
       } catch (err: any) {
         if (!this.gateBridge?.hasGate) throw err;
@@ -629,17 +723,9 @@ export class FusebaseClient {
     if (this.gateBridge?.hasGate) {
       try {
         const res = await this.gateBridge.toolCall("getWorkspaceNote", { workspaceId, noteId });
-        const note = res.data?.note || res.data;
-        if (note) {
-          return {
-            globalId: note.globalId || noteId,
-            title: note.title || "",
-            parentId: note.parentId || "default",
-            createdAt: 0,
-            updatedAt: 0,
-            isPortalShare: false,
-          } as unknown as FusebaseNote;
-        }
+        const note = toGateNote(gateItem(res, "note"));
+        if (!note) throw new Error(`Gate getWorkspaceNote returned no note for ${noteId}`);
+        return gateNoteToFusebase(note, workspaceId);
       } catch (err: any) {
         console.error(`[client] Gate fallback getPage failed: ${err.message}`);
         throw err;
@@ -654,7 +740,8 @@ export class FusebaseClient {
     limit = 10,
   ): Promise<RecentNotesResponse> {
     return this.request<RecentNotesResponse>(
-      `/v2/api/web-editor/notes/recent/${workspaceId}?count=1&type=note&limit=${limit}&offset=0`,
+      apiPath`/v2/api/web-editor/notes/recent/${workspaceId}` +
+        `?count=1&type=note&limit=${encodeURIComponent(limit)}&offset=0`,
     );
   }
 
@@ -681,7 +768,8 @@ export class FusebaseClient {
           }),
         });
       } catch (err: any) {
-        if (!this.gateBridge?.hasGate) throw err;
+        // Only retry through Gate if the web API provably did not create the page.
+        if (!this.gateBridge?.hasGate || !isSafeToRetryElsewhere(err)) throw err;
         console.warn(`[client] Web API createPage failed (${err.message}), falling back to Gate bridge...`);
       }
     }
@@ -694,17 +782,9 @@ export class FusebaseClient {
             parentId: parentId || "default",
           },
         });
-        const note = res.data?.note || res.data;
-        if (note?.globalId) {
-          return {
-            globalId: note.globalId,
-            title: note.title,
-            parentId: note.parentId,
-            createdAt: 0,
-            updatedAt: 0,
-            isPortalShare: false,
-          } as unknown as FusebaseNote;
-        }
+        const note = toGateNote(gateItem(res, "note"));
+        if (!note) throw new Error(`Gate createWorkspaceNote returned no note id: ${JSON.stringify(res)?.slice(0, 200)}`);
+        return gateNoteToFusebase(note, workspaceId);
       } catch (err: any) {
         console.error(`[client] Gate fallback createPage failed: ${err.message}`);
         throw err;
@@ -738,7 +818,8 @@ export class FusebaseClient {
           }),
         });
       } catch (err: any) {
-        if (!this.gateBridge?.hasGate) throw err;
+        // Only retry through Gate if the web API provably did not create the folder.
+        if (!this.gateBridge?.hasGate || !isSafeToRetryElsewhere(err)) throw err;
         console.warn(`[client] Web API createFolder failed (${err.message}), falling back to Gate bridge...`);
       }
     }
@@ -751,18 +832,9 @@ export class FusebaseClient {
             parentId: parentId || "default",
           },
         });
-        const folder = res.data?.folder || res.data;
-        if (folder?.globalId) {
-          return {
-            globalId: folder.globalId,
-            title: folder.title,
-            parentId: folder.parentId,
-            createdAt: 0,
-            updatedAt: 0,
-            type: "folder",
-            isPortalShare: false,
-          } as unknown as FusebaseNote;
-        }
+        const folder = toGateNote(gateItem(res, "folder"));
+        if (!folder) throw new Error(`Gate createWorkspaceNoteFolder returned no folder id: ${JSON.stringify(res)?.slice(0, 200)}`);
+        return gateNoteToFusebase(folder, workspaceId, "folder");
       } catch (err: any) {
         console.error(`[client] Gate fallback createFolder failed: ${err.message}`);
         throw err;
@@ -778,7 +850,7 @@ export class FusebaseClient {
     updates: { title?: string; parentId?: string },
   ): Promise<unknown> {
     return this.request<unknown>(
-      `/v2/api/workspaces/${workspaceId}/notes/${noteId}/upsert`,
+      apiPath`/v2/api/workspaces/${workspaceId}/notes/${noteId}/upsert`,
       {
         method: "POST",
         body: JSON.stringify({ note: updates }),
@@ -803,7 +875,7 @@ export class FusebaseClient {
     const targetWorkspace = options.targetWorkspaceId || workspaceId;
     const parent = options.folderId || options.parentId || "root";
     return this.request<{ id: string }>(
-      `/v2/api/workspaces/${workspaceId}/notes/${noteId}/move`,
+      apiPath`/v2/api/workspaces/${workspaceId}/notes/${noteId}/move`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -821,7 +893,7 @@ export class FusebaseClient {
     if (this.cookie) {
       try {
         const folders = await this.request<FusebaseFolder[]>(
-          `/gwapi2/ft:notes/menu?workspace=${workspaceId}&depth=-1&type=folder&orderBy=title&orderDirection=ASC`,
+          `/gwapi2/ft:notes/menu?workspace=${encodeURIComponent(workspaceId)}&depth=-1&type=folder&orderBy=title&orderDirection=ASC`,
         );
         this.updateFolderCache(workspaceId, folders);
         return folders;
@@ -833,14 +905,13 @@ export class FusebaseClient {
     if (this.gateBridge?.hasGate) {
       try {
         const res = await this.gateBridge.toolCall("listWorkspaceNoteFolders", { workspaceId });
-        const folders = (res.data?.folders || []).map((f: any) => ({
-          global_id: f.globalId,
-          title: f.title,
-          parent_id: f.parentId,
-          type: "folder" as const,
-        }));
-        this.updateFolderCache(workspaceId, folders as FusebaseFolder[]);
-        return folders as FusebaseFolder[];
+        const folders = gateFoldersToFusebase(
+          gateList(res, "folders", "listWorkspaceNoteFolders")
+            .map(toGateNote)
+            .filter((f): f is GateNoteSummary => f !== undefined),
+        );
+        this.updateFolderCache(workspaceId, folders);
+        return folders;
       } catch (err: any) {
         console.error(`[client] Gate fallback listFolders failed: ${err.message}`);
         throw err;
@@ -857,7 +928,7 @@ export class FusebaseClient {
     noteId: string,
   ): Promise<FusebaseAttachment[]> {
     return this.request<FusebaseAttachment[]>(
-      `/v2/api/web-editor/space/${workspaceId}/note/attachments/${noteId}`,
+      apiPath`/v2/api/web-editor/space/${workspaceId}/note/attachments/${noteId}`,
     );
   }
 
@@ -868,7 +939,8 @@ export class FusebaseClient {
     offset = 0,
   ): Promise<FusebaseFile[]> {
     return this.request<FusebaseFile[]>(
-      `/v2/api/workspaces/${workspaceId}/files?showPortalFiles=true&limitSize=${limit}&limitFrom=${offset}&resetCache=true`,
+      apiPath`/v2/api/workspaces/${workspaceId}/files` +
+        `?showPortalFiles=true&limitSize=${encodeURIComponent(limit)}&limitFrom=${encodeURIComponent(offset)}&resetCache=true`,
     );
   }
 
@@ -898,29 +970,12 @@ export class FusebaseClient {
     const blob = new Blob([new Uint8Array(fileContent) as BlobPart], { type: mime });
     formData.append("file", blob, filename);
 
-    const uploadRes = await fetch(
-      `${this.baseUrl}/v3/api/web-editor/file/v2-upload`,
-      {
-        method: "POST",
-        headers: { cookie: this.cookie },
-        body: formData,
-        signal: AbortSignal.timeout(TIMEOUT_WRITE),
-      },
-    );
-
-    if (!uploadRes.ok) {
-      const text = await uploadRes.text().catch(() => "");
-      throw new Error(
-        `File upload failed: ${uploadRes.status} ${uploadRes.statusText}\n${text}`,
-      );
-    }
-
-    const uploadResult = (await uploadRes.json()) as {
+    const uploadResult = await this.request<{
       name: string;
       type: string;
       filename: string;
       size: number;
-    };
+    }>("/v3/api/web-editor/file/v2-upload", { method: "POST", body: formData, timeoutMs: TIMEOUT_DOWNLOAD });
 
     // Step 2: Associate the uploaded file with the page as an attachment
     const attachmentId = this.generateId();
@@ -955,24 +1010,36 @@ export class FusebaseClient {
     workspaceId: string,
     attachmentId: string,
     filename: string,
+    options: { toFile?: string } = {},
   ): Promise<{
     base64: string;
     mime: string;
     size: number;
+    savedPath?: string;
   }> {
-    const url = `${this.baseUrl}/box/attachment/${workspaceId}/${attachmentId}/${encodeURIComponent(filename)}`;
-    const res = await fetch(url, {
-      headers: { cookie: this.cookie },
-      signal: AbortSignal.timeout(TIMEOUT_GET),
+    const res = await this.send(apiPath`/box/attachment/${workspaceId}/${attachmentId}/${filename}`, {
+      timeoutMs: TIMEOUT_DOWNLOAD,
     });
-
-    if (!res.ok) {
-      throw new Error(`Download failed: ${res.status} ${res.statusText}`);
-    }
-
-    const buffer = Buffer.from(await res.arrayBuffer());
     const mime = res.headers.get("content-type") || "application/octet-stream";
 
+    // Stream to disk without holding the whole file in memory (COR-4).
+    if (options.toFile) {
+      if (!res.body) throw new Error("Download failed: empty response body");
+      await fs.promises.mkdir(path.dirname(options.toFile), { recursive: true });
+      await pipeline(Readable.fromWeb(res.body as any), fs.createWriteStream(options.toFile));
+      const { size } = await fs.promises.stat(options.toFile);
+      return { base64: "", mime, size, savedPath: options.toFile };
+    }
+
+    const declared = Number(res.headers.get("content-length") ?? 0);
+    if (declared > MAX_INLINE_DOWNLOAD_BYTES) {
+      await res.body?.cancel();
+      throw new Error(`Attachment is ${declared} bytes; too large to return inline. Use saveToDisk: true.`);
+    }
+    const buffer = Buffer.from(await res.arrayBuffer());
+    if (buffer.length > MAX_INLINE_DOWNLOAD_BYTES) {
+      throw new Error(`Attachment is ${buffer.length} bytes; too large to return inline. Use saveToDisk: true.`);
+    }
     return {
       base64: buffer.toString("base64"),
       mime,
@@ -985,14 +1052,14 @@ export class FusebaseClient {
   /** Get tags for a workspace */
   async getTags(workspaceId: string): Promise<FusebaseTag> {
     return this.request<FusebaseTag>(
-      `/v2/api/workspaces/${workspaceId}/tags`,
+      apiPath`/v2/api/workspaces/${workspaceId}/tags`,
     );
   }
 
   /** Get tags for a specific page */
   async getPageTags(workspaceId: string, noteId: string): Promise<string[]> {
     return this.request<string[]>(
-      `/v2/api/workspaces/${workspaceId}/notes/${noteId}/tags`,
+      apiPath`/v2/api/workspaces/${workspaceId}/notes/${noteId}/tags`,
     );
   }
 
@@ -1001,17 +1068,30 @@ export class FusebaseClient {
     workspaceId: string,
     noteId: string,
     tags: string[],
-  ): Promise<void> {
-    await this.request<void>(
-      `/v2/api/workspaces/${workspaceId}/notes/${noteId}/tags`,
-      { method: "PUT", body: JSON.stringify(tags) },
-    );
+  ): Promise<{ added: string[]; removed: string[] }> {
+    // The endpoint works one tag at a time (probed live, COR-22): PUT .../tags with
+    // { tag } adds a tag and DELETE .../tags/{tag} removes one. Sending an array stored the
+    // literal tag "undefined". Replace semantics = remove extras, then add missing ones.
+    const desired = [...new Set(tags.map((t) => t.trim()).filter(Boolean))];
+    const current = (await this.getNoteTags(workspaceId, noteId)) ?? [];
+    const removed = current.filter((t) => !desired.includes(t));
+    const added = desired.filter((t) => !current.includes(t));
+    for (const tag of removed) {
+      await this.request(apiPath`/v2/api/workspaces/${workspaceId}/notes/${noteId}/tags/${tag}`, { method: "DELETE" });
+    }
+    for (const tag of added) {
+      await this.request(apiPath`/v2/api/workspaces/${workspaceId}/notes/${noteId}/tags`, {
+        method: "PUT",
+        body: JSON.stringify({ tag }),
+      });
+    }
+    return { added, removed };
   }
 
   /** Get labels for a workspace */
   async getLabels(workspaceId: string): Promise<FusebaseLabel[]> {
     return this.request<FusebaseLabel[]>(
-      `/gwapi2/ft%3Aworkspaces/workspaces/${workspaceId}/labels`,
+      apiPath`/gwapi2/ft%3Aworkspaces/workspaces/${workspaceId}/labels`,
     );
   }
 
@@ -1020,14 +1100,14 @@ export class FusebaseClient {
   /** Get workspace members */
   async getWorkspaceMembers(workspaceId: string): Promise<FusebaseMember[]> {
     return this.request<FusebaseMember[]>(
-      `/v2/api/workspaces/${workspaceId}/members`,
+      apiPath`/v2/api/workspaces/${workspaceId}/members`,
     );
   }
 
   /** Get organization members */
   async getOrgMembers(): Promise<FusebaseOrgMember[]> {
     return this.request<FusebaseOrgMember[]>(
-      `/v2/api/orgs/${this.orgId}/membersWithOwner`,
+      apiPath`/v2/api/orgs/${this.orgId}/membersWithOwner`,
     );
   }
 
@@ -1035,14 +1115,14 @@ export class FusebaseClient {
   async getMemberRoles(orgId?: string): Promise<Array<{ userId: number; role: string }>> {
     const org = orgId || this.orgId;
     return this.request<Array<{ userId: number; role: string }>>(
-      `/gwapi2/ft:org/orgs/${org}/member-roles`,
+      apiPath`/gwapi2/ft:org/orgs/${org}/member-roles`,
     );
   }
 
   /** Get granular v1 workspace member entities */
   async getWorkspaceMembersV1(workspaceId: string): Promise<unknown[]> {
     return this.request<unknown[]>(
-      `/v1/workspaces/${workspaceId}/members`,
+      apiPath`/v1/workspaces/${workspaceId}/members`,
     );
   }
 
@@ -1051,7 +1131,7 @@ export class FusebaseClient {
   /** Get organization usage stats */
   async getOrgUsage(): Promise<OrgUsageResponse> {
     return this.request<OrgUsageResponse>(
-      `/v2/api/orgs/${this.orgId}/usage`,
+      apiPath`/v2/api/orgs/${this.orgId}/usage`,
     );
   }
 
@@ -1090,7 +1170,7 @@ export class FusebaseClient {
     noteId: string,
   ): Promise<FusebaseCommentThread[]> {
     return this.request<FusebaseCommentThread[]>(
-      `/gwapi2/svc:comment/workspaces/${workspaceId}/notes/${noteId}/threadsInfo`,
+      apiPath`/gwapi2/svc:comment/workspaces/${workspaceId}/notes/${noteId}/threadsInfo`,
     );
   }
 
@@ -1115,7 +1195,7 @@ export class FusebaseClient {
       attributes: { workspaceId, noteId },
     };
     return this.request<unknown>(
-      `/gwapi2/ft:comments/threads?workspace=${workspaceId}`,
+      `/gwapi2/ft:comments/threads?workspace=${encodeURIComponent(workspaceId)}`,
       {
         method: "POST",
         body: JSON.stringify(body),
@@ -1136,7 +1216,7 @@ export class FusebaseClient {
   ): Promise<unknown> {
     const delta = JSON.stringify([{ insert: text + "\n" }]);
     return this.request<unknown>(
-      `/gwapi2/ft:comments/comments?workspace=${workspaceId}&thread=${threadId}`,
+      `/gwapi2/ft:comments/comments?workspace=${encodeURIComponent(workspaceId)}&thread=${encodeURIComponent(threadId)}`,
       {
         method: "POST",
         body: JSON.stringify({ text: delta }),
@@ -1154,7 +1234,7 @@ export class FusebaseClient {
     threadId: string,
   ): Promise<unknown> {
     return this.request<unknown>(
-      `/gwapi2/ft:comments/threads/${threadId}`,
+      apiPath`/gwapi2/ft:comments/threads/${threadId}`,
       {
         method: "PATCH",
         body: JSON.stringify({ workspaceId, resolved: true }),
@@ -1168,15 +1248,15 @@ export class FusebaseClient {
   async listTaskLists(
     workspaceId: string,
     options?: { taskListId?: string },
-  ): Promise<FusebaseTaskList[]> {
-    let path = `/gwapi2/ft%3Atasks/workspaces/${workspaceId}/taskLists`;
+  ): Promise<FusebaseTaskListsResponse> {
+    let path = apiPath`/gwapi2/ft%3Atasks/workspaces/${workspaceId}/taskLists`;
     if (options?.taskListId) {
       const filter = encodeURIComponent(
         JSON.stringify({ taskListId: [options.taskListId] }),
       );
       path += `?filter=${filter}&includeBoardColumns=true`;
     }
-    return this.request<FusebaseTaskList[]>(path);
+    return this.request<FusebaseTaskListsResponse>(path);
   }
 
   /** Create a task in a workspace */
@@ -1186,8 +1266,7 @@ export class FusebaseClient {
   ): Promise<unknown> {
     const globalId =
       task.globalId ||
-      Math.random().toString(36).substring(2, 15) +
-        Math.random().toString(36).substring(2, 15);
+      randomId(26, LOWER_ALPHANUMERIC);
     const body = {
       task: {
         globalId,
@@ -1195,7 +1274,7 @@ export class FusebaseClient {
       },
     };
     return this.request<unknown>(
-      `/gwapi2/ft%3Atasks/workspaces/${workspaceId}/tasks?addToOrder=false`,
+      apiPath`/gwapi2/ft%3Atasks/workspaces/${workspaceId}/tasks` + "?addToOrder=false",
       {
         method: "POST",
         body: JSON.stringify(body),
@@ -1210,7 +1289,7 @@ export class FusebaseClient {
     updates: Record<string, unknown>,
   ): Promise<unknown> {
     return this.request<unknown>(
-      `/gwapi2/ft%3Atasks/workspaces/${workspaceId}/tasks/${taskId}`,
+      apiPath`/gwapi2/ft%3Atasks/workspaces/${workspaceId}/tasks/${taskId}`,
       {
         method: "POST",
         body: JSON.stringify({ task: updates }),
@@ -1221,7 +1300,7 @@ export class FusebaseClient {
   /** Delete a task */
   async deleteTask(workspaceId: string, taskId: string): Promise<void> {
     await this.request<void>(
-      `/gwapi2/ft%3Atasks/workspaces/${workspaceId}/tasks/${taskId}`,
+      apiPath`/gwapi2/ft%3Atasks/workspaces/${workspaceId}/tasks/${taskId}`,
       { method: "DELETE" },
     );
   }
@@ -1232,7 +1311,7 @@ export class FusebaseClient {
     taskId: string,
   ): Promise<unknown> {
     return this.request<unknown>(
-      `/gwapi2/ft%3Atasks/workspaces/${workspaceId}/taskDescriptions/${taskId}`,
+      apiPath`/gwapi2/ft%3Atasks/workspaces/${workspaceId}/taskDescriptions/${taskId}`,
     );
   }
 
@@ -1247,7 +1326,7 @@ export class FusebaseClient {
     taskId: string,
   ): Promise<unknown> {
     return this.request<unknown>(
-      `/gwapi2/ft:tasks/workspaces/${workspaceId}/time/${taskId}`,
+      apiPath`/gwapi2/ft:tasks/workspaces/${workspaceId}/time/${taskId}`,
     );
   }
 
@@ -1256,7 +1335,7 @@ export class FusebaseClient {
   /** Delete a page */
   async deletePage(workspaceId: string, noteId: string): Promise<void> {
     await this.request<void>(
-      `/v2/api/workspaces/${workspaceId}/notes/${noteId}`,
+      apiPath`/v2/api/workspaces/${workspaceId}/notes/${noteId}`,
       { method: "DELETE" },
     );
   }
@@ -1268,7 +1347,7 @@ export class FusebaseClient {
     tokens: unknown[],
   ): Promise<unknown> {
     return this.request<unknown>(
-      `/v4/api/workspaces/${workspaceId}/texts/${noteId}/tokens`,
+      apiPath`/v4/api/workspaces/${workspaceId}/texts/${noteId}/tokens`,
       {
         method: "POST",
         body: JSON.stringify({ tokens }),
@@ -1281,7 +1360,7 @@ export class FusebaseClient {
   /** List AI agents for the org */
   async listAgents(): Promise<FusebaseAgent[]> {
     return this.request<FusebaseAgent[]>(
-      `/v4/api/proxy/ai-service/v1/orgs/${this.orgId}/agent-categories/agents?globalId=all`,
+      apiPath`/v4/api/proxy/ai-service/v1/orgs/${this.orgId}/agent-categories/agents` + "?globalId=all",
     );
   }
 
@@ -1303,14 +1382,14 @@ export class FusebaseClient {
       type: string;
       [key: string]: unknown;
     }>>(
-      `/v4/api/proxy/ai-service/v1/orgs/${org}/agent-categories`,
+      apiPath`/v4/api/proxy/ai-service/v1/orgs/${org}/agent-categories`,
     );
   }
 
   /** Get AI assistant state, prompt suggestions, and preferences for a workspace */
   async getAiAssistantState(workspaceId: string): Promise<Record<string, unknown>> {
     return this.request<Record<string, unknown>>(
-      `/ai-assistant/rest/workspaces/${workspaceId}/main-page`,
+      apiPath`/ai-assistant/rest/workspaces/${workspaceId}/main-page`,
     );
   }
 
@@ -1318,7 +1397,7 @@ export class FusebaseClient {
   async listAiAgentThreads(agentId: string, orgId?: string): Promise<unknown[]> {
     const org = orgId || this.orgId;
     return this.request<unknown[]>(
-      `/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads`,
+      apiPath`/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads`,
     );
   }
 
@@ -1326,16 +1405,27 @@ export class FusebaseClient {
   async getAiAgentFavorites(orgId?: string): Promise<unknown[]> {
     const org = orgId || this.orgId;
     return this.request<unknown[]>(
-      `/v4/api/proxy/ai-service/v1/orgs/${org}/agentFavorites`,
+      apiPath`/v4/api/proxy/ai-service/v1/orgs/${org}/agentFavorites`,
     );
   }
 
   /** Get public agent profile by global ID */
   async getAgentPublicProfile(agentGlobalId: string, orgId?: string): Promise<Record<string, unknown>> {
     const org = orgId || this.orgId;
-    return this.request<Record<string, unknown>>(
-      `/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentGlobalId}/public`,
+    const text = await this.request<string>(
+      apiPath`/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentGlobalId}/public`,
+      { responseType: "text" },
     );
+    try {
+      return JSON.parse(text);
+    } catch {
+      // Live, this endpoint sends a JSON body cut off mid-string (Content-Length matches the
+      // cut, so the truncation is server-side). Keep only the top-level fields that arrived
+      // complete, and say so.
+      const partial = completeTopLevelFields(text);
+      if (!partial) throw new FusebaseApiError(`Agent profile response is not valid JSON (${text.length} bytes)`, 200, "", text.slice(0, 500));
+      return { ...partial, _truncated: true, _note: `FuseBase returned a truncated response (${text.length} bytes); only complete top-level fields are included.` };
+    }
   }
 
   /**
@@ -1345,42 +1435,30 @@ export class FusebaseClient {
   async runAiAgentTask(
     agentId: string,
     prompt: string,
-    options?: { threadId?: string; orgId?: string },
+    options: { workspaceId: string; threadId?: string; orgId?: string },
   ): Promise<Record<string, unknown>> {
-    const org = options?.orgId || this.orgId;
-    if (options?.threadId) {
+    // The API requires workspaceId as a query parameter ("workspaceId is required(in query)").
+    // The old fallback to /v4/api/proxy/ai-service/.../run does not exist on the server and
+    // only hid this error (COR-25).
+    if (!options?.workspaceId) throw new Error("workspaceId is required to run an AI agent task");
+    const org = options.orgId || this.orgId;
+    const qs = `?workspaceId=${encodeURIComponent(options.workspaceId)}`;
+    if (options.threadId) {
       return this.request<Record<string, unknown>>(
-        `/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads/${options.threadId}/messages`,
+        apiPath`/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads/${options.threadId}/messages` + qs,
         {
           method: "POST",
           body: JSON.stringify({ message: prompt, text: prompt, content: prompt }),
         },
-      ).catch(async () => {
-        return this.request<Record<string, unknown>>(
-          `/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentId}/run`,
-          {
-            method: "POST",
-            body: JSON.stringify({ prompt, threadId: options?.threadId }),
-          },
-        );
-      });
+      );
     }
-
     return this.request<Record<string, unknown>>(
-      `/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads`,
+      apiPath`/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads` + qs,
       {
         method: "POST",
         body: JSON.stringify({ message: prompt, text: prompt, prompt }),
       },
-    ).catch(async () => {
-      return this.request<Record<string, unknown>>(
-        `/v4/api/proxy/ai-service/v1/orgs/${org}/agents/${agentId}/run`,
-        {
-          method: "POST",
-          body: JSON.stringify({ prompt }),
-        },
-      );
-    });
+    );
   }
 
   /**
@@ -1388,24 +1466,28 @@ export class FusebaseClient {
    */
   async scrapeUrlViaFirecrawl(
     url: string,
-    options?: { agentId?: string; formats?: string[]; prompt?: string },
+    options: { workspaceId: string; agentId?: string; formats?: string[]; prompt?: string },
   ): Promise<Record<string, unknown>> {
-    let targetAgentId = options?.agentId;
+    let targetAgentId = options.agentId;
     if (!targetAgentId) {
-      const agents = await this.listAgents().catch(() => []);
+      const agents = await this.listAgents();
       const scraperAgent = agents.find(
         (a) =>
           /firecrawl|scraper|web\s*parser/i.test(a.title || "") ||
           /firecrawl|scraper|web\s*parser/i.test(typeof a.description === "string" ? a.description : ""),
       );
-      targetAgentId = scraperAgent?.globalId || "qMjAPHPS1e6UdoYf";
+      // No hardcoded fallback agent: an ID from another org would never work here (COR-6).
+      if (!scraperAgent?.globalId) {
+        throw new Error("No web-scraping agent (Firecrawl / scraper / web parser) found in this org; pass agentId explicitly.");
+      }
+      targetAgentId = scraperAgent.globalId;
     }
 
-    const extractionPrompt = options?.prompt
+    const extractionPrompt = options.prompt
       ? `${options.prompt}\nTarget URL: ${url}`
-      : `Please scrape and extract the content from the following URL into clean markdown: ${url}\nRequested formats: ${(options?.formats || ["markdown"]).join(", ")}`;
+      : `Please scrape and extract the content from the following URL into clean markdown: ${url}\nRequested formats: ${(options.formats || ["markdown"]).join(", ")}`;
 
-    return this.runAiAgentTask(targetAgentId, extractionPrompt);
+    return this.runAiAgentTask(targetAgentId, extractionPrompt, { workspaceId: options.workspaceId });
   }
 
   /**
@@ -1425,7 +1507,7 @@ export class FusebaseClient {
     workspaceId: string,
   ): Promise<FusebaseMentionEntity[]> {
     return this.request<FusebaseMentionEntity[]>(
-      `/v2/api/web-editor/mention-entities/${workspaceId}`,
+      apiPath`/v2/api/web-editor/mention-entities/${workspaceId}`,
     );
   }
 
@@ -1435,61 +1517,62 @@ export class FusebaseClient {
   async getNavigationMenu(workspaceId?: string): Promise<FusebaseNavMenuItem[]> {
     let ws = workspaceId;
     if (!ws) {
-      const workspaces = await this.listWorkspaces().catch(() => []);
-      ws = workspaces[0]?.workspaceId || "45h7lom5ryjak34u";
+      const workspaces = await this.listWorkspaces();
+      ws = workspaces[0]?.workspaceId;
+      if (!ws) throw new Error("getNavigationMenu: no workspaceId given and the organization has no workspaces to default to.");
     }
     return this.request<FusebaseNavMenuItem[]>(
-      `/gwapi2/ft%3Anotes/menu?workspace=${ws}`,
+      `/gwapi2/ft%3Anotes/menu?workspace=${encodeURIComponent(ws)}`,
     );
   }
 
   /** Get the activity stream for a workspace (comments, mentions, etc.) */
   async getActivityStream(workspaceId: string): Promise<FusebaseActivityItem> {
     return this.request<FusebaseActivityItem>(
-      `/gwapi2/svc%3Anotification/workspaces/${workspaceId}/activityStream`,
+      apiPath`/gwapi2/svc%3Anotification/workspaces/${workspaceId}/activityStream`,
     );
   }
 
   /** Get task usage (deadlines, reminders) for a workspace */
   async getTaskUsage(workspaceId: string): Promise<FusebaseTaskUsage> {
     return this.request<FusebaseTaskUsage>(
-      `/gwapi2/ft%3Atasks/workspaces/${workspaceId}/usage`,
+      apiPath`/gwapi2/ft%3Atasks/workspaces/${workspaceId}/usage`,
     );
   }
 
   /** Get recently updated notes across the org */
   async getRecentlyUpdatedNotes(): Promise<unknown> {
     return this.request<unknown>(
-      `/v2/api/note-service-proxy/v1/orgs/${this.orgId}/recentlyUpdatedNotes`,
+      apiPath`/v2/api/note-service-proxy/v1/orgs/${this.orgId}/recentlyUpdatedNotes`,
     );
   }
 
   /** Get task count for a workspace */
   async getTaskCount(workspaceId: string): Promise<{ count: number }> {
     return this.request<{ count: number }>(
-      `/v2/api/task-service-proxy/v1/workspaces/${workspaceId}/tasks/count`,
+      apiPath`/v2/api/task-service-proxy/v1/workspaces/${workspaceId}/tasks/count`,
     );
   }
 
   /** Get full workspace detail */
   async getWorkspaceDetail(workspaceId: string): Promise<FusebaseWorkspaceDetail> {
     return this.request<FusebaseWorkspaceDetail>(
-      `/v2/api/workspace-service-proxy/v1/workspaces/${workspaceId}`,
+      apiPath`/v2/api/workspace-service-proxy/v1/workspaces/${workspaceId}`,
     );
   }
 
   /** Get workspace email addresses */
   async getWorkspaceEmails(workspaceId: string): Promise<FusebaseWorkspaceEmail[]> {
     return this.request<FusebaseWorkspaceEmail[]>(
-      `/v1/workspaces/${workspaceId}/emails`,
+      apiPath`/v1/workspaces/${workspaceId}/emails`,
     );
   }
 
   /** Get file count across workspace or org */
   async getFileCount(params?: { workspaceId?: string; orgId?: string }): Promise<{ count: number }> {
     const qs = params?.workspaceId
-      ? `?workspaceId=${params.workspaceId}`
-      : `?orgId=${params?.orgId || this.orgId}`;
+      ? `?workspaceId=${encodeURIComponent(params.workspaceId)}`
+      : `?orgId=${encodeURIComponent(params?.orgId || this.orgId)}`;
     return this.request<{ count: number }>(
       `/v2/api/bucket-service-proxy/v1/files/count${qs}`,
     );
@@ -1498,28 +1581,28 @@ export class FusebaseClient {
   /** Get AI feature usage for the org */
   async getAiUsage(): Promise<{ max: number; current: number }> {
     return this.request<{ max: number; current: number }>(
-      `/gwapi2/ft%3Aai/orgs/${this.orgId}/usage`,
+      apiPath`/gwapi2/ft%3Aai/orgs/${this.orgId}/usage`,
     );
   }
 
   /** Get org permissions with members, avatars, usage */
   async getOrgPermissions(): Promise<FusebaseOrgPermissions> {
     return this.request<FusebaseOrgPermissions>(
-      `/gwapi2/ft%3Apermissions/orgs/${this.orgId}/members`,
+      apiPath`/gwapi2/ft%3Apermissions/orgs/${this.orgId}/members`,
     );
   }
 
   /** Get workspace info (quota reset dates, billing) */
   async getWorkspaceInfo(workspaceId: string): Promise<FusebaseWorkspaceInfo> {
     return this.request<FusebaseWorkspaceInfo>(
-      `/api/workspaces/${workspaceId}/info`,
+      apiPath`/api/workspaces/${workspaceId}/info`,
     );
   }
 
   /** Get tags for a specific note/page */
   async getNoteTags(workspaceId: string, noteId: string): Promise<string[]> {
     return this.request<string[]>(
-      `/v2/api/workspaces/${workspaceId}/notes/${noteId}/tags`,
+      apiPath`/v2/api/workspaces/${workspaceId}/notes/${noteId}/tags`,
     );
   }
 
@@ -1527,17 +1610,19 @@ export class FusebaseClient {
 
   /** Get page content as HTML/MD via Gate MCP or Y.js WebSocket sync + decoder */
   async getPageContent(workspaceId: string, noteId: string): Promise<string> {
+    let wsError: string | undefined;
     if (this.cookie) {
       try {
         const { readContentViaWebSocket } = await import("./yjs-ws-writer.js");
         const result = await readContentViaWebSocket(this.host, workspaceId, noteId, this.cookie);
-        if (result.success && result.html) {
-          return result.html;
-        }
+        // An empty page is a valid result, not a failure.
+        if (result.success) return result.html ?? "";
+        wsError = result.error;
       } catch (err: any) {
-        if (!this.gateBridge?.hasGate) throw err;
-        console.warn(`[client] WebSocket getPageContent failed (${err.message}), falling back to Gate bridge...`);
+        wsError = err.message;
       }
+      if (!this.gateBridge?.hasGate) throw new Error(`Page content read failed: ${wsError}`);
+      console.warn(`[client] WebSocket getPageContent failed (${wsError}), falling back to Gate bridge...`);
     }
     if (this.gateBridge?.hasGate) {
       try {
@@ -1560,26 +1645,19 @@ export class FusebaseClient {
     noteId: string,
     content: { markdown?: string; blocks?: unknown[] },
   ): Promise<{ success: boolean; error?: string }> {
-    if (this.cookie && content.markdown) {
-      try {
-        const { appendContentViaWebSocket } = await import("./yjs-ws-writer.js");
+    if (this.cookie && (content.markdown || content.blocks)) {
+      const { appendContentViaWebSocket } = await import("./yjs-ws-writer.js");
+      let blocks = content.blocks;
+      if (content.markdown) {
         const { markdownToSchema } = await import("./markdown-parser.js");
-        const blocks = markdownToSchema(content.markdown);
-        const result = await appendContentViaWebSocket(this.host, workspaceId, noteId, this.cookie, blocks);
-        if (result.success) return result;
-      } catch (err: any) {
-        if (!this.gateBridge?.hasGate) throw err;
-        console.warn(`[client] WebSocket appendPageContent failed (${err.message}), falling back to Gate bridge...`);
+        blocks = markdownToSchema(content.markdown);
       }
-    } else if (this.cookie && content.blocks) {
-      try {
-        const { appendContentViaWebSocket } = await import("./yjs-ws-writer.js");
-        const result = await appendContentViaWebSocket(this.host, workspaceId, noteId, this.cookie, content.blocks as any);
-        if (result.success) return result;
-      } catch (err: any) {
-        if (!this.gateBridge?.hasGate) throw err;
-        console.warn(`[client] WebSocket appendPageContent failed (${err.message}), falling back to Gate bridge...`);
-      }
+      const result = await appendContentViaWebSocket(this.host, workspaceId, noteId, this.cookie, blocks as any);
+      if (result.success) return result;
+      // A failed WebSocket append may still have been applied (e.g. a timeout after the
+      // update was sent). Only retry through Gate when the update provably never went out.
+      if (!this.gateBridge?.hasGate || !content.markdown || !wsWriteNeverSent(result.error)) return result;
+      console.warn(`[client] WebSocket appendPageContent failed (${result.error}), falling back to Gate bridge...`);
     }
 
     if (this.gateBridge?.hasGate && content.markdown) {
@@ -1615,7 +1693,7 @@ export class FusebaseClient {
     if (options?.cacheStrategy) params.set("cacheStrategy", options.cacheStrategy);
     const qs = params.toString();
     return this.request<FusebaseDatabaseViewData>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/data${qs ? `?${qs}` : ""}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/data` + (qs ? `?${qs}` : ""),
     );
   }
 
@@ -1676,7 +1754,7 @@ export class FusebaseClient {
     rows: Array<BatchPutDashboardRow>,
   ): Promise<any> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/data/batch`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/data/batch`,
       {
         method: "PUT",
         body: JSON.stringify({ rows }),
@@ -1689,86 +1767,120 @@ export class FusebaseClient {
    * Supports Flow canonical aliases including "deals_table", "deals_pipeline", "deals_all", and "trackers".
    */
   async resolveDatabaseAlias(alias: string): Promise<DatabaseAliasResolution> {
-    const normalized = alias.toLowerCase().trim();
+    // COR-2: exact (normalised) matching only. Substring matching let "deals" hit
+    // "Ideal Customers" and returned whichever table happened to come first.
+    const norm = (s: unknown) => String(s ?? "").toLowerCase().replace(/[\s_-]+/g, " ").trim();
+    const normalized = norm(alias);
+    const idLower = alias.trim().toLowerCase();
+
+    // Documented system aliases -> the table names / root entities they stand for.
+    const SYSTEM_ALIASES: Record<string, string[]> = {
+      "companies": ["company", "companies"],
+      "companies db": ["company", "companies"],
+      "deals": ["deal", "deals"],
+      "deals db": ["deal", "deals"],
+      "deals table": ["deal", "deals"],
+      "deals pipeline": ["deal", "deals"],
+      "deals all": ["deal", "deals"],
+      "meetings": ["meeting", "meetings"],
+      "meetings db": ["meeting", "meetings"],
+      "trackers": ["tracker", "trackers", "meeting tracker", "meeting trackers"],
+      "meeting trackers": ["tracker", "trackers", "meeting tracker", "meeting trackers"],
+      "members": ["member", "members"],
+      "members db": ["member", "members"],
+      "clients": ["client", "clients"],
+      "clients db": ["client", "clients"],
+      "spaces": ["space", "spaces"],
+      "spaces db": ["space", "spaces"],
+    };
+    const systemTargets = SYSTEM_ALIASES[normalized] ?? [];
+
+    let dbs: any[];
     try {
       const all = await this.listAllDatabases();
-      const dbs = all?.data ?? [];
-
-      for (const db of dbs) {
-        const dashboards = db.dashboards ?? [];
-        for (const dash of dashboards) {
-          const rootEntity = (dash.root_entity ?? "").toLowerCase();
-          const dashName = (dash.name ?? "").toLowerCase();
-          const dbTitle = (db.title ?? "").toLowerCase();
-
-          // Check for exact view names / aliases too (e.g. deals_pipeline, deals_all)
-          const matchedView = (dash.views ?? []).find((v: any) => {
-            const vName = (v.name ?? "").toLowerCase();
-            return vName === normalized || (v.global_id && v.global_id === normalized);
-          });
-
-          const match =
-            ((normalized === "companies" || normalized === "companies_db") && (dashName.includes("compan") || rootEntity.includes("compan"))) ||
-            ((normalized === "deals" || normalized === "deals_db" || normalized === "deals_table") && (dashName.includes("deal") || rootEntity.includes("deal"))) ||
-            ((normalized === "deals_pipeline" || normalized === "deals_all") && (dashName.includes("deal") || rootEntity.includes("deal"))) ||
-            ((normalized === "meetings" || normalized === "meetings_db") && (dashName.includes("meet") || rootEntity.includes("meet"))) ||
-            ((normalized === "trackers" || normalized === "meeting_trackers") && (dashName.includes("track") || rootEntity.includes("track"))) ||
-            ((normalized === "members" || normalized === "members_db") && (dashName.includes("member") || rootEntity.includes("member"))) ||
-            ((normalized === "clients" || normalized === "clients_db") && (rootEntity === "client" || dashName.includes("client"))) ||
-            ((normalized === "spaces" || normalized === "spaces_db") && (rootEntity === "space" || dashName.includes("space"))) ||
-            Boolean(matchedView) ||
-            dashName === normalized ||
-            dbTitle === normalized;
-
-          if (match) {
-            // Build views list
-            const views = (dash.views ?? []).map((v: any, idx: number) => ({
-              id: v.global_id || v.id,
-              name: v.name || `View ${idx + 1}`,
-              type: v.representation_type || v.type,
-              isDefault: idx === 0,
-            }));
-
-            // Determine primary view ID: if specific view was requested, prioritize it
-            let selectedViewId = dash.views?.[0]?.global_id;
-            if (normalized === "deals_pipeline") {
-              const pipelineView = views.find((v: any) => v.name.toLowerCase().includes("pipeline") || v.type === "kanban");
-              if (pipelineView) selectedViewId = pipelineView.id;
-            } else if (normalized === "deals_all") {
-              const allView = views.find((v: any) => v.name.toLowerCase().includes("all") || v.type === "table" || v.type === "grid");
-              if (allView) selectedViewId = allView.id;
-            } else if (matchedView) {
-              selectedViewId = (matchedView as any).global_id || (matchedView as any).id;
-            }
-
-            // Identify child tables in the same database (e.g. trackers for meetings)
-            const childTables = dashboards
-              .filter((d: any) => d.global_id !== dash.global_id)
-              .map((d: any) => ({
-                dashboardId: d.global_id,
-                name: d.name || "Child Table",
-                alias: (d.name || "").toLowerCase().replace(/\s+/g, "_"),
-              }));
-
-            return {
-              alias,
-              found: true,
-              databaseId: db.global_id,
-              dashboardId: dash.global_id,
-              dashboardName: dash.name,
-              viewId: selectedViewId,
-              title: dash.name || db.title,
-              views,
-              childTables: childTables.length > 0 ? childTables : undefined,
-            };
-          }
-        }
-      }
+      dbs = all?.data ?? [];
     } catch {
-      // Non-blocking fallback
+      // Non-blocking: callers fall back to listDatabases()
+      return { alias, found: false };
     }
 
-    return { alias, found: false };
+    // Rank every table; lower tier = stronger match. Only the best tier is considered.
+    type Candidate = { db: any; dash: any; tier: number; matchedView?: any };
+    const candidates: Candidate[] = [];
+    for (const db of dbs) {
+      const dashboards: any[] = db.dashboards ?? [];
+      dashboards.forEach((dash, idx) => {
+        const dashName = norm(dash.name);
+        const rootEntity = norm(dash.root_entity);
+        const matchedView = (dash.views ?? []).find(
+          (v: any) => (v.name && norm(v.name) === normalized) || (v.global_id && String(v.global_id).toLowerCase() === idLower),
+        );
+        let tier = 0;
+        if (dash.global_id && String(dash.global_id).toLowerCase() === idLower) tier = 1;
+        else if (dashName === normalized) tier = 2;
+        else if (systemTargets.length > 0 && (systemTargets.includes(dashName) || systemTargets.includes(rootEntity))) tier = 3;
+        else if (rootEntity === normalized) tier = 4;
+        else if (matchedView) tier = 5;
+        else if (idx === 0 && (norm(db.title) === normalized || String(db.global_id ?? "").toLowerCase() === idLower)) tier = 6;
+        if (tier > 0) candidates.push({ db, dash, tier, matchedView });
+      });
+    }
+
+    if (candidates.length === 0) return { alias, found: false };
+
+    const bestTier = Math.min(...candidates.map((c) => c.tier));
+    const best = candidates.filter((c) => c.tier === bestTier);
+    if (best.length > 1) {
+      const list = best
+        .map((c) => `"${c.dash.name ?? c.db.title}" (dashboardId ${c.dash.global_id}, database "${c.db.title}")`)
+        .join("; ");
+      throw new Error(
+        `Database alias '${alias}' is ambiguous: ${best.length} tables match equally well: ${list}. ` +
+        `Pass dashboardId (and viewId) explicitly.`,
+      );
+    }
+
+    const { db, dash, matchedView } = best[0];
+    const dashboards: any[] = db.dashboards ?? [];
+    const views = (dash.views ?? []).map((v: any, idx: number) => ({
+      id: v.global_id || v.id,
+      name: v.name || `View ${idx + 1}`,
+      type: v.representation_type || v.type,
+      isDefault: idx === 0,
+    }));
+
+    // Determine primary view ID: if specific view was requested, prioritize it
+    let selectedViewId = dash.views?.[0]?.global_id;
+    if (normalized === "deals pipeline") {
+      const pipelineView = views.find((v: any) => v.name.toLowerCase().includes("pipeline") || v.type === "kanban");
+      if (pipelineView) selectedViewId = pipelineView.id;
+    } else if (normalized === "deals all") {
+      const allView = views.find((v: any) => v.name.toLowerCase().includes("all") || v.type === "table" || v.type === "grid");
+      if (allView) selectedViewId = allView.id;
+    } else if (matchedView) {
+      selectedViewId = matchedView.global_id || matchedView.id;
+    }
+
+    // Identify child tables in the same database (e.g. trackers for meetings)
+    const childTables = dashboards
+      .filter((d: any) => d.global_id !== dash.global_id)
+      .map((d: any) => ({
+        dashboardId: d.global_id,
+        name: d.name || "Child Table",
+        alias: (d.name || "").toLowerCase().replace(/\s+/g, "_"),
+      }));
+
+    return {
+      alias,
+      found: true,
+      databaseId: db.global_id,
+      dashboardId: dash.global_id,
+      dashboardName: dash.name,
+      viewId: selectedViewId,
+      title: dash.name || db.title,
+      views,
+      childTables: childTables.length > 0 ? childTables : undefined,
+    };
   }
 
   /**
@@ -1827,12 +1939,8 @@ export class FusebaseClient {
     ];
 
     try {
-      const dbRes = await fetch(`${this.baseUrl}/dashboard/${org}/tables/databases`, {
-        headers: { cookie: this.cookie },
-        signal: AbortSignal.timeout(TIMEOUT_GET),
-      });
-      if (!dbRes.ok) return [];
-      const dbHtml = await dbRes.text();
+      // Legacy probe: these are web-app HTML pages, scraped for UUIDs.
+      const dbHtml = await this.request<string>(apiPath`/dashboard/${org}/tables/databases`, { responseType: "text" });
       const layoutUuids = new Set(
         [...new Set(dbHtml.match(UUID_RE) || [])].map((u) => u.toLowerCase()),
       );
@@ -1840,15 +1948,7 @@ export class FusebaseClient {
       const fallbackResults: Array<{ dashboardId: string; viewId: string; entity: string }> = [];
       for (const entity of entities) {
         try {
-          const entRes = await fetch(
-            `${this.baseUrl}/dashboard/${org}/tables/entity/${entity}`,
-            {
-              headers: { cookie: this.cookie },
-              signal: AbortSignal.timeout(TIMEOUT_GET),
-            },
-          );
-          if (!entRes.ok) continue;
-          const entHtml = await entRes.text();
+          const entHtml = await this.request<string>(apiPath`/dashboard/${org}/tables/entity/${entity}`, { responseType: "text" });
           const pageUuids = [...new Set(entHtml.match(UUID_RE) || [])]
             .map((u) => u.toLowerCase())
             .filter((u) => !layoutUuids.has(u));
@@ -1859,10 +1959,14 @@ export class FusebaseClient {
               entity,
             });
           }
-        } catch {}
+        } catch (err) {
+          // One entity not existing in this org is expected; log so real failures are visible.
+          console.error(`[client] legacy entity probe '${entity}' failed: ${err instanceof Error ? err.message.split("\n")[0] : err}`);
+        }
       }
       return fallbackResults;
-    } catch {
+    } catch (err) {
+      console.error(`[client] legacy database probe failed: ${err instanceof Error ? err.message.split("\n")[0] : err}`);
       return [];
     }
   }
@@ -1980,40 +2084,73 @@ export class FusebaseClient {
     viewId: string;
     entity: string;
   }> {
+    // COR-2: never mix a caller-supplied id with ids resolved for a different table,
+    // never write to guessed column keys, and never report success the API didn't give.
+    const norm = (s: unknown) => String(s ?? "").toLowerCase().replace(/[\s_-]+/g, " ").trim();
+    const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
     let dashboardId = options?.dashboardId;
     let viewId = options?.viewId;
+    // View ids known to belong to a resolved dashboard (used to validate a caller-supplied viewId).
+    let knownViewIds: string[] | undefined;
 
-    if (dashboardId && !viewId) {
-      try {
-        const detail = await this.getDashboardDetail(dashboardId);
-        const views = (detail as any)?.data?.views ?? (detail as any)?.views;
-        if (Array.isArray(views) && views.length > 0) {
-          viewId = views[0].global_id || views[0].id;
+    if (dashboardId) {
+      if (!viewId) {
+        let detail: unknown;
+        try {
+          detail = await this.getDashboardDetail(dashboardId);
+        } catch (err) {
+          throw new Error(
+            `Could not load dashboard '${dashboardId}' to find its default view: ${errMsg(err)}. Pass viewId explicitly.`,
+          );
         }
-      } catch {
-        // Fallback to searching database list
+        const views = (detail as any)?.data?.views ?? (detail as any)?.views;
+        viewId = Array.isArray(views) && views.length > 0 ? (views[0].global_id || views[0].id) : undefined;
+        if (!viewId) {
+          throw new Error(`Dashboard '${dashboardId}' returned no views. Pass viewId explicitly.`);
+        }
       }
-    }
-
-    if (!dashboardId || !viewId) {
+    } else if (options?.databaseId) {
+      const all = await this.listAllDatabases();
+      const db = (all?.data ?? []).find((d) => d.global_id === options.databaseId);
+      if (!db) {
+        throw new Error(`Database '${options.databaseId}' not found. Use list_all_databases to find valid ids.`);
+      }
+      const dashboards = db.dashboards ?? [];
+      const picks = dashboards.length === 1
+        ? dashboards
+        : dashboards.filter((d) => norm(d.name) === norm(entity) || norm(d.root_entity) === norm(entity));
+      if (picks.length !== 1) {
+        const list = dashboards.map((d) => `"${d.name}" (dashboardId ${d.global_id})`).join("; ") || "none";
+        throw new Error(
+          `Could not pick a single table for entity '${entity}' in database '${options.databaseId}'. ` +
+          `Tables: ${list}. Pass dashboardId explicitly.`,
+        );
+      }
+      dashboardId = picks[0].global_id;
+      knownViewIds = (picks[0].views ?? []).map((v) => v.global_id);
+      viewId = viewId || knownViewIds[0];
+    } else {
       const resolved = await this.resolveDatabaseAlias(entity);
-      if (resolved?.dashboardId && resolved?.viewId) {
-        dashboardId = dashboardId || resolved.dashboardId;
+      if (resolved.found && resolved.dashboardId) {
+        dashboardId = resolved.dashboardId;
+        knownViewIds = (resolved.views ?? []).map((v) => v.id);
         viewId = viewId || resolved.viewId;
       } else {
         const databases = await this.listDatabases(options?.orgId);
-        let match = dashboardId ? databases.find((d) => d.dashboardId === dashboardId) : undefined;
-        if (!match) {
-          match = databases.find(
-            (d) =>
-              d.entity.toLowerCase() === entity.toLowerCase() ||
-              d.title?.toLowerCase() === entity.toLowerCase() ||
-              (options?.databaseId && d.databaseId === options.databaseId),
+        const matches = databases.filter(
+          (d) => norm(d.entity) === norm(entity) || norm(d.title) === norm(entity),
+        );
+        const distinct = [...new Map(matches.map((m) => [m.dashboardId, m])).values()];
+        if (distinct.length > 1) {
+          throw new Error(
+            `Entity '${entity}' is ambiguous: ${distinct.map((d) => `dashboardId ${d.dashboardId} (${d.title ?? d.entity})`).join("; ")}. ` +
+            `Pass dashboardId explicitly.`,
           );
         }
-        if (match) {
-          dashboardId = dashboardId || match.dashboardId;
-          viewId = viewId || match.viewId;
+        if (distinct.length === 1) {
+          dashboardId = distinct[0].dashboardId;
+          if (!viewId) viewId = distinct[0].viewId;
+          else if (viewId !== distinct[0].viewId) knownViewIds = [distinct[0].viewId];
         }
       }
     }
@@ -2023,24 +2160,34 @@ export class FusebaseClient {
         `Could not resolve dashboardId and viewId for entity '${entity}'. Please provide dashboardId and viewId explicitly.`,
       );
     }
+    if (options?.viewId && knownViewIds && knownViewIds.length > 0 && !knownViewIds.includes(options.viewId)) {
+      throw new Error(
+        `viewId '${options.viewId}' does not belong to the resolved table (dashboardId ${dashboardId}; views: ${knownViewIds.join(", ")}). ` +
+        `Pass the matching dashboardId explicitly.`,
+      );
+    }
 
-    // Resolve column keys if values were provided
+    // Resolve column keys if values were provided; unknown columns are an error, not raw keys.
     const rowValues: Array<{ item_key: string; value: unknown }> = [];
     if (options?.values && Object.keys(options.values).length > 0) {
       const mapping = await this.resolveColumnKeys(dashboardId, viewId);
+      const unknown: string[] = [];
       for (const [keyOrName, val] of Object.entries(options.values)) {
         if (mapping.nameByKey.has(keyOrName)) {
           rowValues.push({ item_key: keyOrName, value: val });
-        } else {
-          const resolvedKey =
-            mapping.keyByName.get(keyOrName) ||
-            mapping.keyByName.get(keyOrName.toLowerCase());
-          if (resolvedKey) {
-            rowValues.push({ item_key: resolvedKey, value: val });
-          } else {
-            rowValues.push({ item_key: keyOrName, value: val });
-          }
+          continue;
         }
+        const resolvedKey =
+          mapping.keyByName.get(keyOrName) ||
+          mapping.keyByName.get(keyOrName.toLowerCase());
+        if (resolvedKey) rowValues.push({ item_key: resolvedKey, value: val });
+        else unknown.push(keyOrName);
+      }
+      if (unknown.length > 0) {
+        const valid = mapping.columns.map((c) => `${c.name} (${c.key})`).join(", ") || "none";
+        throw new Error(
+          `Unknown column(s) for dashboard ${dashboardId} / view ${viewId}: ${unknown.join(", ")}. Valid columns: ${valid}.`,
+        );
       }
     }
 
@@ -2052,13 +2199,20 @@ export class FusebaseClient {
       },
     ]);
 
+    // request() throws on HTTP errors; a 2xx body can still report failure.
+    if (res && typeof res === "object" && !Array.isArray(res) && (res.success === false || res.error)) {
+      throw new Error(
+        `Row creation failed for dashboard ${dashboardId}: ${res.message ?? res.error ?? JSON.stringify(res)}`,
+      );
+    }
+
     const items = Array.isArray(res) ? res : (res?.data ?? res?.rows ?? []);
-    const createdItem = items[0];
+    const createdItem = Array.isArray(items) ? items[0] : undefined;
     const rowUuid =
       createdItem?.root_index_value ?? createdItem?.id ?? createdItem?.global_id;
 
     return {
-      success: true,
+      success: res?.success ?? true,
       rowUuid,
       data: res,
       dashboardId,
@@ -2078,7 +2232,7 @@ export class FusebaseClient {
     rowId: string,
   ): Promise<{ success: boolean; message: string }> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/rows/${rowId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/rows/${rowId}`,
       { method: "DELETE" },
     );
   }
@@ -2114,10 +2268,10 @@ export class FusebaseClient {
     viewId?: string,
   ): Promise<{ success: boolean; data: unknown }> {
     const qs = viewId
-      ? `?source_view_ids=${viewId}&include_possible_lookup_items=true`
+      ? `?source_view_ids=${encodeURIComponent(viewId)}&include_possible_lookup_items=true`
       : `?include_possible_lookup_items=true`;
     const result = await this.request<unknown>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/allowed-items${qs}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/allowed-items` + qs,
     );
     return { success: true, data: result };
   }
@@ -2136,7 +2290,7 @@ export class FusebaseClient {
     title: string,
   ): Promise<unknown> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views`,
       {
         method: "POST",
         body: JSON.stringify({ title }),
@@ -2153,7 +2307,7 @@ export class FusebaseClient {
     relationId: string,
   ): Promise<{ success: boolean; message: string }> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/relations/${relationId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/relations/${relationId}`,
       { method: "DELETE" },
     );
   }
@@ -2168,7 +2322,7 @@ export class FusebaseClient {
     rows: Array<{ source_index: string; target_index: string }>,
   ): Promise<{ success: boolean; data: unknown }> {
     const result = await this.request<unknown>(
-      `/v4/api/proxy/dashboard-service/v1/relations/${relationId}/rows`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/relations/${relationId}/rows`,
       {
         method: "POST",
         body: JSON.stringify({ rows }),
@@ -2181,18 +2335,27 @@ export class FusebaseClient {
    * Remove row mappings from a relation.
    *
    * Endpoint: DELETE /v4/api/proxy/dashboard-service/v1/relations/{relationId}/rows
+   *
+   * COR-9: a DELETE with no source_index/target_index removes EVERY mapping on the
+   * relation, so that form is only sent when `unlinkAll: true` is passed explicitly.
    */
   async deleteRelationRows(
     relationId: string,
-    options?: { source_index?: string; target_index?: string },
+    options?: { source_index?: string; target_index?: string; unlinkAll?: boolean },
   ): Promise<{ success: boolean; message?: string }> {
+    if (!options?.source_index && !options?.target_index && options?.unlinkAll !== true) {
+      throw new Error(
+        "Refusing to unlink rows without source_index/target_index: that would remove every link on the relation. " +
+        "Pass row IDs, or unlinkAll: true to intentionally remove all links.",
+      );
+    }
     const params = new URLSearchParams();
     if (options?.source_index) params.set("source_index", options.source_index);
     if (options?.target_index) params.set("target_index", options.target_index);
     const qs = params.toString() ? `?${params.toString()}` : "";
 
     await this.request(
-      `/v4/api/proxy/dashboard-service/v1/relations/${relationId}/rows${qs}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/relations/${relationId}/rows` + qs,
       { method: "DELETE" },
     );
     return { success: true, message: "Relation row(s) removed successfully" };
@@ -2208,7 +2371,7 @@ export class FusebaseClient {
     includeRows: boolean = true,
   ): Promise<{ success: boolean; data: unknown }> {
     const result = await this.request<unknown>(
-      `/v4/api/proxy/dashboard-service/v1/relations/${relationId}?include_rows=${includeRows}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/relations/${relationId}` + `?include_rows=${encodeURIComponent(includeRows)}`,
     );
     return { success: true, data: result };
   }
@@ -2216,19 +2379,25 @@ export class FusebaseClient {
   /**
    * Update row ordering for a dashboard view/section.
    *
-   * Endpoint: PUT /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/row-orders
+   * Endpoint: PUT /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/rows/order
+   *   ?view_id=…&section_type=…&section_key=…&section_value=…
+   * Body: { row_orders: [{ row_uuid, sort_order }] } — sort_order is 1-based.
+   * Source: @fusebase/dashboard-service-sdk 1.33.4 (CustomDashboardRowsApi.updateDashboardRowOrder,
+   * UpdateRowOrderRequestContract). Not yet confirmed against a live capture.
    */
   async updateDashboardRowOrder(
     dashboardId: string,
     viewId: string,
-    rowOrders: Array<{ row_uuid: string; order: number }>,
+    rowOrders: Array<{ row_uuid: string; sort_order: number }>,
     options?: { section_type?: string; section_key?: string; section_value?: string },
   ): Promise<{ success: boolean; message?: string }> {
     const sectionType = options?.section_type ?? "view";
     const sectionKey = options?.section_key ?? "view";
     const sectionValue = options?.section_value ?? viewId;
     await this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/rows/order?view_id=${viewId}&section_type=${sectionType}&section_key=${sectionKey}&section_value=${sectionValue}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/rows/order` +
+        `?view_id=${encodeURIComponent(viewId)}&section_type=${encodeURIComponent(sectionType)}` +
+        `&section_key=${encodeURIComponent(sectionKey)}&section_value=${encodeURIComponent(sectionValue)}`,
       {
         method: "PUT",
         body: JSON.stringify({ row_orders: rowOrders }),
@@ -2268,7 +2437,7 @@ export class FusebaseClient {
     }>;
   }> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/databases?scope_type=org&scope_id=${this.orgId}`,
+      `/v4/api/proxy/dashboard-service/v1/databases?scope_type=org&scope_id=${encodeURIComponent(this.orgId)}`,
     );
   }
 
@@ -2299,7 +2468,7 @@ export class FusebaseClient {
     };
   }> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/databases/${dbId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/databases/${dbId}`,
     );
   }
 
@@ -2337,7 +2506,7 @@ export class FusebaseClient {
     if (Object.keys(metadata).length > 0) body.metadata = metadata;
 
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/databases/${dbId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/databases/${dbId}`,
       { method: "PUT", body: JSON.stringify(body) },
     );
   }
@@ -2349,18 +2518,8 @@ export class FusebaseClient {
    * Returns 204 No Content on success.
    */
   async deleteDatabase(dbId: string): Promise<{ success: boolean; message: string }> {
-    const res = await fetch(
-      `${this.baseUrl}/v4/api/proxy/dashboard-service/v1/databases/${dbId}`,
-      {
-        method: "DELETE",
-        headers: { cookie: this.cookie },
-        signal: AbortSignal.timeout(TIMEOUT_GET),
-      },
-    );
-    if (!res.ok && res.status !== 204) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`deleteDatabase failed: ${res.status} ${text}`);
-    }
+    // 204 No Content on success; request() throws FusebaseApiError otherwise.
+    await this.send(apiPath`/v4/api/proxy/dashboard-service/v1/databases/${dbId}`, { method: "DELETE" });
     return { success: true, message: "Database deleted successfully" };
   }
 
@@ -2425,7 +2584,7 @@ export class FusebaseClient {
     };
   }> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}`,
     );
   }
 
@@ -2440,7 +2599,7 @@ export class FusebaseClient {
     message: string;
   }> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}`,
       { method: "DELETE" },
     );
   }
@@ -2466,7 +2625,7 @@ export class FusebaseClient {
     data: Record<string, unknown>;
   }> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify(updates) },
     );
   }
@@ -2496,13 +2655,13 @@ export class FusebaseClient {
   }> {
     if (representationType === "table" || representationType === "kanban") {
       return this.request(
-        `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/representations/${representationType}`,
+        apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/representations/${representationType}`,
         { method: "POST" },
       );
     }
     // board, calendar, timeline, gallery, list, grid use PUT on the view
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       {
         method: "PUT",
         body: JSON.stringify({
@@ -2515,8 +2674,8 @@ export class FusebaseClient {
   /** Get managed dashboard and view representation templates (e.g. Table, Kanban) */
   async getDashboardTemplates(orgId?: string, workspaceId?: string): Promise<unknown> {
     const org = orgId || this.orgId;
-    let url = `/v4/api/dashboard/representation-templates?orgId=${org}`;
-    if (workspaceId) url += `&workspaceId=${workspaceId}`;
+    let url = `/v4/api/dashboard/representation-templates?orgId=${encodeURIComponent(org)}`;
+    if (workspaceId) url += `&workspaceId=${encodeURIComponent(workspaceId)}`;
     return this.request<unknown>(url);
   }
 
@@ -2565,7 +2724,7 @@ export class FusebaseClient {
     }
 
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/representations/${representationType}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}/representations/${representationType}`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -2615,7 +2774,7 @@ export class FusebaseClient {
 
     // PUT the updated schema back
     const res = await this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       {
         method: "PUT",
         body: JSON.stringify({ schema: { items } }),
@@ -2646,7 +2805,7 @@ export class FusebaseClient {
     let schema: unknown = {};
     if (defaultViewId) {
       const viewDetail = await this.request<{ success: boolean; data: { schema: unknown } }>(
-        `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${defaultViewId}`,
+        apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${defaultViewId}`,
       );
       schema = viewDetail.data?.schema || {};
     }
@@ -2657,7 +2816,7 @@ export class FusebaseClient {
       filters: { logic: "AND", conditions: [] },
     };
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views`,
       { method: "POST", body: JSON.stringify(body) },
     );
   }
@@ -2672,7 +2831,7 @@ export class FusebaseClient {
     viewId: string,
   ): Promise<{ success: boolean; message: string }> {
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "DELETE" },
     );
   }
@@ -2694,14 +2853,14 @@ export class FusebaseClient {
   ): Promise<{ success: boolean; data: unknown }> {
     // First, get the source view's schema and filters
     const sourceView = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${sourceViewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${sourceViewId}`,
     );
     const viewData = (sourceView as any)?.data ?? sourceView;
     const schema = viewData.schema || {};
     const filters = viewData.filters || { logic: "AND", conditions: [] };
 
     return this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -2754,50 +2913,10 @@ export class FusebaseClient {
       }
     }
 
-    // The FuseBase import API uses a GET request with all params as query strings.
-    // File content is sent as a Blob in a multipart POST first, but the actual
-    // import trigger is via query params. Based on browser intercept, the flow is:
-    // 1. Upload file via the dialog (client-side reads it)
-    // 2. GET /dashboards/import/csv?database_id=...&dashboard_id=...&view_id=...&delimiter=...&mapping[columns][0][index]=0&...
-    //
-    // However, since we're sending CSV content programmatically, we use POST with
-    // the file in form data and all other params as query strings.
-    const params = new URLSearchParams();
-    params.set("database_id", databaseId);
-    params.set("dashboard_id", dashboardId);
-    params.set("view_id", viewId);
-    params.set("delimiter", delimiter);
-
-    if (mapping) {
-      for (let i = 0; i < mapping.length; i++) {
-        const col = mapping[i];
-        params.set(`mapping[columns][${i}][index]`, String(col.index));
-        params.set(`mapping[columns][${i}][type]`, col.type);
-        params.set(`mapping[columns][${i}][edit_type]`, col.edit_type);
-      }
-    }
-
-    // Try GET first (as observed in browser), fall back to POST with form data
-    const baseEndpoint = `/v4/api/proxy/dashboard-service/v1/dashboards/import/csv`;
-    const queryString = params.toString();
-
-    // First, try the GET approach (browser-observed method)
-    const getUrl = `${this.baseUrl}${baseEndpoint}?${queryString}`;
-    const getRes = await fetch(getUrl, {
-      method: "GET",
-      headers: { cookie: this.cookie },
-      signal: AbortSignal.timeout(TIMEOUT_WRITE),
-    });
-
-    if (getRes.ok) {
-      try {
-        return { success: true, data: await getRes.json() };
-      } catch {
-        return { success: true, data: await getRes.text() };
-      }
-    }
-
-    // Fallback: POST with CSV as form data + query params
+    // POST everything as multipart form data, matching the official dashboard-service SDK
+    // (importDashboardFromCsv): the file in `file`, the ids and delimiter as plain fields,
+    // and `mapping` as a JSON string. Bracket-style query parameters are not parsed by the
+    // server ("mapping.columns must be provided"), and a GET can't carry the file (COR-3).
     const blob = new Blob([csvContent], { type: "text/csv" });
     const formData = new FormData();
     formData.append("file", blob, "import.csv");
@@ -2805,24 +2924,13 @@ export class FusebaseClient {
     formData.append("dashboard_id", dashboardId);
     formData.append("view_id", viewId);
     formData.append("delimiter", delimiter);
+    formData.append("mapping", JSON.stringify({ columns: mapping ?? [] }));
 
-    const postUrl = `${this.baseUrl}${baseEndpoint}?${queryString}`;
-    const postRes = await fetch(postUrl, {
-      method: "POST",
-      headers: { cookie: this.cookie },
-      body: formData,
-      signal: AbortSignal.timeout(TIMEOUT_WRITE),
-    });
-
-    if (!postRes.ok) {
-      const text = await postRes.text().catch(() => "");
-      throw new Error(`importCSV failed: ${postRes.status} ${text}`);
-    }
-    try {
-      return { success: true, data: await postRes.json() };
-    } catch {
-      return { success: true, data: await postRes.text() };
-    }
+    const data = await this.request<unknown>(
+      `/v4/api/proxy/dashboard-service/v1/dashboards/import/csv`,
+      { method: "POST", body: formData },
+    );
+    return { success: true, data };
   }
 
   /**
@@ -2842,7 +2950,7 @@ export class FusebaseClient {
     newName: string,
   ): Promise<{ success: boolean; message: string }> {
     const viewRes = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
     );
     const viewData = (viewRes as any)?.data ?? viewRes;
     const schema = { ...(viewData.schema ?? {}) };
@@ -2856,7 +2964,7 @@ export class FusebaseClient {
 
     (schema as any).items = items;
     await this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
     this.invalidateViewSchemaCache(dashboardId, viewId);
@@ -2880,7 +2988,7 @@ export class FusebaseClient {
     orderedKeys: string[],
   ): Promise<{ success: boolean; message: string }> {
     const viewRes = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
     );
     const viewData = (viewRes as any)?.data ?? viewRes;
     const schema = { ...(viewData.schema ?? {}) };
@@ -2910,7 +3018,7 @@ export class FusebaseClient {
 
     (schema as any).items = reordered;
     await this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
     this.invalidateViewSchemaCache(dashboardId, viewId);
@@ -2930,16 +3038,9 @@ export class FusebaseClient {
     viewId: string,
     delimiter: "," | ";" | "|" | "\t" | "^" = ",",
   ): Promise<{ success: boolean; csv: string }> {
-    const url = `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/export/csv?view_id=${viewId}&delimiter=${encodeURIComponent(delimiter)}`;
-    const res = await fetch(`${this.baseUrl}${url}`, {
-      headers: { cookie: this.cookie },
-      signal: AbortSignal.timeout(TIMEOUT_GET),
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`exportCSV failed: ${res.status} ${text}`);
-    }
-    const csv = await res.text();
+    const url = apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/export/csv` +
+      `?view_id=${encodeURIComponent(viewId)}&delimiter=${encodeURIComponent(delimiter)}`;
+    const csv = await this.request<string>(url, { responseType: "text", timeoutMs: TIMEOUT_DOWNLOAD });
     return { success: true, csv };
   }
 
@@ -2966,11 +3067,12 @@ export class FusebaseClient {
       required: boolean;
       description: string;
       metadata: Record<string, unknown>;
+      labels?: Array<{ nanoid: string; name: string }>;
     }>;
     rawSchema: Record<string, unknown>;
   }> {
     const res = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
     );
     const schema = (res as any)?.data?.schema ?? (res as any)?.schema ?? {};
     const items: Array<Record<string, unknown>> = (schema as any).items ?? [];
@@ -2985,6 +3087,9 @@ export class FusebaseClient {
       required: Boolean(item.required),
       description: String(item.description ?? ""),
       metadata: (item.metadata ?? {}) as Record<string, unknown>,
+      labels: Array.isArray((item.render as any)?.labels)
+        ? ((item.render as any).labels as Array<Record<string, unknown>>).map((l) => ({ nanoid: String(l.nanoid ?? ""), name: String(l.name ?? "") }))
+        : undefined,
     }));
 
     return { columns, rawSchema: schema as Record<string, unknown> };
@@ -3020,18 +3125,14 @@ export class FusebaseClient {
   }> {
     // 1. Fetch current view detail
     const viewRes = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
     );
     const viewData = (viewRes as any)?.data ?? viewRes;
     const schema = { ...(viewData.schema ?? {}) };
     const items: Array<Record<string, unknown>> = [...((schema as any).items ?? [])];
 
     // 2. Generate a unique 8-char column key (nanoid-style)
-    const KEY_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
-    let newKey = "";
-    for (let i = 0; i < 8; i++) {
-      newKey += KEY_CHARS.charAt(Math.floor(Math.random() * KEY_CHARS.length));
-    }
+    const newKey = randomId(8, COLUMN_KEY_CHARS);
 
     // 3. Build column definition based on type
     const colDef = this.buildColumnDefinition(newKey, name, columnType, options);
@@ -3040,7 +3141,7 @@ export class FusebaseClient {
     // 4. PUT updated schema
     (schema as any).items = items;
     await this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
     this.invalidateViewSchemaCache(dashboardId, viewId);
@@ -3065,7 +3166,7 @@ export class FusebaseClient {
   ): Promise<{ success: boolean; message: string }> {
     // 1. Fetch current view detail
     const viewRes = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
     );
     const viewData = (viewRes as any)?.data ?? viewRes;
     const schema = { ...(viewData.schema ?? {}) };
@@ -3082,7 +3183,7 @@ export class FusebaseClient {
     // 3. PUT updated schema
     (schema as any).items = items;
     await this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
     this.invalidateViewSchemaCache(dashboardId, viewId);
@@ -3119,14 +3220,17 @@ export class FusebaseClient {
   }> {
     const relationType = options?.relationType ?? "many_to_many";
 
-    // 1. Create the relation via dedicated endpoint
+    // 1. Create the relation via dedicated endpoint.
+    // FuseBase direction: source = the table data is fetched FROM (the linked table),
+    // target = the table the column lives ON. Reversing them makes the view update fail
+    // with "Dashboard view not found" (COR-20; see the dashboards SDK relations guide).
     const relationRes = await this.request<{ data: { global_id: string } }>(
       `/v4/api/proxy/dashboard-service/v1/relations`,
       {
         method: "POST",
         body: JSON.stringify({
-          source_dashboard_id: dashboardId,
-          target_dashboard_id: targetDashboardId,
+          source_dashboard_id: targetDashboardId,
+          target_dashboard_id: dashboardId,
           relation_type: relationType,
         }),
       },
@@ -3138,7 +3242,7 @@ export class FusebaseClient {
 
     // 2. Get target view schema to find the Name column key
     const targetViewRes = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${targetDashboardId}/views/${targetViewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${targetDashboardId}/views/${targetViewId}`,
     );
     const targetItems: Array<Record<string, unknown>> = ((targetViewRes as any)?.data?.schema?.items ?? []);
     // Use the first string column (usually "Name") as the lookup field
@@ -3147,15 +3251,13 @@ export class FusebaseClient {
 
     // 3. Fetch source view schema and add the relation column
     const viewRes = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
     );
     const viewData = (viewRes as any)?.data ?? viewRes;
     const schema = { ...(viewData.schema ?? {}) };
     const items: Array<Record<string, unknown>> = [...((schema as any).items ?? [])];
 
-    const KEY_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
-    let newKey = "";
-    for (let i = 0; i < 8; i++) newKey += KEY_CHARS.charAt(Math.floor(Math.random() * KEY_CHARS.length));
+    const newKey = randomId(8, COLUMN_KEY_CHARS);
 
     // Build the lookup-source column definition that references the relation
     const colDef = {
@@ -3222,7 +3324,7 @@ export class FusebaseClient {
     items.push(colDef);
     (schema as any).items = items;
     await this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
     this.invalidateViewSchemaCache(dashboardId, viewId);
@@ -3257,7 +3359,7 @@ export class FusebaseClient {
   }> {
     // 1. Fetch current schema and find the relation column
     const viewRes = await this.request<{ data: Record<string, unknown> }>(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
     );
     const viewData = (viewRes as any)?.data ?? viewRes;
     const schema = { ...(viewData.schema ?? {}) };
@@ -3285,16 +3387,14 @@ export class FusebaseClient {
     let targetItemKey = lookupFieldKey;
     if (!targetItemKey) {
       const targetViewRes = await this.request<{ data: Record<string, unknown> }>(
-        `/v4/api/proxy/dashboard-service/v1/dashboards/${targetDashId}/views/${targetViewId}`,
+        apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${targetDashId}/views/${targetViewId}`,
       );
       const targetItems: Array<Record<string, unknown>> = ((targetViewRes as any)?.data?.schema?.items ?? []);
       const nameCol = targetItems.find((i: any) => i.source?.custom_type === "string") ?? targetItems[0];
       targetItemKey = String(nameCol?.key ?? "");
     }
 
-    const KEY_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
-    let newKey = "";
-    for (let i = 0; i < 8; i++) newKey += KEY_CHARS.charAt(Math.floor(Math.random() * KEY_CHARS.length));
+    const newKey = randomId(8, COLUMN_KEY_CHARS);
 
     const lookupDef = {
       key: newKey,
@@ -3360,7 +3460,7 @@ export class FusebaseClient {
     items.push(lookupDef);
     (schema as any).items = items;
     await this.request(
-      `/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
+      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views/${viewId}`,
       { method: "PUT", body: JSON.stringify({ schema }) },
     );
     this.invalidateViewSchemaCache(dashboardId, viewId);
@@ -3676,12 +3776,7 @@ export class FusebaseClient {
 
   /** Generate a short nanoid-style ID for label items */
   private nanoid(length = 8): string {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let id = "";
-    for (let i = 0; i < length; i++) {
-      id += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return id;
+    return randomId(length);
   }
 
   /**
@@ -3721,6 +3816,8 @@ export class FusebaseClient {
         const lower = value.trim().toLowerCase();
         if (lower === "true") effectiveValue = true;
         else if (lower === "false") effectiveValue = false;
+      } else if (colDef.type === "label") {
+        effectiveValue = toLabelIds(colDef, value);
       }
     }
 
@@ -3836,7 +3933,7 @@ export class FusebaseClient {
       }
     }
     return this.request<IsolatedStore[]>(
-      `/v4/api/proxy/gate-service/v1/orgs/${org}/isolated-stores`,
+      apiPath`/v4/api/proxy/gate-service/v1/orgs/${org}/isolated-stores`,
     );
   }
 
@@ -3854,23 +3951,33 @@ export class FusebaseClient {
     const org = options?.orgId || this.orgId;
     if (this.gateBridge) {
       try {
+        // Gate rejects org-sourced stores for token-managed calls ("must use sourceType
+        // 'app'"), so default the source to the app the token was issued for.
+        let source = { sourceType: options?.sourceType ?? "org", sourceId: options?.sourceId ?? org };
+        if (!options?.sourceType) {
+          const who = await this.gateBridge.whoami("gate").catch(() => undefined);
+          const scopes: Array<{ scope_type?: string; scope_id?: string }> = who?.auth?.scopes ?? [];
+          const appScope = scopes.find((s) => s.scope_type === "client" && s.scope_id);
+          if (appScope?.scope_id) source = { sourceType: "app", sourceId: appScope.scope_id };
+        }
+        // Gate SDK contract: orgId is a path param; the store fields go in body (COR-24).
         const res = await this.gateBridge.toolCall("createIsolatedStore", {
-          alias,
-          engine: options?.engine ?? "postgres",
-          storeType: options?.storeType ?? "sql",
           orgId: org,
-          source: {
-            sourceType: options?.sourceType ?? "org",
-            sourceId: options?.sourceId ?? org,
+          body: {
+            alias,
+            storeType: options?.storeType ?? "sql",
+            engine: options?.engine ?? "postgres",
+            source,
           },
         });
         return (res?.data?.store || res?.store || res) as IsolatedStore;
       } catch (err: any) {
+        if (!isSafeToRetryElsewhere(err)) throw err;
         console.error(`[client] gateBridge.createIsolatedStore fallback: ${err.message}`);
       }
     }
     return this.request<IsolatedStore>(
-      `/v4/api/proxy/gate-service/v1/orgs/${org}/isolated-stores`,
+      apiPath`/v4/api/proxy/gate-service/v1/orgs/${org}/isolated-stores`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -3911,7 +4018,7 @@ export class FusebaseClient {
       }
     }
     return this.request<IsolatedStoreSqlResult>(
-      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/query`,
+      apiPath`/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/query`,
       {
         method: "POST",
         body: JSON.stringify({ sql, params, stage }),
@@ -3940,11 +4047,12 @@ export class FusebaseClient {
         });
         return (res?.data || res) as { rowCount: number; message?: string };
       } catch (err: any) {
+        if (!isSafeToRetryElsewhere(err)) throw err;
         console.error(`[client] gateBridge.executeIsolatedStoreSql fallback: ${err.message}`);
       }
     }
     return this.request<{ rowCount: number; message?: string }>(
-      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/execute`,
+      apiPath`/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/execute`,
       {
         method: "POST",
         body: JSON.stringify({ sql, params, stage }),
@@ -3971,7 +4079,7 @@ export class FusebaseClient {
       }
     }
     return this.request<Array<{ tableName: string; schema?: string }>>(
-      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/tables?stage=${stage}`,
+      apiPath`/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/tables` + `?stage=${encodeURIComponent(stage)}`,
     );
   }
 
@@ -4023,7 +4131,7 @@ export class FusebaseClient {
       }
     }
     return this.request<{ rows: Array<Record<string, unknown>>; total?: number }>(
-      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/select`,
+      apiPath`/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/select`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -4060,11 +4168,12 @@ export class FusebaseClient {
         });
         return (res?.data || res) as { success: boolean; row?: Record<string, unknown> };
       } catch (err: any) {
+        if (!isSafeToRetryElsewhere(err)) throw err;
         console.error(`[client] gateBridge.insertIsolatedStoreSqlRow fallback: ${err.message}`);
       }
     }
     return this.request<{ success: boolean; row?: Record<string, unknown> }>(
-      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/insert`,
+      apiPath`/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/insert`,
       {
         method: "POST",
         body: JSON.stringify({ table, row, stage }),
@@ -4094,11 +4203,12 @@ export class FusebaseClient {
         });
         return (res?.data || res) as { success: boolean; insertedCount: number };
       } catch (err: any) {
+        if (!isSafeToRetryElsewhere(err)) throw err;
         console.error(`[client] gateBridge.batchInsertIsolatedStoreSqlRows fallback: ${err.message}`);
       }
     }
     return this.request<{ success: boolean; insertedCount: number }>(
-      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/batch-insert`,
+      apiPath`/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/batch-insert`,
       {
         method: "POST",
         body: JSON.stringify({ table, rows, stage }),
@@ -4115,19 +4225,22 @@ export class FusebaseClient {
   ): Promise<{ success: boolean; appliedVersions?: string[]; message?: string }> {
     if (this.gateBridge) {
       try {
+        // Gate SDK contract: orgId/storeId/stage are path params; bundle and dryRun go in body (COR-24).
+        const identity = await this.gateBridge.getIdentity();
         const res = await this.gateBridge.toolCall("applyIsolatedStoreSqlMigrations", {
+          orgId: identity.orgId || this.orgId,
           storeId,
-          bundle,
           stage,
-          dryRun,
+          body: { bundle, dryRun },
         });
         return (res?.data || res) as { success: boolean; appliedVersions?: string[]; message?: string };
       } catch (err: any) {
+        if (!isSafeToRetryElsewhere(err)) throw err;
         console.error(`[client] gateBridge.applyIsolatedStoreSqlMigrations fallback: ${err.message}`);
       }
     }
     return this.request<{ success: boolean; appliedVersions?: string[]; message?: string }>(
-      `/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/migrations/apply`,
+      apiPath`/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/migrations/apply`,
       {
         method: "POST",
         body: JSON.stringify({ bundle, stage, dryRun }),
@@ -4229,14 +4342,14 @@ export class FusebaseClient {
 
   async getOrgLimits(): Promise<FusebaseOrgLimits> {
     return this.request<FusebaseOrgLimits>(
-      `/v2/api/orgs/${this.orgId}/limits`,
+      apiPath`/v2/api/orgs/${this.orgId}/limits`,
     );
   }
 
   /** Get condensed usage summary */
   async getUsageSummary(): Promise<FusebaseUsageSummary> {
     return this.request<FusebaseUsageSummary>(
-      `/v2/api/orgs/${this.orgId}/usageSummary`,
+      apiPath`/v2/api/orgs/${this.orgId}/usageSummary`,
     );
   }
 
@@ -4244,11 +4357,11 @@ export class FusebaseClient {
   async listPortals(workspaceId?: string): Promise<FusebasePortal[]> {
     if (workspaceId) {
       return this.request<FusebasePortal[]>(
-        `/v1/portals/orgs/${this.orgId}/portals?workspaceId=${workspaceId}`,
+        apiPath`/v1/portals/orgs/${this.orgId}/portals` + `?workspaceId=${encodeURIComponent(workspaceId)}`,
       );
     }
     return this.request<FusebasePortal[]>(
-      `/v2/api/portal-service-proxy/v1/orgs/${this.orgId}/portals`,
+      apiPath`/v2/api/portal-service-proxy/v1/orgs/${this.orgId}/portals`,
     );
   }
 
@@ -4271,7 +4384,7 @@ export class FusebaseClient {
     domain?: string,
   ): Promise<unknown> {
     return this.request<unknown>(
-      `/v1/portals/orgs/${this.orgId}/portals?workspaceId=${workspaceId}`,
+      apiPath`/v1/portals/orgs/${this.orgId}/portals` + `?workspaceId=${encodeURIComponent(workspaceId)}`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -4302,7 +4415,7 @@ export class FusebaseClient {
 
   /** Check if portal feature is available for organization */
   async checkPortalAvailability(): Promise<boolean> {
-    const res = await this.request<any>(`/v1/portals/orgs/${this.orgId}/available`);
+    const res = await this.request<any>(apiPath`/v1/portals/orgs/${this.orgId}/available`);
     return res === true || res === "true" || res?.available === true;
   }
 
@@ -4323,13 +4436,13 @@ export class FusebaseClient {
 
   /** Get workspace client portal navigation tree and entities */
   async getPortalNavigationMenu(workspaceId: string): Promise<unknown> {
-    return this.request<unknown>(`/v2/api/workspaces/${workspaceId}/portal`);
+    return this.request<unknown>(apiPath`/v2/api/workspaces/${workspaceId}/portal`);
   }
 
   /** Get workspace client portal resolution object (portal ID, global ID, domain) */
   async getWorkspacePortal(workspaceId: string): Promise<unknown> {
     return this.request<unknown>(
-      `/v2/api/portal-service-proxy/v1/workspaces/${workspaceId}/portals`,
+      apiPath`/v2/api/portal-service-proxy/v1/workspaces/${workspaceId}/portals`,
     );
   }
 
@@ -4340,7 +4453,7 @@ export class FusebaseClient {
     isPortalShare: boolean,
   ): Promise<unknown> {
     return this.request<unknown>(
-      `/v2/api/workspaces/${workspaceId}/notes/${pageId}/upsert`,
+      apiPath`/v2/api/workspaces/${workspaceId}/notes/${pageId}/upsert`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -4355,7 +4468,7 @@ export class FusebaseClient {
   /** Get org feature flags */
   async getOrgFeatures(): Promise<FusebaseOrgFeature[]> {
     return this.request<FusebaseOrgFeature[]>(
-      `/v1/organizations/${this.orgId}/features`,
+      apiPath`/v1/organizations/${this.orgId}/features`,
     );
   }
 
@@ -4365,13 +4478,13 @@ export class FusebaseClient {
   async listAutomationFlows(projectId?: string): Promise<unknown> {
     const auth = await this.ensureAutomationAuth();
     const effectiveProjectId = projectId || auth.projectId;
-    const qs = effectiveProjectId ? `?projectId=${effectiveProjectId}` : "";
+    const qs = effectiveProjectId ? `?projectId=${encodeURIComponent(effectiveProjectId)}` : "";
     return this.request<unknown>(`/automation/api/v1/flows${qs}`);
   }
 
   /** Get details of a specific automation flow */
   async getAutomationFlow(flowId: string): Promise<unknown> {
-    return this.request<unknown>(`/automation/api/v1/flows/${flowId}`);
+    return this.request<unknown>(apiPath`/automation/api/v1/flows/${flowId}`);
   }
 
   /** List recent automation flow runs */
@@ -4416,7 +4529,7 @@ export class FusebaseClient {
     const requestPayload = operation.type === "CHANGE_NAME"
       ? { displayName: operation.displayName }
       : { status: operation.status };
-    return this.request<unknown>(`/automation/api/v1/flows/${flowId}`, {
+    return this.request<unknown>(apiPath`/automation/api/v1/flows/${flowId}`, {
       method: "POST",
       body: JSON.stringify({
         type: operation.type,
@@ -4427,7 +4540,7 @@ export class FusebaseClient {
 
   /** Delete an automation flow */
   async deleteAutomationFlow(flowId: string): Promise<unknown> {
-    return this.request<unknown>(`/automation/api/v1/flows/${flowId}`, {
+    return this.request<unknown>(apiPath`/automation/api/v1/flows/${flowId}`, {
       method: "DELETE",
     });
   }
@@ -4437,12 +4550,13 @@ export class FusebaseClient {
     flowId: string,
     payload: Record<string, unknown> = {},
   ): Promise<unknown> {
-    return this.request<unknown>(`/automation/api/v1/flows/${flowId}/runs`, {
+    return this.request<unknown>(apiPath`/automation/api/v1/flows/${flowId}/runs`, {
       method: "POST",
       body: JSON.stringify({ payload }),
-    }).catch(async () => {
-      // Fallback to webhook trigger endpoint
-      return this.request<unknown>(`/automation/api/v1/webhooks/${flowId}`, {
+    }).catch(async (err) => {
+      // Fallback to webhook trigger endpoint, but only if the first trigger provably didn't run.
+      if (!isSafeToRetryElsewhere(err)) throw err;
+      return this.request<unknown>(apiPath`/automation/api/v1/webhooks/${flowId}`, {
         method: "POST",
         body: JSON.stringify(payload),
       });
@@ -4497,7 +4611,7 @@ export class FusebaseClient {
    */
   async deleteAutomationFolder(folderId: string): Promise<void> {
     await this.ensureAutomationAuth();
-    await this.request(`/automation/api/v1/folders/${folderId}`, {
+    await this.request(apiPath`/automation/api/v1/folders/${folderId}`, {
       method: "DELETE",
     });
   }
@@ -4518,9 +4632,9 @@ export class FusebaseClient {
 
   /** List invited portal clients and members */
   async listPortalClients(portalId?: string): Promise<unknown> {
-    const qs = portalId ? `?portalId=${portalId}` : "";
+    const qs = portalId ? `?portalId=${encodeURIComponent(portalId)}` : "";
     return this.request<unknown>(
-      `/v2/api/orgs/${this.orgId}/portalClients${qs}`,
+      apiPath`/v2/api/orgs/${this.orgId}/portalClients` + qs,
     ).catch(async () => {
       // Fallback: query org members filtered by role client
       const members = await this.getOrgMembers();
@@ -4534,7 +4648,7 @@ export class FusebaseClient {
     email: string,
     name?: string,
   ): Promise<unknown> {
-    return this.request<unknown>(`/v1/portals/orgs/${this.orgId}/invites`, {
+    return this.request<unknown>(apiPath`/v1/portals/orgs/${this.orgId}/invites`, {
       method: "POST",
       body: JSON.stringify({
         portalId,
@@ -4547,7 +4661,7 @@ export class FusebaseClient {
 
   /** Generate or retrieve a 24-hour magic login link for a portal client */
   async getPortalMagicLink(portalId: string, email: string): Promise<unknown> {
-    return this.request<unknown>(`/v1/portals/orgs/${this.orgId}/magic-link`, {
+    return this.request<unknown>(apiPath`/v1/portals/orgs/${this.orgId}/magic-link`, {
       method: "POST",
       body: JSON.stringify({
         portalId,
@@ -4567,8 +4681,8 @@ export class FusebaseClient {
     const org = orgId || this.orgId;
     const [credit, activeCoupons, couponTokens] = await Promise.all([
       this.request<unknown>("/v1/billing/credit").catch(() => null),
-      this.request<unknown>(`/v2/api/orgs/${org}/coupons`).catch(() => null),
-      this.request<unknown>(`/v1/organizations/${org}/coupons`).catch(() => null),
+      this.request<unknown>(apiPath`/v2/api/orgs/${org}/coupons`).catch(() => null),
+      this.request<unknown>(apiPath`/v1/organizations/${org}/coupons`).catch(() => null),
     ]);
     return { credit, activeCoupons, couponTokens };
   }
@@ -4598,16 +4712,16 @@ export class FusebaseClient {
   /** Get workspace premium subscription tier and expiration */
   async getWorkspacePremiumStatus(workspaceId?: string): Promise<unknown> {
     const ws = workspaceId || "default";
-    return this.request<unknown>(`/v1/workspaces/${ws}/premium`);
+    return this.request<unknown>(apiPath`/v1/workspaces/${ws}/premium`);
   }
 
   /** Get active data import job status in a workspace */
   async getActiveImportStatus(workspaceId: string): Promise<unknown> {
-    return this.request<unknown>(`/v1/workspaces/${workspaceId}/import/activeImport`);
+    return this.request<unknown>(apiPath`/v1/workspaces/${workspaceId}/import/activeImport`);
   }
 
-  /** Get active feature trial subscriptions for an organization */
-  async getOrgTrials(orgId?: string): Promise<unknown[]> {
+  /** Active feature trials for the signed-in organization (the endpoint takes no org parameter). */
+  async getOrgTrials(): Promise<unknown[]> {
     return this.request<unknown[]>("/v2/api/orgs/trials");
   }
 
@@ -4615,12 +4729,6 @@ export class FusebaseClient {
 
   /** Generate a random ID matching Fusebase's format (16-char alphanumeric) */
   private generateId(): string {
-    const chars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let id = "";
-    for (let i = 0; i < 16; i++) {
-      id += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return id;
+    return randomId(16);
   }
 }

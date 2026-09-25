@@ -183,6 +183,18 @@ export interface FusebaseTaskList {
   [key: string]: unknown;
 }
 
+/**
+ * GET /gwapi2/ft:tasks/workspaces/{workspaceId}/taskLists — an object, not an array
+ * (verified live): the task lists plus the tasks, notes and labels they reference.
+ */
+export interface FusebaseTaskListsResponse {
+  taskLists: FusebaseTaskList[];
+  tasks?: FusebaseTask[];
+  notes?: unknown;
+  labels?: unknown;
+  [key: string]: unknown;
+}
+
 export interface FusebaseCreateTaskPayload {
   title: string;
   taskListId: string;
@@ -329,6 +341,8 @@ export interface DashboardViewColumn {
   required: boolean;
   description: string;
   metadata: Record<string, unknown>;
+  /** Options of a label (single/multi-select) column. Cell values are arrays of these nanoids. */
+  labels?: Array<{ nanoid: string; name: string }>;
 }
 
 export interface DashboardViewSchema {

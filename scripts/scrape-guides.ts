@@ -33,7 +33,6 @@ const INDEX_FILE = join(OUTPUT_DIR, 'index.md');
 const FORCE = process.argv.includes('--force');
 const SYNC_NLM_IDX = process.argv.indexOf('--sync-nlm');
 const SYNC_NLM_NOTEBOOK = SYNC_NLM_IDX !== -1 ? process.argv[SYNC_NLM_IDX + 1] : null;
-const DEFAULT_NLM_NOTEBOOK = '6d691591-cbca-4ca7-a31f-5b95b9a7884b'; // FuseBase Guides notebook
 const CONCURRENCY = 5;
 const DELAY_MS = 300; // polite delay between batches
 const MAX_RETRIES = 3;
@@ -354,7 +353,7 @@ async function writeGuides(
     console.log('📝 Phase 2-3: Scraping and writing guides...\n');
     const stats = { newCount: 0, updatedCount: 0, unchangedCount: 0, failedCount: 0 };
 
-    const results = await batchRun(links, CONCURRENCY, DELAY_MS, async (link) => {
+    await batchRun(links, CONCURRENCY, DELAY_MS, async (link) => {
         const result = await scrapeGuide(link, td);
         if (!result) {
             stats.failedCount++;
@@ -446,7 +445,7 @@ async function syncToNotebookLM(meta: ScrapeMeta, notebookId: string): Promise<v
     console.log(`\n🔗 Phase 5: Syncing to NotebookLM (${notebookId})...\n`);
 
     // Step 1: Query existing sources in the notebook
-    let existingUrls = new Set<string>();
+    const existingUrls = new Set<string>();
     try {
         console.log('  Checking existing sources in notebook...');
         const listOutput = execSync(`nlm source list ${notebookId} --url`, {

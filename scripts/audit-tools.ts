@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import { registerCoreTools } from "../src/tools/core-tools.js";
 import { registerExtendedTools } from "../src/tools/extended-tools.js";
-import { z } from "zod";
 
 interface RegisteredTool {
   name: string;
@@ -167,4 +166,16 @@ if (missingFromReadme.length > 0) {
   console.log(`  All ${tools.length} tools are explicitly documented in README.md!`);
 }
 
+// ─── Verdict ─────────────────────────────────────────────────────────
+// Hard failures; 'profile' coverage above is informational only.
+const problems: string[] = [];
+if (duplicates.length) problems.push(`${duplicates.length} tool(s) registered in both tiers: ${duplicates.join(", ")}`);
+if (toolsWithoutDescription.length) problems.push(`${toolsWithoutDescription.length} tool(s) without a description`);
+if (missingParamDescriptions.length) problems.push(`${missingParamDescriptions.length} parameter(s) without .describe()`);
+if (missingFromReadme.length) problems.push(`${missingFromReadme.length} tool(s) not documented in README.md`);
 
+if (problems.length) {
+  console.error(`\n❌ Audit failed:\n  - ${problems.join("\n  - ")}`);
+  process.exit(1);
+}
+console.log("\n✅ Audit passed");

@@ -18,8 +18,13 @@
     "prepare": "npm run build",
     "dev": "tsc --watch",
     "start": "node dist/index.js",
-    "test": "npx tsx scripts/test-mcp-e2e.ts",
-    "test:flow": "npx tsx scripts/test-cli-and-flow.ts",
+    "typecheck": "tsc -p tsconfig.check.json",
+    "lint": "eslint .",
+    "pretest": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:live": "npx tsx scripts/test-all.ts --live-only",
+    "test:mcp-e2e": "npx tsx scripts/test-mcp-e2e.ts",
     "test:database": "npx tsx scripts/test-database-e2e.ts",
     "test:data-validation": "npx tsx scripts/test-data-validation.ts",
     "test:audit": "npx tsx scripts/audit-tools.ts",
@@ -32,14 +37,18 @@
     "deploy:page": "npx tsx scripts/deploy-workspace-page.ts",
     "docker:build": "docker build -t fusebase-mcp:latest .",
     "docker:run": "docker run -i --rm -e FUSEBASE_TOOLS=all fusebase-mcp:latest",
-    "docker:sse": "docker run -d --name fusebase-mcp -p 3000:3000 -e MCP_TRANSPORT=sse fusebase-mcp:latest",
+    "docker:http": "docker run -d --name fusebase-mcp -p 127.0.0.1:3000:3000 -e MCP_TRANSPORT=http -e MCP_HOST=0.0.0.0 -e MCP_AUTH_TOKEN fusebase-mcp:latest",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "postinstall": "npx playwright install chromium || true"
   },
   "dependencies": {
+    "@1password/sdk": "0.5.0",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "cheerio": "^1.2.0",
+    "mdast-util-from-markdown": "^2.0.3",
+    "mdast-util-gfm": "^3.1.0",
+    "micromark-extension-gfm": "^3.0.0",
     "playwright": "^1.58.2",
     "socket.io-client": "^4.8.3",
     "socks": "^2.8.7",
@@ -50,9 +59,14 @@
     "yjs": "^13.6.29"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/mdast": "^4.0.4",
     "@types/node": "^22.0.0",
     "@types/turndown": "^5.0.6",
     "@types/ws": "^8.18.1",
-    "typescript": "^5.7.0"
+    "eslint": "^9.39.5",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.70.1",
+    "vitest": "^5.0.1"
   }
 }

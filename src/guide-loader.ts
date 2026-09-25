@@ -13,6 +13,7 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const GUIDES_DIR = path.resolve(__dirname, "..", "docs", "guides");
+const GUIDE_SEGMENT = /^[a-z0-9][a-z0-9%-]*$/i; // "%" appears in some scraped slugs; paths are never URL-decoded
 
 // ─── Types ───
 
@@ -151,7 +152,11 @@ export function searchGuides(query: string, limit: number = 10): GuideEntry[] {
  * @returns Guide markdown content, or null if not found
  */
 export function getGuideContent(section: string, slug: string): string | null {
-    const filePath = path.join(GUIDES_DIR, section, `${slug}.md`);
+    // section and slug come from tool arguments: only plain path segments are allowed,
+    // and the resolved file must stay inside docs/guides.
+    if (!GUIDE_SEGMENT.test(section) || !GUIDE_SEGMENT.test(slug)) return null;
+    const filePath = path.resolve(GUIDES_DIR, section, `${slug}.md`);
+    if (!filePath.startsWith(GUIDES_DIR + path.sep)) return null;
     if (!fs.existsSync(filePath)) return null;
 
     try {

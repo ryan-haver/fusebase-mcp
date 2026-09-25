@@ -312,7 +312,7 @@ export function registerExtendedTools(
         const stream = await client.getActivityStream(workspaceId);
 
         // Filter mentions/comments if a since timestamp is provided
-        let result: any = { ...stream };
+        const result: any = { ...stream };
 
         if (since) {
           const filterRecent = (items: any[]) => items?.filter(item => (item.time || item.created || item.updated || 0) > since) || [];
@@ -909,17 +909,30 @@ export function registerExtendedTools(
 
   server.tool(
     "unlink_database_rows",
-    "Remove a link between two rows in related tables. If sourceRowUuid and targetRowUuid are omitted, removes all links for the relation.",
+    "Remove links between rows in related tables. Pass sourceRowUuid and targetRowUuid to remove one link; pass only one of them to remove every link of that row. At least one row UUID is required unless unlinkAll is true.",
     {
       relationId: z.string().describe("Relation ID"),
       sourceRowUuid: z.string().optional().describe("Source row UUID to unlink"),
       targetRowUuid: z.string().optional().describe("Target row UUID to unlink"),
+      unlinkAll: z.boolean().optional().describe("[DESTRUCTIVE] Set true (with no row UUIDs) to remove EVERY link on this relation. Cannot be undone."),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
-    async ({ relationId, sourceRowUuid, targetRowUuid, profile }) => {
+    async ({ relationId, sourceRowUuid, targetRowUuid, unlinkAll, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.deleteRelationRows(relationId, { source_index: sourceRowUuid, target_index: targetRowUuid });
+        const hasIds = Boolean(sourceRowUuid || targetRowUuid);
+        if (hasIds && unlinkAll) {
+          throw new Error("Pass either row UUIDs or unlinkAll: true, not both.");
+        }
+        if (!hasIds && unlinkAll !== true) {
+          throw new Error(
+            "sourceRowUuid and/or targetRowUuid is required. To remove every link on the relation, pass unlinkAll: true.",
+          );
+        }
+        const result = await client.deleteRelationRows(
+          relationId,
+          hasIds ? { source_index: sourceRowUuid, target_index: targetRowUuid } : { unlinkAll: true },
+        );
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
@@ -961,7 +974,7 @@ export function registerExtendedTools(
       viewId: z.string().describe("View ID"),
       rowOrders: z.array(z.object({
         rowUuid: z.string().describe("Row UUID"),
-        order: z.number().describe("Order position index (0-based or 1-based integer)"),
+        order: z.number().int().min(1).describe("1-based sort position (sent as sort_order)"),
       })).describe("Array of row positions"),
       sectionType: z.string().optional().describe("Section type (default: 'view')"),
       sectionKey: z.string().optional().describe("Section key (default: 'view')"),
@@ -973,7 +986,7 @@ export function registerExtendedTools(
         const result = await client.updateDashboardRowOrder(
           dashboardId,
           viewId,
-          rowOrders.map((r) => ({ row_uuid: r.rowUuid, order: r.order })),
+          rowOrders.map((r) => ({ row_uuid: r.rowUuid, sort_order: r.order })),
           { section_type: sectionType, section_key: sectionKey },
         );
         return {
@@ -2027,6 +2040,11 @@ export function registerExtendedTools(
     async ({ workspaceId, title, appUrl, description, folderId, profile }) => {
       const client = getClient(profile);
       try {
+        // The app frame is an editor block, which only the Y.js editor (session cookie) can
+        // write. Refuse before creating an empty page (COR-12).
+        if (!client.getCookie()) {
+          return errorResult("Embedding an app needs a session cookie (the Y.js editor); only tokens are configured. Run `npx tsx scripts/auth.ts` to add a session.");
+        }
         const page = await client.createPage(workspaceId, title, folderId);
         const blocks: ContentBlock[] = [];
         if (description) {
@@ -2065,6 +2083,7 @@ export function registerExtendedTools(
               ),
             },
           ],
+          ...(writeRes.success ? {} : { isError: true }),
         };
       } catch (error) {
         return errorResult(error);
@@ -2193,10 +2212,11 @@ export function registerExtendedTools(
     },
     async ({ name, orgId, cwd, forceDirty }) => {
       try {
-        const args = ["init", "--name", `"${name}"`];
+        // Pass the name as-is: spawn already delivers it as one argument.
+        const args = ["--name", name];
         if (orgId) args.push("--org", orgId);
         if (forceDirty) args.push("--force-dirty");
-        const res = await FusebaseCliManager.executeCommand("init", args.slice(1), cwd);
+        const res = await FusebaseCliManager.executeCommand("init", args, cwd);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(res, null, 2) },
@@ -2364,11 +2384,11 @@ export function registerExtendedTools(
 
   server.tool(
     "fusebase_cli_logs",
-    "Retrieve remote deployment logs or local dev logs for a FuseBase app.",
+    "Retrieve runtime or build logs for a deployed FuseBase app (fusebase remote-logs).",
     {
-      appPath: z.string().optional().describe("Relative path or ID of the app"),
-      lines: z.number().optional().describe("Number of log lines to retrieve (default 50)"),
-      type: z.enum(["remote", "dev"]).optional().describe("Log source: 'remote' production logs or 'dev' local server logs"),
+      appPath: z.string().optional().describe("App (feature) ID of the deployed app; required for 'remote' and 'build'"),
+      lines: z.number().optional().describe("Number of runtime log entries to retrieve (1-1000; CLI default 100)"),
+      type: z.enum(["remote", "build", "dev"]).optional().describe("Log source: 'remote' runtime logs (default), 'build' build logs. 'dev' is not available from the CLI (local dev output is printed by `fusebase dev start`)"),
       cwd: z.string().optional().describe("Project directory path"),
     },
     async ({ appPath, lines, type, cwd }) => {
@@ -2471,10 +2491,11 @@ export function registerExtendedTools(
     async ({ flowId, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.deleteAutomationFlow(flowId);
+        await client.deleteAutomationFlow(flowId);
+        // The API answers with an empty body; report the outcome explicitly.
         return {
           content: [
-            { type: "text" as const, text: JSON.stringify(result, null, 2) },
+            { type: "text" as const, text: `Automation flow ${flowId} deleted successfully.` },
           ],
         };
       } catch (error) {
@@ -2591,6 +2612,16 @@ export function registerExtendedTools(
     async ({ title, description, template, profile }) => {
       const client = getClient(profile);
       const isFlow = template === "flow";
+      // COR-17: track every artifact so a failure part-way reports what exists.
+      const created: {
+        databaseId?: string;
+        dashboardId?: string;
+        viewId?: string;
+        statusColumnKey?: string;
+        roleColumnKey?: string;
+        kanbanGroupedByStatus?: boolean;
+      } = {};
+      let step = "create database";
       try {
         const db = await client.createDatabase(title, {
           description: description || (isFlow ? `FuseBase Flow 8-Phase Swarm State Machine for ${title}` : `Multi-Agent Swarm State Machine for ${title}`),
@@ -2598,9 +2629,15 @@ export function registerExtendedTools(
           color: isFlow ? "10B981" : "6366F1",
         });
 
-        const dashboard = db.data.dashboards?.[0];
+        const dashboard = db?.data?.dashboards?.[0];
         const dashboardId = dashboard?.global_id;
         const viewId = dashboard?.views?.[0]?.global_id;
+        created.databaseId = db?.data?.global_id;
+        created.dashboardId = dashboardId;
+        created.viewId = viewId;
+        if (!dashboardId || !viewId) {
+          throw new Error("createDatabase response did not include a dashboard and view id");
+        }
 
         const availableRoles = isFlow
           ? ["product-owner", "ai-developer", "agent-architect", "agent-qa"]
@@ -2626,6 +2663,38 @@ export function registerExtendedTools(
             ]
           : ["Backlog", "In Progress", "Review", "Done"];
 
+        const palette = ["gray", "blue", "purple", "yellow", "orange", "pink", "red", "green"];
+        const toLabels = (names: string[]) => names.map((name, i) => ({ name, color: palette[i % palette.length] }));
+        const keyOf = (res: any, what: string): string => {
+          const key = res?.column?.key;
+          if (!key) throw new Error(`addDatabaseColumn returned no key for the ${what} column`);
+          return key;
+        };
+
+        step = "create Status column";
+        created.statusColumnKey = keyOf(
+          await client.addDatabaseColumn(dashboardId, viewId, "Status", "label", {
+            labels: toLabels(workflowStages),
+            multiSelect: false,
+            description: "Swarm workflow stage",
+          }),
+          "Status",
+        );
+
+        step = "create Role column";
+        created.roleColumnKey = keyOf(
+          await client.addDatabaseColumn(dashboardId, viewId, "Role", "label", {
+            labels: toLabels(availableRoles),
+            multiSelect: false,
+            description: "Agent role assigned to the task",
+          }),
+          "Role",
+        );
+
+        step = "switch view to kanban grouped by Status";
+        await client.setViewGrouping(dashboardId, viewId, created.statusColumnKey, "kanban");
+        created.kanbanGroupedByStatus = true;
+
         return {
           content: [
             {
@@ -2633,16 +2702,19 @@ export function registerExtendedTools(
               text: JSON.stringify(
                 {
                   success: true,
-                  message: `Swarm Kanban Database "${title}" (${isFlow ? "FuseBase Flow 8-Phase" : "Standard"}) initialized successfully.`,
-                  databaseId: db.data.global_id,
+                  message: `Swarm Kanban Database "${title}" (${isFlow ? "FuseBase Flow 8-Phase" : "Standard"}) initialized with Status and Role columns and a kanban view grouped by Status.`,
+                  databaseId: created.databaseId,
                   dashboardId,
                   viewId,
+                  statusColumnKey: created.statusColumnKey,
+                  roleColumnKey: created.roleColumnKey,
                   template: isFlow ? "flow" : "standard",
                   availableRoles,
                   workflowStages,
                   instructions: isFlow
                     ? "FuseBase Flow 8-Phase Lifecycle: Product Owner manages Specify -> Clarify -> Plan -> Decisions -> Tasks -> Verify Gate. AI Developer executes task slices in isolated sessions, stopping at the verification gate, and deploys only upon approval."
                     : "Use 'add_database_row' to create tasks with role and acceptance criteria. Use 'fusebase_swarm_task_transition' to transition tasks across stages with audit comments.",
+                  transitionArgs: { dashboardId, viewId, groupByColumnKey: created.statusColumnKey },
                 },
                 null,
                 2,
@@ -2651,7 +2723,27 @@ export function registerExtendedTools(
           ],
         };
       } catch (error) {
-        return errorResult(error);
+        const msg = error instanceof Error ? error.message : String(error);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(
+                {
+                  success: false,
+                  error: `Swarm init failed at step "${step}": ${msg}`,
+                  created,
+                  note: Object.keys(created).length > 0
+                    ? "The artifacts listed under 'created' exist and were not rolled back."
+                    : "Nothing was created.",
+                },
+                null,
+                2,
+              ),
+            },
+          ],
+          isError: true,
+        };
       }
     },
   );
@@ -2943,7 +3035,9 @@ export function registerExtendedTools(
     async ({ workspaceId, profile }) => {
       const client = getClient(profile);
       try {
-        const importStatus = await client.getActiveImportStatus(workspaceId);
+        const raw = await client.getActiveImportStatus(workspaceId);
+        // The API returns an empty body when nothing is importing; say so explicitly.
+        const importStatus = raw === "" || raw === undefined ? null : raw;
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(importStatus, null, 2) },
@@ -2957,15 +3051,14 @@ export function registerExtendedTools(
 
   server.tool(
     "get_org_trials",
-    "List active feature trial subscriptions and trial expiration records for the organization.",
+    "List active feature trial subscriptions and trial expiration records for the signed-in organization.",
     {
-      orgId: z.string().optional().describe("Optional organization ID"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
-    async ({ orgId, profile }) => {
+    async ({ profile }) => {
       const client = getClient(profile);
       try {
-        const trials = await client.getOrgTrials(orgId);
+        const trials = await client.getOrgTrials();
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(trials, null, 2) },
@@ -3200,7 +3293,7 @@ export function registerExtendedTools(
       storeId: z.string().describe("Isolated store ID"),
       sql: z.string().describe("SQL statement (e.g. 'UPDATE users SET status = $1 WHERE id = $2')"),
       params: z.array(z.unknown()).optional().describe("Statement parameters ($1, $2)"),
-      stage: z.enum(["dev", "prod"]).optional().default("prod").describe("Database stage ('prod' or 'dev', default: 'prod')"),
+      stage: z.enum(["dev", "prod"]).describe("Database stage to write to: 'dev' or 'prod'. Required so writes never reach production by default."),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
     async ({ storeId, sql, params, stage, profile }) => {
@@ -3253,7 +3346,7 @@ export function registerExtendedTools(
       storeId: z.string().describe("Isolated store ID"),
       table: z.string().describe("Table name"),
       row: z.record(z.string(), z.unknown()).describe("Column values to insert"),
-      stage: z.enum(["dev", "prod"]).optional().default("prod").describe("Database stage ('prod' or 'dev')"),
+      stage: z.enum(["dev", "prod"]).describe("Database stage to write to: 'dev' or 'prod'. Required so writes never reach production by default."),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
     async ({ storeId, table, row, stage, profile }) => {
@@ -3278,7 +3371,7 @@ export function registerExtendedTools(
       storeId: z.string().describe("Isolated store ID"),
       table: z.string().describe("Table name"),
       rows: z.array(z.record(z.string(), z.unknown())).describe("Array of row objects to insert"),
-      stage: z.enum(["dev", "prod"]).optional().default("prod").describe("Database stage ('prod' or 'dev')"),
+      stage: z.enum(["dev", "prod"]).describe("Database stage to write to: 'dev' or 'prod'. Required so writes never reach production by default."),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
     async ({ storeId, table, rows, stage, profile }) => {
@@ -3325,7 +3418,7 @@ export function registerExtendedTools(
     {
       storeId: z.string().describe("Isolated store ID"),
       bundle: z.record(z.string(), z.unknown()).describe("Migration bundle object (with version and migrations array)"),
-      stage: z.enum(["dev", "prod"]).optional().default("prod").describe("Database stage ('prod' or 'dev')"),
+      stage: z.enum(["dev", "prod"]).describe("Database stage to migrate: 'dev' or 'prod'. Required so migrations never reach production by default; run with dryRun first."),
       dryRun: z.boolean().optional().default(false).describe("Validate without applying (dry run)"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
@@ -3350,15 +3443,16 @@ export function registerExtendedTools(
     "fusebase_work_run_agent",
     "Run a task or send a prompt to an AI agent in FuseBase Work. Initiates an agent run thread or appends to an existing thread.",
     {
+      workspaceId: z.string().describe("Workspace the agent conversation belongs to (required by the API)"),
       agentId: z.string().describe("FuseBase Work AI agent global ID"),
       prompt: z.string().describe("Task instructions or prompt for the agent"),
       threadId: z.string().optional().describe("Optional existing conversation thread ID to continue"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
-    async ({ agentId, prompt, threadId, profile }) => {
+    async ({ workspaceId, agentId, prompt, threadId, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.runAiAgentTask(agentId, prompt, { threadId });
+        const result = await client.runAiAgentTask(agentId, prompt, { workspaceId, threadId });
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
@@ -3374,16 +3468,17 @@ export function registerExtendedTools(
     "fusebase_work_scrape_url",
     "Scrape and extract clean web content from a URL using FuseBase Work's hosted Firecrawl engine or web parser agent.",
     {
+      workspaceId: z.string().describe("Workspace the scraping agent's conversation belongs to (required by the API)"),
       url: z.string().url().describe("Target website URL to scrape"),
       agentId: z.string().optional().describe("Optional specific Firecrawl/scraper agent global ID"),
       formats: z.array(z.string()).optional().default(["markdown"]).describe("Desired output formats (default: ['markdown'])"),
       prompt: z.string().optional().describe("Optional extraction prompt or instructions (e.g. 'Extract pricing table and features')"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
-    async ({ url, agentId, formats, prompt, profile }) => {
+    async ({ workspaceId, url, agentId, formats, prompt, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.scrapeUrlViaFirecrawl(url, { agentId, formats, prompt });
+        const result = await client.scrapeUrlViaFirecrawl(url, { workspaceId, agentId, formats, prompt });
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },

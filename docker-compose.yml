@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   fusebase-mcp:
     build:
@@ -8,11 +6,19 @@ services:
     image: fusebase-mcp:latest
     container_name: fusebase-mcp
     restart: unless-stopped
+    # Published on the host's loopback only. To expose it on your network, change this to
+    # "${PORT:-3000}:3000" and make sure MCP_AUTH_TOKEN is a strong secret.
     ports:
-      - "${PORT:-3000}:3000"
+      - "127.0.0.1:${PORT:-3000}:3000"
     environment:
-      - MCP_TRANSPORT=sse
+      - MCP_TRANSPORT=http
+      # The container must listen on all interfaces to be reachable through the port mapping,
+      # so a bearer token is mandatory (the server refuses to start without one).
+      - MCP_HOST=0.0.0.0
       - PORT=3000
+      - MCP_AUTH_TOKEN=${MCP_AUTH_TOKEN:?Set MCP_AUTH_TOKEN (e.g. openssl rand -hex 32)}
+      - MCP_ALLOWED_HOSTS=${MCP_ALLOWED_HOSTS:-}
+      - MCP_ALLOWED_ORIGINS=${MCP_ALLOWED_ORIGINS:-}
       - FUSEBASE_TOOLS=${FUSEBASE_TOOLS:-core}
       - FUSEBASE_GATE_TOKEN=${FUSEBASE_GATE_TOKEN}
       - FUSEBASE_DASHBOARDS_TOKEN=${FUSEBASE_DASHBOARDS_TOKEN}
@@ -20,6 +26,11 @@ services:
       - FUSEBASE_HOST=${FUSEBASE_HOST}
       - FUSEBASE_ORG_ID=${FUSEBASE_ORG_ID}
       - FUSEBASE_COOKIE=${FUSEBASE_COOKIE}
+      # Key for the encrypted files in ./data (see docs/1PASSWORD.md)
+      - FUSEBASE_SECRET_KEY=${FUSEBASE_SECRET_KEY}
+      # Or load secrets from a 1Password Environment with a read-only service account
+      - FUSEBASE_OP_ENVIRONMENT_ID=${FUSEBASE_OP_ENVIRONMENT_ID}
+      - FUSEBASE_OP_SERVICE_ACCOUNT_TOKEN=${FUSEBASE_OP_SERVICE_ACCOUNT_TOKEN}
     volumes:
       - ./data:/app/data
     healthcheck:
