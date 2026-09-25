@@ -1,11 +1,11 @@
 {
   "project": "FuseBase MCP Server",
   "version": "2.0.0",
-  "lastUpdated": "2026-09-25T18:44:17.987Z",
+  "lastUpdated": "2026-09-25T18:54:23.101Z",
   "git": {
-    "commit": "8803358",
-    "branch": "master",
-    "commitDate": "2026-09-25T11:49:08-06:00"
+    "commit": "5b7afbe",
+    "branch": "docs/neutral-wording",
+    "commitDate": "2026-09-25T12:52:20-06:00"
   },
   "protocol": {
     "specification": "JSON-RPC 2.0",
@@ -16,9 +16,9 @@
     "totalTools": 175,
     "coreTools": 34,
     "extendedTools": 141,
-    "totalSuites": 5,
-    "totalAssertions": 394,
-    "passedAssertions": 394,
+    "totalSuites": 12,
+    "totalAssertions": 1589,
+    "passedAssertions": 1589,
     "passRatePercent": 100,
     "documentationGuides": 278
   },
@@ -29,7 +29,7 @@
       "toolsCount": 0,
       "assertionsCount": 0,
       "status": "passed",
-      "description": "Offline; last run 2026-09-25 18:43 UTC on 8803358 (3s)."
+      "description": "Offline; last run 2026-09-25 18:45 UTC on ac707c5 (2.6s)."
     },
     {
       "id": 2,
@@ -37,7 +37,7 @@
       "toolsCount": 0,
       "assertionsCount": 0,
       "status": "passed",
-      "description": "Offline; last run 2026-09-25 18:43 UTC on 8803358 (3.1s)."
+      "description": "Offline; last run 2026-09-25 18:45 UTC on ac707c5 (2.7s)."
     },
     {
       "id": 3,
@@ -45,7 +45,7 @@
       "toolsCount": 0,
       "assertionsCount": 0,
       "status": "passed",
-      "description": "Offline; last run 2026-09-25 18:44 UTC on 8803358 (2.6s)."
+      "description": "Offline; last run 2026-09-25 18:45 UTC on ac707c5 (2.2s)."
     },
     {
       "id": 4,
@@ -53,7 +53,7 @@
       "toolsCount": 0,
       "assertionsCount": 394,
       "status": "passed",
-      "description": "Offline; last run 2026-09-25 18:44 UTC on 8803358 (13.7s). 394/394 assertions passed, 6 known gaps."
+      "description": "Offline; last run 2026-09-25 18:45 UTC on ac707c5 (13.2s). 394/394 assertions passed, 6 known gaps."
     },
     {
       "id": 5,
@@ -61,16 +61,72 @@
       "toolsCount": 0,
       "assertionsCount": 0,
       "status": "passed",
-      "description": "Offline; last run 2026-09-25 18:44 UTC on 8803358 (1.4s)."
+      "description": "Offline; last run 2026-09-25 18:45 UTC on ac707c5 (1.3s)."
+    },
+    {
+      "id": 6,
+      "name": "Direct token connection",
+      "toolsCount": 7,
+      "assertionsCount": 10,
+      "status": "passed",
+      "description": "Live, against a sandbox workspace; last run 2026-09-25 18:45 UTC on ac707c5 (3.9s). 10/10 assertions passed."
+    },
+    {
+      "id": 7,
+      "name": "MCP protocol & page lifecycle",
+      "toolsCount": 58,
+      "assertionsCount": 281,
+      "status": "passed",
+      "description": "Live, against a sandbox workspace; last run 2026-09-25 18:46 UTC on ac707c5 (63s). 281/281 assertions passed."
+    },
+    {
+      "id": 8,
+      "name": "Block model regression",
+      "toolsCount": 0,
+      "assertionsCount": 51,
+      "status": "passed",
+      "description": "Live, against a sandbox workspace; last run 2026-09-25 18:47 UTC on ac707c5 (12.6s). 51/51 assertions passed."
+    },
+    {
+      "id": 9,
+      "name": "Database engine",
+      "toolsCount": 41,
+      "assertionsCount": 369,
+      "status": "passed",
+      "description": "Live, against a sandbox workspace; last run 2026-09-25 18:47 UTC on ac707c5 (35.8s). 369/369 assertions passed, 1 known gaps."
+    },
+    {
+      "id": 10,
+      "name": "Live data validation",
+      "toolsCount": 154,
+      "assertionsCount": 484,
+      "status": "passed",
+      "description": "Live, against a sandbox workspace; last run 2026-09-25 18:49 UTC on ac707c5 (120.6s). 484/484 assertions passed, 21 skipped, 3 known gaps."
+    },
+    {
+      "id": 11,
+      "name": "Token vs cookie parity",
+      "toolsCount": 0,
+      "assertionsCount": 0,
+      "status": "passed",
+      "description": "Live, against a sandbox workspace; last run 2026-09-25 18:50 UTC on ac707c5 (21.7s). 0/0 assertions passed."
+    },
+    {
+      "id": 12,
+      "name": "Leftover sweep",
+      "toolsCount": 0,
+      "assertionsCount": 0,
+      "status": "passed",
+      "description": "Live, against a sandbox workspace; last run 2026-09-25 18:50 UTC on ac707c5 (5.5s)."
     }
   ],
   "milestones": [
     {
       "id": "m1",
-      "title": "Reverse-Engineered Core Protocol Architecture",
+      "title": "Web App API Integration",
       "status": "completed",
       "date": "Sept 2026",
-      "description": "Wire protocol analysis, SOCKS5 proxy relay, AES-256-GCM cookie storage, and automated re-auth"
+      "description": "Integration with the FuseBase web app's APIs, SOCKS5 proxy relay, AES-256-GCM credential storage, and automated re-auth"
     },
     {
       "id": "m2",
@@ -109,10 +165,10 @@
     },
     {
       "id": "m7",
-      "title": "182-Route Exhaustive Discovery & Error Diagnostic",
+      "title": "Endpoint Reference & Error Diagnostics",
       "status": "completed",
       "date": "Sept 2026",
-      "description": "Full API crawl cataloging live vs decommissioned endpoints, container root-cause diagnostics, and move_page promotion"
+      "description": "Endpoint reference documenting live and retired endpoints, container diagnostics, and move_page fixes"
     },
     {
       "id": "m8",

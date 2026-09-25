@@ -510,7 +510,7 @@ export default function App() {
             Project Milestone Chronology
           </h2>
           <p style={{ fontSize: '13px', color: '#9ca3af', marginBottom: '24px' }}>
-            Engineering delivery track from initial reverse-engineering through 143-tool live data verification.
+            Engineering delivery track, from the first integration to write-verified live testing.
           </p>
 
           <div className="timeline">

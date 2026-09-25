@@ -3,7 +3,7 @@
 > **This is the official reference for all discovered Fusebase API endpoints.**
 > Update this document when new endpoints are discovered or new tools are implemented.
 >
-> Source: API discovery crawl & comprehensive method probe (182 method/route probes).
+> Source: live endpoint testing (182 method/route checks).
 > Cross-referenced against 175 implemented MCP tools (34 Core, 141 Extended).
 > Last updated: 2026-09-15
 
@@ -291,8 +291,8 @@
 | `GET /v2/api/identity/spaces` | **404 Not Found (HTML)** | Legacy Nimbus Note v2 route that was decommissioned upstream during FuseBase's gateway modernization. Next.js router catches unmapped routes and returns 404 HTML fallback. | **Decommissioned Upstream.** Superseded by modern gateway endpoint `GET /gwapi2/ft:tasks/workspace-infos`, fully implemented in `list_workspaces` (returns `200 OK`). |
 | `GET /gwapi2/ft:cta/workspaces/{wid}/notes/{nid}/cta` | **500 NetworkError (ENOTFOUND)** | The API gateway attempts to resolve `http://cta-service:port` inside FuseBase's internal Kubernetes cluster. The container/service for ConvertFlow Call-To-Action sticky bars was decommissioned upstream. | **Non-Viable.** Gateway internal DNS lookup `getaddrinfo ENOTFOUND` fails inside FuseBase infrastructure. |
 | `GET /v4/api/proxy/mcp-service/v1/auth/channel/{agentId}` | **500 "User ID is required"** | An internal WebSocket/SSE channel handshake endpoint used by the web UI for live chat bubbles. Requires internal numeric user ID headers and SSE upgrade handshake parameters. | **Superseded by REST.** The underlying AI agent service (`ai-service` and `mcp-service`) is fully supported via `list_agents`, `list_ai_agent_threads`, `get_ai_agent_favorites`, and `get_agent_public_profile`. |
-| `POST .../dashboards/{did}/views` | **500 "filters is required"** | Reverse-engineering probe sent minimal JSON (`{name}`). The backend dashboard service requires a complete schema payload including `root_entity`, `items`, and default filters. | **Fully Functional.** Schema requirement reverse-engineered and implemented in `createView`. |
-| `POST .../databases/copy-from/database` | **403 / 500 "WHERE global_id undefined"** | Probe sent incomplete payload. Requires both query parameters (`?copy_tables=true&copy_views=true...`) and a JSON body specifying `source_database_id` and `scopes: [{ scope_type: "org", scope_id }]`. | **Fully Functional.** Payload reverse-engineered and verified with `201 Created`. Implemented in `duplicateDatabase`. |
+| `POST .../dashboards/{did}/views` | **500 "filters is required"** | An early test request sent minimal JSON (`{name}`). The backend dashboard service requires a complete schema payload including `root_entity`, `items`, and default filters. | **Fully Functional.** Schema requirement worked out by testing and implemented in `createView`. |
+| `POST .../databases/copy-from/database` | **403 / 500 "WHERE global_id undefined"** | Probe sent incomplete payload. Requires both query parameters (`?copy_tables=true&copy_views=true...`) and a JSON body specifying `source_database_id` and `scopes: [{ scope_type: "org", scope_id }]`. | **Fully Functional.** Payload worked out by testing and verified with `201 Created`. Implemented in `duplicateDatabase`. |
 
 ---
 

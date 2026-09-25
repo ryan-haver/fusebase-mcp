@@ -3,7 +3,7 @@
  *
  * Writes rich content to Fusebase pages using the native Y.js WebSocket connection.
  *
- * Protocol (reverse-engineered from browser CDP capture + Fusebase client):
+ * Protocol (as used by the FuseBase web editor):
  *
  *   1. Get JWT via POST /v4/api/workspaces/{wsId}/texts/{pageId}/tokens
  *   2. Build initial Y.Doc with empty paragraph (this is what the browser does)

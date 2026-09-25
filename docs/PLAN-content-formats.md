@@ -111,7 +111,7 @@
 ### Phase 1 — Quick Wins: Inline Formats + H3 + Checklist Parsing
 
 > **Effort**: Small · **Value**: 🔴 Very High  
-> Extends existing patterns — no reverse engineering needed.
+> Extends existing patterns — no format discovery needed.
 
 | Item | File | Change |
 |---|---|---|
@@ -132,7 +132,7 @@
 
 ---
 
-### Phase 2 — Core Text Blocks (Reverse Engineering Required)
+### Phase 2 — Core Text Blocks (Format Discovery Required)
 
 > **Effort**: Medium · **Value**: 🔴 High  
 > Requires Y.js structure capture from browser for each new type.
@@ -155,7 +155,7 @@
 
 **Files modified**: [content-schema.ts](file:///c:/scripts/fusebase-mcp/src/content-schema.ts), [yjs-ws-writer.ts](file:///c:/scripts/fusebase-mcp/src/yjs-ws-writer.ts), [markdown-parser.ts](file:///c:/scripts/fusebase-mcp/src/markdown-parser.ts)
 
-**New interfaces** (exact shapes confirmed during reverse engineering):
+**New interfaces** (exact shapes confirmed during format discovery):
 
 ```typescript
 TableBlock         // type: "table", headers: cells[][], rows: cells[][]
@@ -309,7 +309,7 @@ VideoBlock     // type: "video", url: string
 ## Risks & Dependencies
 
 > [!IMPORTANT]
-> **Reverse engineering** is required for Phase 2 and Phase 3. For each unknown block type, we must:
+> **Format discovery** is required for Phase 2 and Phase 3. For each unknown block type, we must:
 > 1. Manually create the block in the Fusebase browser editor
 > 2. Connect via WebSocket and capture the Y.js binary state
 > 3. Decode the structure to build correct writer code
