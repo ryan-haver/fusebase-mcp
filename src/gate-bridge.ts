@@ -259,7 +259,7 @@ export class FusebaseGateBridge {
         method: "initialize",
         params: {
           protocolVersion: "2024-11-05",
-          clientInfo: { name: "fusebase-mcp-bridge", version: "2.0.0" },
+          clientInfo: { name: "fusebase-mcp-bridge", version: "2.1.0" },
           capabilities: {},
         },
       },

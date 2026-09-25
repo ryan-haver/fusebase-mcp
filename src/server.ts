@@ -12,7 +12,7 @@ import { registerExtendedTools } from "./tools/extended-tools.js";
 import { registerResources } from "./resources.js";
 import { registerPrompts } from "./prompts.js";
 
-export const SERVER_VERSION = "2.0.0";
+export const SERVER_VERSION = "2.1.0";
 
 const INSTRUCTIONS = `FuseBase MCP Server provides programmatic access to the FuseBase collaborative workspace platform.
 
