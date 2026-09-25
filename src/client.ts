@@ -718,9 +718,11 @@ export class FusebaseClient {
     }
     if (this.gateBridge?.hasGate) {
       try {
-        const res = await this.gateBridge.toolCall("listWorkspaceNotes", { workspaceId });
-        // Gate has no paging, so apply offset/limit here. (It also ignores rootId: Gate
-        // lists the workspace's default folder.)
+        // Gate lists one folder at a time (`parentId`, default: the top-level `default` folder).
+        // It has no workspace-wide listing, so "root" lists the top level only.
+        const parentId = options?.rootId && options.rootId !== "root" ? options.rootId : undefined;
+        const res = await this.gateBridge.toolCall("listWorkspaceNotes", { workspaceId, ...(parentId ? { parentId } : {}) });
+        // Gate has no paging, so apply offset/limit here.
         const notes: FusebaseNote[] = gateList(res, "notes", "listWorkspaceNotes")
           .map(toGateNote)
           .filter((n): n is GateNoteSummary => n !== undefined)
@@ -1902,9 +1904,10 @@ export class FusebaseClient {
     try {
       const all = await this.listAllDatabases();
       dbs = all?.data ?? [];
-    } catch {
-      // Non-blocking: callers fall back to listDatabases()
-      return { alias, found: false };
+    } catch (err) {
+      // Non-blocking for internal callers, which fall back to listDatabases(); the tool
+      // reports lookupError as an error rather than as "not found".
+      return { alias, found: false, lookupError: err instanceof Error ? err.message : String(err) };
     }
 
     // Rank every table; lower tier = stronger match. Only the best tier is considered.
@@ -4797,33 +4800,38 @@ export class FusebaseClient {
 
   // ─── Billing & User Preferences ───────────────────────────────
 
+  /**
+   * Run several independent reads. A part that fails is null and named in `unavailable` (with
+   * why); if every part fails, throw the first error, so a total failure never looks like
+   * "nothing set".
+   */
+  private async readParts<K extends string>(parts: Record<K, Promise<unknown>>): Promise<Record<K, unknown> & { unavailable?: Record<string, string> }> {
+    const keys = Object.keys(parts) as K[];
+    const settled = await Promise.allSettled(keys.map((k) => parts[k]));
+    const failures = settled.flatMap((s, i) => (s.status === "rejected" ? [[keys[i], s.reason] as const] : []));
+    if (failures.length === keys.length) throw failures[0][1];
+    const out = Object.fromEntries(keys.map((k, i) => [k, settled[i].status === "fulfilled" ? (settled[i] as PromiseFulfilledResult<unknown>).value : null])) as Record<K, unknown> & { unavailable?: Record<string, string> };
+    if (failures.length) out.unavailable = Object.fromEntries(failures.map(([k, e]) => [k, e instanceof Error ? e.message : String(e)]));
+    return out;
+  }
+
   /** Get billing credits balance, coupon redemptions, and tokens */
-  async getBillingInfo(orgId?: string): Promise<{
-    credit: unknown;
-    activeCoupons: unknown;
-    couponTokens: unknown;
-  }> {
+  async getBillingInfo(orgId?: string) {
     const org = orgId || this.orgId;
-    const [credit, activeCoupons, couponTokens] = await Promise.all([
-      this.request<unknown>("/v1/billing/credit").catch(() => null),
-      this.request<unknown>(apiPath`/v2/api/orgs/${org}/coupons`).catch(() => null),
-      this.request<unknown>(apiPath`/v1/organizations/${org}/coupons`).catch(() => null),
-    ]);
-    return { credit, activeCoupons, couponTokens };
+    return this.readParts({
+      credit: this.request<unknown>("/v1/billing/credit"),
+      activeCoupons: this.request<unknown>(apiPath`/v2/api/orgs/${org}/coupons`),
+      couponTokens: this.request<unknown>(apiPath`/v1/organizations/${org}/coupons`),
+    });
   }
 
   /** Get user notification preferences and web editor variables */
-  async getUserPreferences(): Promise<{
-    notificationOptions: unknown;
-    webEditorVars: unknown;
-    lastOpenedWorkspaces: unknown;
-  }> {
-    const [notificationOptions, webEditorVars, lastOpenedWorkspaces] = await Promise.all([
-      this.request<unknown>("/v1/notification/options").catch(() => null),
-      this.request<unknown>("/v2/api/web-editor/user/vars").catch(() => null),
-      this.request<unknown>("/v1/users/vars/lastOpenedWorkspaces").catch(() => null),
-    ]);
-    return { notificationOptions, webEditorVars, lastOpenedWorkspaces };
+  async getUserPreferences() {
+    return this.readParts({
+      notificationOptions: this.request<unknown>("/v1/notification/options"),
+      webEditorVars: this.request<unknown>("/v2/api/web-editor/user/vars"),
+      lastOpenedWorkspaces: this.request<unknown>("/v1/users/vars/lastOpenedWorkspaces"),
+    });
   }
 
   /** Toggle web editor sidebar collapse state */

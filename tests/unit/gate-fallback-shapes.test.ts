@@ -134,6 +134,20 @@ describe("Gate fallback shapes (COR-6)", () => {
     expect(res.total).toBe(5);
   });
 
+  // Found by the token-only coverage run: the folder was ignored, so list_pages returned the
+  // top-level pages as if they were the folder's contents.
+  it("listPages lists the requested folder, and the top level for 'root'", async () => {
+    const { client, gateBridge } = tokenOnlyClient({ listWorkspaceNotes: () => ({ ok: true, data: { notes: [] } }) });
+    await client.listPages("ws1", { rootId: "folder1" });
+    await client.listPages("ws1", { rootId: "root" });
+    await client.listPages("ws1");
+    expect(gateBridge.toolCall.mock.calls.map((c) => c[1])).toEqual([
+      { workspaceId: "ws1", parentId: "folder1" },
+      { workspaceId: "ws1" },
+      { workspaceId: "ws1" },
+    ]);
+  });
+
   it("getPage returns a FusebaseNote with the workspace id", async () => {
     const { client } = tokenOnlyClient({
       getWorkspaceNote: () => ({ ok: true, data: { note: { globalId: "n1", title: "One", parentId: "f1", md: "# One" } } }),

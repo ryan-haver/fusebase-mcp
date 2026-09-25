@@ -386,9 +386,9 @@ These are the automation building blocks available in Fusebase:
 ## 16. Authentication Modes: Tokens vs. Cookies Feature Parity Matrix
 
 The MCP server supports three production authentication modes:
-- **Pure Token Mode**: `FUSEBASE_GATE_TOKEN` + `FUSEBASE_DASHBOARDS_TOKEN` (or `FUSEBASE_TOKEN`). Connects directly to upstream Gate & Dashboards MCP gateways over Streamable HTTP. Zero browser or cookies required.
+- **Pure Token Mode**: `FUSEBASE_GATE_TOKEN` + `FUSEBASE_DASHBOARDS_TOKEN` (or `FUSEBASE_TOKEN`). Connects directly to upstream Gate & Dashboards MCP gateways over Streamable HTTP. Zero browser or cookies required, but only part of the tool set works: 14 of 129 tools measured ([TOKEN-COVERAGE.md](TOKEN-COVERAGE.md)).
 - **Session Cookie Mode**: `FUSEBASE_COOKIE` (`eversessionid` session cookie). Interacts with internal web client REST APIs and Y.js collaborative servers.
-- **Hybrid Mode (Recommended)**: Both tokens and cookies loaded simultaneously, achieving 100% full-spectrum platform coverage.
+- **Hybrid Mode (Recommended)**: Both tokens and cookies loaded simultaneously; every tool is available.
 
 ### Empirical Validation Matrix
 
@@ -402,7 +402,7 @@ The MCP server supports three production authentication modes:
 | **Pages & Notes** | Read Page Content (`get_page_content`) | ✅ PASS | ✅ PASS | **Full Parity** | Token mode reads clean Markdown via Gate `getWorkspaceNote`; Session mode decodes collaborative HTML via Y.js WebSocket reader. |
 | **Pages & Notes** | Append Page Content (`append_page_content`) | ✅ PASS | ✅ PASS | **Full Parity** | Token mode calls Gate `appendWorkspaceNoteContent`; Session mode applies delta blocks via Y.js WebSocket writer. |
 | **Folders** | List & Create Folders (`list_folders`, `create_folder`) | ✅ PASS | ✅ PASS | **Full Parity** | Token mode calls Gate `listWorkspaceNoteFolders` & `createWorkspaceNoteFolder`; Session mode calls `/gwapi2/ft:notes/menu`. |
-| **Databases** | Database Discovery & Schema Queries | ✅ PASS | ✅ PASS | **Full Parity** | Token mode queries Dashboards MCP `getAllDatabases` & `getDashboardViewData`; Session mode queries `/v1/dashboards/databases`. |
+| **Databases** | Database Discovery (`list_databases`) | ✅ PASS | ✅ PASS | **Full Parity** | Token mode queries Dashboards MCP `getAllDatabases`; Session mode queries `/v1/dashboards/databases`. Schemas, rows, views and relations need the cookie today ([TOKEN-COVERAGE.md](TOKEN-COVERAGE.md)). |
 | **Isolated Stores** | PostgreSQL Control & Migration Bundles | ✅ PASS | ➖ N/A | **Token Superpower** | Exclusive to Gate MCP Bearer Token: Isolated PostgreSQL management (`listIsolatedStores`, `queryIsolatedSql`, migrations). |
 | **Token Lifecycle** | Programmatic Token Creation & Revocation | ✅ PASS | ➖ N/A | **Token Superpower** | Exclusive to Gate MCP: Direct generation, revocation, and catalog inspection of API tokens (`listTokens`, `createToken`, `revokeToken`). |
 | **CRDT Collaboration** | Live Collaborative WebSocket (`wss://text.nimbusweb.me`) | 🔒 RESTRICTED | ✅ PASS | **Cookie Exclusive** | Collaborative WebSocket handshake validates `eversessionid` cookie in HTTP upgrade; bearer tokens are unsupported by the WS gateway. |

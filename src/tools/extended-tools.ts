@@ -880,6 +880,7 @@ export function registerExtendedTools(
       const client = getClient(profile);
       try {
         const resolved = await client.resolveDatabaseAlias(alias);
+        if (resolved.lookupError) throw new Error(`Couldn't read the database list to resolve '${alias}': ${resolved.lookupError}`);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(resolved, null, 2) },

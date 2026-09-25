@@ -86,6 +86,21 @@ npx tsx tests/live/sweep-sandbox.ts --since=<ISO time>   # report
 npx tsx tests/live/sweep-sandbox.ts --clean              # delete leftovers and orphans with test-style names only
 ```
 
+## Token-only coverage
+
+Measures which tools work with only the Gate and Dashboards tokens (no session cookie). With `LIVE_TOKEN_COVERAGE=1`, each suite client gets a twin server with an empty data folder and no cookie:
+
+- Every tool call goes to the twin first. If it fails, the failure is recorded and the call is repeated on the normal server, so the suite carries on with real data.
+- A twin write counts as working only when the suite's `verifyWrite()` proves it. Reads inside `verifyWrite()` take their answer from the normal server, so a token-mode read gap can't fake a proof.
+- Local tools (CLI, profiles, guides) go to the normal server only. Calls that fail in both modes aren't counted against tokens.
+
+```bash
+LIVE_TOKEN_COVERAGE=1 npx tsx tests/live/database-e2e.ts   # repeat for mcp-e2e and data-validation, under one op run
+npm run coverage:tokens -- --markdown docs/TOKEN-COVERAGE.md
+```
+
+Results are appended to `LIVE_TOKEN_COVERAGE_FILE` (default: `fusebase-token-coverage.jsonl` in the temp folder); delete it before a fresh measurement. The report replaces the org host and ids in error text with placeholders.
+
 ## Writing a new live test
 
 1. Give everything you create a test-style name (containing `Test`, `QA`, `E2E`…) and a timestamp.
