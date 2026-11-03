@@ -4,6 +4,7 @@ import { execSync } from "child_process";
 import { fileURLToPath } from "url";
 import { registerCoreTools } from "../src/tools/core-tools.js";
 import { registerExtendedTools } from "../src/tools/extended-tools.js";
+import { loadGuideIndex } from "../src/guide-loader.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -137,6 +138,7 @@ const milestones = [
 
 const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../package.json"), "utf-8"));
 const appVersion = pkg.version || "1.0.0";
+const guides = loadGuideIndex();
 
 const projectStatusData = {
   project: "FuseBase MCP Server",
@@ -160,7 +162,8 @@ const projectStatusData = {
     totalAssertions,
     passedAssertions,
     passRatePercent: totalAssertions ? Math.round((passedAssertions / totalAssertions) * 1000) / 10 : 0,
-    documentationGuides: 278,
+    documentationGuides: guides.length,
+    documentationSections: new Set(guides.map((guide) => guide.section)).size,
   },
   testSuites,
   milestones,

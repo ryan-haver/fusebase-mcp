@@ -4,6 +4,8 @@ This project follows [Semantic Versioning](https://semver.org/). Each release is
 
 ## Unreleased
 
+- Dashboard validation totals, pass rates, failed-check counts, cleanup status and guide counts now come from generated results instead of fixed display strings.
+
 - Added live Gate/Dashboards operation discovery, schema selection and required domain guidance. Direct calls can disable legacy scope injection; discovery errors are no longer hidden as empty catalogs.
 - Updated official CLI integration for update previews/application, named environments, access principals and additive Gate permission sync. Obsolete build flags fail before changing an app. Initialization is noninteractive and avoids implicit Git synchronization; Windows child processes stay hidden.
 - Updated dependencies and managed FuseBase guidance, including MCP SDK 1.32.2, Gate SDK 2.17.5, Dashboards SDK 1.34.10-sdk.2, Vite 8.3.5, TypeScript 6.0.3 and ESLint 10.14.0. Node 22.19 is the supported minimum. Patched minimatch overrides resolve the audited vulnerability without downgrading ESLint.

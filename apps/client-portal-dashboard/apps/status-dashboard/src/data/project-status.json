@@ -1,11 +1,11 @@
 {
   "project": "FuseBase MCP Server",
-  "version": "2.0.0",
-  "lastUpdated": "2026-09-25T18:54:23.101Z",
+  "version": "2.1.0",
+  "lastUpdated": "2026-11-03T21:18:38.021Z",
   "git": {
-    "commit": "5b7afbe",
-    "branch": "docs/neutral-wording",
-    "commitDate": "2026-09-25T12:52:20-06:00"
+    "commit": "d4d8ad1",
+    "branch": "master",
+    "commitDate": "2026-11-03T11:35:09-07:00"
   },
   "protocol": {
     "specification": "JSON-RPC 2.0",
@@ -13,14 +13,15 @@
     "status": "HEALTHY"
   },
   "summary": {
-    "totalTools": 175,
+    "totalTools": 177,
     "coreTools": 34,
-    "extendedTools": 141,
+    "extendedTools": 143,
     "totalSuites": 12,
-    "totalAssertions": 1589,
-    "passedAssertions": 1589,
+    "totalAssertions": 2131,
+    "passedAssertions": 2131,
     "passRatePercent": 100,
-    "documentationGuides": 278
+    "documentationGuides": 285,
+    "documentationSections": 21
   },
   "testSuites": [
     {
@@ -29,7 +30,7 @@
       "toolsCount": 0,
       "assertionsCount": 0,
       "status": "passed",
-      "description": "Offline; last run 2026-09-25 18:45 UTC on ac707c5 (2.6s)."
+      "description": "Offline; last run 2026-11-03 18:35 UTC on d4d8ad1 (2.9s)."
     },
     {
       "id": 2,
@@ -37,7 +38,7 @@
       "toolsCount": 0,
       "assertionsCount": 0,
       "status": "passed",
-      "description": "Offline; last run 2026-09-25 18:45 UTC on ac707c5 (2.7s)."
+      "description": "Offline; last run 2026-11-03 18:35 UTC on d4d8ad1 (3s)."
     },
     {
       "id": 3,
@@ -45,15 +46,15 @@
       "toolsCount": 0,
       "assertionsCount": 0,
       "status": "passed",
-      "description": "Offline; last run 2026-09-25 18:45 UTC on ac707c5 (2.2s)."
+      "description": "Offline; last run 2026-11-03 18:35 UTC on d4d8ad1 (2.6s)."
     },
     {
       "id": 4,
       "name": "Unit tests",
       "toolsCount": 0,
-      "assertionsCount": 394,
+      "assertionsCount": 468,
       "status": "passed",
-      "description": "Offline; last run 2026-09-25 18:45 UTC on ac707c5 (13.2s). 394/394 assertions passed, 6 known gaps."
+      "description": "Offline; last run 2026-11-03 18:36 UTC on d4d8ad1 (15.2s). 468/468 assertions passed."
     },
     {
       "id": 5,
@@ -61,7 +62,7 @@
       "toolsCount": 0,
       "assertionsCount": 0,
       "status": "passed",
-      "description": "Offline; last run 2026-09-25 18:45 UTC on ac707c5 (1.3s)."
+      "description": "Offline; last run 2026-11-03 18:36 UTC on d4d8ad1 (1.5s)."
     },
     {
       "id": 6,
@@ -69,15 +70,15 @@
       "toolsCount": 7,
       "assertionsCount": 10,
       "status": "passed",
-      "description": "Live, against a sandbox workspace; last run 2026-09-25 18:45 UTC on ac707c5 (3.9s). 10/10 assertions passed."
+      "description": "Live, against a sandbox workspace; last run 2026-11-03 18:36 UTC on d4d8ad1 (7.8s). 10/10 assertions passed."
     },
     {
       "id": 7,
       "name": "MCP protocol & page lifecycle",
-      "toolsCount": 58,
-      "assertionsCount": 281,
+      "toolsCount": 56,
+      "assertionsCount": 647,
       "status": "passed",
-      "description": "Live, against a sandbox workspace; last run 2026-09-25 18:46 UTC on ac707c5 (63s). 281/281 assertions passed."
+      "description": "Live, against a sandbox workspace; last run 2026-11-03 18:37 UTC on d4d8ad1 (57.8s). 647/647 assertions passed, 1 skipped."
     },
     {
       "id": 8,
@@ -85,23 +86,23 @@
       "toolsCount": 0,
       "assertionsCount": 51,
       "status": "passed",
-      "description": "Live, against a sandbox workspace; last run 2026-09-25 18:47 UTC on ac707c5 (12.6s). 51/51 assertions passed."
+      "description": "Live, against a sandbox workspace; last run 2026-11-03 18:38 UTC on d4d8ad1 (10.7s). 51/51 assertions passed."
     },
     {
       "id": 9,
       "name": "Database engine",
       "toolsCount": 41,
-      "assertionsCount": 369,
+      "assertionsCount": 381,
       "status": "passed",
-      "description": "Live, against a sandbox workspace; last run 2026-09-25 18:47 UTC on ac707c5 (35.8s). 369/369 assertions passed, 1 known gaps."
+      "description": "Live, against a sandbox workspace; last run 2026-11-03 18:38 UTC on d4d8ad1 (35.5s). 381/381 assertions passed."
     },
     {
       "id": 10,
       "name": "Live data validation",
-      "toolsCount": 154,
-      "assertionsCount": 484,
+      "toolsCount": 165,
+      "assertionsCount": 574,
       "status": "passed",
-      "description": "Live, against a sandbox workspace; last run 2026-09-25 18:49 UTC on ac707c5 (120.6s). 484/484 assertions passed, 21 skipped, 3 known gaps."
+      "description": "Live, against a sandbox workspace; last run 2026-11-03 18:41 UTC on d4d8ad1 (152.2s). 574/574 assertions passed, 12 skipped."
     },
     {
       "id": 11,
@@ -109,7 +110,7 @@
       "toolsCount": 0,
       "assertionsCount": 0,
       "status": "passed",
-      "description": "Live, against a sandbox workspace; last run 2026-09-25 18:50 UTC on ac707c5 (21.7s). 0/0 assertions passed."
+      "description": "Live, against a sandbox workspace; last run 2026-11-03 18:41 UTC on d4d8ad1 (25.1s). 0/0 assertions passed."
     },
     {
       "id": 12,
@@ -117,7 +118,7 @@
       "toolsCount": 0,
       "assertionsCount": 0,
       "status": "passed",
-      "description": "Live, against a sandbox workspace; last run 2026-09-25 18:50 UTC on ac707c5 (5.5s)."
+      "description": "Live, against a sandbox workspace; last run 2026-11-03 18:41 UTC on d4d8ad1 (5.8s)."
     }
   ],
   "milestones": [
@@ -585,7 +586,7 @@
     },
     {
       "name": "set_tool_tier",
-      "description": "Enable extended Fusebase tools for this session. By default only core tools (33) are loaded for performance. Call this with tier 'all' to dynamically register 103 additional tools (136 total) for admin, analytics, database CRUD, portals, ActivePieces automations, and CLI operations.",
+      "description": "Switch this session between core (34 tools) and all (177 tools). Enable 143 extended database, portal, automation, CLI and discovery tools with tier='all', or disable them with tier='core'.",
       "tier": "core",
       "category": "Diagnostics, Preferences & Guides",
       "parameters": [
@@ -1420,13 +1421,15 @@
     },
     {
       "name": "create_portal",
-      "description": "Create a new client portal for a workspace. Client portals are external, branded spaces where external clients view published pages, widgets, and dashboards.",
+      "description": "Create a v2 client portal through Gate. Requires a Gate token, full domain, and a workspace with no existing portal. Client portals are external, branded spaces for published pages, widgets, and dashboards.",
       "tier": "extended",
       "category": "Client Portals & Clients",
       "parameters": [
         "workspaceId",
         "name",
         "domain",
+        "theme",
+        "accessMode",
         "profile"
       ]
     },
@@ -1538,12 +1541,13 @@
     },
     {
       "name": "list_flow_runs",
-      "description": "List execution history of ActivePieces automation flow runs, including status, execution duration, and trigger timestamps.",
+      "description": "List ActivePieces execution history, or provide runId to read a specific run including step outputs. Trigger acceptance alone does not prove successful execution.",
       "tier": "extended",
       "category": "Diagnostics, Preferences & Guides",
       "parameters": [
         "projectId",
         "limit",
+        "runId",
         "profile"
       ]
     },
@@ -1564,8 +1568,20 @@
       "parameters": []
     },
     {
+      "name": "fusebase_cli_update",
+      "description": "Preview or apply official FuseBase CLI updates. Defaults to a dry run and CLI-only update; includeProduct also refreshes the product's managed agent assets, MCP configuration and dependencies. Does not create Git commits.",
+      "tier": "extended",
+      "category": "Developer CLI & Hosted Apps",
+      "parameters": [
+        "cwd",
+        "dryRun",
+        "includeProduct",
+        "environment"
+      ]
+    },
+    {
       "name": "fusebase_cli_init",
-      "description": "Initialize a new FuseBase hosted app product in the specified directory using the official FuseBase CLI.",
+      "description": "Initialize a new FuseBase hosted app product using the official CLI in noninteractive mode. Git initialization/synchronization is skipped. Creates a remote product and local project files.",
       "tier": "extended",
       "category": "Developer CLI & Hosted Apps",
       "parameters": [
@@ -1581,7 +1597,8 @@
       "tier": "extended",
       "category": "Developer CLI & Hosted Apps",
       "parameters": [
-        "cwd"
+        "cwd",
+        "environment"
       ]
     },
     {
@@ -1590,7 +1607,8 @@
       "tier": "extended",
       "category": "Developer CLI & Hosted Apps",
       "parameters": [
-        "cwd"
+        "cwd",
+        "environment"
       ]
     },
     {
@@ -1632,7 +1650,7 @@
     },
     {
       "name": "fusebase_cli_secret_create",
-      "description": "Register a platform application secret key for an app via the FuseBase CLI.",
+      "description": "Declare an app secret key in local fusebase.json via the CLI. Deploy/dev start registers the key on the platform; secret values are set in the FuseBase UI.",
       "tier": "extended",
       "category": "Developer CLI & Hosted Apps",
       "parameters": [
@@ -1644,7 +1662,7 @@
     },
     {
       "name": "fusebase_cli_secret_list",
-      "description": "List registered application secrets for an app via the FuseBase CLI.",
+      "description": "List secret key declarations from local fusebase.json. The current CLI has no secret list command. Returns keys/descriptions only, not values or remote provisioning status.",
       "tier": "extended",
       "category": "Developer CLI & Hosted Apps",
       "parameters": [
@@ -1666,12 +1684,15 @@
     },
     {
       "name": "fusebase_cli_app_update",
-      "description": "Update an existing app's configuration via the FuseBase CLI, including dashboard view permissions and build commands.",
+      "description": "Update app access and permissions via the FuseBase CLI. Access replaces the entire principal list; inspect the app first. Build/dev/output settings belong in fusebase.json.",
       "tier": "extended",
       "category": "Developer CLI & Hosted Apps",
       "parameters": [
         "appIdOrPath",
         "permissions",
+        "access",
+        "syncGatePermissions",
+        "environment",
         "devCommand",
         "buildCommand",
         "outputDir",
@@ -1692,7 +1713,7 @@
     },
     {
       "name": "update_automation_flow",
-      "description": "Update an existing ActivePieces workflow automation (rename or toggle status ENABLED/DISABLED).",
+      "description": "Update an ActivePieces workflow: rename, change status, configure its trigger/actions, or publish. Configuration uses the ActivePieces operation request object. Publishing can activate the flow's trigger.",
       "tier": "extended",
       "category": "ActivePieces Automations",
       "parameters": [
@@ -1700,6 +1721,7 @@
         "type",
         "status",
         "displayName",
+        "request",
         "profile"
       ]
     },
@@ -1715,7 +1737,7 @@
     },
     {
       "name": "trigger_automation_flow",
-      "description": "Test-run or trigger an ActivePieces workflow automation with a custom JSON payload.",
+      "description": "Submit a trigger request to an ActivePieces flow. Acceptance does not prove execution: check list_flow_runs and read the runId's status and outputs. Payload handling depends on the configured trigger; FuseBase Manual Run emits an empty event.",
       "tier": "extended",
       "category": "ActivePieces Automations",
       "parameters": [
@@ -1736,19 +1758,20 @@
     },
     {
       "name": "invite_portal_client",
-      "description": "Invite a customer or client into a FuseBase client portal with the Client Role.",
+      "description": "Invite a client through Gate and return a portal magic link. Requires an explicit choice of full or shared-only access. Refuses to change an existing non-client organization role. Link creation does not confirm email delivery.",
       "tier": "extended",
       "category": "Client Portals & Clients",
       "parameters": [
         "portalId",
         "email",
         "name",
+        "isFullAccess",
         "profile"
       ]
     },
     {
       "name": "create_portal_magic_link",
-      "description": "Generate a 24-hour passwordless magic access link for a portal client.",
+      "description": "Generate a passwordless portal access link for an existing portal member. Requires Gate for membership verification and a session cookie for link creation. Does not confirm email delivery; use the returned expiry if present.",
       "tier": "extended",
       "category": "Client Portals & Clients",
       "parameters": [
@@ -2009,6 +2032,7 @@
         "sql",
         "params",
         "stage",
+        "confirm",
         "profile"
       ]
     },
@@ -2075,12 +2099,13 @@
         "bundle",
         "stage",
         "dryRun",
+        "confirm",
         "profile"
       ]
     },
     {
       "name": "fusebase_work_run_agent",
-      "description": "Run a task or send a prompt to an AI agent in FuseBase Work. Initiates an agent run thread or appends to an existing thread.",
+      "description": "Run a prompt with a FuseBase AI agent and wait for its completed streamed response. Creates a conversation or continues an existing thread. This uses the AI Assistant agent API, not the separate Paperclip execution API.",
       "tier": "extended",
       "category": "FuseBase Work, Firecrawl & n8n",
       "parameters": [
@@ -2093,7 +2118,7 @@
     },
     {
       "name": "fusebase_work_scrape_url",
-      "description": "Scrape and extract clean web content from a URL using FuseBase Work's hosted Firecrawl engine or web parser agent.",
+      "description": "Ask a configured FuseBase scraping/web-parser agent to extract a URL and wait for its completed response. Web fetching depends on the selected agent; this is not a direct Firecrawl API call. A completed response alone does not prove the URL was fetched.",
       "tier": "extended",
       "category": "FuseBase Work, Firecrawl & n8n",
       "parameters": [
@@ -2107,7 +2132,7 @@
     },
     {
       "name": "fusebase_work_trigger_n8n",
-      "description": "Trigger an n8n workflow or automation flow in FuseBase Work with custom input parameters.",
+      "description": "Trigger a FuseBase Work flow through the ActivePieces automation bridge (legacy n8n tool name). Acceptance does not prove execution: check list_flow_runs and read the runId's status and outputs. Payload handling depends on the configured trigger.",
       "tier": "extended",
       "category": "FuseBase Work, Firecrawl & n8n",
       "parameters": [
@@ -2182,13 +2207,30 @@
       ]
     },
     {
+      "name": "fusebase_discover_operations",
+      "description": "Discover current Gate or Dashboards API operations without registering their schemas as local tools. Omit opId to list/search compact summaries; provide opId for its schema. Pass promptGroups from requiredPrompts to load domain guidance before fusebase_direct_tool_call.",
+      "tier": "extended",
+      "category": "Diagnostics, Preferences & Guides",
+      "parameters": [
+        "opId",
+        "schemaMode",
+        "promptGroups",
+        "query",
+        "limit",
+        "offset",
+        "target",
+        "profile"
+      ]
+    },
+    {
       "name": "fusebase_direct_tool_call",
-      "description": "Execute any official upstream FuseBase Gate or Dashboards operation directly via the Streamable HTTP MCP bridge.",
+      "description": "Execute an official Gate or Dashboards operation. Discover its schema with fusebase_discover_operations first; set applyDefaults=false to send exactly the supplied arguments for strict or newly added operations.",
       "tier": "extended",
       "category": "Direct Gate & Dashboards Tokens",
       "parameters": [
         "opId",
         "args",
+        "applyDefaults",
         "target",
         "profile"
       ]

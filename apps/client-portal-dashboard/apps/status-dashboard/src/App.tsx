@@ -54,6 +54,8 @@ export default function App() {
   const tools: Tool[] = statusData.tools as Tool[]
   const suites: TestSuite[] = statusData.testSuites as TestSuite[]
   const milestones: Milestone[] = statusData.milestones as Milestone[]
+  const failedSuites = suites.filter((suite) => suite.status !== 'passed').length
+  const sweepPassed = suites.some((suite) => suite.name === 'Leftover sweep' && suite.status === 'passed')
 
   const categories = useMemo(() => {
     const cats = new Set(tools.map((t) => t.category))
@@ -113,7 +115,7 @@ export default function App() {
         <div className="hub-actions">
           <div className="live-indicator">
             <span className="pulse-dot"></span>
-            <span>All Systems Operational</span>
+            <span>{suites.length === 0 ? 'No recorded checks' : failedSuites ? 'Some checks failed' : 'Latest checks passed'}</span>
           </div>
           <div className="last-sync-badge">
             <Clock style={{ width: '14px', height: '14px' }} />
@@ -144,8 +146,8 @@ export default function App() {
             <ShieldCheck style={{ width: '24px', height: '24px' }} />
           </div>
           <div>
-            <div className="kpi-value" style={{ color: '#34d399' }}>100%</div>
-            <div className="kpi-label">Live Cloud Data Validation</div>
+            <div className="kpi-value" style={{ color: '#34d399' }}>{statusData.summary.passRatePercent}%</div>
+            <div className="kpi-label">Recorded Assertion Pass Rate</div>
             <div className="kpi-subtext">
               <strong style={{ color: '#34d399' }}>
                 {statusData.summary.passedAssertions} / {statusData.summary.totalAssertions}
@@ -163,7 +165,7 @@ export default function App() {
             <div className="kpi-value">{statusData.summary.totalSuites}</div>
             <div className="kpi-label">Functional Test Suites</div>
             <div className="kpi-subtext">
-              <strong style={{ color: '#c084fc' }}>0 failures</strong> • Zero leftover leaks
+              <strong style={{ color: '#c084fc' }}>{failedSuites} failed checks</strong> • {sweepPassed ? 'Cleanup sweep passed' : 'Cleanup not verified'}
             </div>
           </div>
         </div>
@@ -226,7 +228,7 @@ export default function App() {
                 <p className="overview-hero-desc">
                   Enterprise-grade MCP server enabling autonomous AI coding agents and human developers to
                   programmatically manage workspaces, collaborative Y.js documents, relational database tables,
-                  ActivePieces workflows, client portals, and multi-agent sprint boards with 100% data validation.
+                  ActivePieces workflows, client portals, and multi-agent sprint boards with recorded offline and live validation.
                 </p>
               </div>
               <div className="status-badge-healthy">
@@ -339,13 +341,13 @@ export default function App() {
               </div>
               <p className="panel-desc">
                 The test harness enforces rigorous round-trip data assertions across write, readback, mutation,
-                and deletion cycles. All created test folders, notes, database tables, and automation flows are
-                guaranteed clean removal via `finally` blocks.
+                and deletion cycles. Cleanup runs in `finally` blocks, and a separate sweep verifies that
+                temporary remote fixtures were removed.
               </p>
               <div className="stat-rows-group">
                 <div className="stat-row">
                   <span className="stat-row-label">Data Assertions Pass Rate:</span>
-                  <span className="stat-val-emerald">162 / 162 (100%)</span>
+                  <span className="stat-val-emerald">{statusData.summary.passedAssertions} / {statusData.summary.totalAssertions} ({statusData.summary.passRatePercent}%)</span>
                 </div>
                 <div className="stat-row">
                   <span className="stat-row-label">MCP Protocol Compliance:</span>
@@ -353,7 +355,7 @@ export default function App() {
                 </div>
                 <div className="stat-row">
                   <span className="stat-row-label">Offline Documentation Guides:</span>
-                  <span className="stat-val-cyan">278 guides across 19 sections</span>
+                  <span className="stat-val-cyan">{statusData.summary.documentationGuides} guides across {statusData.summary.documentationSections} sections</span>
                 </div>
               </div>
             </div>
@@ -369,7 +371,7 @@ export default function App() {
               <Search style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
               <input
                 type="text"
-                placeholder="Search 143 tools by name, parameter, or description..."
+                placeholder={`Search ${tools.length} tools by name, parameter, or description...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="search-input"
@@ -466,15 +468,15 @@ export default function App() {
           <div className="test-suites-header card-surface">
             <div>
               <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>
-                Full-Spectrum Live Data Validation Suites
+                Recorded Validation Results
               </h2>
               <p style={{ fontSize: '13px', color: '#9ca3af' }}>
-                12 test suites executing 162 deep data assertions against live FuseBase infrastructure.
+                {suites.length} recorded checks with {statusData.summary.totalAssertions} assertions across offline and live validation.
               </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ color: '#34d399', fontWeight: 800, fontSize: '18px' }}>100% Passed</span>
-              <span className="badge-pill badge-success">0 Errors</span>
+              <span style={{ color: '#34d399', fontWeight: 800, fontSize: '18px' }}>{statusData.summary.passRatePercent}% Assertions Passed</span>
+              <span className="badge-pill badge-success">{failedSuites} Failed Checks</span>
             </div>
           </div>
 
