@@ -1,3 +1,4 @@
+import { registerAnnotatedTool } from "./registry.js";
 import { guidesAvailable as guidesAvailableNow, GUIDES_MISSING as GUIDES_MISSING_TEXT } from "../guide-loader.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
@@ -15,7 +16,7 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 interface CoreToolsOptions {
-  enableExtendedTools: () => void;
+  setToolTier: (tier: "core" | "all") => void;
   isExtendedToolsEnabled: () => boolean;
   setActiveProfile?: (profile?: string) => void;
   getActiveProfile?: () => string | undefined;
@@ -29,7 +30,7 @@ export function registerCoreTools(
 
   // === Auth ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "refresh_auth",
     "Refresh Fusebase authentication cookies by re-launching a Playwright browser session. Use this when other tools return 401/auth errors. Set interactive=true to open a visible browser window for manual login. Returns cookie age and expiry info.",
     {
@@ -83,7 +84,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_agent_profiles",
     "List all configured agent authentication profiles found in the local data directory, showing profile names, cookie age in hours, and status.",
     {},
@@ -105,7 +106,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "switch_active_profile",
     "Switch the active default agent authentication profile for subsequent tool calls in this session.",
     {
@@ -132,7 +133,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "check_session_health",
     "Inspect the health, age, validity, and organization access of the current session or a specific agent profile without launching a browser. Returns status (HEALTHY/WARNING/EXPIRED), auth mode (DIRECT_TOKEN/HYBRID/SESSION_COOKIE), and active workspaces.",
     {
@@ -243,7 +244,7 @@ export function registerCoreTools(
 
   // === Workspaces ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_workspaces",
     "List all workspaces in your Fusebase organization with their IDs, titles, and colors. Use this first to discover workspace IDs needed by most other tools.",
     {
@@ -268,7 +269,7 @@ export function registerCoreTools(
 
   // === Pages ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_pages",
     "List pages (notes) in a Fusebase workspace with titles, types, and metadata. Supports pagination and filtering by folder. Returns compact summaries — use get_page for full details on a specific page.",
     {
@@ -328,7 +329,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_page",
     "Get detailed metadata for a specific page including title, dates, size, sharing status, and emoji. Returns all properties — use this when you need full page info beyond what list_pages provides.",
     {
@@ -350,7 +351,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_recent_pages",
     "Get recently accessed pages in a workspace, sorted by last access time. Useful for finding what the user was last working on. Returns up to the specified limit (default 10).",
     {
@@ -387,7 +388,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "create_page",
     "Create a new page in a Fusebase workspace with the given title. Optionally provide initial content via 'markdown' (recommended) or structured 'blocks'. Optionally specify a folderId to place it in a specific folder (defaults to root). Returns the created page's metadata including its new globalId.",
     {
@@ -469,7 +470,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "update_page",
     "Update a page or folder's properties — rename it, move it to a different folder, or both. Uses the upsert endpoint so partial updates are safe.",
     {
@@ -513,7 +514,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "delete_page",
     "[DESTRUCTIVE] Delete a page permanently from a workspace. This action is irreversible — the page and its content will be lost. Use get_page first to verify you have the correct page before deleting.",
     {
@@ -538,7 +539,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "move_page",
     "Move a page to a different folder within the workspace, move it back to workspace root, or migrate it to an entirely different workspace. Specify targetWorkspaceId to migrate across workspaces, and/or folderId (or parentId) to move between folders. Use folderId 'root' (or omit it) for the top level. FuseBase may give the moved page a NEW id: always use the returned pageId afterwards (idChanged tells you).",
     {
@@ -596,7 +597,7 @@ export function registerCoreTools(
 
   // === Folders ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_folders",
     "List all folders in a Fusebase workspace as a nested tree structure. Each folder includes its children, icons, and sharing status. Use folder IDs to filter list_pages or as parentId when creating pages.",
     {
@@ -634,7 +635,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "create_folder",
     "Create a new folder in a Fusebase workspace for organizing pages. Can be created at the root or nested inside an existing parent folder.",
     {
@@ -670,7 +671,7 @@ export function registerCoreTools(
 
   // === Attachments & Files ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_page_attachments",
     "Get all attachments (images, files, audio recordings) embedded in a specific page. Returns file names, MIME types, sizes, and UUIDs. Useful for auditing media content or finding downloadable assets.",
     {
@@ -706,7 +707,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_files",
     "List all uploaded files across a workspace with names, sizes, formats, and URLs. Supports pagination with limit and offset. Different from get_page_attachments — this covers workspace-wide file storage.",
     {
@@ -744,7 +745,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "upload_file",
     "Upload a file to a FuseBase page. The file content must be provided as base64-encoded data. Returns the attachment ID and URL path. Use get_page_attachments to list existing attachments.",
     {
@@ -787,7 +788,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "download_attachment",
     "Download a file attachment from a FuseBase page. Supports native MCP image rendering, local file downloading to disk (saving LLM context), or base64 data. Use get_page_attachments to find attachment IDs first.",
     {
@@ -868,7 +869,7 @@ export function registerCoreTools(
 
   // === Tags & Labels ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_tags",
     "Get all tags in a workspace, or tags for a specific page if pageId is provided. Workspace tags return the full tag vocabulary; page tags return only tags applied to that page. Use update_page_tags to modify a page's tags.",
     {
@@ -901,7 +902,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "update_page_tags",
     "Set tags on a specific page, replacing any existing tags entirely. Pass an array of tag strings to apply. To remove all tags, pass an empty array.",
     {
@@ -929,7 +930,7 @@ export function registerCoreTools(
 
   // === Members (core) ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_members",
     "Get members of a workspace or the entire organization if workspaceId is omitted. Workspace members include roles and privileges; org members include user profiles with emails. Useful for finding collaborators or checking permissions.",
     {
@@ -988,7 +989,7 @@ export function registerCoreTools(
 
   // === Page Content (core) ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_page_content",
     "Get the content of a page decoded from its Y.js document via WebSocket sync. By default returns semantic HTML. Set format='markdown' for clean, compact markdown that uses ~50% fewer tokens.",
     {
@@ -1031,7 +1032,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "append_page_content",
     "Append new content (markdown or structured blocks) to an existing FuseBase page without overwriting existing content. Uses real-time Y.js WebSocket synchronization. Great for adding meeting notes, research updates, log entries, or checklists.",
     {
@@ -1083,7 +1084,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "update_page_content",
     "Write or replace content on a page using the native Y.js WebSocket protocol. Accepts markdown (recommended) or structured content blocks. Supports: headings (H1/H2/H3), paragraphs, bold, italic, strikethrough, underline, inline code, links, highlight, bullet/numbered/checkbox lists, dividers, blockquotes, code blocks (with language), toggles, hints/callouts, collapsible headings, images, files, bookmarks, remote frames, outlines, buttons, steps, tables, and grid layouts.",
     {
@@ -1191,7 +1192,7 @@ export function registerCoreTools(
 
   // === Tasks (core) ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "search_tasks",
     "Search tasks in a workspace with full task details, assignees, labels, and board info. Optionally filter by page to see only tasks linked to a specific note, and by text in the task title (query). Supports pagination with offset and limit.",
     {
@@ -1233,7 +1234,7 @@ export function registerCoreTools(
 
   // === Task Lists & Creation (core) ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_task_lists",
     "List task lists (kanban boards) in a workspace with their associated tasks, assignees, and reminders. Optionally filter to a specific task list by ID. Task list IDs are needed for create_task.",
     {
@@ -1258,7 +1259,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "create_task",
     "Create a new task in a workspace within a specified task list. Supports title, description, priority, due date, assignees, and labels. Use list_task_lists first to get valid taskListId values.",
     {
@@ -1292,7 +1293,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "update_task",
     "Update a task's properties — change status, priority, title, description, assignees, or due date. Uses PATCH semantics so only specified fields are changed.",
     {
@@ -1333,7 +1334,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "delete_task",
     "[DESTRUCTIVE] Delete a task permanently from a workspace. This action is irreversible.",
     {
@@ -1403,7 +1404,7 @@ export function registerCoreTools(
     return 0;
   }
 
-  server.tool(
+  registerAnnotatedTool(server,
     "check_version",
     "Get server version and check for updates from GitHub. Returns the current installed version, latest available version, whether an update is available, and the command to update. If update_available is true, inform the user that a new version is available and suggest updating.",
     {
@@ -1502,7 +1503,7 @@ export function registerCoreTools(
 
   // === FuseBase Guides (core) ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "search_guides",
     "Search the FuseBase guide documentation (FuseBase's help-center articles, downloaded with npm run guides:fetch). Returns matching guide titles, sections, and slugs. Use get_guide to read the full content of a specific result. Great for looking up how any FuseBase feature works.",
     {
@@ -1540,7 +1541,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_guide",
     "Get the full markdown content of a specific FuseBase guide by section and slug. Use search_guides first to find the right section/slug values. Returns the complete guide including instructions, screenshots, and hotkeys.",
     {
@@ -1567,7 +1568,7 @@ export function registerCoreTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_guide_sections",
     "List all 19 FuseBase guide sections with the number of guides in each. Use this to browse available documentation categories before searching for specific topics.",
     {}, async () => {
@@ -1599,45 +1600,17 @@ export function registerCoreTools(
 
   // ─── Tool Tier Management ───────────────────────────────────────
 
-  server.tool(
+  registerAnnotatedTool(server,
     "set_tool_tier",
-    "Enable extended Fusebase tools for this session. By default only core tools (33) are loaded for performance. Call this with tier 'all' to dynamically register 103 additional tools (136 total) for admin, analytics, database CRUD, portals, ActivePieces automations, and CLI operations.",
+    "Switch this session between core (34 tools) and all (177 tools). Enable 143 extended database, portal, automation, CLI and discovery tools with tier='all', or disable them with tier='core'.",
     {
-      tier: z
-        .enum(["all", "core"])
-        .describe("'all' to enable extended tools, 'core' to check current status"),
+      tier: z.enum(["all", "core"]).describe("Desired tool tier for this session"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     }, async ({ tier }) => {
-      if (tier === "all") {
-        if (options.isExtendedToolsEnabled()) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: "Extended tools are already enabled for this session (175 total tools active).",
-              },
-            ],
-          };
-        }
-        options.enableExtendedTools();
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: "Extended tools enabled! 141 additional tools are now available (175 total). New tools: fusebase_token_list, fusebase_token_create, fusebase_token_get, fusebase_token_revoke, fusebase_token_permission_catalog, fusebase_gate_whoami, fusebase_direct_tool_call, fusebase_work_run_agent, fusebase_work_scrape_url, fusebase_work_trigger_n8n, fusebase_cli_sidecar_add, fusebase_cli_sidecar_list, fusebase_cli_sidecar_remove, fusebase_cli_secret_create, fusebase_cli_secret_list, fusebase_cli_logs, fusebase_cli_app_update, batch_put_database_data, resolve_database_alias, link_database_rows, unlink_database_rows, get_relation_rows, reorder_database_rows, list_isolated_stores, create_isolated_store, query_isolated_sql, execute_isolated_sql, select_isolated_sql_rows, insert_isolated_sql_row, batch_insert_isolated_sql_rows, list_isolated_sql_tables, apply_isolated_sql_migrations, get_task_time_tracking, get_automation_flags, get_workspace_premium_status, get_active_import_status, get_org_trials, get_portal_theme, get_portal_navigation_menu, get_workspace_portal, get_agent_public_profile, get_dashboard_templates, get_member_roles, get_workspace_members_v1, get_tasks_workspace_summary, get_billing_info, get_user_preferences, set_sidebar_collapsed, get_ai_assistant_state, list_ai_agent_threads, get_ai_agent_favorites, fusebase_swarm_init, fusebase_swarm_task_transition, trigger_automation_flow, create_portal, get_portal, publish_page_to_portal, check_portal_availability, fusebase_cli_status, fusebase_cli_init, fusebase_cli_list_apps, fusebase_cli_deploy, create_automation_flow, update_automation_flow, delete_automation_flow, list_portal_clients, invite_portal_client, create_portal_magic_link, create_interactive_app_page, list_automation_flows, get_automation_flow, list_flow_runs, list_automation_pieces, get_labels, get_org_usage, get_comment_threads, get_task_description, list_agents, get_mention_entities, get_navigation_menu, get_activity_stream, fusebase_poll_mentions, fusebase_post_comment, fusebase_reply_comment, fusebase_resolve_thread, get_task_usage, get_recently_updated_notes, get_task_count, get_workspace_detail, get_workspace_emails, get_file_count, get_ai_usage, get_org_permissions, get_workspace_info, get_note_tags, get_database_data, list_databases, get_database_entity, create_database, add_database_row, delete_database_row, move_kanban_card, list_database_relations, create_dashboard_table, delete_relation, list_all_databases, get_database_detail, update_database, delete_database, get_dashboard_detail, delete_dashboard, update_view, set_view_representation, duplicate_database, create_view, delete_view, export_csv, duplicate_view, import_csv, set_view_grouping, set_column_width, rename_database_column, reorder_database_columns, update_database_cell, get_database_rows, get_database_schema, add_database_column, delete_database_column, add_relation_column, add_lookup_column, get_org_limits, get_usage_summary, list_portals, get_portal_pages, get_org_features.",
-            },
-          ],
-        };
-      }
+      const previous = options.isExtendedToolsEnabled() ? "all" : "core";
+      options.setToolTier(tier);
       return {
-        content: [
-          {
-            type: "text" as const,
-            text: options.isExtendedToolsEnabled()
-              ? "Current tier: all (175 tools active). To revert to core-only, restart the MCP server."
-              : "Current tier: core (34 tools active). Call set_tool_tier with tier='all' to enable 141 extended tools.",
-          },
-        ],
+        content: [{ type: "text" as const, text: `Current tier: ${tier} (${tier === "all" ? 177 : 34} tools active).${previous === tier ? " Already active; no change." : " Tool list updated."}` }],
       };
     },
   );

@@ -39,7 +39,7 @@ interface Call {
   at: string;
 }
 
-type Status = "WORKS" | "WORKS (write not proven)" | "PARTIAL" | "NEEDS COOKIE" | "NOT EXERCISED" | "LOCAL";
+type Status = "WORKS" | "WORKS (write not proven)" | "REQUEST ONLY" | "PARTIAL" | "NEEDS COOKIE" | "NOT EXERCISED" | "LOCAL";
 
 async function listTools(): Promise<string[]> {
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "fusebase-tools-"));
@@ -62,9 +62,10 @@ function scrub(text: string): string {
     .replace(/https?:\/\/[^/\s]+/g, "https://<org-host>")
     .replace(/(\/(?:orgs|organizations)(?:\/|%2F))[^/?\s]+/gi, "$1{org}")
     .replace(/\borg [A-Za-z0-9]{4,}\b/g, "org {org}")
+    .replace(/(\/(?:notes|workspaces|dashboards|views|rows|threads)\/)[A-Za-z0-9_-]{12,}/g, "$1{id}")
     .replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, "{id}")
     .replace(/\b(?=[A-Za-z0-9]*\d)(?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{12,}\b/g, "{id}")
-    .replace(/([?&](?:scope_id|workspace|workspaceId|thread)=)[^&\s]+/g, "$1{id}");
+    .replace(/([?&](?:scope_id|orgId|workspace|workspaceId|thread)=)[^&\s]+/g, "$1{id}");
 }
 
 function classify(tool: string, allCalls: Call[]): { status: Status; detail: string } {
@@ -79,6 +80,10 @@ function classify(tool: string, allCalls: Call[]): { status: Status; detail: str
   if (failed.length > 0) return { status: "PARTIAL", detail: `${ok.length}/${calls.length} calls worked; ${firstError}` };
   const unproven = ok.filter((c) => c.write && c.verified === "unproven");
   if (unproven.length > 0) return { status: "WORKS (write not proven)", detail: `${unproven.length} write(s) not read back (suite stopped early?)` };
+  const writes = ok.filter((c) => c.write);
+  if (writes.length && writes.every((c) => c.verified === "exempt")) {
+    return { status: "REQUEST ONLY", detail: "requests accepted, but every write was exempt from read-back; execution is not verified" };
+  }
   const proofs = [...new Set(ok.filter((c) => c.write).map((c) => c.verified))].join(", ");
   return { status: "WORKS", detail: proofs ? `writes: ${proofs}` : "" };
 }
@@ -89,7 +94,7 @@ const suites = lines.filter((l) => "completed" in l) as Array<{ suite: string; c
 const tools = await listTools();
 
 const rows = tools.map((tool) => ({ tool, ...classify(tool, calls.filter((c) => c.tool === tool)) }));
-const order: Status[] = ["NEEDS COOKIE", "PARTIAL", "WORKS (write not proven)", "WORKS", "NOT EXERCISED", "LOCAL"];
+const order: Status[] = ["NEEDS COOKIE", "PARTIAL", "WORKS (write not proven)", "REQUEST ONLY", "WORKS", "NOT EXERCISED", "LOCAL"];
 rows.sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status) || a.tool.localeCompare(b.tool));
 
 const counts = order.map((s) => `${s}: ${rows.filter((r) => r.status === s).length}`).join(" · ");
@@ -103,6 +108,7 @@ out.push(`Measured ${new Date().toISOString().slice(0, 10)} against the sandbox 
 out.push(`- ${tools.length} tools; ${hosted.length} act on FuseBase; ${measured.length} of those were exercised.`);
 out.push(`- **${working} of ${measured.length} exercised tools work with tokens only.**`);
 out.push(`- ${counts}`, "");
+out.push("This measures the named local wrappers with these credentials, not every operation in the upstream catalogs. WORKS covers the exercised cases; successful writes require read-back or cleanup proof. REQUEST ONLY is excluded from the working count. LOCAL means outside the token-only comparison, not automatically tested. See [LIVE-VALIDATION.md](LIVE-VALIDATION.md) for skips, fixtures and workflow limits, and [TESTING.md](TESTING.md#token-only-coverage) for the method.", "");
 out.push("| Tool | Status | Detail |", "| --- | --- | --- |");
 for (const r of rows) out.push(`| \`${r.tool}\` | ${r.status} | ${r.detail.replace(/\|/g, "\\|")} |`);
 const text = out.join("\n") + "\n";

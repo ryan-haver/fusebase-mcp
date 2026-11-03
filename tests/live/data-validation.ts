@@ -16,9 +16,9 @@
  * either exercised or explicitly skipped.
  *
  * Entities the suite needs are created during the run and cleaned up afterwards. Known leak:
- * on first run only, the sandbox isolated SQL store 'qa-val-store' (no delete tool; reused on
+ * on first run only, the sandbox isolated SQL store 'qa-val-store' (reused on
  * later runs). Portal invite / magic-link checks send real email and only run when
- * FUSEBASE_TEST_INVITE_EMAIL is set.
+ * FUSEBASE_TEST_SEND_EMAIL=1 and FUSEBASE_TEST_INVITE_EMAIL are set.
  */
 
 import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -36,7 +36,6 @@ import {
   ROOT_DIR,
   requireSandboxWorkspace,
   runSuite,
-  knownGap,
   skip,
   stats,
   ToolError,
@@ -47,6 +46,10 @@ import {
   findUserVar,
 } from "./lib/harness.js";
 import * as path from "path";
+import { createHash } from "node:crypto";
+import { validateCliDeclarations } from "./lib/cli-fixture.js";
+import { verifyExecutableAutomation } from "./lib/automation-fixture.js";
+import { verifyExecutableAgent } from "./lib/agent-fixture.js";
 
 // ─── Local helpers ──────────────────────────────────────────────────
 
@@ -234,14 +237,6 @@ async function readTasks(client: Client, workspaceId: string, taskListId: string
 
 function taskIdOf(t: any): string {
   return String(t?.globalId ?? t?.id ?? t?.taskId ?? "");
-}
-
-/** Automation flow runs as an array (list_flow_runs returns a page object or an array). */
-async function readFlowRuns(client: Client): Promise<any[]> {
-  const runs = await callTool(client, "list_flow_runs", { limit: 50 });
-  const list = Array.isArray(runs) ? runs : runs?.data;
-  assertArray(list, "list_flow_runs (array or { data })");
-  return list;
 }
 
 function suiteHeader(title: string): void {
@@ -1177,26 +1172,14 @@ async function runAllSuites(client: Client, targetWsId: string) {
     assertJson(dbEntity, "get_database_entity");
     ok("get_database_entity", "Queried database entity schema definitions");
 
-    // COR-21: create_dashboard_table is broken for both database and table IDs (404 / 500
-    // "global_id is required"); tracked as a known gap until it is reimplemented.
-    let tableCreated = false;
-    try {
-      await callTool(client, "create_dashboard_table", { dashboardId, title: "Secondary Test Table" });
-      tableCreated = true;
-    } catch (err) {
-      if (!(err instanceof ToolError)) throw err;
-    }
-    knownGap("COR-21", "create_dashboard_table adds a table", tableCreated);
-    if (tableCreated) {
-      await verifyWrite("create_dashboard_table", "a table or view named 'Secondary Test Table' is listed in the database or dashboard", async () => {
+    await callTool(client, "create_dashboard_table", { databaseId, title: "Secondary Test Table" });
+    await verifyWrite("create_dashboard_table", "a separate table named 'Secondary Test Table' is listed in the parent database", async () => {
         const db = await readDatabase(client, databaseId);
-        const views = await readViews(client, dashboardId);
         assert(
-          JSON.stringify(db).includes("Secondary Test Table") || views.some((v: any) => v.name === "Secondary Test Table"),
-          "'Secondary Test Table' should appear in get_database_detail or get_dashboard_detail",
+          db.dashboards.some((d: any) => d.name === "Secondary Test Table" && d.global_id !== dashboardId),
+          "'Secondary Test Table' should be a separate dashboard in get_database_detail",
         );
       });
-    }
 
     const delDbRes = await callTool(client, "delete_database", { databaseId });
     assertJson(delDbRes, "delete_database");
@@ -1307,21 +1290,21 @@ async function runAllSuites(client: Client, targetWsId: string) {
       // These send real email and leave a portal client behind, so they only run when an
       // address you control is configured.
       const inviteEmail = process.env.FUSEBASE_TEST_INVITE_EMAIL;
-      if (!inviteEmail) {
-        skipAll(["create_portal_magic_link", "invite_portal_client"], "sends real email; set FUSEBASE_TEST_INVITE_EMAIL to an address you control to run");
+      const clientAccess = process.env.FUSEBASE_TEST_CLIENT_FULL_ACCESS;
+      if (!inviteEmail || process.env.FUSEBASE_TEST_SEND_EMAIL !== "1" || !["true", "false"].includes(clientAccess ?? "")) {
+        skipAll(["create_portal_magic_link", "invite_portal_client"], "requires FUSEBASE_TEST_SEND_EMAIL=1, FUSEBASE_TEST_INVITE_EMAIL, and explicit FUSEBASE_TEST_CLIENT_FULL_ACCESS=true|false");
       } else {
-        const magicLinkRes = await callTool(client, "create_portal_magic_link", { portalId, email: inviteEmail });
-        assertJson(magicLinkRes, "create_portal_magic_link");
-        noReadBack("create_portal_magic_link", "the link is returned once and emailed; no tool lists issued magic links");
-        ok("create_portal_magic_link", "Generated magic link");
-
-        const inviteClientRes = await callTool(client, "invite_portal_client", { portalId, email: inviteEmail });
+        const inviteClientRes = await callTool(client, "invite_portal_client", { portalId, email: inviteEmail, isFullAccess: clientAccess === "true" });
         assertJson(inviteClientRes, "invite_portal_client");
         await verifyWrite("invite_portal_client", "the invited address is listed by list_portal_clients", async () => {
           const clients = await callTool(client, "list_portal_clients", { portalId });
           assert(JSON.stringify(clients).toLowerCase().includes(inviteEmail.toLowerCase()), "Invited address should be listed by list_portal_clients");
         });
-        ok("invite_portal_client", "Dispatched portal client invitation");
+        ok("invite_portal_client", "Verified portal client membership; email delivery is not verified");
+        const magicLinkRes = await callTool(client, "create_portal_magic_link", { portalId, email: inviteEmail });
+        assertJson(magicLinkRes, "create_portal_magic_link");
+        noReadBack("create_portal_magic_link", "link activation and inbox receipt require separate confirmation; API success alone is not delivery evidence");
+        ok("create_portal_magic_link", "Magic-link creation returned successfully; activation and delivery remain unverified");
       }
     }
   }
@@ -1432,33 +1415,7 @@ async function runAllSuites(client: Client, targetWsId: string) {
       assertJson(runs, "list_flow_runs");
       ok("list_flow_runs", "Queried flow execution runs");
 
-      /**
-       * Prove a trigger by the run it reports. The test flow is an unpublished draft with an empty
-       * trigger: when FuseBase answers without a run, there is nothing a read can observe.
-       */
-      const proveTrigger = async (tool: string, res: any): Promise<void> => {
-        const reported = typeof res?.id === "string" ? res : res?.data;
-        const runId: string | undefined =
-          typeof reported?.id === "string" && (reported.flowId === flowId || "status" in reported) ? reported.id : undefined;
-        if (!runId) {
-          noReadBack(tool, "the trigger response carries no run: the test flow is an unpublished draft with an empty trigger, which ActivePieces doesn't execute, so list_flow_runs has no run to show (no tool can give a flow a real trigger)");
-          return;
-        }
-        await verifyWrite(tool, `list_flow_runs shows run ${runId} of flow ${flowId}`, async () => {
-          const run = (await readFlowRuns(client)).find((r: any) => r.id === runId);
-          assert(!!run, `list_flow_runs should include run ${runId} reported by ${tool}`);
-          assertEqual(run.flowId, flowId, "flow run flowId");
-        }, { timeoutMs: 30_000 });
-      };
-      const triggerRes = await callTool(client, "trigger_automation_flow", { flowId, payload: { qa: true } });
-      assertJson(triggerRes, "trigger_automation_flow");
-      await proveTrigger("trigger_automation_flow", triggerRes);
-      ok("trigger_automation_flow", "Triggered flow");
-
-      const n8nRes = await callTool(client, "fusebase_work_trigger_n8n", { flowId, payload: { test: true } });
-      assertJson(n8nRes, "fusebase_work_trigger_n8n");
-      await proveTrigger("fusebase_work_trigger_n8n", n8nRes);
-      ok("fusebase_work_trigger_n8n", "Triggered flow via FuseBase Work n8n bridge");
+      await verifyExecutableAutomation(client, flowId);
 
       const delFlowRes = await callTool(client, "delete_automation_flow", { flowId });
       assertIncludes(delFlowRes, "deleted successfully", "delete_automation_flow response");
@@ -1629,16 +1586,18 @@ async function runAllSuites(client: Client, targetWsId: string) {
   assertString(cliStatus.installCommand, "cliStatus.installCommand");
   ok("fusebase_cli_status", `CLI installed: ${cliStatus.installed}`);
 
+  if (cliStatus.installed) {
+    const updatePreview = await callTool(client, "fusebase_cli_update", { dryRun: true });
+    assertEqual(updatePreview.success, true, "CLI update dry-run success");
+    assertIncludes(updatePreview.stdout, "dry-run", "CLI update preview");
+    ok("fusebase_cli_update", "Verified official update plan without changing the installation");
+  } else skip("fusebase_cli_update", "CLI is not installed");
+
   // These CLI commands mutate hosted apps (scaffold, deploy, sidecars, secrets, permissions) and
   // need a real app to target; the suite has no sandbox app, so they are never run blind.
   const cliMutatingTools = [
     "fusebase_cli_init",
     "fusebase_cli_deploy",
-    "fusebase_cli_sidecar_add",
-    "fusebase_cli_sidecar_list",
-    "fusebase_cli_sidecar_remove",
-    "fusebase_cli_secret_create",
-    "fusebase_cli_secret_list",
     "fusebase_cli_logs",
     "fusebase_cli_app_update",
   ];
@@ -1656,6 +1615,7 @@ async function runAllSuites(client: Client, targetWsId: string) {
     );
     skip("fusebase_cli_list_apps", "FuseBase CLI not installed (verified tool reports the missing CLI)");
     skipAll(cliMutatingTools, "FuseBase CLI not installed");
+    skipAll(["fusebase_cli_sidecar_add", "fusebase_cli_sidecar_list", "fusebase_cli_sidecar_remove", "fusebase_cli_secret_create", "fusebase_cli_secret_list"], "FuseBase CLI not installed");
   } else {
     // `fusebase app list` needs a project with fusebase.json; the repo ships one under apps/
     // (which is inside the CLI tools' allowed working directories).
@@ -1663,6 +1623,8 @@ async function runAllSuites(client: Client, targetWsId: string) {
     assertObject(cliApps, "fusebase_cli_list_apps");
     assertEqual(cliApps.success, true, "fusebase_cli_list_apps.success");
     ok("fusebase_cli_list_apps", "Queried registered hosted apps");
+    await validateCliDeclarations(client);
+    ok("CLI declarations", "Sidecar add/list/remove and secret create/list verified in a disposable local fixture");
     skipAll(cliMutatingTools, "mutates hosted apps; the suite has no sandbox app to target");
   }
 
@@ -1712,10 +1674,12 @@ async function runAllSuites(client: Client, targetWsId: string) {
   const health = await callTool(client, "check_session_health");
   assertObject(health, "check_session_health");
   assertEqual(health.authenticated, true, "health.authenticated");
-  if (health.status === "WARNING" && health.gateError) {
-    // Honest partial state: the session works but the Gate token was rejected. Gate-only
-    // suites below will fail until the token is regenerated.
-    console.log(`⚠️  check_session_health: WARNING — Gate token rejected (${String(health.gateError).slice(0, 120)})`);
+  assert(!health.gateError, "session health must not report a Gate connectivity error");
+  assert(!health.workspacesError, "session health must not report a workspace connectivity error");
+  if (health.status === "WARNING" && health.ageHours > 100 && health.authMode !== "DIRECT_TOKEN") {
+    // Age alone is advisory; the preceding authenticated check proves the session still works.
+    assert(health.workspaceCount > 0, "aged session still accesses workspaces");
+    console.log(`⚠️  check_session_health: valid session with an age warning (${health.ageHours}h)`);
   } else {
     assertEqual(health.status, "HEALTHY", "health.status");
   }
@@ -1740,6 +1704,9 @@ async function runAllSuites(client: Client, targetWsId: string) {
 
   // The sidebar state is the user var sidebarCollapsed ("1"/"0"). Flip it, prove it, then restore it.
   /** sidebarCollapsed as reported by get_user_preferences. */
+  if (process.env.FUSEBASE_TEST_ACCOUNT_PREFERENCES !== "1") {
+    skip("set_sidebar_collapsed", "account-wide preference, outside the sandbox; opt in with FUSEBASE_TEST_ACCOUNT_PREFERENCES=1");
+  } else {
   const readSidebarCollapsed = async (): Promise<boolean | undefined> => sidebarCollapsedOf(await callTool(client, "get_user_preferences"));
   const setSidebar = async (collapsed: boolean): Promise<void> => {
     const sidebarRes = await callTool(client, "set_sidebar_collapsed", { collapsed });
@@ -1766,6 +1733,7 @@ async function runAllSuites(client: Client, targetWsId: string) {
     }
   }
   ok("set_sidebar_collapsed", "Updated sidebar collapsed state");
+  }
 
   const billingInfo = await callTool(client, "get_billing_info");
   assertObject(billingInfo, "get_billing_info");
@@ -1836,15 +1804,14 @@ async function runAllSuites(client: Client, targetWsId: string) {
     assertArray(stores, "list_isolated_stores");
     ok("list_isolated_stores", `Listed isolated stores (${stores.length})`);
 
-    // There is no delete tool for stores (TST-11), and with a token-managed session a new
-    // store is bound to the token's app. So the suite reuses an existing store and only
-    // creates one when explicitly allowed.
+    // Keep a reusable test store bound to this token's app. Creation is opt-in; the
+    // current upstream delete operation is available through discovery if later retired.
     let storeId: string | undefined;
     const existingStore = stores.find((s: any) => s.alias === SANDBOX_STORE_ALIAS);
     if (existingStore) {
       storeId = existingStore.id ?? existingStore.globalId;
       assertString(storeId, "existing sandbox store id");
-      skip("create_isolated_store", `sandbox store '${SANDBOX_STORE_ALIAS}' already exists (no delete tool, so it is reused rather than re-created)`);
+      skip("create_isolated_store", `sandbox store '${SANDBOX_STORE_ALIAS}' already exists and is reused`);
     } else if (process.env.FUSEBASE_TEST_CREATE_SQL_STORE === "1") {
       const createdStore = await callTool(client, "create_isolated_store", { alias: SANDBOX_STORE_ALIAS, engine: "postgres", storeType: "sql", orgId });
       assertObject(createdStore, "create_isolated_store");
@@ -1860,26 +1827,50 @@ async function runAllSuites(client: Client, targetWsId: string) {
       });
       ok("create_isolated_store", `Provisioned sandbox store '${SANDBOX_STORE_ALIAS}' (${storeId}); it persists for reuse`);
     } else {
-      skipAll(sqlTools, `no '${SANDBOX_STORE_ALIAS}' store and stores can't be deleted; set FUSEBASE_TEST_CREATE_SQL_STORE=1 to create one`);
+      skipAll(sqlTools, `no '${SANDBOX_STORE_ALIAS}' fixture; set FUSEBASE_TEST_CREATE_SQL_STORE=1 to create one`);
     }
 
     if (storeId) {
 
+    // Use current discovery for stage provisioning and migration preflight, which have
+    // no dedicated local wrapper. Never initialize or migrate a production stage.
+    const guidance = await callTool(client, "fusebase_discover_operations", { target: "gate", promptGroups: ["authz", "sdk", "isolated", "isolatedSql"] });
+    assertObject(guidance.guidance, "SQL domain guidance");
+    const directSql = async (opId: string, args: Record<string, unknown>) => {
+      const result = await callTool(client, "fusebase_direct_tool_call", { target: "gate", opId, args, applyDefaults: false });
+      return result?.data ?? result;
+    };
+    const stageArgs = { orgId, storeId };
+    let stages = await directSql("listIsolatedStoreStages", stageArgs);
+    assertArray(stages.stages, "isolated store stages");
+    if (!stages.stages.some((s: any) => s.stage === SQL_STAGE)) {
+      await directSql("initIsolatedStoreStage", { ...stageArgs, body: { stage: SQL_STAGE } });
+      stages = await directSql("listIsolatedStoreStages", stageArgs);
+      assert(stages.stages.some((s: any) => s.stage === SQL_STAGE && s.status === "ready"), "new development stage reads back as ready");
+    }
+
     const table = "qa_validation_events";
+    const migrationSql = `CREATE TABLE IF NOT EXISTS ${table} (id text PRIMARY KEY, run_id text NOT NULL, event_type text NOT NULL);`;
     const bundle = {
-      version: "1",
-      name: "qa-validation",
+      bundleVersion: "qa-validation-1",
       migrations: [
         {
-          version: "001",
+          version: 1,
           name: "create_qa_validation_events",
-          sql: `CREATE TABLE IF NOT EXISTS ${table} (id text PRIMARY KEY, run_id text NOT NULL, event_type text NOT NULL);`,
+          checksum: createHash("sha256").update(migrationSql).digest("hex"),
+          sql: migrationSql,
         },
       ],
     };
-    assertJson(await callTool(client, "apply_isolated_sql_migrations", { storeId, stage: SQL_STAGE, bundle, dryRun: true }), "apply_isolated_sql_migrations (dry run)");
+    const migrationStatus = await directSql("getIsolatedStoreSqlMigrationStatus", { ...stageArgs, stage: SQL_STAGE, body: { bundle } });
+    assertEqual(migrationStatus.canApply, true, "SQL migration preflight canApply");
+    assertEqual(migrationStatus.isDrifted, false, "SQL migration preflight isDrifted");
+    assert([0, 1].includes(migrationStatus.pendingCount), "SQL fixture has zero or one pending migration");
+    // The sandbox opt-in authorizes this exact QA bundle on dev; Gate requires its own
+    // confirmation flag even for dryRun after the read-only status preview above.
+    assertJson(await callTool(client, "apply_isolated_sql_migrations", { storeId, stage: SQL_STAGE, bundle, dryRun: true, confirm: true }), "apply_isolated_sql_migrations (dry run)");
     noReadBack("apply_isolated_sql_migrations", "dry run: validates the bundle without applying it, so nothing is stored (the real run below is verified)");
-    assertJson(await callTool(client, "apply_isolated_sql_migrations", { storeId, stage: SQL_STAGE, bundle, dryRun: false }), "apply_isolated_sql_migrations");
+    assertJson(await callTool(client, "apply_isolated_sql_migrations", { storeId, stage: SQL_STAGE, bundle, dryRun: false, confirm: true }), "apply_isolated_sql_migrations");
     let tableCount = 0;
     await verifyWrite("apply_isolated_sql_migrations", `list_isolated_sql_tables includes ${table}`, async () => {
       const tablesRes = await callTool(client, "list_isolated_sql_tables", { storeId, stage: SQL_STAGE });
@@ -1934,7 +1925,7 @@ async function runAllSuites(client: Client, targetWsId: string) {
       assertEqual(Number(queryRes.rows[0].n), 3, "query_isolated_sql count");
       ok("query_isolated_sql", "Read-only count query returned 3");
 
-      const execRes = await callTool(client, "execute_isolated_sql", { storeId, stage: SQL_STAGE, sql: `DELETE FROM ${table} WHERE run_id = $1`, params: [runId] });
+      const execRes = await callTool(client, "execute_isolated_sql", { storeId, stage: SQL_STAGE, sql: `DELETE FROM ${table} WHERE run_id = $1`, params: [runId], confirm: true });
       assertObject(execRes, "execute_isolated_sql");
       assertEqual(Number(execRes.rowCount), 3, "execute_isolated_sql.rowCount");
       await verifyWrite("execute_isolated_sql", `no rows left for ${runId}`, async () => {
@@ -1945,9 +1936,13 @@ async function runAllSuites(client: Client, targetWsId: string) {
       ok("execute_isolated_sql", "Deleted this run's rows (rowCount 3)");
     } finally {
       await cleanup(`delete isolated rows for ${runId}`, () =>
-        callTool(client, "execute_isolated_sql", { storeId, stage: SQL_STAGE, sql: `DELETE FROM ${table} WHERE run_id = $1`, params: [runId] }),
+        callTool(client, "execute_isolated_sql", { storeId, stage: SQL_STAGE, sql: `DELETE FROM ${table} WHERE run_id = $1`, params: [runId], confirm: true }),
       );
     }
+    const emptyFixture = await callTool(client, "query_isolated_sql", { storeId, stage: SQL_STAGE, sql: `SELECT count(*)::int AS n FROM ${table}` });
+    assertArray(emptyFixture.rows, "SQL fixture cleanup count", 1);
+    assertEqual(Number(emptyFixture.rows[0].n), 0, "SQL test table contains no leftover rows");
+    ok("SQL cleanup", "Reusable QA table is empty after the run");
     }
   }
 
@@ -1956,39 +1951,11 @@ async function runAllSuites(client: Client, targetWsId: string) {
   // ──────────────────────────────────────────────────────────────────
   suiteHeader("SUITE 14: FuseBase Work & Firecrawl");
 
-  // COR-25: thread creation now sends the required workspaceId, but the request body the
-  // server expects is still unknown (it answers 500). Tracked as a known gap until the web
-  // app's request is captured.
-  const runAgentId = numericAgent ? String(numericAgent.id) : firstAgentGlobalId;
-  /** The tool's payload, or undefined when it fails (ToolError). */
-  const tryWork = async (tool: string, args: Record<string, unknown>): Promise<any> => {
-    try {
-      const res = await callTool(client, tool, args);
-      assertJson(res, tool);
-      return res;
-    } catch (err) {
-      if (!(err instanceof ToolError)) throw err;
-      return undefined;
-    }
-  };
-  const runAgentRes = await tryWork("fusebase_work_run_agent", { workspaceId: targetWsId, agentId: runAgentId, prompt: "Status check for data validation suite" });
-  knownGap("COR-25", "fusebase_work_run_agent starts an agent thread", runAgentRes !== undefined);
-  if (runAgentRes !== undefined) {
-    // A failed call records no write; a successful one must show up as a thread of the agent.
-    const threadId = String(runAgentRes.globalId ?? runAgentRes.id ?? runAgentRes.threadId ?? runAgentRes.thread?.globalId ?? runAgentRes.thread?.id ?? "");
-    if (!numericAgent) {
-      noReadBack("fusebase_work_run_agent", "list_ai_agent_threads needs a numeric agent id and list_agents returned none");
-    } else {
-      await verifyWrite("fusebase_work_run_agent", `agent ${numericAgent.id} lists the new thread ${threadId}`, async () => {
-        assertString(threadId, "fusebase_work_run_agent thread id");
-        const threads = await callTool(client, "list_ai_agent_threads", { agentId: String(numericAgent.id) });
-        assertArray(threads, "list_ai_agent_threads");
-        assertIncludes(JSON.stringify(threads), threadId, "list_ai_agent_threads contains the started thread");
-      });
-    }
+  if (process.env.FUSEBASE_TEST_WORK_AGENTS !== "1") {
+    skipAll(["fusebase_work_run_agent", "fusebase_work_scrape_url"], "set FUSEBASE_TEST_WORK_AGENTS=1 to create, execute, verify and remove an isolated QA agent");
+  } else {
+    await verifyExecutableAgent(client, targetWsId);
   }
-  knownGap("COR-25", "fusebase_work_scrape_url starts a scraping agent thread",
-    (await tryWork("fusebase_work_scrape_url", { workspaceId: targetWsId, url: "https://example.com", formats: ["markdown"] })) !== undefined);
 
   if (!automationAvailable) console.log("(fusebase_work_trigger_n8n skipped with automations — see Suite 9)");
 
@@ -1998,6 +1965,7 @@ async function runAllSuites(client: Client, targetWsId: string) {
   suiteHeader("SUITE 15: Direct Gate Bridge & Token Management");
 
   const gateTools = [
+    "fusebase_discover_operations",
     "fusebase_token_permission_catalog",
     "fusebase_gate_whoami",
     "fusebase_token_create",
@@ -2019,6 +1987,21 @@ async function runAllSuites(client: Client, targetWsId: string) {
     const whoamiRes = await callTool(client, "fusebase_gate_whoami", { target: "gate" });
     assertJson(whoamiRes, "fusebase_gate_whoami");
     ok("fusebase_gate_whoami", "Verified token identity & tenant context");
+
+    for (const target of ["gate", "dashboards"] as const) {
+      const catalog = await callTool(client, "fusebase_discover_operations", { target, limit: 1 });
+      assertArray(catalog.operations, `${target} discovery operations`, 1);
+      assert(catalog.total > 0, `${target} operation catalog is nonempty`);
+      const opId = catalog.operations[0].name;
+      const schema = await callTool(client, "fusebase_discover_operations", { target, opId, schemaMode: "both" });
+      assertObject(schema.inputSchema, `${target} input schema`);
+      assertObject(schema.outputSchema, `${target} output schema`);
+      const guidance = await callTool(client, "fusebase_discover_operations", { target, promptGroups: schema.requiredPrompts.groups });
+      assertObject(guidance.guidance, `${target} required guidance`);
+    }
+    const health = await callTool(client, "fusebase_direct_tool_call", { target: "gate", opId: "getHealth", args: {}, applyDefaults: false });
+    assertJson(health, "exact Gate health call");
+    ok("fusebase_discover_operations", "Both gateway catalogs, schemas, guidance and strict argument dispatch verified");
 
     // The create response contains the one-time secret: never log it.
     const tokenName = `E2E QA Probe Token ${Date.now()}`;

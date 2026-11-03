@@ -24,6 +24,7 @@ import {
   type GateWorkspace,
 } from "./gate-bridge.js";
 import { apiPath } from "./url-path.js";
+import { parseAgentStream } from "./agent-stream.js";
 import { randomId, LOWER_ALPHANUMERIC } from "./ids.js";
 
 /** Column keys are 8-char nanoid-style ids that may include "_" and "-". */
@@ -79,6 +80,7 @@ import type {
   DatabaseAliasResolution,
   IsolatedStore,
   IsolatedStoreSqlResult,
+  IsolatedStoreMigrationResult,
   NotesListResponse,
   RecentNotesResponse,
   OrgUsageResponse,
@@ -689,6 +691,20 @@ export class FusebaseClient {
   ): Promise<NotesListResponse> {
     if (this.cookie) {
       try {
+        if (options?.rootId === "default") {
+          // Gate-created notes can remain in the web API's default-folder index after a
+          // move, although their parentId is correct. Filter the workspace-wide listing
+          // before paginating, so moved notes cannot leak into Unsorted or inflate total.
+          const notes: FusebaseNote[] = [];
+          const batchSize = 100;
+          for (let offset = 0; ; offset += batchSize) {
+            const batch = await this.listPages(workspaceId, { ...options, rootId: "root", offset, limit: batchSize });
+            notes.push(...batch.items.filter((note) => note.parentId === "default"));
+            if (batch.items.length < batchSize || offset + batch.items.length >= batch.total) break;
+          }
+          const offset = options.offset ?? 0;
+          return { items: notes.slice(offset, offset + (options.limit ?? 100)), total: notes.length };
+        }
         const opts = {
           offset: 0,
           limit: 100,
@@ -1542,32 +1558,40 @@ export class FusebaseClient {
     prompt: string,
     options: { workspaceId: string; threadId?: string; orgId?: string },
   ): Promise<Record<string, unknown>> {
-    // The API requires workspaceId as a query parameter ("workspaceId is required(in query)").
-    // The old fallback to /v4/api/proxy/ai-service/.../run does not exist on the server and
-    // only hid this error (COR-25).
     if (!options?.workspaceId) throw new Error("workspaceId is required to run an AI agent task");
     const org = options.orgId || this.orgId;
     const qs = `?workspaceId=${encodeURIComponent(options.workspaceId)}`;
-    if (options.threadId) {
-      return this.request<Record<string, unknown>>(
-        apiPath`/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads/${options.threadId}/messages` + qs,
+    let threadId = options.threadId;
+    if (!threadId) {
+      // Creating a thread does not execute the agent. The current web client creates
+      // an empty input context, then sends the free-form prompt to agent-messages.
+      const thread = await this.request<{ id: string }>(
+        apiPath`/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads` + qs,
+        { method: "POST", body: JSON.stringify({ input: {} }) },
+      );
+      if (!thread || typeof thread.id !== "string" || !thread.id) {
+        throw new Error("FuseBase created no usable agent thread ID; execution was not started");
+      }
+      threadId = thread.id;
+    }
+    try {
+      const stream = await this.request<string>(
+        apiPath`/ai-assistant/rest/orgs/${org}/agent-messages` + qs + `&threadId=${encodeURIComponent(threadId)}`,
         {
           method: "POST",
-          body: JSON.stringify({ message: prompt, text: prompt, content: prompt }),
+          body: JSON.stringify({ text: prompt, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, files: [] }),
+          responseType: "text",
+          timeoutMs: 240_000,
         },
       );
+      return parseAgentStream(stream, threadId);
+    } catch (error) {
+      throw new Error(`Agent execution did not confirm completion (thread ${threadId}); inspect this thread before retrying. ${error instanceof Error ? error.message : String(error)}`, { cause: error });
     }
-    return this.request<Record<string, unknown>>(
-      apiPath`/ai-assistant/rest/orgs/${org}/agents/${agentId}/threads` + qs,
-      {
-        method: "POST",
-        body: JSON.stringify({ message: prompt, text: prompt, prompt }),
-      },
-    );
   }
 
   /**
-   * Scrape and extract web content via the FuseBase Work Firecrawl service or web parser agent.
+   * Ask a configured scraping agent to extract web content. Fetching capability depends on that agent.
    */
   async scrapeUrlViaFirecrawl(
     url: string,
@@ -1596,7 +1620,7 @@ export class FusebaseClient {
   }
 
   /**
-   * Trigger an n8n automation flow or webhook in FuseBase Work.
+   * Legacy n8n-named wrapper for FuseBase Work's ActivePieces automation bridge.
    */
   async triggerN8nFlow(
     flowId: string,
@@ -2208,6 +2232,7 @@ export class FusebaseClient {
         } catch (err) {
           throw new Error(
             `Could not load dashboard '${dashboardId}' to find its default view: ${errMsg(err)}. Pass viewId explicitly.`,
+            { cause: err },
           );
         }
         const views = (detail as any)?.data?.views ?? (detail as any)?.views;
@@ -2408,21 +2433,38 @@ export class FusebaseClient {
   /**
    * Create a new table (dashboard) within a database.
    *
-   * Browser-intercepted: POST /v4/api/proxy/dashboard-service/v1/dashboards/{dashboardId}/views
-   * Body: { "title": "TableName" }
-   *
-   * Note: In FuseBase, creating a "table" within a database is actually creating a new view
-   * that acts as a separate table tab.
+   * A table is a dashboard with its own schema and default view, not a view of an
+   * existing table. The parent ID is the database UUID.
    */
   async createDashboardTable(
-    dashboardId: string,
+    databaseId: string,
     title: string,
   ): Promise<unknown> {
     return this.request(
-      apiPath`/v4/api/proxy/dashboard-service/v1/dashboards/${dashboardId}/views`,
+      "/v4/api/proxy/dashboard-service/v1/dashboards",
       {
         method: "POST",
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({
+          global_id: crypto.randomUUID(),
+          database_id: databaseId,
+          name: title,
+          root_entity: "custom",
+          scopes: [{ scope_type: "org", scope_id: this.orgId }],
+          schema: {
+            root_entity: "custom",
+            root_index_key: "rowUuid",
+            items: [],
+            sections: [],
+            data_sections: { section_type: "view", section_key: "view" },
+            metadata: {
+              version: "1.0.0",
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              migrations: [],
+            },
+            readonly: false,
+          },
+        }),
       },
     );
   }
@@ -4141,7 +4183,7 @@ export class FusebaseClient {
             params: params && params.length > 0 ? params : null,
           },
         });
-        return (res?.data || res) as IsolatedStoreSqlResult;
+        return (res?.data?.result ?? res?.result ?? res?.data ?? res) as IsolatedStoreSqlResult;
       } catch (err: any) {
         console.error(`[client] gateBridge.queryIsolatedStoreSql fallback: ${err.message}`);
       }
@@ -4161,6 +4203,7 @@ export class FusebaseClient {
     sql: string,
     params: unknown[] = [],
     stage: "dev" | "prod" = "prod",
+    confirm: boolean = false,
   ): Promise<{ rowCount: number; message?: string }> {
     if (this.gateBridge) {
       try {
@@ -4169,12 +4212,13 @@ export class FusebaseClient {
           orgId: identity.orgId || this.orgId,
           storeId,
           stage,
+          ...(confirm ? { confirm: true } : {}),
           body: {
             sql,
             params: params && params.length > 0 ? params : null,
           },
         });
-        return (res?.data || res) as { rowCount: number; message?: string };
+        return (res?.data?.result ?? res?.result ?? res?.data ?? res) as { rowCount: number; message?: string };
       } catch (err: any) {
         if (!isSafeToRetryElsewhere(err)) throw err;
         console.error(`[client] gateBridge.executeIsolatedStoreSql fallback: ${err.message}`);
@@ -4351,7 +4395,8 @@ export class FusebaseClient {
     bundle: Record<string, unknown>,
     stage: "dev" | "prod" = "prod",
     dryRun: boolean = false,
-  ): Promise<{ success: boolean; appliedVersions?: string[]; message?: string }> {
+    confirm: boolean = false,
+  ): Promise<IsolatedStoreMigrationResult> {
     if (this.gateBridge) {
       try {
         // Gate SDK contract: orgId/storeId/stage are path params; bundle and dryRun go in body (COR-24).
@@ -4360,15 +4405,16 @@ export class FusebaseClient {
           orgId: identity.orgId || this.orgId,
           storeId,
           stage,
+          ...(confirm ? { confirm: true } : {}),
           body: { bundle, dryRun },
         });
-        return (res?.data || res) as { success: boolean; appliedVersions?: string[]; message?: string };
+        return (res?.data || res) as IsolatedStoreMigrationResult;
       } catch (err: any) {
         if (!isSafeToRetryElsewhere(err)) throw err;
         console.error(`[client] gateBridge.applyIsolatedStoreSqlMigrations fallback: ${err.message}`);
       }
     }
-    return this.request<{ success: boolean; appliedVersions?: string[]; message?: string }>(
+    return this.request<IsolatedStoreMigrationResult>(
       apiPath`/v4/api/proxy/gate-service/v1/isolated-stores/${storeId}/sql/migrations/apply`,
       {
         method: "POST",
@@ -4511,20 +4557,17 @@ export class FusebaseClient {
     workspaceId: string,
     name: string,
     domain?: string,
+    options: { theme?: string; accessMode?: "open" | "email" | "invite-only" | "email-verified" } = {},
   ): Promise<unknown> {
-    return this.request<unknown>(
-      apiPath`/v1/portals/orgs/${this.orgId}/portals` + `?workspaceId=${encodeURIComponent(workspaceId)}`,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          setup: false,
-          settings: {
-            name,
-            ...(domain ? { domain } : {}),
-          },
-        }),
-      },
-    );
+    if (!domain?.trim()) throw new Error("Portal creation requires a full domain, e.g. qa-example.p.nimbusweb.me.");
+    if (!this.gateBridge?.hasGate) throw new Error("Portal creation requires a Gate token. Configure FUSEBASE_GATE_TOKEN; the legacy web creation endpoint is no longer supported.");
+    // Current v2 contract: domain and workspaceId belong in body, not nested
+    // settings. Never retry a failed creation through the legacy endpoint.
+    const result = await this.gateBridge.toolCall("createPortal", {
+      orgId: this.orgId,
+      body: { workspaceId, name, domain, ...options },
+    }, "gate", { applyDefaults: false });
+    return result?.data ?? result;
   }
 
   /** Get detailed portal record by portal ID, global ID, or workspace ID */
@@ -4616,8 +4659,20 @@ export class FusebaseClient {
   }
 
   /** List recent automation flow runs */
-  async listFlowRuns(projectId?: string, limit = 20): Promise<unknown> {
+  async listFlowRuns(projectId?: string, limit = 20, runId?: string): Promise<unknown> {
     const auth = await this.ensureAutomationAuth();
+    if (runId) {
+      const run = await this.request<Record<string, unknown>>(apiPath`/automation/api/v1/flow-runs/${runId}`);
+      // FuseBase's fork returns run metadata separately from the execution output file.
+      // Other ActivePieces versions already populate steps on the run response.
+      if (!run.steps && typeof run.logsFileId === "string" && run.logsFileId) {
+        const raw = await this.request<unknown>(apiPath`/automation/api/v1/files/${run.logsFileId}`);
+        const logs = (typeof raw === "string" ? JSON.parse(raw) : raw) as { executionState?: { steps?: unknown } };
+        if (!logs?.executionState?.steps) throw new Error("Automation execution log does not contain step outputs");
+        return { ...run, steps: logs.executionState.steps };
+      }
+      return run;
+    }
     const effectiveProjectId = projectId || auth.projectId;
     const params = new URLSearchParams({ limit: String(limit) });
     if (effectiveProjectId) params.set("projectId", effectiveProjectId);
@@ -4649,14 +4704,20 @@ export class FusebaseClient {
   async updateAutomationFlow(
     flowId: string,
     operation: {
-      type: "CHANGE_STATUS" | "CHANGE_NAME";
+      type: "CHANGE_STATUS" | "CHANGE_NAME" | "UPDATE_TRIGGER" | "ADD_ACTION" | "UPDATE_ACTION" | "LOCK_AND_PUBLISH";
       status?: "ENABLED" | "DISABLED";
       displayName?: string;
+      request?: Record<string, unknown>;
     },
   ): Promise<unknown> {
+    if (operation.type === "CHANGE_NAME" && !operation.displayName) throw new Error("CHANGE_NAME requires displayName");
+    if (operation.type === "CHANGE_STATUS" && !operation.status) throw new Error("CHANGE_STATUS requires status");
+    if (["UPDATE_TRIGGER", "ADD_ACTION", "UPDATE_ACTION"].includes(operation.type) && !operation.request) {
+      throw new Error(`${operation.type} requires request`);
+    }
     const requestPayload = operation.type === "CHANGE_NAME"
       ? { displayName: operation.displayName }
-      : { status: operation.status };
+      : operation.type === "CHANGE_STATUS" ? { status: operation.status } : operation.request ?? {};
     return this.request<unknown>(apiPath`/automation/api/v1/flows/${flowId}`, {
       method: "POST",
       body: JSON.stringify({
@@ -4760,10 +4821,19 @@ export class FusebaseClient {
 
   /** List invited portal clients and members */
   async listPortalClients(portalId?: string): Promise<unknown> {
+    if (portalId && this.gateBridge?.hasGate) {
+      const portal = await this.getPortal(portalId);
+      const members = gateList(await this.gateBridge.toolCall("listPortalMembers", {
+        orgId: this.orgId, workspaceId: portal.workspaceId,
+      }, "gate", { applyDefaults: false }), "members", "listPortalMembers") as Array<{ orgRole?: string }>;
+      return members.filter(member => member.orgRole === "client");
+    }
     const qs = portalId ? `?portalId=${encodeURIComponent(portalId)}` : "";
     return this.request<unknown>(
       apiPath`/v2/api/orgs/${this.orgId}/portalClients` + qs,
-    ).catch(async () => {
+    ).catch(async (error) => {
+      // Org-wide membership is not evidence of access to a particular portal.
+      if (portalId) throw error;
       // Fallback: query org members filtered by role client
       const members = await this.getOrgMembers();
       return members.filter((m: any) => m.role === "client" || m.userRole === "client");
@@ -4775,26 +4845,45 @@ export class FusebaseClient {
     portalId: string,
     email: string,
     name?: string,
+    options?: { isFullAccess: boolean },
   ): Promise<unknown> {
-    return this.request<unknown>(apiPath`/v1/portals/orgs/${this.orgId}/invites`, {
-      method: "POST",
-      body: JSON.stringify({
-        portalId,
-        email,
-        name: name || email.split("@")[0],
-        role: "client",
-      }),
-    });
+    if (typeof options?.isFullAccess !== "boolean") throw new Error("Choose portal client access explicitly: isFullAccess=true for all pages, false for shared/public pages only.");
+    if (!this.gateBridge?.hasGate) throw new Error("Portal invitations require a Gate token. Configure FUSEBASE_GATE_TOKEN.");
+    const normalizedEmail = email.trim().toLowerCase();
+    // This operation sets an organization role. Do not downgrade a pre-existing
+    // owner/manager/member when an account address is supplied for a client invite.
+    const users = gateList(await this.gateBridge.toolCall("listOrgUsers", {
+      orgId: this.orgId, includeMetadata: false,
+    }, "gate", { applyDefaults: false }), "users", "listOrgUsers") as Array<{ email?: string; role?: string }>;
+    const existing = users.find(user => user.email?.toLowerCase() === normalizedEmail);
+    if (existing && existing.role !== "client") {
+      throw new Error(`This email already has organization role ${existing.role ?? "unknown"}; use a separate client email to avoid changing its role.`);
+    }
+    const result = await this.gateBridge.toolCall("inviteToPortal", {
+      orgId: this.orgId, portalId,
+      body: { email: normalizedEmail, ...(name ? { fullName: name } : {}), orgRole: "client", workspaceRole: "reader", isFullAccess: options.isFullAccess },
+    }, "gate", { applyDefaults: false });
+    return result?.data ?? result;
   }
 
-  /** Generate or retrieve a 24-hour magic login link for a portal client */
+  /** Generate a login link for an existing portal member; does not prove email delivery. */
   async getPortalMagicLink(portalId: string, email: string): Promise<unknown> {
-    return this.request<unknown>(apiPath`/v1/portals/orgs/${this.orgId}/magic-link`, {
+    if (!this.gateBridge?.hasGate) throw new Error("Portal magic links require a Gate token to verify existing portal membership.");
+    const portal = await this.getPortal(portalId);
+    const workspaceId = portal.workspaceId;
+    if (typeof workspaceId !== "string" || !workspaceId || typeof portal.domain !== "string" || !portal.domain) {
+      throw new Error("Portal has no usable workspace ID or domain");
+    }
+    const members = gateList(await this.gateBridge.toolCall("listPortalMembers", {
+      orgId: this.orgId, workspaceId,
+    }, "gate", { applyDefaults: false }), "members", "listPortalMembers") as Array<{ email?: string }>;
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!members.some(member => member.email?.toLowerCase() === normalizedEmail)) {
+      throw new Error("Email is not an existing member of this portal; invite it with an explicit access choice first.");
+    }
+    return this.request<unknown>(apiPath`/v2/api/workspaces/${workspaceId}/magic-links` + `?orgId=${encodeURIComponent(this.orgId)}`, {
       method: "POST",
-      body: JSON.stringify({
-        portalId,
-        email,
-      }),
+      body: JSON.stringify({ email: normalizedEmail, url: `https://${portal.domain}`, deleteMagicLinkIds: [] }),
     });
   }
 

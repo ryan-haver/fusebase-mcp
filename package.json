@@ -1,7 +1,7 @@
 {
   "name": "fusebase-mcp",
   "version": "2.1.0",
-  "description": "MCP server for FuseBase (formerly Nimbus Note) — 175 tools (34 Core, 141 Extended), 8 native resources & 17 prompts for full-stack AI-powered workspace, portal lifecycle, vibe coding apps, automations, swarm orchestration, direct Gate & Dashboards MCP token connection, and AI assistant threads",
+  "description": "MCP server for FuseBase (formerly Nimbus Note) — 177 tools (34 Core, 143 Extended), 8 native resources & 17 prompts for full-stack AI-powered workspace, portal lifecycle, vibe coding apps, automations, swarm orchestration, direct Gate & Dashboards MCP token connection, and AI assistant threads",
   "license": "MIT",
   "author": "Ryan Haver (https://github.com/ryan-haver)",
   "homepage": "https://github.com/ryan-haver/fusebase-mcp#readme",
@@ -13,7 +13,7 @@
     "url": "https://github.com/ryan-haver/fusebase-mcp/issues"
   },
   "engines": {
-    "node": ">=22.12"
+    "node": ">=22.19"
   },
   "type": "module",
   "main": "dist/index.js",
@@ -38,6 +38,9 @@
     "test:live": "npx tsx scripts/test-all.ts --live-only",
     "test:mcp-e2e": "npx tsx tests/live/mcp-e2e.ts",
     "test:database": "npx tsx tests/live/database-e2e.ts",
+    "test:automation": "npx tsx tests/live/automation-e2e.ts",
+    "test:account": "npx tsx tests/live/account-e2e.ts",
+    "test:agents": "npx tsx tests/live/agent-e2e.ts",
     "test:data-validation": "npx tsx tests/live/data-validation.ts",
     "test:audit": "npx tsx scripts/audit-tools.ts",
     "test:regression": "npx tsx tests/live/block-regression.ts",
@@ -69,21 +72,25 @@
     "playwright": "^1.58.2",
     "socket.io-client": "^4.8.3",
     "socks": "^2.8.7",
-    "socks-proxy-agent": "^8.0.5",
+    "socks-proxy-agent": "^10.1.0",
     "turndown": "^7.2.2",
-    "undici": "^7.22.0",
+    "undici": "^8.12.3",
     "y-protocols": "^1.0.7",
     "yjs": "^13.6.29"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.5",
+    "@eslint/js": "^10.0.1",
     "@types/mdast": "^4.0.4",
     "@types/node": "^22.0.0",
     "@types/turndown": "^5.0.6",
     "@types/ws": "^8.18.1",
-    "eslint": "^9.39.5",
-    "typescript": "^5.7.0",
+    "eslint": "^10.14.0",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.1",
     "vitest": "^5.0.1"
+  },
+  "overrides": {
+    "minimatch": "^11.0.4"
   }
 }

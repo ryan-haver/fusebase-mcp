@@ -1,7 +1,7 @@
 ---
-version: "1.10.0"
+version: "1.11.0"
 mcp_prompt: fusebaseAuth
-last_synced: "2026-08-05"
+last_synced: "2026-09-08"
 title: "Fusebase Auth For AI Apps"
 category: specialized
 ---
@@ -17,6 +17,7 @@ category: specialized
 - [Fusebase Auth For AI Apps](#fusebase-auth-for-ai-apps)
 - [Relevant Operations](#relevant-operations)
 - [Architecture Rules](#architecture-rules)
+- [App Login Handoff](#app-login-handoff)
 - [Org Onboarding](#org-onboarding)
 - [Public Registration With Org Membership](#public-registration-with-org-membership)
 - [Forward The Visitor's IP On Auth Calls](#forward-the-visitors-ip-on-auth-calls)
@@ -34,6 +35,7 @@ category: specialized
 - [Challenge, 2FA, And MFA](#challenge-2fa-and-mfa)
 - [Password Restore](#password-restore)
 - [Google Auth](#google-auth)
+  - [Google / Microsoft direct login (platform OpenID routes)](#google--microsoft-direct-login-platform-openid-routes)
 - [Common Pitfalls](#common-pitfalls)
 
 ---
@@ -43,10 +45,10 @@ These operations help AI Apps add Fusebase account registration, login, logout, 
 
 ## Relevant Operations
 
-- `registerFusebaseUser` — visitor-safe email/password registration. Creates a Fusebase account through auth-form and returns a `sessionId` plus `userId` when registration succeeds. It does not add org membership. For AI App signup, send `autoConfirmEmail: true` unless product requirements explicitly need platform email confirmation.
+- `registerFusebaseUser` — visitor-safe email/password registration. Creates a Fusebase account through auth-form and returns the `appAuth` sign-in handoff (see below) when registration succeeds. It does not add org membership. For AI App signup, send `autoConfirmEmail: true` unless product requirements explicitly need platform email confirmation.
 - `registerFusebaseOrgMember` — protected registration plus org provisioning. Creates the Fusebase account, then adds the new user to the path `orgId`. Requires `org.members.write` and org access. Use this only on registration, not on login. **Does not add the user to any App's `accessPrincipals`** — org membership and app access are separate (see below). For AI App signup, send `autoConfirmEmail: true` regardless of the org role being granted.
-- `setFusebaseInitialPassword` — sets the password of the **currently signed-in user**, once, with no password-restore email. Needed for an invitee whose account was pre-provisioned by an invite or an app magic link and holds a random password they never learn; `/auth/context` reports `needsInitialPassword: true` for exactly those accounts. Limits: the body is `{ password }` only, so you cannot target another account; the caller must be a user context (`fbsfeaturetoken` / session — `FBS_FEATURE_TOKEN` gets `403`); `409` once a password has been set; it mints no session and drops the account's existing ones, so follow it with `loginFusebaseUser`.
-- `loginFusebaseUser` — visitor-safe email/password login. Returns `sessionId` plus `userId`, or a challenge. Never provisions org membership.
+- `setFusebaseInitialPassword` — sets the password of the **currently signed-in user**, once, with no password-restore email. Needed for an invitee whose account was pre-provisioned by an invite or an app magic link and holds a random password they never learn; `/auth/context` reports `needsInitialPassword: true` for exactly those accounts. Limits: the body is `{ password }` only, so you cannot target another account; the caller must be a user context (`fbsfeaturetoken` — `FBS_FEATURE_TOKEN` gets `403`); `409` once a password has been set; it mints no session and drops the account's existing ones, so follow it with `loginFusebaseUser`.
+- `loginFusebaseUser` — visitor-safe email/password login. Returns the `appAuth` sign-in handoff (see below), or a challenge. Never provisions org membership.
 - `completeFusebaseAuthChallenge` — completes auth-form challenges such as CAPTCHA, OTP, mail OTP, two-factor, and MFA states returned by register/login.
 - `requestFusebasePasswordRestore` — sends restore email through auth-form. It returns a generic `{ ok: true }` and must not be used for account enumeration.
 - `requestFusebaseRestoreKey` — protected white-label reset. Mints the restore key WITHOUT sending the platform email and returns `{ key, platformResetUrl, expiresAt }` so the app can send its own branded reset mail. Requires `auth.restore_key.write` and org access; visitors get 403.
@@ -56,11 +58,48 @@ These operations help AI Apps add Fusebase account registration, login, logout, 
 ## Architecture Rules
 
 - All calls to auth-form must go through a backend or Gate operation. Do not `fetch()` auth-form directly from the SPA because the app host and auth host are different origins and CORS/session cookies will not behave correctly.
-- The returned `sessionId` is credential material. A server/BFF should set it as an app-domain cookie such as `eversessionid` with `httpOnly`, `secure`, `sameSite=Lax`, and `path=/` where possible.
+- An authenticated result carries `appAuth`. Spend `appAuth.authPath` on the app's own origin to get the app token cookie — see § App Login Handoff.
 - After register, login, or challenge success, route the user to the returned `redirectPath`. Always keep redirect paths relative (`/dashboard`, `/tasks/123`) and reject absolute URLs or `//host` forms.
 - When creating accounts from an AI App email/password signup flow, include `autoConfirmEmail: true` on `registerFusebaseUser` or `registerFusebaseOrgMember` so auth-form does not send a separate email-confirmation message.
 - Use `registerFusebaseOrgMember` only for a brand-new registration flow. Do not add org membership during ordinary login because login must not mutate roles or downgrade existing access.
 - For app access decisions after auth or provisioning, check the user's actual org/app access before unlocking protected content. Do not treat a successful write as a substitute for an access check.
+
+## App Login Handoff
+
+An authenticated `registerFusebaseUser`, `registerFusebaseOrgMember`, `loginFusebaseUser` or `completeFusebaseAuthChallenge` returns an `appAuth` object. That is how the person becomes signed in **to the app**:
+
+```json
+{
+  "status": "authenticated",
+  "appAuth": {
+    "exchangeToken": "<exchange token>",
+    "expiresInSeconds": 300,
+    "authPath": "<relative url on the app host>"
+  },
+  "redirectPath": "/dashboard"
+}
+```
+
+Spend `authPath` on the app's own origin: the platform resolves the token there, evaluates the app's `accessPrincipals` and sets the `fbsfeaturetoken` cookie. The URL is built from the `redirectPath` the app sent — pass it through, do not assemble it yourself.
+
+**Recommended — same-origin fetch, the loaded page survives:**
+
+```ts
+const res = await fetch(appAuth.authPath, { headers: { Accept: 'application/json' } });
+const body = await res.json();
+// 200  -> { status: 'ok', redirectPath, token, expiresInSeconds }, cookie already set
+// fail -> { status: 'error', reason, message }, e.g. 403 `no_allowed_principals`
+//         or 401 `session_exchange_invalid` (the token has expired)
+if (!res.ok) return showAuthError(body.reason, body.message);
+router.push(body.redirectPath);
+```
+
+The browser applies the `Set-Cookie` before your code reads the body, so the app is signed in without throwing the loaded SPA away. `token` in the body is the same value as the cookie (it is not `httpOnly`, and app-proxy already injects it as `window.FBS_FEATURE_TOKEN`), so an SPA can refresh its in-memory copy from it.
+
+**Fallback — top-level navigation** to the same path (`window.location.href = appAuth.authPath`). The platform answers `302` to `redirectPath`, and renders an HTML error page instead of JSON on failure. Use it when a fetch is not available, for example a plain form post.
+
+- The exchange token is short-lived (`expiresInSeconds`, 300 today) but **replayable until it expires**, and it carries no binding to your app. Treat it as a credential: spend it immediately, never log it, never let `authPath` be shared or recorded.
+- A missing `appAuth` on an authenticated result means the mint failed. With `app_login_no_session_id` on, that same failure is a `422` with `errorCode: app_auth_exchange_unavailable` instead. Only `loginFusebaseUser` is safe to call again. On the two register ops the account already exists, so a retry answers `409 fusebase_account_already_exists`; on `completeFusebaseAuthChallenge` the successful answer consumed the mailed code, so a retry answers `401 fusebase_auth_challenge_expired`. In both cases recover with a fresh `loginFusebaseUser`.
 
 ## Org Onboarding
 
@@ -79,7 +118,7 @@ Acceptance flows that require `registerFusebaseOrgMember` (create account **and*
 - `orgId` in the Gate path must come from `fusebase.json` (`orgId`), never from user input in the registration body.
 - Grant `org.members.write` on the app feature (`fusebase sync` / redeploy) before testing registration-with-membership.
 - For instant password-based onboarding, prefer `registerFusebaseOrgMember` with `autoConfirmEmail: true`. `autoConfirmClientInvite` is only for `addOrgUser` org-only client invites and does not affect auth-form account registration.
-- After success, set the returned `sessionId` as an app-domain cookie and verify membership with `getMyOrgAccess` (session header + feature token as documented for user-context reads).
+- After success, spend `appAuth.authPath` on the app's own origin (§ App Login Handoff), then verify membership with `getMyOrgAccess`.
 
 ## Forward The Visitor's IP On Auth Calls
 
@@ -96,7 +135,7 @@ await authApi.registerFusebaseUser({
 });
 ```
 
-- Take the IP **only** from the incoming request's `X-Forwarded-For` (app-wrapper forwards it) — never from the request body or a query param, which would let a caller pick its own limiter bucket per request.
+- Take the IP **only** from the incoming request's `X-Forwarded-For` (the platform forwards it) — never from the request body or a query param, which would let a caller pick its own limiter bucket per request.
 - Send the single leftmost entry, not the whole chain: intermediate hops append their own address and Gate reads the leftmost entry.
 - Omit the header when the inbound request has none (local `fusebase dev`); an absent header is better than a fabricated one.
 - Symptom of a missing forward: `-20` / `403` auth-form anti-abuse errors on registrations that are the first signup for that person but not for that app.
@@ -109,11 +148,13 @@ Use the **smallest** token that satisfies the op contract. Wrong subject → `40
 | --- | --- | --- |
 | `loginFusebaseUser`, `registerFusebaseUser`, `requestFusebasePasswordRestore` | App backend BFF (visitor-safe) | `createClient({ baseUrl })` — **no** feature token |
 | `registerFusebaseOrgMember`, `addOrgUser` | App backend only | `process.env.FBS_FEATURE_TOKEN` (service token with `org.members.write`) |
-| `logoutFusebaseUser` | App backend on behalf of signed-in user | User-context token (`fbsfeaturetoken` / session), not the service token |
+| `logoutFusebaseUser` | App backend on behalf of signed-in user | User-context token (`fbsfeaturetoken`), not the service token |
 | `getMyOrgAccess` (user identity) | App backend from browser request | Request `fbsfeaturetoken` cookie — **not** `FBS_FEATURE_TOKEN` |
-| `setFusebaseInitialPassword` (acts on the caller) | Browser → app backend, forwarding the invitee's request context | Request `fbsfeaturetoken` cookie / session — `FBS_FEATURE_TOKEN` gets `403` |
+| `setFusebaseInitialPassword` (acts on the caller) | Browser → app backend, forwarding the invitee's request context | Request `fbsfeaturetoken` cookie — `FBS_FEATURE_TOKEN` gets `403` |
 
 Never call `registerFusebaseOrgMember` / `addOrgUser` from the SPA with a visitor cookie. Never use `FBS_FEATURE_TOKEN` to answer "who is the current user?".
+
+The `appAuth` handoff is not in the matrix because it is not a Gate call: it runs on the app's own host and needs no Gate token at all.
 
 ## `getMyOrgAccess` `source` Field
 
@@ -146,7 +187,7 @@ Two supported ways to run a guarded operation for an end user:
 - **Dual-token (works today):** the app backend calls `callAppApi` with its own service token (`process.env.FBS_FEATURE_TOKEN`) and carries the user identity itself, after verifying the browser token.
 - **On-behalf-of (preferred):** the app backend calls `callAppApi` with its service token and passes the user's `fbsfeaturetoken` as `onBehalfOfUserToken`. Gate verifies it fail-closed and forwards `X-Fusebase-Verified-User-Id` / `X-Fusebase-Verified-User-Source: obo` to the runtime instead of hand-rolling forwarding.
 
-The app-wrapper proxy strips inbound `X-Fusebase-Verified-*` headers it cannot prove came from Gate, so they cannot be forged **through the app URL** — including on the auth-exempt `/api/webhooks/*` paths. Your backend's platform-provisioned deploy FQDN is a separate public origin that the proxy does not front, and the backend cannot tell the two apart — so OBO removes the dual-token plumbing, **not** the trust requirement. Do not treat a verified header as a bearer credential for anything you would not expose to any authenticated peer in the org.
+The platform proxy strips inbound `X-Fusebase-Verified-*` headers it cannot prove came from Gate, so they cannot be forged **through the app URL** — including on the auth-exempt `/api/webhooks/*` paths. Your backend's platform-provisioned deploy FQDN is a separate public origin that the proxy does not front, and the backend cannot tell the two apart — so OBO removes the dual-token plumbing, **not** the trust requirement. Do not treat a verified header as a bearer credential for anything you would not expose to any authenticated peer in the org.
 
 Denials are an honest **403** with a machine-readable `errorCode` under `data` in the error body (`app_api_caller_not_allowed`, `app_api_missing_permissions`, `app_api_operation_private`, `obo_user_token_org_mismatch`; an invalid OBO token is `401 obo_user_token_invalid`, an unknown or unpublished operation is `404 app_api_operation_not_found`, and a transient verifier outage is `503 obo_verification_unavailable`), never a 500-wrapped 404. Branch on `errorCode`, not on the message.
 
@@ -166,7 +207,7 @@ Org membership (`registerFusebaseOrgMember`, `addOrgUser`, org invites) and **Ap
 
 `fusebase app create/update --access=visitor` means **unauthenticated users may open the App host** and receive a **visitor-scoped** `fbsfeaturetoken` — it does **not** mean the App's `/api/*` routes are callable without any platform token.
 
-- The deployed **app-wrapper** proxy gates `/api/*` (and most non-static HTML) on a valid `fbsfeaturetoken` cookie (or equivalent). Without it, the browser is redirected through `/_auth/` (visitor JWE issuance) before API traffic reaches the App backend.
+- The deployed **platform** proxy gates `/api/*` (and most non-static HTML) on a valid `fbsfeaturetoken` cookie (or equivalent). Without it, the browser is redirected through `/_auth/` (visitor JWE issuance) before API traffic reaches the App backend.
 - Typical first visit: `GET /` or `/link` → `302 /_auth/?url=…` → `Set-Cookie: fbsfeaturetoken=<visitor JWE>` → redirect back → SPA loads. Browsers follow this automatically; **bare `curl` / fetch without a cookie jar** on `/api/health` will show `302` — that is expected, not an App bug.
 - `--access=visitor` is about **who may obtain** a visitor token after the platform auth dance, not about exposing anonymous REST on the App subdomain.
 - Do not treat `401`/`302` on `/api/*` before activation as "session expired" for visitor Apps. After `activateAppMagicLink`, platform cookies exist and `/api/*` is forwarded; identity for Memberspace still requires the app-backend exchange (below).
@@ -181,7 +222,7 @@ For Apps that use `requestAppMagicLink` / platform `/_auth/magiclink/{key}` (loa
 **Mandatory for every magic-link app, Test and Production:**
 
 - After the platform `/_auth/magiclink/{key}` redirect, SPA **immediately** `POST`s to `/api/account/from-magic-link` before navigating to protected routes. Platform `fbsfeaturetoken` can be overwritten on the next HTML request by the app proxy to match whichever Fusebase user is logged into the **browser**, not the magic-link recipient.
-- Backend calls `getMyOrgAccess` with `x-app-feature-token` from the `fbsfeaturetoken` cookie. The app-api proxy resolves the recipient from the JWE minted by app-wrapper.
+- Backend calls `getMyOrgAccess` with `x-app-feature-token` from the `fbsfeaturetoken` cookie. The app-api proxy resolves the recipient from the JWE minted by the platform.
 - **Fail-closed:** accept only `source === 'member'` with a real user id. Reject `source: 'none'` (visitor), `source: 'owner'`, and invalid responses.
 - **Legacy `/link` + `activateAppMagicLink`:** POST `{ featureToken, sessionToken }` in the body to `/api/account/from-magic-link`, or forward `sessionToken` as `EverHelper-Session-ID` with `x-app-feature-token`.
 
@@ -216,9 +257,9 @@ Split the recipe so smoke tests don't grow the production attack surface and don
 
 ## Challenge, 2FA, And MFA
 
-- `loginFusebaseUser` and `registerFusebaseUser` can return `status: "challenge_required"` with `challenge.type` and `challenge.state` instead of a session.
+- `loginFusebaseUser` and `registerFusebaseUser` can return `status: "challenge_required"` with `challenge.type` and `challenge.state` instead of an authenticated result.
 - Render the required challenge UI, then call `completeFusebaseAuthChallenge` with `{ state, answer }`.
-- OTP/MFA challenge success returns `status: "authenticated"` and a session. A failed or reissued challenge can return another `challenge_required` response.
+- OTP/MFA challenge success returns `status: "authenticated"` and the same `appAuth` handoff as login. A failed or reissued challenge can return another `challenge_required` response.
 - Never log passwords, challenge answers, or session ids. Flow ids are fine for diagnostics; credential values are not.
 
 ## Password Restore
@@ -227,15 +268,24 @@ Split the recipe so smoke tests don't grow the production attack surface and don
 - The restore request intentionally returns only `{ ok: true }`. The UI should always show generic copy such as "If an account exists, we sent instructions."
 - **Restore-link format:** the platform email's link is built by the mail template, not by Gate. Its shape is not part of this contract — never hardcode or parse it. If the app needs a reset URL it controls, use `requestFusebaseRestoreKey` and send your own email.
 - **`portalId` / `workspaceId`:** set BOTH to apply portal white-label branding — user-service resolves the portal domain itself, uses the portal name, and sends the `restore_portal_password` template. Setting only one has no branding effect.
-- **White-label reset (send your own email):** call `requestFusebaseRestoreKey` (POST `/:orgId/auth/fusebase/restore-key`, service token with `auth.restore_key.write`). It returns the raw `key` and does NOT email the recipient, so the app sends a single branded reset mail. The key is NOT bound to a URL — host your reset page anywhere and embed the key however you like, e.g. `${yourApp}/account/new-password?t=<key>`; that page then calls `checkFusebasePasswordRestoreKey` and `resetFusebasePassword`. Same TTL and one-time-use as the email flow. Use the returned `platformResetUrl` if you have no reset page of your own. Backend only — the app-wrapper `fbsfeaturetoken` cookie also resolves as a token subject, so the calling credential must never be reachable from frontend code.
+- **White-label reset (send your own email):** call `requestFusebaseRestoreKey` (POST `/:orgId/auth/fusebase/restore-key`, service token with `auth.restore_key.write`). It returns the raw `key` and does NOT email the recipient, so the app sends a single branded reset mail. The key is NOT bound to a URL — host your reset page anywhere and embed the key however you like, e.g. `${yourApp}/account/new-password?t=<key>`; that page then calls `checkFusebasePasswordRestoreKey` and `resetFusebasePassword`. Same TTL and one-time-use as the email flow. Use the returned `platformResetUrl` if you have no reset page of your own. Backend only — the platform `fbsfeaturetoken` cookie also resolves as a token subject, so the calling credential must never be reachable from frontend code.
 - **Who you may target:** the service token must be scoped to the `orgId` in the path (403 otherwise), and the target email must belong to that org and to NO other org — a key resets the GLOBAL Fusebase password, so users with a footprint elsewhere (another org, or a private org from self-registration) are refused with 404. Users your app provisioned via magic link work; a person who already had a Fusebase account does not.
 - Use `checkFusebasePasswordRestoreKey` for the reset screen and `resetFusebasePassword` to set the new password. These depend on `USER_SERVICE_URL` being configured for Gate.
 
 ## Google Auth
 
 - Google auth is still an auth-form redirect/OpenID flow, not a Gate JSON credential exchange. Use auth-form's Google/OpenID route or embedded auth-form template with Fusebase's configured Google Client ID.
-- After the redirect flow produces a Fusebase session, the AI App should persist the app-domain session cookie and route to the requested relative path using the same redirect rules as email/password login.
+- The platform OpenID routes below end by minting the app token cookie on the app host — the same credential the email/password handoff produces. The app stores nothing of its own, it only routes to the requested relative path under the same redirect rules as email/password login.
 - Do not introduce a second Google Client ID in the AI App unless the Fusebase auth-form/OpenID configuration has explicitly been changed to trust it.
+
+### Google / Microsoft direct login (platform OpenID routes)
+
+For a one-click "Continue with Google / Microsoft" button on the **platform** OAuth client ids (apps must not register their own), link to the **platform** routes on the app host:
+
+```
+https://<app-host>/_auth/openid/google?appSuccess=<urlencoded same-app-host URL>
+https://<app-host>/_auth/openid/microsoft?appSuccess=<urlencoded same-app-host URL>
+```
 
 ## Common Pitfalls
 
@@ -246,12 +296,11 @@ Split the recipe so smoke tests don't grow the production attack surface and don
 - Do not call `registerFusebaseOrgMember` or `addOrgUser` from the SPA directly to Gate, and do not forward visitor `fbsfeaturetoken` from the signup request into those ops.
 - Do not downgrade a flow that requires org membership to account-only (`registerFusebaseUser`) without explicit product approval — `registerFusebaseUser` never adds org membership.
 - `403` with `authType=visitor` on org-write ops: fix backend token wiring (`FBS_FEATURE_TOKEN` + `org.members.write`), not platform policy.
-- Do not expose `sessionId` to localStorage. Prefer server-set cookies; if a pure SPA has to handle it, keep the lifetime short and document the tradeoff.
 ---
 
 ## Version
 
-- **Version**: 1.10.0
+- **Version**: 1.11.0
 - **Category**: specialized
-- **Last synced**: 2026-08-05
+- **Last synced**: 2026-09-08
 - **Priority rule**: If the MCP prompt has a higher version, follow the prompt's API Reference as source of truth.

@@ -10,8 +10,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@fusebase/dashboard-service-sdk": "latest",
-    "@fusebase/fusebase-gate-sdk": "latest",
+    "@fusebase/dashboard-service-sdk": "^1.34.10-sdk.2",
+    "@fusebase/fusebase-gate-sdk": "^2.17.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.513.0",
@@ -24,9 +24,9 @@
     "@types/node": "^22.x",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.1",
+    "@vitejs/plugin-react": "^6.2.1",
     "tailwindcss": "^4.x",
-    "typescript": "^5.5.3",
-    "vite": "^5.4.2"
+    "typescript": "^6.0.3",
+    "vite": "^8.3.5"
   }
 }

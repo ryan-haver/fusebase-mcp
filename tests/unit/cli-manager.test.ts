@@ -3,6 +3,8 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import * as path from "path";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 
 vi.mock("child_process", async (importOriginal) => {
   const actual = await importOriginal<typeof import("child_process")>();
@@ -16,6 +18,79 @@ import { startServer } from "./helpers/server.js";
 
 const ok = { success: true, stdout: "ok", stderr: "", exitCode: 0 };
 
+describe("current CLI contract", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("defaults updates to a CLI-only preview without Git checkpoints", async () => {
+    const exec = vi.spyOn(FusebaseCliManager, "executeCommand").mockResolvedValue(ok);
+    const session = await startServer(undefined, { tier: "all" });
+    try {
+      await session.callText("fusebase_cli_update");
+      expect(exec).toHaveBeenCalledWith("update", ["--skip-commit", "--dry-run", "--skip-product"], undefined, 300000);
+      await session.callText("fusebase_cli_update", { dryRun: false, includeProduct: true, environment: "staging" });
+      expect(exec).toHaveBeenLastCalledWith("update", ["--skip-commit", "--env", "staging"], undefined, 300000);
+    } finally { await session.close(); }
+  });
+
+  it("rejects obsolete build flags before any remote changes", async () => {
+    const exec = vi.spyOn(FusebaseCliManager, "executeCommand").mockResolvedValue(ok);
+    const session = await startServer(undefined, { tier: "all" });
+    try {
+      const res = await session.callText("fusebase_cli_app_update", { appIdOrPath: "app1", permissions: "read", buildCommand: "npm run build" });
+      expect(res.isError).toBe(true);
+      expect(res.text).toContain("fusebase.json");
+      expect(exec).not.toHaveBeenCalled();
+    } finally { await session.close(); }
+  });
+
+  it("forwards access, additive permission sync and the named environment", async () => {
+    const exec = vi.spyOn(FusebaseCliManager, "executeCommand").mockResolvedValue(ok);
+    await FusebaseCliManager.updateApp("app1", { access: "visitor,orgRole:member", syncGatePermissions: true, environment: "staging" });
+    expect(exec).toHaveBeenCalledWith("app", ["update", "app1", "--access", "visitor,orgRole:member", "--sync-gate-permissions", "--env", "staging"], undefined);
+  });
+
+  it("reports CLI update failures as MCP errors", async () => {
+    vi.spyOn(FusebaseCliManager, "executeCommand").mockResolvedValue({ ...ok, success: false, exitCode: 1 });
+    const session = await startServer(undefined, { tier: "all" });
+    try { expect((await session.callText("fusebase_cli_update")).isError).toBe(true); }
+    finally { await session.close(); }
+  });
+
+  it("reads version and auth status through the noninteractive argument-vector runner", async () => {
+    vi.spyOn(FusebaseCliManager, "getCliPath").mockReturnValue("/fake/fusebase");
+    const exec = vi.spyOn(FusebaseCliManager, "executeCommand")
+      .mockResolvedValueOnce({ ...ok, stdout: "FuseBase CLI 0.33.1\nLauncher 2026.093014.3932\nChannel prod" })
+      .mockResolvedValueOnce({ ...ok, stdout: '[{"id":"org1","title":"Test"}]' });
+    expect(await FusebaseCliManager.getStatus()).toMatchObject({ version: "0.33.1", authenticated: true });
+    expect(exec.mock.calls.map(call => call.slice(0, 2))).toEqual([["--version", []], ["orgs", ["list", "--json"]]]);
+  });
+});
+
+describe("current CLI secret declarations", () => {
+  it("lists only declared keys and descriptions without a CLI process or secret values", async () => {
+    const cwd = mkdtempSync(path.join(tmpdir(), "fusebase-secrets-test-"));
+    vi.stubEnv("FUSEBASE_CLI_ALLOWED_DIRS", cwd);
+    const exec = vi.spyOn(FusebaseCliManager, "executeCommand");
+    try {
+      writeFileSync(path.join(cwd, "fusebase.json"), JSON.stringify({ apps: [{ path: "apps/demo", id: "app1", secrets: [{ key: "API_KEY", description: "Provider key", value: "do-not-expose" }] }] }));
+      const result = await FusebaseCliManager.listSecrets("app1", cwd);
+      expect(result.success).toBe(true);
+      expect(JSON.parse(result.stdout)).toEqual({ appPath: "apps/demo", source: "fusebase.json", secrets: [{ key: "API_KEY", description: "Provider key" }] });
+      expect(result.stdout).not.toContain("do-not-expose");
+      expect(exec).not.toHaveBeenCalled();
+      expect((await FusebaseCliManager.listSecrets("unknown", cwd)).success).toBe(false);
+      writeFileSync(path.join(cwd, "fusebase.json"), 'invalid-json-with-secret');
+      const invalid = await FusebaseCliManager.listSecrets("app1", cwd);
+      expect(invalid.stderr).toBe("fusebase.json is not valid JSON.");
+    } finally {
+      exec.mockRestore();
+      vi.unstubAllEnvs();
+      expect(path.dirname(cwd)).toBe(path.resolve(tmpdir()));
+      rmSync(cwd, { recursive: true, force: true });
+    }
+  });
+});
+
 describe("fusebase_cli_init (COR-14)", () => {
   afterEach(() => vi.restoreAllMocks());
 
@@ -27,7 +102,8 @@ describe("fusebase_cli_init (COR-14)", () => {
       expect(res.isError).toBe(false);
       const [sub, args] = exec.mock.calls[0];
       expect(sub).toBe("init");
-      expect(args).toEqual(["--name", "My App", "--org", "org1"]);
+      expect(args).toEqual(["--name", "My App", "--yes", "--skip-git", "--org", "org1"]);
+      expect(exec.mock.calls[0][3]).toBe(300000);
     } finally {
       await session.close();
     }

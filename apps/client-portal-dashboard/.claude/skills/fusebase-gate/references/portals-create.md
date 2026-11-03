@@ -1,7 +1,7 @@
 ---
-version: "1.1.0"
+version: "1.2.1"
 mcp_prompt: portals-create
-last_synced: "2026-08-05"
+last_synced: "2026-10-08"
 title: "Fusebase Gate Portals — Create Operations"
 category: specialized
 ---
@@ -20,7 +20,7 @@ These operations create new portals in an organization.
 
 - createPortal — creates a new v2 portal. Required fields: `workspaceId` (the workspace
   the portal belongs to), `domain` (the full portal domain, e.g.
-  `my-portal.p.thefusebase.com` in dev or `my-portal.p.thefusebase.com` in prod).
+  `my-portal.p.thefusebase.com` in dev or `my-portal.p.nimbusweb.me` in prod).
   Optional fields: `name` (portal display name), `theme` (color theme key, see below).
   The portal is created with version=2 using modern infrastructure. For `*.p.<env-domain>`
   domains (P_SUB type), the portal reaches "ready" status synchronously. For
@@ -71,6 +71,7 @@ These operations create new portals in an organization.
 - In that case, ask the user to create a new workspace first (`createWorkspace`) and then continue with
   `createPortal` or `duplicatePortal` using the newly created workspace ID.
 - Do not bypass this rule even if the user asks to force creation in an occupied workspace.
+- A refusal comes back as 409 with `apiData.errorCode` `portal_domain_taken` (pick another domain) or `portal_service_conflict` (the workspace already has a portal); `message` holds the reason. Do not retry it unchanged.
 
 - Use `duplicatePortal` instead of `createPortal` when the user wants to copy content from an existing portal.
 - After `duplicatePortal` (or `createPortal`) with a custom/CNAME domain, poll `getPortal` until `status` is `'ready'`.
@@ -78,7 +79,7 @@ These operations create new portals in an organization.
 
 ## Version
 
-- **Version**: 1.1.0
+- **Version**: 1.2.1
 - **Category**: specialized
-- **Last synced**: 2026-08-05
+- **Last synced**: 2026-10-08
 - **Priority rule**: If the MCP prompt has a higher version, follow the prompt's API Reference as source of truth.

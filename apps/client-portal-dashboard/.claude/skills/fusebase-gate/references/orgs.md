@@ -1,7 +1,7 @@
 ---
 version: "1.0.0"
 mcp_prompt: orgs
-last_synced: "2026-06-08"
+last_synced: "2026-09-09"
 title: "Fusebase Gate Organization URLs"
 category: specialized
 ---
@@ -28,7 +28,7 @@ Gate mirrors org-service org-info hostname rules:
    - `kind: "cname"`
    - `customDomain` is set
    - Example: `https://docs.example.com`
-2. **Subdomain** — when no custom domain is configured, Gate uses the org subdomain on the environment Fusebase host.
+2. **Subdomain** — when no custom domain is configured, Gate uses the org subdomain on the environment web-client host.
    - `kind: "subdomain"`
    - `customDomain: null`
    - Example: `https://{sub}.thefusebase.com`
@@ -58,5 +58,5 @@ The response always includes:
 
 - **Version**: 1.0.0
 - **Category**: specialized
-- **Last synced**: 2026-06-08
+- **Last synced**: 2026-09-09
 - **Priority rule**: If the MCP prompt has a higher version, follow the prompt's API Reference as source of truth.

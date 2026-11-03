@@ -20,7 +20,7 @@
 import { chromium, type Cookie } from "playwright";
 import * as fs from "fs";
 import * as path from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -191,7 +191,7 @@ export async function refreshCookies(config: AuthConfig): Promise<string> {
       console.error(`[auth] Attempt ${attempt}/${MAX_ATTEMPTS} failed: ${msg}`);
 
       if (attempt === MAX_ATTEMPTS) {
-        throw new Error(`Auth failed after ${MAX_ATTEMPTS} attempts. Last error: ${msg}`);
+        throw new Error(`Auth failed after ${MAX_ATTEMPTS} attempts. Last error: ${msg}`, { cause: error });
       }
     }
   }
@@ -342,4 +342,8 @@ async function main() {
   }
 }
 
-main();
+// Importing this module from the server must not start a second CLI login or
+// write a cookie to the MCP transport. Only direct CLI invocation runs main.
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  void main();
+}

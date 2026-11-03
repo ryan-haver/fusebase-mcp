@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import * as cheerio from 'cheerio';
 import TurndownService from 'turndown';
 import { guidesDir } from '../src/guide-loader.js';
+import { parseGuideUrl } from '../src/guide-url.js';
 
 // ---------------------------------------------------------------------------
 // Config
@@ -40,6 +41,7 @@ const NLM_RATE_LIMIT_MS = 2000; // 2s between NLM source adds
 
 /** Category pages to discover guide links from */
 const CATEGORY_URLS = [
+    'https://thefusebase.com/guides/',
     'https://thefusebase.com/guides/getting-started/',
     'https://thefusebase.com/guides/basics/',
     'https://thefusebase.com/guides/client-portal/',
@@ -177,13 +179,6 @@ async function saveMeta(meta: ScrapeMeta): Promise<void> {
     await writeFile(META_FILE, JSON.stringify(meta, null, 2), 'utf-8');
 }
 
-/** Parse a guide URL into section + slug */
-function parseGuideUrl(url: string): { section: string; slug: string } | null {
-    const m = url.match(/\/guides\/([^/]+)\/([^/]+)\/?$/);
-    if (!m) return null;
-    return { section: m[1], slug: m[2] };
-}
-
 /** Run promises in batches of `n` with optional delay between batches */
 async function batchRun<T, R>(
     items: T[],
@@ -214,7 +209,7 @@ async function discoverLinks(): Promise<GuideLink[]> {
             const html = await fetchWithRetry(catUrl);
             const $ = cheerio.load(html);
 
-            // Extract all guide links — they follow pattern /guides/section/slug/
+            // New CLI articles also use /guides/slug/ (without a section).
             $('a[href*="/guides/"]').each((_i, el) => {
                 const href = $(el).attr('href');
                 if (!href) return;
@@ -227,7 +222,7 @@ async function discoverLinks(): Promise<GuideLink[]> {
 
                 const parsed = parseGuideUrl(fullUrl);
                 if (!parsed) return;
-                const canonicalUrl = `https://thefusebase.com/guides/${parsed.section}/${parsed.slug}/`;
+                const canonicalUrl = parsed.url;
 
                 // Skip category-level pages (they're not individual guides)
                 if (CATEGORY_URLS.some((cu) => canonicalUrl === cu || canonicalUrl === cu.replace(/\/$/, "") + "/")) return;

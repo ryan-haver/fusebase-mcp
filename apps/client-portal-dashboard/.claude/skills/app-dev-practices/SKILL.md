@@ -88,7 +88,6 @@ PostCSS plugins (`@tailwindcss/postcss`, `autoprefixer`) belong in `postcss.conf
 
 Apps may optionally include a `backend/` subfolder for a backend API (REST + WebSockets). **Do not add a backend unless the app genuinely needs backend logic** — most apps work fine with the Dashboard SDK alone. See skill **app-backend** for when and how to add one. The backend is served at `/api`.
 
-<!-- CUSTOM:SKILL:BEGIN -->
 ## Consuming Another Fusebase App's API
 
 If your app needs to integrate with **another Fusebase app in the same organization**, do **not** treat that app as an external opaque service by default.
@@ -117,9 +116,6 @@ For security-sensitive operations, prefer contract-level app API policy:
 - `x-fusebase-required-permissions` restricts caller capability and must use the app API namespace `app_api.<namespace>.<capability>.<action>`, e.g. `app_api.client_portal.provision.write`.
 - Do not use built-in Gate permissions such as `isolated_store.read` for app-to-app operation authorization.
 - **Enforcement arrives per environment.** Both extensions are published to the registry and read by `callAppApi`, but enforcement is switched on per environment by the platform. Declare them now and grant the matching capability to caller apps with `fusebase app update <callerAppId> --permissions "app_api.<namespace>.<capability>.<action>"`, so the grants are in place when enforcement reaches yours. Never rely on them as your only authorization check today.
-<!-- CUSTOM:SKILL:END -->
-
-
 
 ## Authentication
 

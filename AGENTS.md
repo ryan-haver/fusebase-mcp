@@ -7,14 +7,14 @@
 
 ## 1. Context Protection & Tool Tiers (CRITICAL)
 
-FuseBase MCP provides **175 production tools**. Registering all 175 tools at once can consume **15,000–20,000 tokens** of your context window just in schema definitions.
+FuseBase MCP provides **177 production tools**. Registering all 177 tools at once can consume **15,000–20,000 tokens** of your context window just in schema definitions.
 
 To protect your context window, this server implements a **Two-Tier System**:
 
 1. **Core Tier (34 Tools — Active by Default):**
    - Covers complete everyday CRUD for Pages/Notes, Folders, Comments, Mentions, Tasks, Attachments, Members, Profiles, and Guides.
    - **Default behavior:** Keep the server in Core Tier for document editing, research, and note-taking.
-2. **Extended Tier (141 Tools — Activated On Demand):**
+2. **Extended Tier (143 Tools — Activated On Demand):**
    - Unlocks Relational Databases (views, rows, columns, lookups, relations), Client Portals, ActivePieces Automations, Gate PostgreSQL isolated stores, API token creation, and Swarm boards.
    - **How to activate:** When your task requires databases, portals, or automations, call:
      ```json

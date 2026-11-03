@@ -114,22 +114,27 @@ describe("CRM alias resolution", () => {
 });
 
 describe("Work / Firecrawl helpers", () => {
-  it("runAiAgentTask and scrapeUrlViaFirecrawl post the prompt to the agent thread endpoint", async () => {
+  it("creates a thread, executes its message and returns the completed answer for both helpers", async () => {
     const client = new FusebaseClient({ host: "unit-test.invalid", orgId: "unit-org", cookie: "unit-cookie", autoRefresh: false });
     const calls: Array<{ endpoint: string; body: any }> = [];
     (client as any).request = async (endpoint: string, options?: RequestInit) => {
       calls.push({ endpoint, body: options?.body ? JSON.parse(String(options.body)) : null });
-      return { success: true, threadId: "mock_thread_123" };
+      return endpoint.includes("/agent-messages?")
+        ? '{"t":"text","c":"Verified answer"}\n[FULL]{}[!FULLEND]'
+        : { id: "mock_thread_123" };
     };
 
     const task = await client.runAiAgentTask("agent_test_1", "Analyze competitor Q3 metrics", { workspaceId: "ws1" });
     expect(task.success).toBe(true);
     expect(calls[0].endpoint).toContain("/agents/agent_test_1/threads?workspaceId=ws1");
-    expect(calls[0].body?.prompt).toBe("Analyze competitor Q3 metrics");
+    expect(calls[0].body).toEqual({ input: {} });
+    expect(calls[1].endpoint).toContain("/agent-messages?workspaceId=ws1&threadId=mock_thread_123");
+    expect(calls[1].body?.text).toBe("Analyze competitor Q3 metrics");
+    expect(task.text).toBe("Verified answer");
 
     const scrape = await client.scrapeUrlViaFirecrawl("https://news.ycombinator.com", { workspaceId: "ws1", agentId: "agent_firecrawl_1", formats: ["markdown", "json"] });
     expect(scrape.success).toBe(true);
-    expect(calls.at(-1)?.endpoint).toContain("/agents/agent_firecrawl_1/threads?workspaceId=ws1");
-    expect(calls.at(-1)?.body?.prompt).toContain("https://news.ycombinator.com");
+    expect(calls[2].endpoint).toContain("/agents/agent_firecrawl_1/threads?workspaceId=ws1");
+    expect(calls.at(-1)?.body?.text).toContain("https://news.ycombinator.com");
   });
 });

@@ -39,7 +39,7 @@ describe("Gate isolated-store contracts (COR-24)", () => {
 
   it("applyIsolatedStoreSqlMigrations puts bundle and dryRun in body, stage in the path", async () => {
     const { client, toolCall } = clientWithBridge();
-    const bundle = { version: 1, migrations: [] };
+    const bundle = { bundleVersion: "1", migrations: [] };
     await client.applyIsolatedStoreSqlMigrations("store1", bundle, "dev", true);
     expect(toolCall).toHaveBeenCalledWith("applyIsolatedStoreSqlMigrations", {
       orgId: "org1",
@@ -47,5 +47,34 @@ describe("Gate isolated-store contracts (COR-24)", () => {
       stage: "dev",
       body: { bundle, dryRun: true },
     });
+  });
+
+  it("forwards explicit dangerous-operation confirmation at the argument root", async () => {
+    const { client, toolCall } = clientWithBridge();
+    const bundle = { migrations: [] };
+    await client.applyIsolatedStoreSqlMigrations("store1", bundle, "dev", true, true);
+    expect(toolCall).toHaveBeenLastCalledWith("applyIsolatedStoreSqlMigrations", {
+      orgId: "org1", storeId: "store1", stage: "dev", confirm: true, body: { bundle, dryRun: true },
+    });
+    await client.executeIsolatedStoreSql("store1", "DELETE FROM qa WHERE id = $1", ["run1"], "dev", true);
+    expect(toolCall).toHaveBeenLastCalledWith("executeIsolatedStoreSql", {
+      orgId: "org1", storeId: "store1", stage: "dev", confirm: true, body: { sql: "DELETE FROM qa WHERE id = $1", params: ["run1"] },
+    });
+    await client.executeIsolatedStoreSql("store1", "DELETE FROM qa WHERE id = $1", ["run1"], "dev");
+    expect(toolCall).toHaveBeenLastCalledWith("executeIsolatedStoreSql", {
+      orgId: "org1", storeId: "store1", stage: "dev", body: { sql: "DELETE FROM qa WHERE id = $1", params: ["run1"] },
+    });
+  });
+
+  it("unwraps current Gate SQL results so callers receive rows and rowCount", async () => {
+    const { client, toolCall } = clientWithBridge();
+    const query = { command: "SELECT", rows: [{ n: 3 }], rowCount: 1, columns: ["n"] };
+    const execute = { command: "DELETE", rows: [], rowCount: 3, columns: [] };
+    toolCall.mockResolvedValueOnce({ data: { result: query } } as any);
+    expect(await client.queryIsolatedStoreSql("store1", "SELECT 3 AS n", [], "dev")).toEqual(query);
+    toolCall.mockResolvedValueOnce({ data: { result: execute } } as any);
+    expect(await client.executeIsolatedStoreSql("store1", "DELETE FROM qa WHERE run_id = $1", ["run1"], "dev", true)).toEqual(execute);
+    toolCall.mockResolvedValueOnce({ data: query } as any);
+    expect(await client.queryIsolatedStoreSql("store1", "SELECT 3 AS n", [], "dev")).toEqual(query);
   });
 });

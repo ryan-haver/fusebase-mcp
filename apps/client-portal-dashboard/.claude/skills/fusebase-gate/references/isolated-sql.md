@@ -1,7 +1,7 @@
 ---
 version: "1.11.0"
 mcp_prompt: isolatedSql
-last_synced: "2026-08-20"
+last_synced: "2026-09-26"
 title: "FuseBase PostgreSQL Database"
 category: specialized
 ---
@@ -55,7 +55,7 @@ Load MCP prompt **`isolatedSqlMigrationDiscipline`** (`prompts_search`, groups `
 3. In the app repo, keep schema files under **`postgres/migrations/`** and assemble the bundle with SDK helper **`buildSqlMigrationBundle(...)`**. Do not hand-build migration JSON or copy ad-hoc checksums into chat unless this is an explicitly temporary smoke test.
 4. **`getIsolatedStoreSqlMigrationStatus`** with the bundle for this stage: read **`canApply`**, **`isDrifted`**, **`pendingCount`**, **`structuredIssues`**. For lightweight status-only probes, migration entries may use **`sql: ""`** when you only need metadata comparison (`version` / `name` / `checksum`). Optionally pass **`expectedLastAppliedVersion`** / **`expectedLastAppliedChecksum`** from a prior status → **409** if the journal tail changed.
 5. Optional: **`applyIsolatedStoreSqlMigrations`** with **`dryRun: true`** — same pre-apply validation as a real apply, **no** SQL / journal writes. Use the same full bundle you would really apply.
-6. **`applyIsolatedStoreSqlMigrations`** — pending tail only when prefix matches. **409** + **`data.errorCode`** / **`data.issues`** on drift or head mismatch. Prod: automatic checkpoint may run before pending migrations.
+6. **`applyIsolatedStoreSqlMigrations`** — pending tail only when prefix matches. **409** + **`apiData.errorCode`** / **`apiData.issues`** on drift or head mismatch. Prod: automatic checkpoint may run before pending migrations.
 7. Verify: **`listIsolatedStoreSqlTables`**, **`getIsolatedStoreSqlStats`**, or **`queryIsolatedStoreSql`** (read-only, **one** statement per call).
 
 **Runtime default:** when orchestration **omits** a stage (deployed app, many CLI defaults), target **`prod`**; **`fusebase dev start`** uses **`dev`**. **Bootstrap:** always init **both** stages. `dev` and `prod` are **different databases** — repeat migrations per stage with the **same logical version line**.
@@ -65,8 +65,18 @@ Load MCP prompt **`isolatedSqlMigrationDiscipline`** (`prompts_search`, groups `
 Prefer structured APIs: **`getIsolatedStoreSqlStats`**, **`countIsolatedStoreSqlRows`**, **`selectIsolatedStoreSqlRows`**, **`insertIsolatedStoreSqlRow`**, **`batchInsertIsolatedStoreSqlRows`**, **`importIsolatedStoreSqlRows`**, **`updateIsolatedStoreSqlRows`**, **`deleteIsolatedStoreSqlRows`**. Raw: **`queryIsolatedStoreSql`** (read); **`executeIsolatedStoreSql`** — DML only, **no DDL**; schema only via **`applyIsolatedStoreSqlMigrations`**.
 Need several SQL steps for one user action? Send them as **one** **`runIsolatedStoreSqlBatch`** call instead of K sequential calls. Every SQL call pays a ~200-300ms infrastructure floor regardless of query cost; a batch pays it **once** and runs all operations in **one** transaction with the RLS context applied once.
 - **`runIsolatedStoreSqlBatch`**: up to **25** operations (`query`, `execute`, `count`, `select`, `insert`, `batchInsert`, `update`, `delete`); each operation carries the same fields as its single-operation request, while `rlsContext` / `trustedRuntimeContext` are set **once for the batch**. Results come back in request order. **All-or-nothing** — the first failure rolls the whole batch back and the error names the failing index. Each operation still needs its own permission. RLS-bypass reads and **`importIsolatedStoreSqlRows`** are **not** batchable. Each statement in a batch is bounded by a **30s** timeout.
+
+### Connection budget
+
+Gate serves each database from a small pool, on the order of **10 connections per process**. One store call holds one connection until it returns. A batch is still **one** connection: the statements inside it run one after another.
+
+- One user action is one **`runIsolatedStoreSqlBatch`**. Do not start several store calls with `Promise.all` for the same request. Each call takes a connection at the same time.
+- A view many people have open reads the store **once per backend process**, on a short interval, and answers every waiting request from that result. Writes that belong to one person (their message, their own mark) stay on that person's request.
+- An idle page does not call the store every second or two. Poll when that person's data changed, or on a slower timer of several seconds. A faster poll is only while someone is typing or a write just went out.
+- Stay within **25** operations. A side write that is allowed to fail without losing the main action stays in its own call, and only when there is something new to write.
 - **`queryIsolatedStoreSql`** — and a `query` op in an **all-read** batch — runs inside a Postgres **`READ ONLY` transaction**: `nextval()`, `SELECT … FOR UPDATE`/`FOR SHARE`, `SELECT … INTO`, `EXPLAIN ANALYZE <write>` and any write made by a called function are rejected by the server. Use **`executeIsolatedStoreSql`** or a structured row operation for those. A batch that also carries a write operation is not read-only, so a `query` op in it needs the **`isolated_store.execute`** permission.
 Runtime app path does **not** require a custom backend by default. Frontend/browser code can call Gate SDK methods such as **`selectIsolatedStoreSqlRows`**, **`countIsolatedStoreSqlRows`**, and other allowed structured operations directly with the app token. Add a feature backend only when you need privileged logic, external secrets, heavy orchestration, or non-user-context work.
+If the app declares **`isolated_store.read`** or **`isolated_store.data.write`** in `manifest.backendOnlyGatePermissions` (`--declare-backend-only-gate-permissions`), that direct browser path is closed for everyone, signed-in members and clients included: the app-api proxy sends browser isolated-store calls with the browser token, which lacks those permissions, so Gate returns 403. Call the store from the app backend with its `/_token` token instead. Apps without that declaration keep the direct browser path.
 Runtime app path also does **not** require users to create secrets for Gate-resolved store identity. Do not put `storeId`, database IDs, physical database names, or provider connection details into app secrets/env. Resolve the store through Gate from the app token/source scope and stable alias, or use the platform-provided binding when available.
 Public/visitor apps can open with `--access=visitor`, but visitor tokens normally do **not** receive isolated-store permissions. For public portal reads/writes, use an app backend with a service token plus trusted portal/workspace context; do not expect direct visitor-token Gate SDK calls to the store to work.
 A service-token backend must derive the portal/workspace scope from trusted platform auth context, not from arbitrary request body/query data. Prefer `trustedRuntimeContext.portalId` / `trustedRuntimeContext.workspaceId` when the token has `isolated_store.rls.delegate`; if that permission is not available in the target environment, an app-specific `rlsContext` key such as `req_portal_id` is only a reviewed temporary fallback.
@@ -219,5 +229,5 @@ Per migration: **`version`**, **`name`**, **`checksum`** — prefer SDK helpers 
 
 - **Version**: 1.11.0
 - **Category**: specialized
-- **Last synced**: 2026-08-20
+- **Last synced**: 2026-09-26
 - **Priority rule**: If the MCP prompt has a higher version, follow the prompt's API Reference as source of truth.

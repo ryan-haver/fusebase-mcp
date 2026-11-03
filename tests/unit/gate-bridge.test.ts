@@ -57,6 +57,71 @@ function stubGate(onToolCall: Handler, opts: { onInitialize?: Handler } = {}) {
   };
 }
 
+describe("current upstream discovery contracts", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("reads structured operation catalogs and preserves danger markers", async () => {
+    stubGate((req) => jsonResponse({ jsonrpc: "2.0", id: req.id, result: { structuredContent: { tools: [{ name: "deletePortalBlock", dangerous: true }] } } }));
+    await expect(new FusebaseGateBridge({ gateToken: "t" }).toolsList()).resolves.toEqual([{ name: "deletePortalBlock", dangerous: true }]);
+  });
+
+  it.each([
+    { error: { code: -32602, message: "Unknown operation" } },
+    { result: { isError: true, content: [{ type: "text", text: JSON.stringify({ error: "Access denied" }) }] } },
+    { result: { content: [{ type: "text", text: "not JSON" }] } },
+    { result: { content: [{ type: "text", text: JSON.stringify({ ok: false, error: "No permission" }) }] } },
+  ])("surfaces discovery failure instead of returning an empty catalog: %j", async (payload) => {
+    stubGate((req) => jsonResponse({ jsonrpc: "2.0", id: req.id, ...payload }));
+    const bridge = new FusebaseGateBridge({ gateToken: "t" });
+    await expect(bridge.toolsList()).rejects.toThrow(/Upstream FuseBase/);
+    await expect(bridge.toolsDescribe("unknown")).rejects.toThrow(/Upstream FuseBase/);
+  });
+
+  it("sends schemaMode and prompt groups to the selected gateway", async () => {
+    const gate = stubGate((req) => jsonResponse(toolResult(req.id, { name: "getHealth" })));
+    const bridge = new FusebaseGateBridge({ dashboardsToken: "t" });
+    await bridge.toolsDescribe("getHealth", "dashboards", "both");
+    await bridge.promptsSearch(["authz"], "dashboards");
+    expect(gate.calls).toEqual(expect.arrayContaining([
+      expect.objectContaining({ params: { name: "tools_describe", arguments: { name: "getHealth", schemaMode: "both" } } }),
+      expect.objectContaining({ params: { name: "prompts_search", arguments: { groups: ["authz"] } } }),
+    ]));
+  });
+
+  it("exact calls do not inject scope or require a second gateway's identity", async () => {
+    const gate = stubGate((req) => jsonResponse(toolResult(req.id, { ok: true })));
+    const bridge = new FusebaseGateBridge({ gateToken: "t" });
+    await bridge.toolCall("getHealth", {}, "gate", { applyDefaults: false });
+    expect(gate.toolCallCount("whoami")).toBe(0);
+    expect(gate.calls).toContainEqual(expect.objectContaining({ params: { name: "tool_call", arguments: { opId: "getHealth", args: {} } } }));
+  });
+
+  it("MCP discovery filters/paginates summaries and exposes the complete describe result", async () => {
+    const toolsList = vi.fn(async () => [
+      { name: "getPortal", description: "Read portal", dangerous: false, inputSchema: { large: true } },
+      { name: "deletePortalBlock", description: "Remove portal block", dangerous: true },
+      { name: "getHealth" },
+    ]);
+    const toolsDescribe = vi.fn(async () => ({ inputSchema: { type: "object" }, requiredPrompts: { groups: ["portals"] } }));
+    const promptsSearch = vi.fn(async () => ({ prompts: ["Portal guidance"] }));
+    const toolCall = vi.fn(async () => ({ ok: true }));
+    const session = await startServer(fakeClient({ gateBridge: { toolsList, toolsDescribe, promptsSearch, toolCall } }), { tier: "all" });
+    try {
+      const first = JSON.parse((await session.callText("fusebase_discover_operations", { query: "PORTAL", limit: 1 })).text);
+      expect(first).toMatchObject({ total: 2, nextOffset: 1, operations: [{ name: "getPortal", dangerous: false }] });
+      expect(first.operations[0]).not.toHaveProperty("inputSchema");
+      const last = JSON.parse((await session.callText("fusebase_discover_operations", { query: "portal", limit: 1, offset: 1 })).text);
+      expect(last).toMatchObject({ nextOffset: null, operations: [{ dangerous: true }] });
+      const detail = await session.callText("fusebase_discover_operations", { opId: "getPortal", promptGroups: ["portals"], target: "gate" });
+      expect(JSON.parse(detail.text)).toHaveProperty("guidance.prompts");
+      expect(toolsDescribe).toHaveBeenCalledWith("getPortal", "gate", "input");
+      expect(promptsSearch).toHaveBeenCalledWith(["portals"], "gate");
+      await session.callText("fusebase_direct_tool_call", { opId: "getHealth", applyDefaults: false });
+      expect(toolCall).toHaveBeenCalledWith("getHealth", {}, undefined, { applyDefaults: false });
+    } finally { await session.close(); }
+  });
+});
+
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();

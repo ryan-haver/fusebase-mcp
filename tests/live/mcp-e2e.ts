@@ -6,7 +6,7 @@
  *  1. Resources: >= 3 static resources; fusebase://workspaces lists the sandbox workspace;
  *     fusebase://guides/index and fusebase://work/connectors return expected content; >= 3 templates.
  *  2. Prompts: exactly 17 prompts with the expected names; six prompts return non-empty messages.
- *  3. Tools: exactly 34 core tools incl. CRUD primitives; set_tool_tier("all") yields exactly 175
+ *  3. Tools: exactly 34 core tools incl. CRUD primitives; set_tool_tier("all") yields exactly 177
  *     tools incl. the listed extended tools.
  *  4. Profiles & session: list_agent_profiles (>= 1), switch_active_profile, check_session_health
  *     reports an authenticated session.
@@ -31,6 +31,7 @@
  * Everything created is deleted in a finally block; cleanup failures are reported with ⚠️.
  */
 import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { ToolListChangedNotificationSchema } from "@modelcontextprotocol/sdk/types.js";
 import {
   assert,
   assertArray,
@@ -52,7 +53,7 @@ import {
 } from "./lib/harness.js";
 
 const EXPECTED_CORE_TOOLS = 34;
-const EXPECTED_ALL_TOOLS = 175;
+const EXPECTED_ALL_TOOLS = 177;
 const EXPECTED_PROMPTS = 17;
 
 /** ActivePieces automation rejected the org (plan/feature not enabled). */
@@ -176,6 +177,8 @@ async function main() {
   console.log(`Sandbox workspace: ${workspaceId}`);
 
   const client = await connectMcp("fusebase-test-client", { tier: "core" });
+  let tierNotifications = 0;
+  client.setNotificationHandler(ToolListChangedNotificationSchema, async () => { tierNotifications++; });
 
   const pagesToCleanup = new Set<string>();
   const foldersToCleanup: string[] = [];
@@ -239,7 +242,7 @@ async function main() {
     const promptCalls: Array<[string, Record<string, string>]> = [
       ["create-sop", { title: "API Deployment SOP" }],
       ["orchestrate-multi-agent-swarm", { objective: "Deploy Vibe Coding Client Portal Widget" }],
-      ["crm-seed-demo-data", { industry: "CyberSecurity", recordCount: "10" }],
+      ["crm-seed-demo-data", { industry: "CyberSecurity", companyCount: "5", dealsPerCompany: "3" }],
       ["portal-embedded-app", { appName: "Customer Invoicing Portal" }],
       ["fullstack-app-architecture", { appName: "Realtime Analytics Dashboard" }],
       ["token-waste-audit", { contextScope: "all" }],
@@ -247,6 +250,10 @@ async function main() {
     for (const [name, args] of promptCalls) {
       const prompt = await client.getPrompt({ name, arguments: args });
       assertArray(prompt.messages, `prompt '${name}' messages`, 1);
+      if (name === "crm-seed-demo-data") {
+        assertIncludes(JSON.stringify(prompt.messages), "insert 5 realistic demo companies", "CRM company count");
+        assertIncludes(JSON.stringify(prompt.messages), "insert 15 deals", "CRM calculated deal count");
+      }
     }
     console.log(`✅ ${promptsRes.prompts.length} prompts; ${promptCalls.length} rendered`);
 
@@ -278,7 +285,7 @@ async function main() {
     }
 
     const tierRes = await callTool(client, "set_tool_tier", { tier: "all" });
-    assertIncludes(tierRes, "Extended tools", "set_tool_tier response");
+    assertIncludes(tierRes, "Current tier: all", "set_tool_tier response");
     const allToolsRes = await client.listTools();
     const allNames = new Set(allToolsRes.tools.map((t) => t.name));
     for (const expected of [
@@ -354,6 +361,25 @@ async function main() {
       assert(allNames.has(expected), `Expected extended tool '${expected}' to be registered`);
     }
     assertEqual(allToolsRes.tools.length, EXPECTED_ALL_TOOLS, "total tool count after set_tool_tier");
+    assertEqual(tierNotifications, 1, "one notification when enabling extended tools");
+    for (const tool of allToolsRes.tools) {
+      assertBoolean(tool.annotations?.readOnlyHint, `${tool.name}.readOnlyHint`);
+      assertBoolean(tool.annotations?.destructiveHint, `${tool.name}.destructiveHint`);
+      if (/(^|_)(delete|revoke|remove|unlink)(_|$)/.test(tool.name)) {
+        assertEqual(tool.annotations?.destructiveHint, true, `${tool.name} destructive annotation`);
+      }
+    }
+    await callTool(client, "set_tool_tier", { tier: "core" });
+    assertEqual((await client.listTools()).tools.length, EXPECTED_CORE_TOOLS, "return to core tool count");
+    assertEqual(tierNotifications, 2, "one notification when disabling extended tools");
+    const disabled = await client.callTool({ name: "get_org_usage", arguments: {} });
+    assertEqual(disabled.isError, true, "disabled extended tool cannot be called");
+    await callTool(client, "set_tool_tier", { tier: "core" });
+    await client.listTools();
+    assertEqual(tierNotifications, 2, "no notification for unchanged tier");
+    await callTool(client, "set_tool_tier", { tier: "all" });
+    assertEqual((await client.listTools()).tools.length, EXPECTED_ALL_TOOLS, "re-enable all tools");
+    assertEqual(tierNotifications, 3, "one notification when re-enabling extended tools");
     console.log(`✅ ${coreToolsRes.tools.length} core tools -> ${allToolsRes.tools.length} after tier switch`);
 
     // ─── 4. Profiles & session ────────────────────────────────────
@@ -720,6 +746,9 @@ async function main() {
     assertObject(await callTool(client, "get_billing_info"), "get_billing_info");
     // Sidebar state: flip it, prove the flip, then restore the original and prove that too, so
     // each write is a real change rather than re-writing the value already stored.
+    if (process.env.FUSEBASE_TEST_ACCOUNT_PREFERENCES !== "1") {
+      skip("set_sidebar_collapsed", "account-wide preference, outside the sandbox; opt in with FUSEBASE_TEST_ACCOUNT_PREFERENCES=1");
+    } else {
     const readSidebarCollapsed = async (): Promise<boolean> => {
       const prefs = await callTool(client, "get_user_preferences");
       assertObject(prefs, "get_user_preferences");
@@ -744,6 +773,7 @@ async function main() {
         await duringCleanup(() => callTool(client, "set_sidebar_collapsed", { collapsed: sidebarWasCollapsed })).catch((err) =>
           console.error(`⚠️ Could not restore sidebarCollapsed: ${err instanceof Error ? err.message : err}`));
       }
+    }
     }
     assertObject(await callTool(client, "get_workspace_premium_status", { workspaceId }), "get_workspace_premium_status");
     const importStatus = await callTool(client, "get_active_import_status", { workspaceId });

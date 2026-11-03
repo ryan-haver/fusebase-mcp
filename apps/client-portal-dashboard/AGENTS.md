@@ -2,6 +2,8 @@
 
 This file is the **definitive guide** for AI agents and LLMs working with Fusebase Apps apps.
 
+**Invariant — start of session:** Before any other `fusebase` command or any app work, run `fusebase update`. It self-updates the CLI, then rewrites this file and `.claude/skills`, refreshes MCP tokens and IDE MCP config, and syncs app dependencies. When it reports changes to agent assets or MCP config, stop and ask the user to restart the agent, because what you loaded no longer matches disk and the MCP servers need to reconnect. Run it once per session, at the start, never in the middle of a task.
+
 **Invariant — MCP unavailable:** If MCP is not connected (tools not visible or `tools_list()` fails), **STOP**. Do not invent workarounds, scripts, or fake calls. Inform the user and follow troubleshooting; do not continue with dashboard/backend work until MCP is available.
 
 ## Golden Rule
@@ -217,6 +219,7 @@ SDK token usage in app runtime:
 - Direct SDK / Fusebase proxy calls pass the token via `x-app-feature-token`
 - Calls to the app's own backend (`/api/*`) must assume deployed platform proxies may strip `x-app-feature-token`; backend handlers must read header or fallback to cookie `fbsfeaturetoken` when the route needs **visitor app-proxy auth** (most `/api/*` traffic).
 - For user-facing Gate **reads** of the current user (`getMyOrgAccess`, role-gated UI), stay in user context: use the request `fbsfeaturetoken` cookie on the app host. After NH1 platform magic links, org `eversessionid` is on the org domain only — do not require it on same-origin app-backend calls. For legacy `/link` + `activateAppMagicLink`, POST `{ featureToken, sessionToken }` in the body or forward `EverHelper-Session-ID` when you have `sessionToken` in hand. Do not use the backend service token to impersonate the visitor.
+- **`fbsfeaturetoken` is the only credential on an app host.** The app never sets `eversessionid` and never turns a Gate login response into a cookie of its own. `loginFusebaseUser` / `registerFusebaseUser` / `registerFusebaseOrgMember` / `completeFusebaseAuthChallenge` return `appAuth: { exchangeToken, expiresInSeconds, authPath }`; the backend hands `appAuth.authPath` to the SPA, and the SPA spends it immediately with a same-origin `fetch(authPath, { headers: { Accept: 'application/json' } })`. The browser stores the `fbsfeaturetoken` the response sets, and the SPA routes to the returned `redirectPath` without navigating. Spending does not invalidate the token — it stays replayable for its whole `expiresInSeconds` window and carries no app binding, so treat `authPath` as a credential: never log it, never let it be shared or bookmarked. The legacy `session.sessionId` field is deprecated and about to be dropped — do not read it in new apps. See `fusebase-gate/references/fusebase-auth.md`.
 - **Exception — privileged provisioning:** trusted BFF routes such as `POST /api/account/register` that call `registerFusebaseOrgMember` or `addOrgUser` must use `process.env.FBS_FEATURE_TOKEN` for the Gate call (see `fusebase-gate/references/fusebase-auth.md`). The visitor cookie on the incoming request is not sufficient for org membership writes; that is not a "fallback" for user identity — it is a separate server-side provisioning step.
 - **`window.FBS_FEATURE_TOKEN` / cookie `fbsfeaturetoken`** (browser) and **`process.env.FBS_FEATURE_TOKEN`** (backend env) are different artifacts — same name, different scope. Browser token is visitor JWE; backend env is the deploy-time service token with app permissions.
 - Public/visitor apps can open with a visitor app token, but visitor tokens normally do **not** receive isolated-store permissions. For public portal reads/writes, use an app backend with a service token plus trusted portal/workspace context. Prefer `trustedRuntimeContext.portalId` / `trustedRuntimeContext.workspaceId` when the token has `isolated_store.rls.delegate`; if unavailable in the target environment, a custom `rlsContext` key such as `req_portal_id` is only a reviewed temporary fallback derived from trusted auth context.
@@ -657,7 +660,7 @@ For SQL stores, keep app-owned schema files under `postgres/migrations/` and con
 }
 ```
 
-Use `fusebase isolated-store sql bundle --app <appPath> --json` to inspect the exact Gate body. Use `--status`, `--rls-status`, and `--dry-run` before `--apply --yes`. The command reads `GATE_MCP_TOKEN` from `.env` for Gate calls. `rlsManifest` is attached only when the `postgres-rls` flag is enabled; otherwise SQL migrations still work and RLS validation is skipped.
+Use `fusebase isolated-store sql bundle --app <appPath> --json` to inspect the exact Gate body. Use `--status`, `--rls-status`, and `--dry-run` before `--apply --yes`. The command reads `GATE_MCP_TOKEN` from `.env.<environment>` for the resolved environment (not the root `.env`) for Gate calls. `rlsManifest` is attached only when the `postgres-rls` flag is enabled; otherwise SQL migrations still work and RLS validation is skipped.
 
 RLS verification checklist after schema apply:
 

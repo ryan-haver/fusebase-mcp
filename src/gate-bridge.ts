@@ -39,7 +39,10 @@ export interface UpstreamToolSummary {
   description?: string;
   outputSummary?: Record<string, unknown>;
   schemaVersion?: string;
+  dangerous?: boolean;
 }
+
+export type UpstreamSchemaMode = "input" | "output" | "both" | "summary" | "full";
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 
@@ -216,7 +219,7 @@ export class FusebaseGateBridge {
       text = await res.text();
     } catch (err: any) {
       if (err?.name === "TimeoutError" || err?.name === "AbortError") {
-        throw new Error(`${target} MCP request '${describeRpc(payload)}' to ${url} timed out after ${this.timeoutMs}ms`);
+        throw new Error(`${target} MCP request '${describeRpc(payload)}' to ${url} timed out after ${this.timeoutMs}ms`, { cause: err });
       }
       throw err;
     }
@@ -402,19 +405,13 @@ export class FusebaseGateBridge {
       },
     });
 
-    if (res.data.result?.content?.[0]?.text) {
-      try {
-        const parsed = JSON.parse(res.data.result.content[0].text);
-        return parsed.tools || [];
-      } catch {
-        return [];
-      }
-    }
-    return [];
+    const parsed = this.readDiscoveryResult(res.data, "tools_list");
+    if (!Array.isArray(parsed.tools)) throw new Error("Upstream FuseBase [tools_list] returned no tools array.");
+    return parsed.tools;
   }
 
   /** Describe a specific operation schema */
-  async toolsDescribe(name: string, target?: "gate" | "dashboards"): Promise<Record<string, any>> {
+  async toolsDescribe(name: string, target?: "gate" | "dashboards", schemaMode?: UpstreamSchemaMode): Promise<Record<string, any>> {
     const effectiveTarget = target || (this.hasGate ? "gate" : "dashboards");
     const res = await this.postJsonRpc(effectiveTarget, {
       jsonrpc: "2.0",
@@ -422,18 +419,39 @@ export class FusebaseGateBridge {
       method: "tools/call",
       params: {
         name: "tools_describe",
-        arguments: { name },
+        arguments: { name, ...(schemaMode ? { schemaMode } : {}) },
       },
     });
 
-    if (res.data.result?.content?.[0]?.text) {
-      try {
-        return JSON.parse(res.data.result.content[0].text);
-      } catch {
-        return { raw: res.data.result.content[0].text };
+    return this.readDiscoveryResult(res.data, "tools_describe");
+  }
+
+  /** Fetch the domain guidance referenced by an operation's requiredPrompts. */
+  async promptsSearch(groups: string[], target?: "gate" | "dashboards"): Promise<Record<string, any>> {
+    const res = await this.postJsonRpc(target || (this.hasGate ? "gate" : "dashboards"), {
+      jsonrpc: "2.0", id: this.reqId++, method: "tools/call",
+      params: { name: "prompts_search", arguments: { groups } },
+    });
+    return this.readDiscoveryResult(res.data, "prompts_search");
+  }
+
+  /** Discovery errors must not masquerade as an empty operation catalog. */
+  private readDiscoveryResult(data: Record<string, any>, operation: string): Record<string, any> {
+    if (data.error) throw new Error(`Upstream FuseBase [${operation}] error: ${describeUpstreamError(data.error)}`);
+    let parsed = data.result?.structuredContent;
+    if (!parsed) {
+      const text = data.result?.content?.find((block: { type?: string }) => block.type === "text")?.text;
+      try { parsed = JSON.parse(text); } catch {
+        throw new Error(`Upstream FuseBase [${operation}] returned invalid JSON: ${redactUpstreamDetail(String(text ?? "empty response"))}`);
       }
     }
-    return res.data.result || res.data;
+    if (data.result?.isError || parsed?.ok === false) {
+      throw new Error(`Upstream FuseBase [${operation}] error: ${describeUpstreamError(parsed?.error ?? parsed)}`);
+    }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error(`Upstream FuseBase [${operation}] returned an invalid object.`);
+    }
+    return parsed;
   }
 
   /**
@@ -443,15 +461,16 @@ export class FusebaseGateBridge {
   async toolCall(
     opId: string,
     args: Record<string, unknown> = {},
-    target?: "gate" | "dashboards"
+    target?: "gate" | "dashboards",
+    options: { applyDefaults?: boolean } = {},
   ): Promise<any> {
     const effectiveTarget = target || (this.hasGate ? "gate" : "dashboards");
-    const identity = await this.getIdentity();
+    const identity = options.applyDefaults === false ? undefined : await this.getIdentity();
 
     const mergedArgs: Record<string, unknown> = { ...args };
 
     // Auto-inject org scope if opId is a scoped operation and caller omitted it
-    if (identity.orgId) {
+    if (identity?.orgId) {
       if (
         opId === "getAllDatabases" ||
         opId === "getDashboards" ||

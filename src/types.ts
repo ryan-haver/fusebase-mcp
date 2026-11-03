@@ -449,16 +449,21 @@ export interface IsolatedStoreSqlResult {
 }
 
 export interface IsolatedStoreMigrationBundle {
-  version: string;
-  name?: string;
+  bundleVersion?: string | null;
   migrations: Array<{
-    version: string;
+    version: number;
     name: string;
     sql: string;
-    checksum?: string;
+    checksum: string;
   }>;
-  stage?: "dev" | "prod";
-  rlsManifest?: Record<string, unknown>;
+}
+
+export interface IsolatedStoreMigrationResult {
+  appliedCount: number;
+  appliedVersions: number[];
+  status: Record<string, unknown>;
+  checkpointRevision?: Record<string, unknown> | null;
+  dryRun?: boolean | null;
 }
 
 // === API Response Wrappers ===

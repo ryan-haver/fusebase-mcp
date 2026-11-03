@@ -3,7 +3,7 @@
  *
  * Runs against live FuseBase (requires valid credentials and FUSEBASE_WORKSPACE_ID as an explicit
  * sandbox opt-in, since it creates and deletes org-level databases). Checks:
- *  1. Tool registration: exactly 175 tools with FUSEBASE_TOOLS=all, including the 51 database,
+ *  1. Tool registration: exactly 177 tools with FUSEBASE_TOOLS=all, including the 51 database,
  *     relational and isolated-store tools listed below.
  *  2. Discovery: list_all_databases, resolve_database_alias for a set of system aliases,
  *     get_database_entity_templates, and get_database_entity for an alias that resolved (skipped
@@ -39,7 +39,6 @@ import {
   assertString,
   callTool,
   connectMcp,
-  knownGap,
   requireSandboxWorkspace,
   runSuite,
   skip,
@@ -54,7 +53,7 @@ import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
 const ISOLATED_STORES_UNAVAILABLE =
   /requires Gate MCP bridge|Fusebase API error: (402|403|404) [^\n]*\/isolated-stores/;
 
-const EXPECTED_TOOL_COUNT = 175;
+const EXPECTED_TOOL_COUNT = 177;
 
 const DATABASE_TOOLS = [
   // Core DB tools
@@ -915,20 +914,17 @@ async function main() {
 
     // ─── 11. Multi-table dashboards ─────────────────────────────────
     phase("11. Multi-table dashboards");
-    // COR-21: the tool posts a *view* to /dashboards/<databaseId>/views, which 404s; creating
-    // a real table needs POST /dashboards (or createDashboardFromTemplate) with a schema.
-    let tableCreated = false;
-    try {
+    {
       const newTableRes = await callTool(client, "create_dashboard_table", {
         databaseId: primaryDbId,
         title: "Secondary Action Items Table",
       });
-      tableCreated = newTableRes !== null && typeof newTableRes === "object";
-    } catch (err) {
-      if (!(err instanceof ToolError)) throw err;
-    }
-    // An error response records no write; only a claimed success needs proving.
-    if (tableCreated) {
+      assertObject(newTableRes, "create_dashboard_table result");
+      const table = payload(newTableRes);
+      assertString(table.global_id, "new table UUID");
+      assertString(table.views?.[0]?.global_id, "new table default view UUID");
+      assertEqual(table.database_id, primaryDbId, "new table parent database");
+      const secondaryViewId = table.views[0].global_id;
       await verifyWrite("create_dashboard_table", "table 'Secondary Action Items Table' listed in the database", async () => {
         const db = payload(await callTool(client, "get_database_detail", { databaseId: primaryDbId }));
         assertArray(db?.dashboards, "get_database_detail.data.dashboards", 1);
@@ -937,8 +933,17 @@ async function main() {
           `database ${primaryDbId} should list 'Secondary Action Items Table', got: ${JSON.stringify(db.dashboards).slice(0, 500)}`,
         );
       });
+      const key = columnKeyOf(await callTool(client, "add_database_column", { dashboardId: table.global_id, viewId: secondaryViewId, name: "Action", columnType: "string" }), "Action");
+      await verifyWrite("add_database_column", "new secondary table has its own Action column", async () => {
+        const schema = await readSchema(client, table.global_id, secondaryViewId);
+        assertEqual(columnByKey(schema, key, "secondary schema").name, "Action", "secondary column name");
+      });
+      const row = await callTool(client, "add_database_row", { entity: "custom", dashboardId: table.global_id, viewId: secondaryViewId, values: { Action: "Validate secondary table" } });
+      await verifyWrite("add_database_row", "secondary table stores a readable row", async () => {
+        const rows = await readRows(client, table.global_id, secondaryViewId);
+        assertEqual(rows.find((r: any) => r.rowUuid === row.rowUuid)?.cells?.[key], "Validate secondary table", "secondary row value");
+      });
     }
-    knownGap("COR-21", "create_dashboard_table creates a table in a database", tableCreated);
 
     // ─── 12. Gate isolated stores ───────────────────────────────────
     phase("12. Gate isolated stores");

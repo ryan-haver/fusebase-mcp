@@ -78,7 +78,7 @@ Once drafted, provide the structured content ready to be created using 'create_p
     },
     async ({ workspaceId, pageId }) => {
       const client = getClient();
-      let pageText = "";
+      let pageText: string;
       try {
         pageText = await client.getPageContent(workspaceId, pageId);
       } catch (err) {
@@ -583,8 +583,8 @@ Provide:
     "Guide the AI assistant in seeding a complete demo CRM (Companies, Deals, Contacts) using canonical batchPutDashboardData and row relation linking.",
     {
       industry: z.string().optional().describe("Industry or business domain (e.g., 'B2B SaaS', 'Healthcare IT', 'Cybersecurity')"),
-      companyCount: z.number().optional().describe("Number of demo companies to create (default 3)"),
-      dealsPerCompany: z.number().optional().describe("Number of deals per company (default 2)"),
+      companyCount: z.string().trim().regex(/^[1-9]\d*$/).transform(Number).pipe(z.number().int().safe()).optional().describe("Positive integer number of demo companies (default 3)"),
+      dealsPerCompany: z.string().trim().regex(/^[1-9]\d*$/).transform(Number).pipe(z.number().int().safe()).optional().describe("Positive integer deals per company (default 2)"),
     },
     async ({ industry, companyCount = 3, dealsPerCompany = 2 }) => {
       const ind = industry || "B2B Technology";

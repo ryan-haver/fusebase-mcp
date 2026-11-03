@@ -27,6 +27,10 @@ description: "Guide for adding a backend layer (REST API, WebSockets, cron jobs)
 - ✅ Store per-user data in cookies or dashboard rows keyed by user
 - ✅ Use env vars only for credentials/config shared across all users (e.g. OAuth client ID/secret)
 
+### Shared live reads
+
+A page many people sit on must not call the isolated store once per open browser. Read once per backend process and answer the waiting requests from that result. One user action is one `runIsolatedStoreSqlBatch`; do not run several store calls in parallel for it. An idle page does not poll every 1–2 seconds. Limits: `fusebase-gate/references/isolated-sql.md` (Connection budget).
+
 ### Stable key as partition key (required)
 
 For any persisted per-user data, derive the partition key from stable identity only:

@@ -21,63 +21,95 @@ afterEach(async () => {
 });
 
 describe("tool tiers", () => {
-  it("registers 34 core tools and 175 after set_tool_tier(all), with unique names", async () => {
+  it("registers 34 core tools and 177 after set_tool_tier(all), with unique names", async () => {
     session = await startServer();
     expect((await session.mcp.listTools()).tools).toHaveLength(34);
     const res = await session.callText("set_tool_tier", { tier: "all" });
     expect(res.isError).toBe(false);
     const names = (await session.mcp.listTools()).tools.map((t) => t.name);
-    expect(names).toHaveLength(175);
-    expect(new Set(names).size).toBe(175);
+    expect(names).toHaveLength(177);
+    expect(new Set(names).size).toBe(177);
   });
 
   it("is idempotent when set_tool_tier(all) is called twice", async () => {
     session = await startServer();
     await session.callText("set_tool_tier", { tier: "all" });
     await session.callText("set_tool_tier", { tier: "all" });
-    expect((await session.mcp.listTools()).tools).toHaveLength(175);
+    expect((await session.mcp.listTools()).tools).toHaveLength(177);
   });
 
-  // MCP-3: each of the 141 registrations sends its own list_changed notification.
-  it.fails("sends a single tools/list_changed notification per tier switch (MCP-3)", async () => {
+  // Regression: a tier change must publish one notification, not one per tool.
+  it("sends a single tools/list_changed notification per tier switch (MCP-3)", async () => {
     session = await startServer();
     await session.callText("set_tool_tier", { tier: "all" });
     await new Promise((r) => setTimeout(r, 50));
     expect(session.listChanged).toHaveLength(1);
   });
 
-  // MCP-3: there is no way back to the core tier without a restart.
-  it.fails("can switch back to the core tier (MCP-3)", async () => {
+  // Regression: shrinking the tool list must work without restarting.
+  it("can switch back to the core tier (MCP-3)", async () => {
     session = await startServer();
     await session.callText("set_tool_tier", { tier: "all" });
     await session.callText("set_tool_tier", { tier: "core" });
     expect((await session.mcp.listTools()).tools).toHaveLength(34);
   });
 
-  // MCP-5: the description quotes stale counts (33 / 103 / 136).
-  it.fails("describes set_tool_tier with the real tool counts (MCP-5)", async () => {
+  it("rejects disabled extended tools and re-enables them without duplicate registrations", async () => {
+    const getOrgUsage = vi.fn(async () => ({ used: 1 }));
+    session = await startServer(fakeClient({ getOrgUsage }), { tier: "all" });
+    await session.callText("set_tool_tier", { tier: "core" });
+    expect((await session.callText("get_org_usage")).isError).toBe(true);
+    expect(getOrgUsage).not.toHaveBeenCalled();
+    await session.callText("set_tool_tier", { tier: "all" });
+    expect((await session.callText("get_org_usage")).isError).toBe(false);
+    expect(getOrgUsage).toHaveBeenCalledTimes(1);
+    expect((await session.mcp.listTools()).tools).toHaveLength(177);
+  });
+
+  it("sends one notification in either direction and none for a no-op", async () => {
+    session = await startServer();
+    for (const tier of ["core", "all", "all", "core", "core", "all"]) {
+      await session.callText("set_tool_tier", { tier });
+    }
+    await new Promise((r) => setTimeout(r, 50));
+    expect(session.listChanged).toHaveLength(3);
+  });
+
+  it("describes set_tool_tier with the real tool counts (MCP-5)", async () => {
     session = await startServer();
     const tool = (await session.mcp.listTools()).tools.find((t) => t.name === "set_tool_tier");
     expect(tool?.description).toContain("34");
-    expect(tool?.description).toContain("175");
+    expect(tool?.description).toContain("177");
   });
 });
 
 describe("tool annotations", () => {
-  // MCP-1: 0 of 175 tools declare annotations.
-  it.fails("marks every delete/revoke/remove/unlink tool with destructiveHint (MCP-1)", async () => {
+  // Every exposed tool must advertise its effects to MCP clients.
+  it("marks every delete/revoke/remove/unlink tool with destructiveHint (MCP-1)", async () => {
     session = await startServer(undefined, { tier: "all" });
     const tools = (await session.mcp.listTools()).tools.filter((t) => DESTRUCTIVE_NAME.test(t.name));
     expect(tools.length).toBeGreaterThan(0);
     expect(tools.filter((t) => t.annotations?.destructiveHint !== true).map((t) => t.name)).toEqual([]);
   });
 
-  it.fails("declares readOnlyHint or destructiveHint on every tool (MCP-1)", async () => {
+  it("declares readOnlyHint or destructiveHint on every tool (MCP-1)", async () => {
     session = await startServer(undefined, { tier: "all" });
     const missing = (await session.mcp.listTools()).tools
       .filter((t) => t.annotations?.readOnlyHint === undefined && t.annotations?.destructiveHint === undefined)
       .map((t) => t.name);
     expect(missing).toEqual([]);
+  });
+
+  it("distinguishes reads and additions from mixed or destructive operations", async () => {
+    session = await startServer(undefined, { tier: "all" });
+    const tools = (await session.mcp.listTools()).tools;
+    const hints = (name: string) => tools.find((t) => t.name === name)?.annotations;
+    expect(hints("list_pages")).toMatchObject({ readOnlyHint: true, destructiveHint: false, idempotentHint: true });
+    expect(hints("create_page")).toMatchObject({ readOnlyHint: false, destructiveHint: false, idempotentHint: false });
+    for (const name of ["delete_page", "update_page_content", "download_attachment", "execute_isolated_sql", "fusebase_direct_tool_call", "fusebase_cli_deploy"]) {
+      expect(hints(name), name).toMatchObject({ readOnlyHint: false, destructiveHint: true });
+    }
+    expect(hints("set_tool_tier")).toMatchObject({ readOnlyHint: false, openWorldHint: false, idempotentHint: true });
   });
 });
 
@@ -89,11 +121,24 @@ describe("resources and prompts", () => {
     expect((await session.mcp.listPrompts()).prompts).toHaveLength(17);
   });
 
-  // MCP-6: prompt arguments arrive as strings; z.number() rejects them.
-  it.fails("accepts numeric prompt arguments sent as strings (MCP-6)", async () => {
+  // MCP prompt arguments arrive as strings, including counts.
+  it("accepts numeric prompt arguments sent as strings (MCP-6)", async () => {
     session = await startServer();
-    const res = await session.mcp.getPrompt({ name: "crm-seed-demo-data", arguments: { companyCount: "5" } });
-    expect(res.messages.length).toBeGreaterThan(0);
+    const res = await session.mcp.getPrompt({ name: "crm-seed-demo-data", arguments: { companyCount: "5", dealsPerCompany: "3" } });
+    expect(JSON.stringify(res.messages)).toContain("insert 5 realistic demo companies");
+    expect(JSON.stringify(res.messages)).toContain("insert 15 deals");
+  });
+
+  it.each(["", " ", "five", "0", "-1", "1.5", "9007199254740992"])("rejects invalid prompt count %j", async (companyCount) => {
+    session = await startServer();
+    await expect(session.mcp.getPrompt({ name: "crm-seed-demo-data", arguments: { companyCount } })).rejects.toThrow();
+  });
+
+  it("keeps the default CRM counts when arguments are omitted", async () => {
+    session = await startServer();
+    const res = await session.mcp.getPrompt({ name: "crm-seed-demo-data" });
+    expect(JSON.stringify(res.messages)).toContain("insert 3 realistic demo companies");
+    expect(JSON.stringify(res.messages)).toContain("insert 6 deals");
   });
 });
 

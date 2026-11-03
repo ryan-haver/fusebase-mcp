@@ -110,7 +110,9 @@ async function main() {
   await collect("tokens", async () => {
     for (const t of arrayIn(await client.listTokens({ limit: 100 }))) {
       if (t.revokedAt || t.revoked_at || t.status === "revoked") continue;
-      items.push({ kind: "token", id: t.id ?? t.tokenId, name: t.name ?? "", created: created(t), remove: () => client.revokeToken(t.id ?? t.tokenId) });
+      const id = t.global_id ?? t.id ?? t.tokenId;
+      if (typeof id !== "string" || !id) throw new Error("Token listing is missing its identifier; refusing unverifiable cleanup.");
+      items.push({ kind: "token", id, name: t.name ?? "", created: created(t), remove: () => client.revokeToken(id) });
     }
   });
   await collect("tasks", async () => {

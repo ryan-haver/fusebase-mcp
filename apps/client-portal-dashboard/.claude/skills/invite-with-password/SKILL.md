@@ -39,6 +39,9 @@ user never learns**, which is why the invitee needs `setFusebaseInitialPassword`
 4. **Set** — app backend forwards the **invitee's own** token to Gate. `FBS_FEATURE_TOKEN` gets `403`.
 5. **Sign in right away** — a `200` mints no session and drops every existing session of the account,
    including the magic-link one, so log the user back in with the password from the same form.
+6. **Spend the handoff** — the login response carries `appAuth`, not a session id. The backend passes
+   `appAuth.authPath` to the SPA; the SPA fetches it on its own origin and the browser stores the
+   `fbsfeaturetoken` that response sets. The app never sets a cookie of its own from a login response.
 
 ```typescript
 // SPA — step 3
@@ -61,9 +64,20 @@ if (!res.ok) return c.json({ error: 'set_password_failed' }, 502)
 
 // the magic-link session is gone now — sign in with the password we just set
 const auth = new FusebaseAuthApi(createClient({ baseUrl: GATE })) // no token: visitor-safe op
-const login = await auth.loginFusebaseUser({ body: { email, password } })
-if (login.status === 'challenge_required') return handleChallenge(login.challenge)
-// set login.session.sessionId as the app-domain cookie, then redirect to login.redirectPath
+const login = await auth.loginFusebaseUser({ body: { email, password, redirectPath: '/' } })
+if (login.status === 'challenge_required') return c.json({ challenge: login.challenge })
+// hand the SPA the handoff, never a session id and never a cookie of our own
+// appAuth is absent when the mint failed; loginFusebaseUser is safe to call again
+if (!login.appAuth) return c.json({ error: 'app_auth_unavailable' }, 503)
+return c.json({ appAuth: login.appAuth })
+
+// SPA — step 6, with the { appAuth } the route just returned
+const mint = await fetch(appAuth.authPath, {
+  headers: { Accept: 'application/json' },
+}).then((r) => r.json())
+// the fbsfeaturetoken cookie is already stored by now
+if (mint.status !== 'ok') showError(mint.message ?? mint.reason)
+else router.replace(mint.redirectPath)
 ```
 
 ## Limits
@@ -72,6 +86,11 @@ if (login.status === 'challenge_required') return handleChallenge(login.challeng
   account already has a password its user chose — route to sign-in or password restore, never retry.
 - **Acts on the caller only.** The body is `{ password }`; there is no `email` and no `:orgId`, so an app can
   never target another account. Authz is identical to `getMyOrgAccess` — user context, no extra app grant.
+- **The handoff is short-lived, and replayable until it expires.** `appAuth.expiresInSeconds` is 300, so
+  spend `authPath` right after the login call, not on some later page. Spending it does not invalidate it —
+  anyone holding it can mint an app token for that user until it expires, so treat it as a credential:
+  never log it, never let `authPath` be shared or bookmarked. An expired token answers `401` with
+  `session_exchange_invalid`, and the user signs in again.
 - **Platform flag `password_invite`.** Off on the target backend → `403`. Keep password restore as the
   fallback path.
 - **No SDK method yet** — `@fusebase/fusebase-gate-sdk` does not expose `setFusebaseInitialPassword` yet, so

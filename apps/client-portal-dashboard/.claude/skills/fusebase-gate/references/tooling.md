@@ -1,7 +1,7 @@
 ---
-version: "1.1.0"
+version: "1.2.0"
 mcp_prompt: tooling
-last_synced: "2026-06-30"
+last_synced: "2026-10-01"
 title: "Tooling"
 category: meta
 ---
@@ -53,6 +53,8 @@ Rule 4: never construct API URLs manually from feature or concept names. Always 
 
 Rule 5: if there is no exact operation for the requested action, explain the available workaround and ask for confirmation before executing a multi step substitute flow.
 
+Rule 6: operations marked dangerous true in tools.list and tools.describe are irreversible. Call them once without confirm, show the returned preview to the user, and pass confirm true inside args (not next to opId, where it is ignored) only after the user explicitly agreed in the conversation. Never set confirm true on your own initiative.
+
 tool.call parameters:
 - opId is the operation name from tools.list.
 - args is the operation arguments object validated against the schema from tools.describe.
@@ -74,7 +76,7 @@ Response format for direct calls and tool.call:
 
 ## Version
 
-- **Version**: 1.1.0
+- **Version**: 1.2.0
 - **Category**: meta
-- **Last synced**: 2026-06-30
+- **Last synced**: 2026-10-01
 - **Priority rule**: If the MCP prompt has a higher version, follow the prompt's API Reference as source of truth.

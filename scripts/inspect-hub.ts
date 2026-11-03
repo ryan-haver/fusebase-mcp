@@ -9,10 +9,12 @@
  *   npx tsx scripts/inspect-hub.ts [--profile=<profile>]
  */
 
-import { FusebaseClient } from "../src/client.js";
+import { buildClient } from "../src/client-factory.js";
+import { loadEnvironment } from "../src/config.js";
 import { loadEncryptedCookie } from "../src/crypto.js";
 
 async function main() {
+  await loadEnvironment();
   const profileArg = process.argv.find((a) => a.startsWith("--profile="));
   const profile = profileArg ? profileArg.split("=")[1] : "default";
 
@@ -25,16 +27,12 @@ async function main() {
     process.exit(1);
   }
 
-  const client = new FusebaseClient({
-    host: "inkabeam.nimbusweb.me",
-    orgId: "u268r1",
-    cookie: loaded.cookie,
-  });
+  const client = buildClient(profile === "default" ? undefined : profile);
 
   // 1. Check Portal Feature Availability & Quota
   console.log("--- Checking Portal Availability ---");
   try {
-    const avail = await (client as any).request("/v1/portals/orgs/u268r1/available");
+    const avail = await client.checkPortalAvailability();
     console.log(`✅ Portal feature available: ${avail}`);
   } catch (err: any) {
     console.log(`⚠️  Could not verify portal quota: ${err.message}`);
@@ -42,9 +40,8 @@ async function main() {
 
   // 2. Query Workspaces
   console.log("\n--- Discovering Workspaces ---");
-  let workspaces: any[] = [];
   try {
-    workspaces = await client.listWorkspaces();
+    const workspaces = await client.listWorkspaces();
     console.log(`✅ Found ${workspaces.length} workspace(s):`);
     for (const ws of workspaces) {
       console.log(`   - [${ws.workspaceId}] "${ws.title}" (Org: ${ws.orgId})`);
@@ -55,9 +52,8 @@ async function main() {
 
   // 3. Query All Client Portals
   console.log("\n--- Querying Client Portals ---");
-  let portals: any[] = [];
   try {
-    portals = await client.listPortals();
+    const portals: any[] = await client.listPortals();
     console.log(`✅ Found ${portals.length} active portal(s):\n`);
 
     for (const p of portals) {

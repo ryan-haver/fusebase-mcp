@@ -4,6 +4,8 @@ dist/
 
 # Secrets & Auth
 .env
+.env.*
+!.env.example
 .cookie
 .browser-data*
 *.enc

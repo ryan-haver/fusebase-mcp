@@ -106,14 +106,11 @@ export class FusebaseCliManager {
       };
     }
 
-    let version = "unknown";
+    let version: string;
     try {
-      const verOut = execSync(`"${cliPath}" version`, {
-        encoding: "utf-8",
-        timeout: 5000,
-        stdio: ["ignore", "pipe", "ignore"],
-      }).trim();
-      version = verOut || "installed";
+      const result = await this.executeCommand("--version", [], undefined, 5000);
+      // The Windows launcher prints CLI, launcher and channel lines even for --version.
+      version = result.success ? (result.stdout.match(/(?:FuseBase CLI\s+)?(\d+\.\d+\.\d+(?:[-+][\w.-]+)?)/)?.[1] ?? result.stdout) : "installed";
     } catch {
       version = "installed";
     }
@@ -122,13 +119,9 @@ export class FusebaseCliManager {
     let organizations: Array<{ id: string; title: string; role?: string }> | undefined;
 
     try {
-      const orgOut = execSync(`"${cliPath}" orgs list --json`, {
-        encoding: "utf-8",
-        timeout: 8000,
-        stdio: ["ignore", "pipe", "ignore"],
-      }).trim();
-      if (orgOut) {
-        const parsed = JSON.parse(orgOut);
+      const result = await this.executeCommand("orgs", ["list", "--json"], undefined, 8000);
+      if (result.success && result.stdout) {
+        const parsed = JSON.parse(result.stdout);
         if (Array.isArray(parsed)) {
           authenticated = true;
           organizations = parsed;
@@ -242,6 +235,7 @@ export class FusebaseCliManager {
       const child = spawn(invocation.command, invocation.args, {
         cwd: workingDir,
         shell: invocation.shell,
+        windowsHide: true,
         env: { ...process.env, FUSEBASE_AGENT: "1" },
       });
 
@@ -356,7 +350,7 @@ export class FusebaseCliManager {
   }
 
   /**
-   * Register an application secret on the FuseBase platform.
+   * Declare an app secret key locally; deploy/dev start registers it on the platform.
    */
   static async createSecret(appPath: string, key: string, description?: string, cwd?: string) {
     const secretVal = description ? `${key}:${description}` : key;
@@ -364,10 +358,32 @@ export class FusebaseCliManager {
   }
 
   /**
-   * List registered application secrets.
+   * The current CLI has no secret list command. Read local declarations, never values.
    */
   static async listSecrets(appPath: string, cwd?: string) {
-    return this.executeCommand("secret", ["list", "--app", appPath], cwd);
+    try {
+      const file = join(this.resolveWorkingDir(cwd), "fusebase.json");
+      const config: unknown = JSON.parse(readFileSync(file, "utf-8"));
+      if (!config || typeof config !== "object" || !("apps" in config) || !Array.isArray(config.apps)) {
+        throw new Error("fusebase.json must contain an apps array.");
+      }
+      const app = config.apps.find((item: unknown) => item && typeof item === "object" &&
+        (("path" in item && item.path === appPath) || ("id" in item && item.id === appPath)));
+      if (!app) throw new Error(`App ${JSON.stringify(appPath)} was not found in fusebase.json.`);
+      const declared: unknown = app.secrets ?? [];
+      if (!Array.isArray(declared)) throw new Error("App secret declarations must be an array.");
+      const secrets = declared.map((entry: unknown) => {
+        if (!entry || typeof entry !== "object" || !("key" in entry) || typeof entry.key !== "string") {
+          throw new Error("Each app secret declaration must contain a key string.");
+        }
+        return { key: entry.key, description: "description" in entry && typeof entry.description === "string" ? entry.description : undefined };
+      });
+      return { success: true, stdout: JSON.stringify({ appPath: app.path, source: "fusebase.json", secrets }), stderr: "", exitCode: 0 };
+    } catch (error) {
+      // Do not echo malformed JSON: the file may contain legacy inline secret values.
+      const message = error instanceof SyntaxError ? "fusebase.json is not valid JSON." : error instanceof Error ? error.message : "Could not read secret declarations.";
+      return { success: false, stdout: "", stderr: message, exitCode: -5 };
+    }
   }
 
   /**
@@ -399,24 +415,39 @@ export class FusebaseCliManager {
   }
 
   /**
-   * Update app configuration, including permissions and build commands.
+   * Update app access and permissions using the current CLI contract.
    */
   static async updateApp(
     appIdOrPath: string,
     options?: {
       permissions?: string;
+      access?: string;
+      syncGatePermissions?: boolean;
+      environment?: string;
       devCommand?: string;
       buildCommand?: string;
       outputDir?: string;
       cwd?: string;
     },
   ) {
+    if (options?.devCommand !== undefined || options?.buildCommand !== undefined || options?.outputDir !== undefined) {
+      return { success: false, stdout: "", stderr: "The current FuseBase CLI does not accept build/dev/output flags on app update. Edit the app's build/dev/output settings in fusebase.json instead.", exitCode: -5 };
+    }
     const args = ["update", appIdOrPath];
-    if (options?.permissions) args.push("--permissions", options.permissions);
-    if (options?.devCommand) args.push("--dev-command", options.devCommand);
-    if (options?.buildCommand) args.push("--build-command", options.buildCommand);
-    if (options?.outputDir) args.push("--output-dir", options.outputDir);
+    if (options?.permissions !== undefined) args.push("--permissions", options.permissions);
+    if (options?.access !== undefined) args.push("--access", options.access);
+    if (options?.syncGatePermissions) args.push("--sync-gate-permissions");
+    if (options?.environment) args.push("--env", options.environment);
     return this.executeCommand("app", args, options?.cwd);
+  }
+
+  /** Update the CLI, optionally including the managed product in cwd. */
+  static async update(options: { cwd?: string; dryRun?: boolean; includeProduct?: boolean; environment?: string } = {}) {
+    const args = ["--skip-commit"];
+    if (options.dryRun !== false) args.push("--dry-run");
+    if (!options.includeProduct) args.push("--skip-product");
+    if (options.environment) args.push("--env", options.environment);
+    return this.executeCommand("update", args, options.cwd, 300_000);
   }
 }
 

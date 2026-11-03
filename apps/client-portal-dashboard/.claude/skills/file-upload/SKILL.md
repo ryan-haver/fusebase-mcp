@@ -7,23 +7,27 @@ description: "Canonical low-level Fusebase file upload lifecycle and file API gu
 
 This skill is the single source of truth for the low-level file upload lifecycle.
 Load [Upload Lifecycle](references/upload-lifecycle.md) for the canonical `tempStoredFileName -> storedFileUUID -> readUrl / relative url -> file descriptor` flow.
+It also holds the three upload flows (presigned single PUT, multipart, note attachments), when to use each,
+and how an app lists and edits the organization's files through the Gate bucket-attachment operations.
 
 ## Hard rules
 
 - **Never** store user file/binary bytes in a FuseBase PostgreSQL isolated store (`base64` / `bytea` / data URL), including “MVP” shortcuts. Upload with this skill / Gate files ops; persist only `storedFileUUID`, `readUrl`, and small metadata in SQL or dashboard cells.
 - Needing **`files.write`** is **not** a reason to put attachments in SQL. Sync Gate permissions (`fusebase app update <appId> --sync-gate-permissions`) instead.
 - **Visitor / anonymous / public-link apps:** browser visitor tokens usually cannot call `files.write`. Broker upload on the **app feature backend** with `FBS_FEATURE_TOKEN`, then return `storedFileUUID` / `readUrl` to the client.
+- **Public app files** (`createBucketAttachment` without `private`): the `url` does not expire. Removing the file stops a link to the attachment, but older public links can keep opening it, so make a file private when it must stop opening later. Store the `globalId`; use the `url` as is, never build, prefix or parse it.
+- **Private app files** (`createBucketAttachment` with `private: true`): store the `globalId`, never the `url`; the `url` is a signed link that expires (at most 1 day). Get fresh links with `listBucketAttachments` and `attachmentIds`, and use them as is. See [Private files](references/upload-lifecycle.md#private-files).
 - Ordinary isolated-SQL write/`execute` paths are **not** the 64MiB `importIsolatedStoreSqlRows` cap — practical bodies are ~100–150 KB. Do not design attachments against SQL payload size.
 
 ## When NOT To Use This Skill
 
 - Do not use this skill to describe how to write dashboard cell data. For dashboard `files` columns, load `fusebase-dashboards` and pass the already-uploaded file descriptor to `batchPutDashboardData`.
-- Do not use this skill for Gate MCP operation auth, scopes, or operation discovery. For Gate `startMultipartFileUpload`, `completeMultipartFileUpload`, and `deleteFile`, load `fusebase-gate` (prompt/reference **`files`**).
+- Do not use this skill for Gate MCP operation auth, scopes, or operation discovery. For Gate `createTempStoredFileUpload`, `startMultipartFileUpload`, `completeMultipartFileUpload`, `deleteFile`, `createBucketAttachment`, `updateBucketAttachment`, and `listBucketAttachments`, load `fusebase-gate` (prompt/reference **`files`**).
 - Do not copy upload endpoint or payload blocks into neighboring skills. Link to [Upload Lifecycle](references/upload-lifecycle.md) and keep only a short handoff.
 
 ## Scope
 
-- Owns: temp file creation, stored file creation, display URL rules, and file descriptor terminology.
+- Owns: temp file creation, stored file creation, upload flow selection, bucket attachment metadata and access, display URL rules, and file descriptor terminology.
 - Neighbor skills: `fusebase-dashboards` owns dashboard `files` cell writes; `fusebase-gate` owns Gate operation names, auth, and scope.
 - Required terminology: `tempStoredFileName`, `storedFileUUID`, `readUrl`, `relative url`, `file descriptor`.
 

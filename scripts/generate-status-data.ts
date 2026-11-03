@@ -19,17 +19,8 @@ const rawTools: Array<{ name: string; description?: string; schema?: any; tier: 
 
 function createMockServer(tier: "core" | "extended") {
   return {
-    tool: (name: string, ...args: any[]) => {
-      let description: string | undefined;
-      let schema: any;
-      if (typeof args[0] === "string") {
-        description = args[0];
-        if (args.length >= 2 && typeof args[1] === "object") {
-          schema = args[1];
-        }
-      } else if (typeof args[0] === "object") {
-        schema = args[0];
-      }
+    registerTool: (name: string, config: { description?: string; inputSchema?: any }) => {
+      const { description, inputSchema: schema } = config;
       rawTools.push({ name, description, schema, tier });
     },
   } as any;
@@ -37,7 +28,7 @@ function createMockServer(tier: "core" | "extended") {
 
 const mockCore = createMockServer("core");
 registerCoreTools(mockCore, () => ({} as any), {
-  enableExtendedTools: () => {},
+  setToolTier: () => {},
   isExtendedToolsEnabled: () => false,
   setActiveProfile: () => {},
   getActiveProfile: () => undefined,

@@ -2,30 +2,40 @@
 
 [![Version](https://img.shields.io/badge/Version-v2.1.0-3b82f6?style=for-the-badge)](https://github.com/ryan-haver/fusebase-mcp)
 [![Live Status Dashboard](https://img.shields.io/badge/Live%20Status-Operational-10b981?style=for-the-badge&logo=googlecloud&logoColor=white)](https://fusebase-mcp.thefusebase.app/)
-[![Production Tools](https://img.shields.io/badge/Production%20Tools-175%20Verified-6366f1?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
-[![Automated Assertions](https://img.shields.io/badge/Automated%20Assertions-212%20Passing-10b981?style=for-the-badge)](https://fusebase-mcp.thefusebase.app/)
+[![MCP Tools](https://img.shields.io/badge/MCP%20Tools-177%20Registered-6366f1?style=for-the-badge)](docs/UPSTREAM-COMPATIBILITY.md)
+[![Offline Checks](https://img.shields.io/badge/Offline%20Checks-Passing-10b981?style=for-the-badge)](docs/UPSTREAM-COMPATIBILITY.md)
 [![Docker Ready](https://img.shields.io/badge/Docker-Stdio%20%26%20SSE-2496ed?style=for-the-badge&logo=docker&logoColor=white)](https://github.com/ryan-haver/fusebase-mcp)
-[![Token-only coverage](https://img.shields.io/badge/Token--only%20tools-14%20of%20129%20measured-8b5cf6?style=for-the-badge)](docs/TOKEN-COVERAGE.md)
+[![Token-only coverage](https://img.shields.io/badge/Token--only%20tools-29%20of%20150%20measured-8b5cf6?style=for-the-badge)](docs/TOKEN-COVERAGE.md)
 [![Write-verified live tests](https://img.shields.io/badge/Live%20tests-every%20write%20read%20back-0ea5e9?style=for-the-badge)](docs/TESTING.md)
 
 An unofficial [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server enabling autonomous AI coding agents and developers to programmatically manage [FuseBase](https://www.fusebase.com/) (formerly Nimbus Note) workspaces - collaborative Y.js documents, relational tables, ActivePieces automations, client portals, hosted web apps, and multi-agent swarm boards. Live test suites prove every write by reading the data back from FuseBase ([docs/TESTING.md](docs/TESTING.md)).
 
 ---
 
-### Official Web Dashboard
+### Project Status Dashboard
 
 > **Production Status & Interactive Architecture Dashboard**: **[fusebase-mcp.thefusebase.app](https://fusebase-mcp.thefusebase.app/)**  
-> *Real-time engineering status, interactive searchable directory of all 175 MCP tools with schema parameters, 15 test suite validation metrics, system architecture, and milestone chronology.*
+> *Engineering status, a searchable directory of released MCP tools with schema parameters, test suite metrics, system architecture, and milestone chronology. Local unreleased changes are documented in CHANGELOG.md.*
 
 ---
 
+## Validation status
+
+The November 3, 2026 validation passed all five offline stages and **468 unit tests**.
+Focused live checks verified automation outputs, account restoration, hosted deployment/logs,
+portal invitation and email delivery, login links, agent execution and actual web extraction.
+Temporary remote fixtures were removed and cleanup was read back. The separate Paperclip
+API still requires permissions absent from the tested token; one intermittent malformed
+agent stream remains a documented reliability observation. See the
+[live validation report](docs/LIVE-VALIDATION.md) for evidence and limits.
+
 ## Capabilities
 
-- **175 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, FuseBase Work (Firecrawl & n8n), direct Gate & Dashboards MCP tokens, billing, user preferences, multi-agent profiles, and swarm orchestration
-- **Direct Gate & Dashboards MCP Token Mode**: Connect zero-browser directly to FuseBase Gate (`https://gate-mcp.thefusebase.com/mcp`) and Dashboards (`https://dashboards-mcp.thefusebase.com/mcp`) with auto-discovered tenant identity, scopes, and default workspace. Token mode covers a subset of the tools (14 of 129 measured: workspaces, page/folder listing and creation, reading and appending content, database listing, isolated stores); the rest need a session cookie. See [docs/TOKEN-COVERAGE.md](docs/TOKEN-COVERAGE.md).
+- **177 tools** across content, tasks, members, files, databases, org admin, portals, guides, vibe coding, automations, CLI lifecycle, AI assistants & agent threads, FuseBase Work (Firecrawl & n8n), direct Gate & Dashboards MCP tokens, billing, user preferences, multi-agent profiles, and swarm orchestration
+- **Direct Gate & Dashboards MCP Token Mode**: Connect zero-browser directly to FuseBase Gate (`https://gate-mcp.thefusebase.com/mcp`) and Dashboards (`https://dashboards-mcp.thefusebase.com/mcp`) with auto-discovered tenant identity, scopes, and default workspace. Token mode covers a subset of the tools (29 of 150 measured: workspaces, page/folder listing and creation, reading and appending content, database listing, isolated SQL stores, token management, operation discovery and triggering a configured automation). Most other named wrappers need a session cookie. See [docs/TOKEN-COVERAGE.md](docs/TOKEN-COVERAGE.md).
 - **Advanced Markdown Ingestion**: Automatic parsing of GFM tables into interactive `TableBlock` objects, markdown images (`![alt](url)`), GitHub callouts (`> [!NOTE]`, `> [!WARNING]`, etc.), HTML underline/highlight, and `<details><summary>` toggles
-- **FuseBase Work, Firecrawl & n8n**: Native tools to invoke any of 32 organization AI agents, crawl/parse web pages via hosted Firecrawl, and trigger n8n automation flows
-- **Two-tier system** — 34 core tools load by default (complete CRUD suite); 141 extended tools on demand
+- **Agent execution and extraction**: Run AI Assistant agents and wait for completed streamed answers; request URL extraction through a configured scraping agent. Fetching depends on that agent, and the wrapper does not call Firecrawl directly. The legacy n8n-named tool routes through ActivePieces. These are separate from Gate's Paperclip Work-agent APIs.
+- **Two-tier system** — 34 core tools are exposed by default; switch to all 177 tools and back to core without restarting. Each change sends one tool-list notification; disabled tools cannot be invoked.
 - **Token Economics & Markdown Conversion** — retrieve page content as clean Markdown (`get_page_content(format: "markdown")`) for ~50% token reduction via built-in `htmlToMarkdown` converter
 - **Binary Payload Safety & Native Images** — `download_attachment` renders images as native MCP `image` blocks and streams large files directly to local disk (`data/downloads/`)
 - **Safety Annotations (`[DESTRUCTIVE]`)** — permanent deletion tools are explicitly tagged so AI clients and human supervisors can prompt for confirmation
@@ -35,7 +45,7 @@ An unofficial [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) s
 - **Granular block mutations** — non-destructive page block appending (`append_page_content`) via real-time Y.js WebSockets
 - **Vibe Coding & Web Apps** — generate interactive web app pages (`create_interactive_app_page`) with responsive full-width embeds (`allowOverWidth`)
 - **ActivePieces Workflow Automation** — flow inspection, creation, updating, deletion, trigger test runs (`trigger_automation_flow`), and connector piece catalog with auto-managed JWT authentication
-- **Client Portal "Hub" Platform** — inspect availability (`check_portal_availability`), create portals (`create_portal`), retrieve full branding/settings (`get_portal`), inspect themes (`get_portal_theme`), portal sidebar navigation trees (`get_portal_navigation_menu`), resolve workspace portals (`get_workspace_portal`), publish workspace pages to client portals (`publish_page_to_portal`), manage client permissions (`list_portal_clients`, `invite_portal_client`), and generate 24h passwordless magic links (`create_portal_magic_link`)
+- **Client Portal "Hub" Platform** — inspect availability (`check_portal_availability`), create v2 portals (`create_portal`, requires a Gate token, full domain, and an unoccupied workspace; optional theme/access mode), retrieve branding/settings (`get_portal`), inspect themes and navigation, publish workspace pages, list portal clients, invite clients with explicit `isFullAccess`, and generate passwordless links for existing portal members. Invitations require Gate; separate link generation also uses the session cookie. Link creation does not establish email delivery or a fixed expiry.
 - **Multi-Agent Swarm Orchestrator** — initialize shared state machine boards (`fusebase_swarm_init`) and transition tasks across roles with audit history (`fusebase_swarm_task_transition`)
 - **Multi-Agent Profile Management** — list and switch between encrypted credentials seamlessly (`list_agent_profiles`, `switch_active_profile`)
 - **Database CRUD & View Templates** — full kanban/table management: rows, columns, views, relations, managed templates (`get_dashboard_templates`), CSV import/export
@@ -49,12 +59,12 @@ An unofficial [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) s
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 18+
+- [Node.js](https://nodejs.org/) 22.19+
 - A [Fusebase](https://www.fusebase.com/) account
 
 ### 1. Install & Run
 
-> 🤖 **AI Coding Agents:** See [AGENTS.md](file:///c:/scripts/fusebase-mcp/AGENTS.md) and [CLAUDE.md](file:///c:/scripts/fusebase-mcp/CLAUDE.md) for optimized instructions on zero-context-clutter tool tiering and zero-browser token authentication.
+> 🤖 **AI Coding Agents:** See [AGENTS.md](AGENTS.md) and [CLAUDE.md](CLAUDE.md) for optimized instructions on zero-context-clutter tool tiering and zero-browser token authentication.
 
 **Option A — Install from GitHub (recommended):**
 
@@ -62,7 +72,7 @@ An unofficial [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) s
 npm install -g github:ryan-haver/fusebase-mcp
 ```
 
-This automatically installs dependencies, compiles TypeScript, and downloads Chromium for auth.
+This installs dependencies and compiles TypeScript. Download Chromium separately with `npm run setup:browser` if you need browser-based cookie authentication.
 
 **Option B — Clone and build manually:**
 
@@ -118,7 +128,7 @@ FuseBase MCP provides three production authentication modes:
 │ • Official Gate MCP   │ • Browser session cookie │ • Both token and cookie loaded│
 │ • Official Dashboards │ • Interactive Chromium   │ • Tokens for Gate operations  │
 │ • No browser needed   │ • Y.js collaborative WS  │ • Cookie for everything else  │
-│ • Auto whoami config  │ • ActivePieces automations│• All 175 tools available     │
+│ • Auto whoami config  │ • ActivePieces automations│• All 177 tools available     │
 └───────────────────────┴──────────────────────────┴───────────────────────────────┘
 ```
 
@@ -178,7 +188,7 @@ Supply both tokens (`FUSEBASE_GATE_TOKEN`, `FUSEBASE_DASHBOARDS_TOKEN`) and a se
 
 ### 3. Authentication Modes Feature Parity & Empirical Comparison
 
-Most tools need a session cookie today: with only Gate and Dashboards tokens, **14 of the 129 tools measured work** (2026-09-25). The per-tool results, and which gaps have an official route, are in [docs/TOKEN-COVERAGE.md](docs/TOKEN-COVERAGE.md).
+Most named wrappers need a session cookie today: with only Gate and Dashboards tokens, **29 of 150 measured remote tools work** (2026-11-03 UTC); 121 require cookies. Both automation trigger tools now have proof of completed execution and expected outputs. Per-tool results are in [docs/TOKEN-COVERAGE.md](docs/TOKEN-COVERAGE.md), with broader live results and exclusions in [docs/LIVE-VALIDATION.md](docs/LIVE-VALIDATION.md).
 
 The table below compares the core capabilities in both modes, measured by `npm run test:parity` (`tests/live/token-parity.ts`) against live FuseBase:
 
@@ -437,7 +447,7 @@ Live test suites create and delete pages, folders, databases and flows, so they 
 - **Environment variable** (recommended): set `FUSEBASE_WORKSPACE_ID` in your `.env`
 - **CLI flag**: `npm run test:data-validation -- --workspace=<workspace-id>`
 
-Portal invite / magic-link checks send real email and are skipped unless `FUSEBASE_TEST_INVITE_EMAIL` is set to an address you control.
+Portal invite / magic-link checks require `FUSEBASE_TEST_SEND_EMAIL=1`, `FUSEBASE_TEST_INVITE_EMAIL` set to an address you control, and an explicit `FUSEBASE_TEST_CLIENT_FULL_ACCESS=true|false`. API success does not confirm inbox delivery or link activation. Existing non-client organization roles are protected from client-role changes.
 
 `npm run deploy:page` accepts the same `--workspace=<id|name>` flag and `FUSEBASE_WORKSPACE_ID`.
 
@@ -491,7 +501,7 @@ The server uses a **core/extended tier system** to optimize agent context usage:
 | Tier | Tools | Description |
 | --- | --- | --- |
 | **Core** (default) | 34 | Day-to-day: full CRUD and organization for pages, folders, content, tasks, tags, attachments, members, guides, session health, profiles |
-| **Extended** | +141 | Admin, CLI apps, automations, portal lifecycle, databases, relations, batch mutations, isolated SQL stores, Gate tokens, templates, swarm state machines, billing, preferences |
+| **Extended** | +143 | Admin, CLI apps, automations, portal lifecycle, databases, relations, batch mutations, isolated SQL stores, Gate tokens, templates, swarm state machines, billing, preferences |
 
 **Enable extended tools:**
 
@@ -559,7 +569,14 @@ Enable with `set_tool_tier(tier: "all")` or set `FUSEBASE_TOOLS=all` in `.env`:
 - **Views**: `update_view`, `set_view_representation`, `create_view`, `delete_view`, `duplicate_view`, `set_view_grouping`
 - **Columns**: `add_database_column`, `delete_database_column`, `rename_database_column`, `reorder_database_columns`, `set_column_width`, `add_relation_column`, `add_lookup_column`
 - **Cells & Rows**: `update_database_cell`, `get_database_rows`, `get_database_schema`, `reorder_database_rows`
-- **Direct Gate & Dashboards Tokens**: `fusebase_token_list`, `fusebase_token_create`, `fusebase_token_get`, `fusebase_token_revoke`, `fusebase_token_permission_catalog`, `fusebase_gate_whoami`, `fusebase_direct_tool_call`
+- **Direct Gate & Dashboards Tokens**: `fusebase_token_list`, `fusebase_token_create`, `fusebase_token_get`, `fusebase_token_revoke`, `fusebase_token_permission_catalog`, `fusebase_gate_whoami`, `fusebase_discover_operations`, `fusebase_direct_tool_call`
+- **CLI updates**: `fusebase_cli_update` previews the official update by default. Set `dryRun: false` to apply; `includeProduct: true` also refreshes managed product assets, MCP configuration and dependencies. Git checkpoints are disabled. `fusebase_cli_app_update` supports access principals, additive Gate permission sync, and named environments; build settings belong in `fusebase.json`.
+
+### Following upstream API additions
+
+Enable the extended tier, then call `fusebase_discover_operations` with `query` and `target` to find current operations. Supply an `opId` to inspect its input schema, or `schemaMode: "both"` for input/output schemas. Fetch the returned `requiredPrompts.groups` with `promptGroups` before calling that operation. Use `fusebase_direct_tool_call` with `applyDefaults: false` to preserve the exact argument contract (including strict operations that reject extra `orgId` fields).
+
+Discovery is filtered and paginated; it does not register every upstream schema in your agent's context. New upstream features remain subject to your token's permissions and platform rollout. See the [November 2026 compatibility review](docs/UPSTREAM-COMPATIBILITY.md) for verified versions, available additions, and remaining gaps.
 - **Row-Level Relations**: `link_database_rows`, `unlink_database_rows`, `get_relation_rows`
 - **Gate PostgreSQL Isolated SQL Stores**: `list_isolated_stores`, `create_isolated_store`, `query_isolated_sql`, `execute_isolated_sql`, `select_isolated_sql_rows`, `insert_isolated_sql_row`, `batch_insert_isolated_sql_rows`, `list_isolated_sql_tables`, `apply_isolated_sql_migrations`
 - **Billing & User Preferences**: `get_billing_info`, `get_user_preferences`, `set_sidebar_collapsed`
@@ -653,6 +670,8 @@ npm run test:all                # Offline stages, then live suites
 | `npm run test:mcp-e2e` | MCP resources, prompts, tier switching and a full page lifecycle over stdio |
 | `npm run test:regression` | Every block type and inline format written over the Y.js WebSocket and read back |
 | `npm run test:database` | Database, column, row, view, relation, CSV and cloning lifecycle |
+| `npm run test:automation` | Disposable flow configuration, publication, two distinct executions with verified outputs, and cleanup |
+| `npm run test:account -- --preferences --refresh-auth` | Explicit account-wide preference restore and persisted browser-auth refresh checks |
 | `npm run test:data-validation` | Live calls across the tool catalog with data-shape and round-trip assertions |
 | `npm run test:parity` | The same capabilities measured in token mode and cookie mode |
 

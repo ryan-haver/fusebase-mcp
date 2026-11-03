@@ -1,7 +1,7 @@
 ---
-version: "1.4.0"
+version: "1.9.0"
 mcp_prompt: users
-last_synced: "2026-07-23"
+last_synced: "2026-10-16"
 title: "Fusebase Gate Users Operations"
 category: specialized
 ---
@@ -18,7 +18,8 @@ These operations manage organization membership flows and safe member removal ex
 
 ## Scope
 
-- listOrgUsers returns organization members for a specific org.
+- listOrgUsers returns organization users for a specific org. Clients and members are both users (`role`). `includeMetadata` defaults to true: `metadata.clients.columns` and `metadata.members.columns` are the user-added custom columns, and each user has `metadataValues` keyed by column `key`. A missing cell is null. Pass `includeMetadata=false` when you only need id, name, email, username, and role — that skips dashboards and stays fast on large orgs.
+- For organization clients, members, or their custom fields (department, next step, and the like), call listOrgUsers and read `metadataValues`. Do not switch to Dashboards MCP to find the same roster or the same cell values.
 - listWorkspaceMembers returns members of a single workspace scoped to the org (not the whole-org roster).
 - listPortalMembers is a portal-named alias for listing the underlying workspace members by `workspaceId` (same semantics as removePortalMember).
 - addOrgUser can create an org invite, workspace invite, or portal invite depending on payload shape.
@@ -45,6 +46,7 @@ These operations manage organization membership flows and safe member removal ex
 - For removeWorkspaceMember/removePortalMember, pass the target workspace id and numeric user id. Gate resolves internal membership ids. Prefer `members[].id` from listWorkspaceMembers when you already listed the roster.
 - For scheduleClientAccountDeletion, pass body.userId as the numeric target user id; Gate validates the target is a Client-role org member before calling user-service.
 - scheduleClientAccountDeletion is delayed/soft first; do not describe it as immediate hard deletion.
+- "Delete clients" or "remove clients" means removeOrgMember: drop those users from this organization. Filter them with listOrgUsers (`role` and `metadataValues`), then removeOrgMember for each matching `userId`. Do not call scheduleClientAccountDeletion unless the user explicitly asks to delete the client's Fusebase account, not just their place in the org.
 - A 201 from addOrgUser is not proof that the current session or target user already has org access.
 - A 201 from addOrgUser is not proof that the user can receive **App** self-service magic links: org membership does not update App `accessPrincipals`. After inviting a member, set `fusebase app update <appId> --access=…` or use `createAppMagicLink` with `addToAccessPrincipals` (see `appMagicLinks` / `fusebaseAuth` prompts).
 - For access gating after provisioning, verify with getMyOrgAccess instead of inferring from addOrgUser success.
@@ -63,7 +65,7 @@ These operations manage organization membership flows and safe member removal ex
 
 ## Version
 
-- **Version**: 1.4.0
+- **Version**: 1.9.0
 - **Category**: specialized
-- **Last synced**: 2026-07-23
+- **Last synced**: 2026-10-16
 - **Priority rule**: If the MCP prompt has a higher version, follow the prompt's API Reference as source of truth.

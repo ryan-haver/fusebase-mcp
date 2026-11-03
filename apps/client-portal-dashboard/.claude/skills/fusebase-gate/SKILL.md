@@ -27,11 +27,13 @@ Each reference is in a separate file under `references/`. Load the file when you
 
 - [Authorization and Scopes](references/authz.md)
 - [Bootstrap](references/bootstrap.md)
+- [Fusebase Gate Irreversible Operations](references/dangerous-ops.md)
 - [Fusebase Gate SDK](references/sdk.md)
 - [Tooling](references/tooling.md)
 
 **specialized**
 
+- [FuseBase Apps And Work Agents](references/apps.md)
 - [Fusebase Auth For AI Apps](references/fusebase-auth.md)
 - [Fusebase Gate — Isolated SQL migration discipline](references/isolated-sql-migration-discipline.md)
 - [Fusebase Gate App Magic Link Operations](references/app-magic-links.md)
@@ -46,6 +48,7 @@ Each reference is in a separate file under `references/`. Load the file when you
 - [Fusebase Gate Portals Operations](references/portals.md)
 - [Fusebase Gate Stripe App And Agent Integration](references/stripe-apps.md)
 - [Fusebase Gate Users Operations](references/users.md)
+- [Fusebase Gate Web Studio Operations](references/web-studio.md)
 - [FuseBase PostgreSQL Database](references/isolated.md)
 - [FuseBase PostgreSQL Database](references/isolated-sql.md)
 - [FuseBase PostgreSQL Database — integrator troubleshooting](references/isolated-sql-integrator-troubleshooting.md)
@@ -54,6 +57,7 @@ Each reference is in a separate file under `references/`. Load the file when you
 - [Portal iframe embed context (Gate SQL RLS)](references/portal-embed-context.md)
 - [Portal theme styling (custom CSS override contract)](references/portal-theme-variables.md)
 - [Stripe for apps and agents (Gate)](references/stripe-for-apps-and-agents.md)
+- [Web Studio permissions](references/web-studio-permissions.md)
 
 ---
 

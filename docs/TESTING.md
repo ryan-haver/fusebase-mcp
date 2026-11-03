@@ -24,9 +24,19 @@ npx tsx scripts/test-all.ts --offline
 These need no credentials. Known bugs are pinned with `it.fails` / `knownGap()`, using IDs from
 [PLAN-review-remediation.md](PLAN-review-remediation.md). Remove the marker when you fix one.
 
+`--offline-only` is accepted as an alias. Unknown options and conflicting offline/live flags
+fail before credentials are loaded or account tests start.
+
 Every run of `scripts/test-all.ts` records each stage's outcome in `.cache/test-results.json`: pass or fail, duration, and the assertion, skip and tool counts the stage printed. `scripts/generate-status-data.ts` publishes those figures on the status dashboard; nothing there is written by hand.
 
 ## Live suites
+
+For the focused agent execution/scraping regression, run
+`npm run test:agents -- --execute` under the same authenticated environment as the other live
+suites. It creates its own QA agent, verifies saved answers and actual web retrieval against
+an independent source fetch, then removes its threads and agent. Cleanup evidence is saved
+in `scratch/agent-validation-*.json`. The full data suite runs it with
+`FUSEBASE_TEST_WORK_AGENTS=1`; it never selects an arbitrary existing agent for execution.
 
 ```bash
 op run --account <your-account>.1password.com --env-file=.env -- npx tsx scripts/test-all.ts --live-only
@@ -39,6 +49,53 @@ op run --account <your-account>.1password.com --env-file=.env -- npx tsx scripts
   `FUSEBASE_MCP_URL` and `MCP_AUTH_TOKEN`.
 - Only one live run at a time: two runs in the same sandbox interfere, so a second run is
   refused while one is in progress.
+
+To rerun failed stages without repeating unrelated mutations, add one or more exact names,
+for example `--stage="Database engine" --stage="Leftover sweep"`. Results are still recorded
+per stage. Include the cleanup sweep when rerunning any mutating stage.
+
+`npm run test:automation` runs the focused automation lifecycle through the built MCP server.
+It creates a disposable QA flow using FuseBase's manual trigger, adds and updates a code action,
+publishes it, and invokes both trigger tools. Each invocation must produce a distinct completed
+run whose step output contains the unique fixture ID and the expected calculation (`21 * 2 = 42`).
+It then disables/deletes the flow and verifies that both the flow and its runs are absent.
+The broad data-validation suite uses the same execution checks. FuseBase's manual trigger emits
+an empty event; this test does not establish arbitrary webhook-payload forwarding.
+Run it under `op run` with the same sandbox configuration, separately from other live suites.
+
+`npm run test:account -- --preferences --refresh-auth` explicitly tests the remaining
+account-wide operations. The preference check reads the original value, flips it, verifies it,
+and restores/verifies the original value in a `finally` block. The refresh check allows up to
+seven minutes for browser authentication, then starts a new MCP process and verifies fresh
+cookie metadata plus an authenticated read of the intended sandbox through a cookie-only
+endpoint. Either flag can be run separately. These checks require 1Password access and may
+require a browser login; a prepared test is not counted as a successful live verification.
+
+The `fusebase_cli_init` wrapper passes `--yes --skip-git` and allows five minutes for setup.
+This makes fixture initialization noninteractive without initializing or syncing a Git remote.
+Initialization creates a remote product; arrange cleanup before using it for disposable tests.
+
+The data-validation suite also tests secret declarations and sidecar add/list/remove through
+the installed official CLI in a disposable `scratch/cli-validation-*` project. These checks
+do not deploy containers or register secret values. Hosted deployment, initialization, app
+permission updates and remote logs require a separately designated sandbox app.
+
+Some checks need additional fixtures or explicit opt-ins:
+
+| Variable | Scope |
+| --- | --- |
+| `FUSEBASE_TEST_CREATE_SQL_STORE=1` | Create the reusable `qa-val-store` if absent. Tests use only its `dev` stage and delete each run's rows; the store and migration table persist. |
+| `FUSEBASE_TEST_SEND_EMAIL=1`, `FUSEBASE_TEST_INVITE_EMAIL`, and `FUSEBASE_TEST_CLIENT_FULL_ACCESS=true|false` | Permit portal invitation/link tests using the designated client address and explicit access scope. These can change membership; API success does not verify email delivery or link activation. |
+| `FUSEBASE_TEST_ACCOUNT_PREFERENCES=1` | Flip and restore the account-wide sidebar preference. |
+| `FUSEBASE_TEST_WORK_AGENTS=1` | Create an isolated QA agent; verify execution, continuation, saved answers, actual web scraping and source text; delete its threads and agent afterward. |
+| `FUSEBASE_TEST_REFRESH_AUTH=1` | Launch browser authentication and replace the cached cookie. |
+
+Absent fixtures are reported as skips, never passes. An authenticated session's cookie-age
+warning is accepted, but Gate/workspace connectivity errors still fail validation.
+
+SQL setup uses discovery to initialize only the test store's `dev` stage and preview migration
+status. The authorized QA migration and run-scoped cleanup pass `confirm: true` explicitly;
+Gate requires confirmation even for a migration dry run. The named wrappers default it to false.
 
 ### Every write is proven by a fresh read
 

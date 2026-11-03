@@ -30,6 +30,16 @@ async function session(profilesSeen: Array<string | undefined>) {
 }
 
 describe("per-session active profile (COR-13)", () => {
+  it("changing tool tiers in one session does not affect another", async () => {
+    const a = await session([]);
+    const b = await session([]);
+    await a.callTool({ name: "set_tool_tier", arguments: { tier: "all" } });
+    expect((await a.listTools()).tools).toHaveLength(177);
+    expect((await b.listTools()).tools).toHaveLength(34);
+    await a.callTool({ name: "set_tool_tier", arguments: { tier: "core" } });
+    expect((await a.listTools()).tools).toHaveLength(34);
+    expect((await b.listTools()).tools).toHaveLength(34);
+  });
   it("switching profile in one session does not affect another", async () => {
     const seenA: Array<string | undefined> = [];
     const seenB: Array<string | undefined> = [];

@@ -1,7 +1,7 @@
 ---
-version: "1.3.0"
+version: "1.8.0"
 mcp_prompt: membership
-last_synced: "2026-07-23"
+last_synced: "2026-10-02"
 title: "Fusebase Gate Membership And Portal Flows"
 category: specialized
 ---
@@ -20,12 +20,14 @@ These prompts cover organization member invites/removal, workspace selection, po
 
 - getMyOrgAccess: read the authenticated user's org access state without requiring existing org membership.
 - getOrgUrl: resolve the organization's canonical HTTPS base URL (subdomain or custom CNAME domain).
-- listWorkspaces: list workspaces visible in an organization and identify the default workspace.
-- listPortals: list portals visible in an organization.
+- listWorkspaces: list workspaces visible in an organization and identify the default workspace. `metadata.columns` are the custom columns of the workspaces dashboard. Each workspace has `metadataValues` for those cells.
+- listPortals: list portals visible in an organization. `metadata.columns` are the custom columns of the portals dashboard. Each portal has `metadataValues` for those cells.
 - listWorkspaceMembers: list members of a single workspace scoped to the org.
 - listPortalMembers: portal-named alias for listing underlying workspace members by `workspaceId`.
 - addOrgUser: create an org invite, workspace invite, or portal invite depending on payload shape.
 - removeOrgMember: remove an organization member by numeric `userId`.
+- listOrgInvites: list the org's pending (not yet accepted) org invites with their numeric `id`.
+- cancelOrgInvite: revoke a pending org invite by `inviteId` from listOrgInvites so its link stops working.
 - removeWorkspaceMember: remove a workspace member by `workspaceId` plus numeric `userId`.
 - removePortalMember: remove a portal member through the underlying `workspaceId` plus numeric `userId`.
 - scheduleClientAccountDeletion: schedule delayed deletion for a target user only when their org role is `client`.
@@ -62,6 +64,13 @@ These prompts cover organization member invites/removal, workspace selection, po
 - `autoConfirmClientInvite` is only valid for org-only client onboarding with `orgRole: "client"` and no `workspaceId`.
 - Optional fields for workspace or portal invites: `orgRole`, `encryptRole`, `fullName`, `memberTTL`.
 - Do not invent workspace ids or portal domains. Discover them first or use `workspaceId: "default"` when appropriate.
+- Limit errors: a refused invite carries `apiData.errorCode` `member_limit_reached`, `client_limit_reached`, `workspace_member_limit_reached`, `invite_rate_limited` or `invite_too_frequent` (plus `apiData.limit` when known). Do not retry a limit error and do not try another role or workspace to get around it; tell the user which limit was hit.
+
+## Pending Invite Rules
+
+- To clean up stale invites, call listOrgInvites, then cancelOrgInvite for each `id` to revoke. Only managers and owners may do this; others get 403.
+- cancelOrgInvite never removes a member. Someone who already accepted is not in listOrgInvites; remove them with removeOrgMember.
+- Workspace and portal invites are not covered by these operations.
 
 ## Response Interpretation
 
@@ -91,6 +100,8 @@ These prompts cover organization member invites/removal, workspace selection, po
 - Removing an org member removes org membership; org-service owns related workspace/group cleanup.
 - scheduleClientAccountDeletion takes numeric `userId` in the body and is allowed only for Client-role users in the requested org.
 - Client account deletion is scheduled/delayed by user-service; do not promise immediate permanent deletion.
+- The default for "delete" or "remove" clients is removeOrgMember (leave the organization). scheduleClientAccountDeletion is only for an explicit request to delete the client's account.
+- Read client and member custom fields from listOrgUsers `metadataValues` (`includeMetadata` defaults to true). Pass `includeMetadata=false` when you only need the roster. Do not look custom fields up through Dashboards MCP.
 
 ## Working Rules
 
@@ -101,7 +112,7 @@ These prompts cover organization member invites/removal, workspace selection, po
 
 ## Version
 
-- **Version**: 1.3.0
+- **Version**: 1.8.0
 - **Category**: specialized
-- **Last synced**: 2026-07-23
+- **Last synced**: 2026-10-02
 - **Priority rule**: If the MCP prompt has a higher version, follow the prompt's API Reference as source of truth.

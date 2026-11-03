@@ -1,3 +1,4 @@
+import { registerAnnotatedTool } from "./registry.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { FusebaseClient } from "../client.js";
@@ -15,7 +16,7 @@ export function registerExtendedTools(
 
   // === Labels ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_labels",
     "Get all labels (colored categories) defined in a workspace. Labels have titles, colors, and styles, and can be applied to tasks for visual organization. Returns label IDs usable in task creation.",
     {
@@ -50,7 +51,7 @@ export function registerExtendedTools(
 
   // === Organization ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_org_usage",
     "Get organization-wide usage statistics including storage, traffic, member counts, AI credits, and workspace quotas. Each metric shows current vs max values. Useful for monitoring plan limits and resource consumption.",
     {
@@ -72,7 +73,7 @@ export function registerExtendedTools(
 
   // === Comments ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_comment_threads",
     "Get all comment threads on a specific page: thread status (resolved/open), comment counts, and each thread's comments (commentList: id, text, replyTo, userId, createdAt). Useful for reviewing feedback, discussions, or collaborative annotations on a page.",
     {
@@ -104,7 +105,7 @@ export function registerExtendedTools(
 
   // === Task Details ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_task_description",
     "Get the full rich-text description and detailed properties of a specific task. Use this when search_tasks provides insufficient detail. Returns the task's complete content including formatted description.",
     {
@@ -128,7 +129,7 @@ export function registerExtendedTools(
 
   // === AI Agents ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_agents",
     "List all AI agents configured in the organization with their titles, descriptions, and types. AI agents are custom assistants created in Fusebase's AI features. Returns agent IDs and metadata.",
     {
@@ -148,7 +149,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_ai_assistant_state",
     "Get the workspace AI assistant state, prompt suggestions, assistant preferences, and recent chat threads.",
     {
@@ -170,7 +171,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_ai_agent_threads",
     "List active conversation threads and history for a specific AI agent in the organization.",
     {
@@ -193,7 +194,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_ai_agent_favorites",
     "Get favorited or bookmarked AI agents configured in the organization.",
     {
@@ -215,7 +216,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_agent_public_profile",
     "Get the public profile (title, description, avatar URL, workspace binding) for a specific AI agent model by its global ID.",
     {
@@ -240,7 +241,7 @@ export function registerExtendedTools(
 
   // === Mention Entities ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_mention_entities",
     "Get all mentionable entities (users, pages, folders) in a workspace for @-mention autocomplete. Includes member counts, workspace structure overview, and owner info. Useful for understanding workspace scope at a glance.",
     {
@@ -263,7 +264,7 @@ export function registerExtendedTools(
 
   // === Discovered Endpoints ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_navigation_menu",
     "Get the full sidebar navigation tree showing all pages, folders, and their hierarchy across workspaces. Includes parent-child relationships, icons, and timestamps. Best way to get a complete structural overview of all content.",
     {
@@ -284,7 +285,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_activity_stream",
     "Get the activity feed for a workspace showing recent comments, @mentions, and content changes. Includes user avatars and note references for each activity item. Useful for monitoring workspace activity and collaboration.",
     {
@@ -306,7 +307,7 @@ export function registerExtendedTools(
   );
 
   // === Collaboration & Communication ===
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_poll_mentions",
     "Poll the Fusebase activity stream for new @mentions or comments directed at this profile. Use filterText to narrow results to only items mentioning a specific display name.",
     {
@@ -349,7 +350,7 @@ export function registerExtendedTools(
     }
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_post_comment",
     "Create a new comment thread on a Fusebase page. The comment is anchored to a specific block (targetId) or to the page itself. Use this to leave feedback, ask questions, or communicate with human collaborators.",
     {
@@ -381,7 +382,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_reply_comment",
     "Reply to an existing comment thread on a Fusebase page. Use get_comment_threads first to find the thread ID, then reply to continue the conversation.",
     {
@@ -404,7 +405,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_resolve_thread",
     "Resolve (close) a comment thread after it has been addressed. Use get_comment_threads to find thread IDs.",
     {
@@ -426,7 +427,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_task_usage",
     "Get task usage statistics for a workspace, including upcoming deadline dates and active reminders. Useful for understanding task workload and scheduling pressure in a workspace.",
     {
@@ -447,7 +448,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_recently_updated_notes",
     "Get recently updated notes across the entire organization, not limited to a single workspace. Returns notes sorted by last modification time with pagination support. Useful for finding the latest activity org-wide.",
     {
@@ -467,7 +468,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_task_count",
     "Get the total number of tasks in a workspace as a single count. Lightweight alternative to search_tasks when you only need the quantity, not the task details.",
     {
@@ -491,7 +492,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_workspace_detail",
     "Get full workspace metadata including internal IDs, organization binding, creator userId, and creation/update timestamps. Provides deeper detail than list_workspaces. Useful for debugging or workspace administration.",
     {
@@ -512,7 +513,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_workspace_emails",
     "Get the email-to-note addresses for a workspace. Sending emails to these addresses automatically creates pages in the workspace. Returns the dedicated email address and associated user.",
     {
@@ -533,7 +534,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_file_count",
     "Get the total count of files stored across all workspaces in the organization, or in a specific workspace. Lightweight check for storage auditing — use list_files for detailed file listings.",
     {
@@ -557,7 +558,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_ai_usage",
     "Get AI feature usage for the organization showing current consumption vs maximum allowed. Tracks AI credits used across all workspaces. Useful for monitoring AI quota before heavy AI operations.",
     {
@@ -580,7 +581,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_org_permissions",
     "Get comprehensive organization permissions including all workspace memberships, role assignments, user avatars, and per-member usage data. More detailed than get_members — includes cross-workspace permission mapping.",
     {
@@ -600,7 +601,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_workspace_info",
     "Get workspace billing info including quota reset dates and plan details. Shows when usage counters reset and the organization's current billing cycle. Useful for understanding rate limits and renewal timing.",
     {
@@ -621,7 +622,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_note_tags",
     "Get tags applied to a specific page/note. Unlike get_tags which returns workspace-wide tag vocabulary, this returns only the tags on one particular page. Use for checking a page's categorization.",
     {
@@ -645,7 +646,7 @@ export function registerExtendedTools(
 
   // === Database Data ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_database_data",
     "Get structured data from a Fusebase database/table view. Requires the dashboard UUID and view UUID, which can be found in the URL when viewing a database in the Fusebase UI. Supports pagination via page and limit parameters.",
     {
@@ -669,7 +670,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_databases",
     "List all databases/dashboards in the organization. Returns dashboard and view UUIDs that can be used with get_database_data. Probes known entity types (spaces, clients) plus any custom entities you specify.",
     {
@@ -691,7 +692,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_database_entity",
     "Get data from a specific database entity type (e.g. clients, spaces). Automatically discovers the correct dashboard/view UUIDs for the entity. Supports pagination.",
     {
@@ -715,7 +716,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "create_database",
     "Create a new database (table or kanban view) in the organization. Returns the new database, dashboard, and view UUIDs. The database is created with a default table representation. Use list_databases afterwards to see it.",
     {
@@ -752,7 +753,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "add_database_row",
     "Add a new row to a database table or entity. Uses canonical batchPutDashboardData with create_new_row: true. You can optionally supply initial column values as a key-value map (using column display names or opaque item_keys).",
     {
@@ -778,7 +779,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "delete_database_row",
     "[DESTRUCTIVE] Delete a row from a database. Requires the dashboard ID and the row ID. Use get_database_rows to find row IDs.",
     {
@@ -800,7 +801,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "batch_put_database_data",
     "High-throughput batch create and update for database rows and cell values. Supports creating new rows (create_new_row: true) and updating existing rows (create_new_row: false, root_index_value: rowUuid). Values can use column display names or opaque item_keys. To delete a cell value, pass null.",
     {
@@ -869,7 +870,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "resolve_database_alias",
     "Resolve a system managed database or dashboard alias ('companies_db', 'deals_db', 'meetings', 'clients', 'spaces') to its database, dashboard, and view UUIDs. Useful for CRM and pipeline automation.",
     {
@@ -892,7 +893,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "link_database_rows",
     "Link two rows between related tables via an existing relation. Requires the relation ID, the source row UUID (from the source table), and the target row UUID (from the target table). Use list_database_relations to find relation IDs.",
     {
@@ -916,7 +917,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "unlink_database_rows",
     "Remove links between rows in related tables. Pass sourceRowUuid and targetRowUuid to remove one link; pass only one of them to remove every link of that row. At least one row UUID is required unless unlinkAll is true.",
     {
@@ -953,7 +954,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_relation_rows",
     "Get active row link mappings for a relation. Shows which source rows are linked to which target rows.",
     {
@@ -975,7 +976,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "reorder_database_rows",
     "Reorder rows within a database view or section. Takes an array of { rowUuid, order } objects.",
     {
@@ -1009,7 +1010,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "move_kanban_card",
     "Move a kanban card to a different column by updating the grouped column's cell value. Equivalent to update_database_cell but semantically describes moving a card. Use get_database_schema to find the groupBy column key, and get_database_rows to find the row UUID.",
     {
@@ -1034,7 +1035,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_database_relations",
     "List available relation targets and existing lookups for a dashboard. Returns linked tables/views that can be used for creating relation or lookup columns.",
     {
@@ -1056,7 +1057,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "create_dashboard_table",
     "Create a new table (dashboard) within an existing database. Returns the new dashboard UUID and its default view UUID. Use list_all_databases to find the parent database ID.",
     {
@@ -1083,7 +1084,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "delete_relation",
     "[DESTRUCTIVE] Delete a relation by its ID. This removes the link between two database tables. Use list_database_relations to find relation IDs.",
     {
@@ -1105,7 +1106,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_all_databases",
     "List all databases in the organization via the dashboard-service REST API. Returns database metadata, dashboard (table) UUIDs, and view UUIDs. More comprehensive than list_databases — returns full database objects with nested dashboards.",
     {
@@ -1125,7 +1126,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_database_detail",
     "Get detailed information about a specific database including all its dashboards (tables) and views. Use the database ID from list_all_databases or create_database.",
     {
@@ -1154,7 +1155,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "update_database",
     "Update a database's title, description, icon, color, favorite status, or public visibility. Uses PUT (PATCH is not supported by this API).",
     {
@@ -1189,7 +1190,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "delete_database",
     "[DESTRUCTIVE] Delete a database and ALL its dashboards (tables), views, and data. This action is irreversible. Returns 204 on success.",
     {
@@ -1218,7 +1219,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_dashboard_detail",
     "Get detailed information about a dashboard (table within a database). Returns the dashboard's views array (including custom views), metadata, root entity, and scopes. Use the dashboard ID from list_all_databases or get_database_detail.",
     {
@@ -1239,7 +1240,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "delete_dashboard",
     "[DESTRUCTIVE] Delete a dashboard (table) within a database. Removes the table and its data. Use get_database_detail first to see available dashboards.",
     {
@@ -1260,7 +1261,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "update_view",
     "Update a custom view's name, filters, sorts, or hidden columns. Use get_dashboard_detail to find available views. Uses PUT (PATCH is not supported).",
     {
@@ -1298,7 +1299,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "set_view_representation",
     "Switch a view's display mode. Supports 8 types: table (default spreadsheet), kanban (card columns), board, calendar, timeline, gallery, list, grid. Table and kanban use the representations endpoint; the rest use PUT with default_representation_template_id. Use get_dashboard_detail to find dashboard and view UUIDs.",
     {
@@ -1321,7 +1322,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "duplicate_database",
     "Duplicate (copy) an entire database, including tables, views, relations, and optionally data. Returns the new database with its UUIDs. Discovered via captured API: POST /databases/copy-from/database.",
     {
@@ -1361,7 +1362,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "create_view",
     "Create a new view within a dashboard (table). Each view can have its own filters, sorts, grouping, column visibility, and display mode. Optionally set its display mode (representationType) and, for kanban/board, the column to group by.",
     {
@@ -1395,7 +1396,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "delete_view",
     "[DESTRUCTIVE] Delete a view from a dashboard. Cannot delete the default (first) view. Use get_dashboard_detail to find view UUIDs.",
     {
@@ -1417,7 +1418,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "export_csv",
     "Export a database view as CSV text. Returns the raw CSV content. Supports 5 delimiter options: comma, semicolon, pipe, tab, or caret. Use get_dashboard_detail to find dashboard and view UUIDs.",
     {
@@ -1440,7 +1441,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "duplicate_view",
     "Duplicate an existing view within a dashboard. Creates a copy with the same schema, filters, and configuration. Use get_dashboard_detail to find dashboard and view UUIDs.",
     {
@@ -1469,7 +1470,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "import_csv",
     "Import CSV data into an existing database table/view. Provide the CSV content, the database ID, dashboard (table) ID, and the view ID. The server will import the rows into the database. Column mapping is auto-generated from CSV headers (all imported as 'Single line text').",
     {
@@ -1499,7 +1500,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "set_view_grouping",
     "Set the grouping column for a kanban or board view. Groups cards/rows by the specified column. Requires the dashboard ID, view ID, and the column key to group by. Use get_database_schema first to find column keys.",
     {
@@ -1523,7 +1524,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "set_column_width",
     "Set the width of a column in a database view. Use get_database_schema first to find column keys. Width is in pixels.",
     {
@@ -1547,7 +1548,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "rename_database_column",
     "Rename a column in a database view. Updates the column's name in the view schema. Use get_database_schema first to find the column key.",
     {
@@ -1571,7 +1572,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "reorder_database_columns",
     "Reorder columns in a database view. Provide an array of column keys in the desired order. Columns not in the array are appended at the end. Use get_database_schema first to see current column keys and order.",
     {
@@ -1594,7 +1595,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "update_database_cell",
     "Set the value of a specific cell in a database row. Use get_database_rows or get_database_data first to obtain the rowUuid and the column key (short opaque string like 'eoZSNDPy'). The get_database_rows tool returns a schema array mapping column names to keys for easy lookup. Note: rich-text (Description), file, and relation columns may not accept plain string values.",
     {
@@ -1620,7 +1621,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_database_rows",
     "Get rows from a database view in a structured format optimised for agent use. Each row includes: rowUuid (needed for update_database_cell), cells (raw column key → value map), and namedCells (human-readable column name → value map). Wraps get_database_data with friendly field names and schema reflection.",
     {
@@ -1646,7 +1647,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_database_schema",
     "Get the column schema for a database view. Returns an array of column definitions with key (opaque 8-char ID, needed for update_database_cell), name (human-readable), type (string, number, date, label, checkbox, etc.), and edit settings. Use this to understand a database's structure before reading or writing cells.",
     {
@@ -1669,7 +1670,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "add_database_column",
     "Add a new column to a database view. Supported types: string (single-line text), multiline (multi-line text), number, date, label/status/select (with optional custom labels and colors), checkbox/boolean, email, phone, link/url, currency, files, user/assignee (assign org members), subtable/child-table-link (nested table). For relation columns use add_relation_column, for lookup columns use add_lookup_column. Returns the new column's key which is needed for update_database_cell. Use get_database_schema to verify the column was added.",
     {
@@ -1701,7 +1702,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "delete_database_column",
     "[DESTRUCTIVE] Delete a column from a database view by its key. Use get_database_schema first to find the column key. This removes the column definition from the schema — existing cell data for that column key will no longer be visible. This action cannot be undone.",
     {
@@ -1725,7 +1726,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "add_relation_column",
     "Add a Relation column that links this database to another database table. This creates a cross-database relation (via POST /relations) and adds a lookup-source column. The column shows linked records from the target table. Use get_database_schema on the target table first to get its dashboardId and viewId.",
     {
@@ -1753,7 +1754,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "add_lookup_column",
     "Add a Lookup column that displays data from a related table through an existing Relation column. The lookup column is read-only and automatically pulls data from the linked records. You must have an existing relation column first (created via add_relation_column). Use get_database_schema to find the relation column key.",
     {
@@ -1782,7 +1783,7 @@ export function registerExtendedTools(
 
   // === Org Features & Limits ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_org_limits",
     "Get the organization's plan limits including maximum members, storage, traffic, AI credits, workspaces, and other quotas. Use alongside get_org_usage or get_usage_summary to compare current consumption against plan caps.",
     {
@@ -1802,7 +1803,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_usage_summary",
     "Get a condensed snapshot of organization usage vs limits — lighter than get_org_usage. Returns current/max for overall usage, storage, and blots in a single response.",
     {
@@ -1824,7 +1825,7 @@ export function registerExtendedTools(
 
   // === Portals ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_portals",
     "List client portals for the organization. Optionally filter by workspace. Client portals are shared, branded pages published externally for clients or stakeholders.",
     {
@@ -1845,7 +1846,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_portal_pages",
     "Get pages published to a client portal. Returns the portal page tree for a given workspace, optionally filtered to a specific page. Use list_portals first to find active portals.",
     {
@@ -1869,18 +1870,22 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "create_portal",
-    "Create a new client portal for a workspace. Client portals are external, branded spaces where external clients view published pages, widgets, and dashboards.",
+    "Create a v2 client portal through Gate. Requires a Gate token, full domain, and a workspace with no existing portal. Client portals are external, branded spaces for published pages, widgets, and dashboards.",
     {
       workspaceId: z.string().describe("Workspace ID to associate the client portal with"),
       name: z.string().describe("Display name for the portal (e.g. 'Client Onboarding Hub')"),
-      domain: z.string().optional().describe("Custom subdomain or domain (optional)"),
+      domain: z.string().min(1).describe("Full portal domain, e.g. client-name.p.nimbusweb.me"),
+      theme: z.enum(["light_purple", "soft_light", "quite_green", "space_gray", "carbon", "oxford", "ultramarine", "milky_blue", "shades_of_green", "savvy_red", "light_orange", "light_blue", "lemon_drop"]).optional().describe("Portal color theme"),
+      accessMode: z.enum(["open", "email", "invite-only", "email-verified"]).optional().describe("Initial portal access mode; omitted preserves the platform template default"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
-    }, async ({ workspaceId, name, domain, profile }) => {
+    }, async ({ workspaceId, name, domain, theme, accessMode, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.createPortal(workspaceId, name, domain);
+        const result = await client.createPortal(workspaceId, name, domain, {
+          ...(theme ? { theme } : {}), ...(accessMode ? { accessMode } : {}),
+        });
         return {
           content: [
             { type: "text" as const, text: `Portal "${name}" created successfully:\n${JSON.stringify(result, null, 2)}` },
@@ -1892,7 +1897,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_portal",
     "Get detailed portal configuration, custom branding, access rules, greeting messages, and custom injected scripts for a portal.",
     {
@@ -1913,7 +1918,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "publish_page_to_portal",
     "Publish or unpublish an internal workspace page to the client portal by updating its is_portal_share flag.",
     {
@@ -1939,7 +1944,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "check_portal_availability",
     "Check whether the organization account has the client portal feature enabled and available.",
     {
@@ -1962,7 +1967,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_portal_theme",
     "Get client portal UI visual theme, dark/light branding colors, hero greeting banner, search bar settings, and sidebar options.",
     {
@@ -1986,7 +1991,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_portal_navigation_menu",
     "Get the complete hierarchical sidebar navigation tree and page entities published in a workspace's client portal.",
     {
@@ -2008,7 +2013,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_workspace_portal",
     "Resolve the primary client portal object bound to a workspace (portal ID, global ID, domain, creation timestamp).",
     {
@@ -2032,7 +2037,7 @@ export function registerExtendedTools(
 
   // === Org Features ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_org_features",
     "Get feature flags enabled for the organization. Each feature has an ID, name, and enabled status. Useful for checking what capabilities are available on the current plan.",
     {
@@ -2054,7 +2059,7 @@ export function registerExtendedTools(
 
   // === Vibe Coding & Apps ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "create_interactive_app_page",
     "Create a new FuseBase page embedding a full-width interactive web application, widget, or dashboard (FuseBase Vibe Coding/Apps). Uses a remote-frame block with allowOverWidth=true.",
     {
@@ -2121,7 +2126,7 @@ export function registerExtendedTools(
 
   // === Automations (ActivePieces) ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_automation_flows",
     "List ActivePieces automation workflows configured in the FuseBase organization. Shows workflow IDs, names, status (enabled/disabled), and triggers.",
     {
@@ -2143,7 +2148,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_automation_flow",
     "Get detailed configuration and step definitions of an ActivePieces automation workflow.",
     {
@@ -2165,18 +2170,19 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_flow_runs",
-    "List execution history of ActivePieces automation flow runs, including status, execution duration, and trigger timestamps.",
+    "List ActivePieces execution history, or provide runId to read a specific run including step outputs. Trigger acceptance alone does not prove successful execution.",
     {
       projectId: z.string().optional().describe("Optional automation project ID"),
       limit: z.number().optional().describe("Max flow runs to return (default: 20)"),
+      runId: z.string().optional().describe("Read this run's status and step outputs instead of listing runs"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
-    async ({ projectId, limit, profile }) => {
+    async ({ projectId, limit, runId, profile }) => {
       const client = getClient(profile);
       try {
-        const runs = await client.listFlowRuns(projectId, limit ?? 20);
+        const runs = await client.listFlowRuns(projectId, limit ?? 20, runId);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(runs, null, 2) },
@@ -2188,7 +2194,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_automation_pieces",
     "List available ActivePieces connectors, actions, and trigger pieces (e.g. piece-fusebase, piece-smtp, piece-webhook, piece-csv).",
     {
@@ -2211,7 +2217,7 @@ export function registerExtendedTools(
 
   // === FuseBase CLI & Hosted Apps ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_cli_status",
     "Check if the official FuseBase developer CLI (`fusebase`) is installed, detect its version, binary path, and authentication state.",
     {},
@@ -2229,9 +2235,26 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
+    "fusebase_cli_update",
+    "Preview or apply official FuseBase CLI updates. Defaults to a dry run and CLI-only update; includeProduct also refreshes the product's managed agent assets, MCP configuration and dependencies. Does not create Git commits.",
+    {
+      cwd: z.string().optional().describe("Product directory for an optional managed product update"),
+      dryRun: z.boolean().default(true).describe("Print the update plan without changing files; false applies it"),
+      includeProduct: z.boolean().default(false).describe("Also update the managed product in cwd, including assets, MCP tokens/configuration and dependencies"),
+      environment: z.string().optional().describe("Named app environment from environments/<name>.json"),
+    },
+    async (options) => {
+      try {
+        const result = await FusebaseCliManager.update(options);
+        return { isError: !result.success, content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+      } catch (error) { return errorResult(error); }
+    },
+  );
+
+  registerAnnotatedTool(server,
     "fusebase_cli_init",
-    "Initialize a new FuseBase hosted app product in the specified directory using the official FuseBase CLI.",
+    "Initialize a new FuseBase hosted app product using the official CLI in noninteractive mode. Git initialization/synchronization is skipped. Creates a remote product and local project files.",
     {
       name: z.string().describe("Name of the product/app to create"),
       orgId: z.string().optional().describe("Organization ID to link the product to"),
@@ -2241,10 +2264,10 @@ export function registerExtendedTools(
     async ({ name, orgId, cwd, forceDirty }) => {
       try {
         // Pass the name as-is: spawn already delivers it as one argument.
-        const args = ["--name", name];
+        const args = ["--name", name, "--yes", "--skip-git"];
         if (orgId) args.push("--org", orgId);
         if (forceDirty) args.push("--force-dirty");
-        const res = await FusebaseCliManager.executeCommand("init", args, cwd);
+        const res = await FusebaseCliManager.executeCommand("init", args, cwd, 300000);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(res, null, 2) },
@@ -2256,15 +2279,18 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_cli_list_apps",
     "List configured FuseBase hosted web applications and their URLs.",
     {
       cwd: z.string().optional().describe("Project directory to inspect"),
+      environment: z.string().optional().describe("Named app environment from environments/<name>.json"),
     },
-    async ({ cwd }) => {
+    async ({ cwd, environment }) => {
       try {
-        const res = await FusebaseCliManager.executeCommand("app", ["list"], cwd);
+        const args = ["list"];
+        if (environment) args.push("--env", environment);
+        const res = await FusebaseCliManager.executeCommand("app", args, cwd);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(res, null, 2) },
@@ -2276,15 +2302,16 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_cli_deploy",
     "Deploy a FuseBase web application to production hosting via the FuseBase CLI.",
     {
       cwd: z.string().optional().describe("Project directory to deploy"),
+      environment: z.string().optional().describe("Named app environment from environments/<name>.json"),
     },
-    async ({ cwd }) => {
+    async ({ cwd, environment }) => {
       try {
-        const res = await FusebaseCliManager.executeCommand("deploy", [], cwd, 60000);
+        const res = await FusebaseCliManager.executeCommand("deploy", environment ? ["--env", environment] : [], cwd, 300000);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(res, null, 2) },
@@ -2296,7 +2323,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_cli_sidecar_add",
     "Add an auxiliary Docker sidecar container (e.g. headless Chromium, Redis cache, Lightpanda) to an app backend via the FuseBase CLI.",
     {
@@ -2323,7 +2350,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_cli_sidecar_list",
     "List configured Docker sidecar containers for an app via the FuseBase CLI.",
     {
@@ -2344,7 +2371,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_cli_sidecar_remove",
     "Remove a Docker sidecar container from an app via the FuseBase CLI.",
     {
@@ -2366,9 +2393,9 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_cli_secret_create",
-    "Register a platform application secret key for an app via the FuseBase CLI.",
+    "Declare an app secret key in local fusebase.json via the CLI. Deploy/dev start registers the key on the platform; secret values are set in the FuseBase UI.",
     {
       appPath: z.string().describe("Relative path or ID of the app (e.g. 'apps/my-app')"),
       key: z.string().describe("Secret key name (e.g. 'STRIPE_API_KEY', 'DB_PASSWORD')"),
@@ -2389,9 +2416,9 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_cli_secret_list",
-    "List registered application secrets for an app via the FuseBase CLI.",
+    "List secret key declarations from local fusebase.json. The current CLI has no secret list command. Returns keys/descriptions only, not values or remote provisioning status.",
     {
       appPath: z.string().describe("Relative path or ID of the app (e.g. 'apps/my-app')"),
       cwd: z.string().optional().describe("Project directory path"),
@@ -2400,6 +2427,7 @@ export function registerExtendedTools(
       try {
         const res = await FusebaseCliManager.listSecrets(appPath, cwd);
         return {
+          isError: !res.success,
           content: [
             { type: "text" as const, text: JSON.stringify(res, null, 2) },
           ],
@@ -2410,7 +2438,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_cli_logs",
     "Retrieve runtime or build logs for a deployed FuseBase app (fusebase remote-logs).",
     {
@@ -2433,21 +2461,25 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_cli_app_update",
-    "Update an existing app's configuration via the FuseBase CLI, including dashboard view permissions and build commands.",
+    "Update app access and permissions via the FuseBase CLI. Access replaces the entire principal list; inspect the app first. Build/dev/output settings belong in fusebase.json.",
     {
       appIdOrPath: z.string().describe("App ID or directory path to update"),
       permissions: z.string().optional().describe("Dashboard view permissions (e.g. 'dashboardView.dashId:viewId.read,write')"),
-      devCommand: z.string().optional().describe("Local dev server command (e.g. 'npm run dev')"),
-      buildCommand: z.string().optional().describe("Build command (e.g. 'npm run build')"),
-      outputDir: z.string().optional().describe("Build output directory (e.g. 'dist')"),
+      access: z.string().optional().describe("Replacement access principals, e.g. 'visitor,orgRole:member'; read current app access before replacing"),
+      syncGatePermissions: z.boolean().optional().describe("Analyze app code and merge required Gate permissions without pruning existing grants"),
+      environment: z.string().optional().describe("Named app environment from environments/<name>.json"),
+      devCommand: z.string().optional().describe("Deprecated: rejected with guidance to edit fusebase.json"),
+      buildCommand: z.string().optional().describe("Deprecated: rejected with guidance to edit fusebase.json"),
+      outputDir: z.string().optional().describe("Deprecated: rejected with guidance to edit fusebase.json"),
       cwd: z.string().optional().describe("Project directory path"),
     },
-    async ({ appIdOrPath, permissions, devCommand, buildCommand, outputDir, cwd }) => {
+    async ({ appIdOrPath, ...options }) => {
       try {
-        const res = await FusebaseCliManager.updateApp(appIdOrPath, { permissions, devCommand, buildCommand, outputDir, cwd });
+        const res = await FusebaseCliManager.updateApp(appIdOrPath, options);
         return {
+          isError: !res.success,
           content: [
             { type: "text" as const, text: JSON.stringify(res, null, 2) },
           ],
@@ -2460,7 +2492,7 @@ export function registerExtendedTools(
 
   // === ActivePieces Flow Mutations ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "create_automation_flow",
     "Create a new ActivePieces workflow automation in FuseBase.",
     {
@@ -2484,20 +2516,21 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "update_automation_flow",
-    "Update an existing ActivePieces workflow automation (rename or toggle status ENABLED/DISABLED).",
+    "Update an ActivePieces workflow: rename, change status, configure its trigger/actions, or publish. Configuration uses the ActivePieces operation request object. Publishing can activate the flow's trigger.",
     {
       flowId: z.string().describe("ID of the flow to update"),
-      type: z.enum(["CHANGE_STATUS", "CHANGE_NAME"]).describe("Update operation type"),
+      type: z.enum(["CHANGE_STATUS", "CHANGE_NAME", "UPDATE_TRIGGER", "ADD_ACTION", "UPDATE_ACTION", "LOCK_AND_PUBLISH"]).describe("Update operation type"),
       status: z.enum(["ENABLED", "DISABLED"]).optional().describe("New status when type is CHANGE_STATUS"),
       displayName: z.string().optional().describe("New display name when type is CHANGE_NAME"),
+      request: z.record(z.string(), z.unknown()).optional().describe("ActivePieces request object required for UPDATE_TRIGGER, ADD_ACTION, or UPDATE_ACTION; optional for LOCK_AND_PUBLISH"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
-    async ({ flowId, type, status, displayName, profile }) => {
+    async ({ flowId, type, status, displayName, request, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.updateAutomationFlow(flowId, { type, status, displayName });
+        const result = await client.updateAutomationFlow(flowId, { type, status, displayName, request });
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
@@ -2509,7 +2542,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "delete_automation_flow",
     "[DESTRUCTIVE] Delete an ActivePieces workflow automation by flow ID.",
     {
@@ -2532,9 +2565,9 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "trigger_automation_flow",
-    "Test-run or trigger an ActivePieces workflow automation with a custom JSON payload.",
+    "Submit a trigger request to an ActivePieces flow. Acceptance does not prove execution: check list_flow_runs and read the runId's status and outputs. Payload handling depends on the configured trigger; FuseBase Manual Run emits an empty event.",
     {
       flowId: z.string().describe("ID of the flow to trigger"),
       payload: z.record(z.string(), z.unknown()).optional().describe("Payload data to send to the flow trigger"),
@@ -2557,7 +2590,7 @@ export function registerExtendedTools(
 
   // === Portal Clients & Magic Links ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_portal_clients",
     "List invited external clients and members with portal access across the organization or for a specific portal.",
     {
@@ -2579,19 +2612,20 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "invite_portal_client",
-    "Invite a customer or client into a FuseBase client portal with the Client Role.",
+    "Invite a client through Gate and return a portal magic link. Requires an explicit choice of full or shared-only access. Refuses to change an existing non-client organization role. Link creation does not confirm email delivery.",
     {
       portalId: z.string().describe("Portal ID to invite the client to"),
       email: z.string().describe("Client's email address"),
       name: z.string().optional().describe("Client's full name"),
+      isFullAccess: z.boolean().describe("Explicit access choice: true for all portal pages, false for shared/public pages only"),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
-    async ({ portalId, email, name, profile }) => {
+    async ({ portalId, email, name, isFullAccess, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.invitePortalClient(portalId, email, name);
+        const result = await client.invitePortalClient(portalId, email, name, { isFullAccess });
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
@@ -2603,9 +2637,9 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "create_portal_magic_link",
-    "Generate a 24-hour passwordless magic access link for a portal client.",
+    "Generate a passwordless portal access link for an existing portal member. Requires Gate for membership verification and a session cookie for link creation. Does not confirm email delivery; use the returned expiry if present.",
     {
       portalId: z.string().describe("Portal ID"),
       email: z.string().describe("Client's email address"),
@@ -2628,7 +2662,7 @@ export function registerExtendedTools(
 
   // === Multi-Agent Swarm Orchestration ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_swarm_init",
     "Initialize a multi-agent swarm state machine database in FuseBase. Supports 'standard' 4-stage Kanban or 'flow' for FuseBase Flow's official 8-phase lifecycle (Specify -> Clarify -> Plan -> Decisions -> Tasks -> Verify Gate -> Implement -> Review & Deploy) with product-owner and ai-developer roles.",
     {
@@ -2786,7 +2820,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_swarm_task_transition",
     "Transition a swarm task across lifecycle stages (e.g. Backlog -> In Progress -> Review -> Done, or Flow 8-phase stages). With auditColumnKey the audit comment is appended to the task's Audit Log; with roleColumnKey and nextRole the task is handed over by setting its Role.",
     {
@@ -2864,7 +2898,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_dashboard_templates",
     "Get managed dashboard and view representation templates (e.g. Kanban, Table) used for database representations.",
     {
@@ -2887,7 +2921,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_member_roles",
     "List user ID to role mappings across the organization (e.g. member, admin).",
     {
@@ -2909,7 +2943,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_workspace_members_v1",
     "Get granular v1 workspace member entities including globalId, addedByUserId, and creation/update timestamps.",
     {
@@ -2931,7 +2965,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_tasks_workspace_summary",
     "Get cross-workspace task overview and summary statistics across all accessible workspaces in the organization.",
     {
@@ -2952,7 +2986,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_billing_info",
     "Inspect billing credit balance, active coupon code redemptions (e.g. AppSumo), and redeemed coupon token history.",
     {
@@ -2974,7 +3008,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_user_preferences",
     "Retrieve user notification options (email and push triggers), web editor state variables, and last-opened workspaces.",
     {
@@ -2995,7 +3029,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "set_sidebar_collapsed",
     "Toggle or set the FuseBase web editor sidebar collapsed state.",
     {
@@ -3020,7 +3054,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_task_time_tracking",
     "Get time tracking estimates and recorded time history for a specific task in a workspace.",
     {
@@ -3043,7 +3077,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_automation_flags",
     "Get ActivePieces automation platform system configuration, version, edition (ce/ee), webhook prefix, and feature flags.",
     {
@@ -3064,7 +3098,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_workspace_premium_status",
     "Inspect workspace subscription tier, status, and plan expiration date.",
     {
@@ -3086,7 +3120,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_active_import_status",
     "Check the status and progress of ongoing data migration or import operations into a workspace.",
     {
@@ -3110,7 +3144,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_org_trials",
     "List active feature trial subscriptions and trial expiration records for the signed-in organization.",
     {
@@ -3133,7 +3167,7 @@ export function registerExtendedTools(
 
   // === Database Entity Templates ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_database_entity_templates",
     "Get all master database and dashboard entity templates available in the organization (including All workspaces, All portals, All forms, Custom table, and All clients). Shows root_entity mappings and complete JSON schema definitions.",
     {
@@ -3156,7 +3190,7 @@ export function registerExtendedTools(
 
   // === AI Agent Categories ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_ai_agent_categories",
     "List all available AI agent categories defined in the organization (such as Sales, Support, Development, Content, etc.). Returns category names, descriptions, and global IDs.",
     {
@@ -3180,7 +3214,7 @@ export function registerExtendedTools(
 
   // === Automation Folders & User Profile ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_automation_folders",
     "List all automation workflow folders configured in ActivePieces. Returns folder IDs, names, badge colors, and project associations.",
     {
@@ -3201,7 +3235,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "create_automation_folder",
     "Create a new workflow organization folder in the ActivePieces automation engine to categorize and group automation flows.",
     {
@@ -3227,7 +3261,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "delete_automation_folder",
     "[DESTRUCTIVE] Delete an automation workflow folder from ActivePieces. This unassigns any flows contained within the folder without deleting the flows themselves.",
     {
@@ -3252,7 +3286,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "get_automation_user",
     "Get the profile and identity details of the authenticated ActivePieces automation engine user (email, name, ID, platform associations).",
     {
@@ -3275,7 +3309,7 @@ export function registerExtendedTools(
 
   // === FuseBase PostgreSQL (Gate Isolated SQL Stores) ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_isolated_stores",
     "List all isolated PostgreSQL stores (databases) in the organization provisioned via FuseBase Gate.",
     {
@@ -3297,7 +3331,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "create_isolated_store",
     "Provision a new isolated PostgreSQL database in the organization via FuseBase Gate.",
     {
@@ -3322,7 +3356,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "query_isolated_sql",
     "Execute a read-only SQL query (SELECT) against a FuseBase PostgreSQL Isolated Store. Runs inside a READ ONLY transaction.",
     {
@@ -3347,7 +3381,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "execute_isolated_sql",
     "Execute a DML statement (INSERT, UPDATE, DELETE) against a FuseBase PostgreSQL Isolated Store. For schema DDL changes, use apply_isolated_sql_migrations instead.",
     {
@@ -3355,12 +3389,13 @@ export function registerExtendedTools(
       sql: z.string().describe("SQL statement (e.g. 'UPDATE users SET status = $1 WHERE id = $2')"),
       params: z.array(z.unknown()).optional().describe("Statement parameters ($1, $2)"),
       stage: z.enum(["dev", "prod"]).describe("Database stage to write to: 'dev' or 'prod'. Required so writes never reach production by default."),
+      confirm: z.boolean().optional().default(false).describe("Gate confirmation: set true only after reviewing the operation and obtaining authorization for its target and changes."),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
-    async ({ storeId, sql, params, stage, profile }) => {
+    async ({ storeId, sql, params, stage, confirm, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.executeIsolatedStoreSql(storeId, sql, params, stage);
+        const result = await client.executeIsolatedStoreSql(storeId, sql, params, stage, confirm);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
@@ -3372,7 +3407,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "select_isolated_sql_rows",
     "Select rows from a table in a FuseBase PostgreSQL Isolated Store using structured filters and options.",
     {
@@ -3400,7 +3435,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "insert_isolated_sql_row",
     "Insert a single row into a table in a FuseBase PostgreSQL Isolated Store.",
     {
@@ -3425,7 +3460,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "batch_insert_isolated_sql_rows",
     "Insert multiple rows into a table in a FuseBase PostgreSQL Isolated Store in a single request.",
     {
@@ -3450,7 +3485,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "list_isolated_sql_tables",
     "List all user tables in a FuseBase PostgreSQL Isolated Store.",
     {
@@ -3473,20 +3508,21 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "apply_isolated_sql_migrations",
     "Apply a DDL schema migration bundle to a FuseBase PostgreSQL Isolated Store.",
     {
       storeId: z.string().describe("Isolated store ID"),
-      bundle: z.record(z.string(), z.unknown()).describe("Migration bundle object (with version and migrations array)"),
+      bundle: z.record(z.string(), z.unknown()).describe("Migration bundle with optional bundleVersion and migrations array; each entry requires integer version, name, checksum and sql."),
       stage: z.enum(["dev", "prod"]).describe("Database stage to migrate: 'dev' or 'prod'. Required so migrations never reach production by default; run with dryRun first."),
       dryRun: z.boolean().optional().default(false).describe("Validate without applying (dry run)"),
+      confirm: z.boolean().optional().default(false).describe("Gate confirmation, required even for dry runs: set true only after reviewing migration status and obtaining authorization for this store, stage and bundle."),
       profile: z.string().optional().describe("Agent profile to use for authentication"),
     },
-    async ({ storeId, bundle, stage, dryRun, profile }) => {
+    async ({ storeId, bundle, stage, dryRun, confirm, profile }) => {
       const client = getClient(profile);
       try {
-        const result = await client.applyIsolatedStoreSqlMigrations(storeId, bundle, stage, dryRun);
+        const result = await client.applyIsolatedStoreSqlMigrations(storeId, bundle, stage, dryRun, confirm);
         return {
           content: [
             { type: "text" as const, text: JSON.stringify(result, null, 2) },
@@ -3500,9 +3536,9 @@ export function registerExtendedTools(
 
   // === FuseBase Work, Firecrawl & n8n Integrations ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_work_run_agent",
-    "Run a task or send a prompt to an AI agent in FuseBase Work. Initiates an agent run thread or appends to an existing thread.",
+    "Run a prompt with a FuseBase AI agent and wait for its completed streamed response. Creates a conversation or continues an existing thread. This uses the AI Assistant agent API, not the separate Paperclip execution API.",
     {
       workspaceId: z.string().describe("Workspace the agent conversation belongs to (required by the API)"),
       agentId: z.string().describe("FuseBase Work AI agent global ID"),
@@ -3525,9 +3561,9 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_work_scrape_url",
-    "Scrape and extract clean web content from a URL using FuseBase Work's hosted Firecrawl engine or web parser agent.",
+    "Ask a configured FuseBase scraping/web-parser agent to extract a URL and wait for its completed response. Web fetching depends on the selected agent; this is not a direct Firecrawl API call. A completed response alone does not prove the URL was fetched.",
     {
       workspaceId: z.string().describe("Workspace the scraping agent's conversation belongs to (required by the API)"),
       url: z.string().url().describe("Target website URL to scrape"),
@@ -3551,9 +3587,9 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_work_trigger_n8n",
-    "Trigger an n8n workflow or automation flow in FuseBase Work with custom input parameters.",
+    "Trigger a FuseBase Work flow through the ActivePieces automation bridge (legacy n8n tool name). Acceptance does not prove execution: check list_flow_runs and read the runId's status and outputs. Payload handling depends on the configured trigger.",
     {
       flowId: z.string().describe("Workflow flow ID or webhook ID"),
       payload: z.record(z.string(), z.unknown()).optional().default({}).describe("JSON payload to pass to the workflow"),
@@ -3576,7 +3612,7 @@ export function registerExtendedTools(
 
   // === Gate Token & Direct MCP Bridge Tools ===
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_token_list",
     "List all FuseBase API tokens belonging to the organization / user with scopes, provisioning source, and expiry via FuseBase Gate.",
     {
@@ -3604,7 +3640,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_token_create",
     "Create a new FuseBase API token with specified scopes and permissions (secret token returned only once) via FuseBase Gate.",
     {
@@ -3635,7 +3671,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_token_get",
     "Retrieve details of a specific FuseBase API token by its global ID via FuseBase Gate.",
     {
@@ -3655,7 +3691,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_token_revoke",
     "Permanently revoke (soft delete) a FuseBase API token so it can no longer be used for authentication.",
     {
@@ -3675,7 +3711,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_token_permission_catalog",
     "List all platform base permissions and service-owned permissions registered on the FuseBase Gate platform.",
     {
@@ -3694,7 +3730,7 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
     "fusebase_gate_whoami",
     "Query the authenticated token identity, tenant organization ID, custom domain, default workspace, and granted scopes/permissions from FuseBase Gate or Dashboards MCP.",
     {
@@ -3714,22 +3750,56 @@ export function registerExtendedTools(
     },
   );
 
-  server.tool(
+  registerAnnotatedTool(server,
+    "fusebase_discover_operations",
+    "Discover current Gate or Dashboards API operations without registering their schemas as local tools. Omit opId to list/search compact summaries; provide opId for its schema. Pass promptGroups from requiredPrompts to load domain guidance before fusebase_direct_tool_call.",
+    {
+      opId: z.string().optional().describe("Operation name to describe; omit to list/search operations"),
+      schemaMode: z.enum(["input", "output", "both", "summary", "full"]).default("input").describe("Schema detail for opId; input is compact, both includes output, full can be large"),
+      promptGroups: z.array(z.string().min(1)).min(1).max(20).optional().describe("Fetch domain guidance for these requiredPrompts groups, e.g. ['authz','notes']; may accompany opId"),
+      query: z.string().optional().describe("Case-insensitive substring filter over operation names and descriptions"),
+      limit: z.number().int().min(1).max(200).default(30).describe("Maximum operation summaries returned per page"),
+      offset: z.number().int().min(0).default(0).describe("Offset into filtered operation summaries"),
+      target: z.enum(["gate", "dashboards"]).optional().describe("Upstream gateway; defaults to Gate if configured, otherwise Dashboards"),
+      profile: z.string().optional().describe("Named authentication profile"),
+    },
+    async ({ opId, schemaMode, promptGroups, query, limit, offset, target, profile }) => {
+      try {
+        const bridge = getClient(profile).gateBridge;
+        if (!bridge) throw new Error("Operation discovery requires a Gate or Dashboards MCP token.");
+        let result: unknown;
+        if (opId) result = await bridge.toolsDescribe(opId, target, schemaMode);
+        else if (promptGroups) result = undefined;
+        else {
+          const terms = (query ?? "").toLowerCase();
+          const all = (await bridge.toolsList(target)).filter((tool) => `${tool.name} ${tool.description ?? ""}`.toLowerCase().includes(terms));
+          const page = all.slice(offset, offset + limit);
+          result = { total: all.length, offset, nextOffset: offset + limit < all.length ? offset + limit : null,
+            operations: page.map(({ name, title, description, schemaVersion, dangerous }) => ({ name, title, description, schemaVersion, dangerous })) };
+        }
+        if (promptGroups) result = { operation: result, guidance: await bridge.promptsSearch(promptGroups, target) };
+        return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+      } catch (error) { return errorResult(error); }
+    },
+  );
+
+  registerAnnotatedTool(server,
     "fusebase_direct_tool_call",
-    "Execute any official upstream FuseBase Gate or Dashboards operation directly via the Streamable HTTP MCP bridge.",
+    "Execute an official Gate or Dashboards operation. Discover its schema with fusebase_discover_operations first; set applyDefaults=false to send exactly the supplied arguments for strict or newly added operations.",
     {
       opId: z.string().describe("Operation identifier (e.g. 'listIsolatedStores', 'listTokens', 'sendOrgEmail', 'listPortals')"),
       args: z.record(z.string(), z.unknown()).optional().describe("Operation argument payload object"),
+      applyDefaults: z.boolean().optional().describe("Inject legacy org/workspace defaults (default true); false preserves the exact discovered argument contract"),
       target: z.enum(["gate", "dashboards"]).optional().describe("Upstream target gateway ('gate' or 'dashboards', default 'gate')"),
       profile: z.string().optional().describe("Named authentication profile"),
     },
-    async ({ opId, args, target, profile }) => {
+    async ({ opId, args, applyDefaults, target, profile }) => {
       const client = getClient(profile);
       try {
         if (!client.gateBridge) {
           throw new Error("Direct tool call requires Gate MCP bridge. Configure FUSEBASE_GATE_TOKEN or FUSEBASE_TOKEN.");
         }
-        const result = await client.gateBridge.toolCall(opId, args || {}, target);
+        const result = await client.gateBridge.toolCall(opId, args || {}, target, { applyDefaults });
         return {
           content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
         };

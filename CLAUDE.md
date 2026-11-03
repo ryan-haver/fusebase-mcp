@@ -58,7 +58,7 @@ In `%APPDATA%\Claude\claude_desktop_config.json` (Windows) or `~/Library/Applica
 
 ## Token Hygiene & Context Management
 - FuseBase MCP boots with **Core Tier (34 tools)** to preserve your context window.
-- If your task requires relational database, dashboard, portal, or automation capabilities, dynamically call `set_tool_tier({ "tier": "all" })` to register the remaining 141 extended tools.
+- If your task requires relational database, dashboard, portal, or automation capabilities, dynamically call `set_tool_tier({ "tier": "all" })` to register the remaining 143 extended tools.
 - When retrieving documents, always request `format: "markdown"` via `get_page_content` to save ~50% in context token consumption.
 
-*See [AGENTS.md](file:///c:/scripts/fusebase-mcp/AGENTS.md) for full architectural guidelines, database schemas, and zero-browser token auth specifications.*
+*See [AGENTS.md](AGENTS.md) for full architectural guidelines, database schemas, and zero-browser token auth specifications.*

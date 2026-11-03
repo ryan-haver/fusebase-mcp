@@ -2,14 +2,10 @@
  * In-process MCP server + client wired the same way as createFusebaseServer() in
  * src/index.ts, but with a fake FusebaseClient so no network is touched.
  */
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { ToolListChangedNotificationSchema } from "@modelcontextprotocol/sdk/types.js";
-import { registerCoreTools } from "../../../src/tools/core-tools.js";
-import { registerExtendedTools } from "../../../src/tools/extended-tools.js";
-import { registerResources } from "../../../src/resources.js";
-import { registerPrompts } from "../../../src/prompts.js";
+import { createFusebaseServer } from "../../../src/server.js";
 import type { FusebaseClient } from "../../../src/client.js";
 
 /**
@@ -28,22 +24,7 @@ export function fakeClient(overrides: Record<string, unknown> = {}): FusebaseCli
 }
 
 export async function startServer(client: FusebaseClient = fakeClient(), opts: { tier?: "core" | "all" } = {}) {
-  const server = new McpServer({ name: "fusebase", version: "test" });
-  let extended = false;
-  const enableExtendedTools = () => {
-    if (extended) return;
-    registerExtendedTools(server, () => client);
-    extended = true;
-  };
-  registerCoreTools(server, () => client, {
-    enableExtendedTools,
-    isExtendedToolsEnabled: () => extended,
-    setActiveProfile: () => {},
-    getActiveProfile: () => undefined,
-  });
-  registerResources(server, () => client);
-  registerPrompts(server, () => client);
-  if (opts.tier === "all") enableExtendedTools();
+  const { server } = createFusebaseServer({ buildClient: () => client, allTools: opts.tier === "all" });
 
   const mcp = new Client({ name: "unit", version: "0" }, { capabilities: {} });
   const listChanged: number[] = [];

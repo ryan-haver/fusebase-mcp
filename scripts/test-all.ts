@@ -135,9 +135,18 @@ function recordResult(stage: Stage, result: { passed: boolean; secs: string }, c
 }
 
 async function main() {
-  const offlineOnly = process.argv.includes("--offline");
-  const liveOnly = process.argv.includes("--live-only");
-  const stages = [...(liveOnly ? [] : OFFLINE), ...(offlineOnly ? [] : LIVE)];
+  const args = process.argv.slice(2);
+  const unknown = args.filter((arg) => !["--offline", "--offline-only", "--live-only"].includes(arg) && !arg.startsWith("--stage="));
+  if (unknown.length) throw new Error(`Unknown test-runner option(s): ${unknown.join(", ")}. Use --offline for checks without account writes.`);
+  const offlineOnly = args.includes("--offline") || args.includes("--offline-only");
+  const liveOnly = args.includes("--live-only");
+  if (offlineOnly && liveOnly) throw new Error("Choose either --offline or --live-only, not both.");
+  const requestedStages = args.filter((arg) => arg.startsWith("--stage=")).map((arg) => arg.slice(8));
+  const available = [...(liveOnly ? [] : OFFLINE), ...(offlineOnly ? [] : LIVE)];
+  for (const name of requestedStages) {
+    if (!available.some((stage) => stage.name === name)) throw new Error(`Unknown stage '${name}'. Available: ${available.map((stage) => stage.name).join(", ")}`);
+  }
+  const stages = requestedStages.length ? available.filter((stage) => requestedStages.includes(stage.name)) : available;
 
   if (!offlineOnly) {
     acquireLiveLock();

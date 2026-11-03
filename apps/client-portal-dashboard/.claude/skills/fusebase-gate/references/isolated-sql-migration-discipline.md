@@ -20,7 +20,7 @@ Use **before** building, editing, or sending a bundle to **`getIsolatedStoreSqlM
 
 **Drift** = the ordered **applied prefix** of your bundle (versions already in **`fusebase_schema_migrations`**) does not match the journal: same order and, for each applied row, same **`version`**, **`name`**, and **`checksum`** (and, for real apply bundles, the same canonical **`sql`** bytes Gate validates against the checksum).
 
-On apply: **HTTP 409**, **`data.errorCode`** **`isolated_sql_migration_drift`**, **`data.issues[]`** (journal vs bundle fields; checksum rows may include **`bundleSqlContentSha256`** — not raw SQL). On status: **`isDrifted`**, **`structuredIssues`**, **`canApply`** false.
+On apply: **HTTP 409**, **`apiData.errorCode`** **`isolated_sql_migration_drift`**, **`apiData.issues[]`** (journal vs bundle fields; checksum rows may include **`bundleSqlContentSha256`** — not raw SQL). On status: **`isDrifted`**, **`structuredIssues`**, **`canApply`** false.
 
 ## Invariants
 
@@ -57,7 +57,7 @@ Always leave these fields in the handoff/log: migration file path, **`version`**
 - [ ] No silent edits to already-applied files.
 - [ ] **Prod:** **`getIsolatedStoreSqlMigrationStatus`** with the intended bundle (full bundle or metadata-only status probe) → then **`applyIsolatedStoreSqlMigrations`** with the full bundle; confirm **`canApply`** / **`pendingCount`**.
 - [ ] Optional **`dryRun: true`** on apply, or **`expectedLastAppliedVersion` / `expectedLastAppliedChecksum`** on status or apply (409 if journal head moved). `dryRun` now validates the same bundle rules as real apply.
-- [ ] On errors, read **`structuredIssues`** or **`data.issues`** before guessing.
+- [ ] On errors, read **`structuredIssues`** or **`apiData.issues`** before guessing.
 
 ## What prompts do not replace
 

@@ -262,7 +262,7 @@ export function isErrorPayload(data: unknown): boolean {
  * flagged isError, when the text starts with "Error", or when the JSON payload is an
  * error envelope ({ error: ... } / { success: false }).
  */
-export async function callTool(client: Client, name: string, args: Record<string, unknown> = {}): Promise<any> {
+export async function callTool(client: Client, name: string, args: Record<string, unknown> = {}, options: { timeoutMs?: number } = {}): Promise<any> {
   stats.executedTools.add(name);
   noteRead(name);
   const twin = tokenTwins.get(client);
@@ -282,7 +282,8 @@ export async function callTool(client: Client, name: string, args: Record<string
   }
   let data: any;
   try {
-    data = await parseToolResult(name, await client.callTool({ name, arguments: args }));
+    data = await parseToolResult(name, await client.callTool({ name, arguments: args }, undefined,
+      options.timeoutMs === undefined ? undefined : { timeout: options.timeoutMs }));
   } catch (err) {
     // Failing in both modes (e.g. reading a page that was just deleted) says nothing about tokens.
     if (twinFailure) twinFailure.bothFailed = true;
@@ -382,7 +383,7 @@ export const WRITE_TOOLS = new Set([
   "create_automation_folder", "delete_automation_folder", "create_automation_flow", "update_automation_flow",
   "delete_automation_flow", "trigger_automation_flow", "publish_page_to_portal", "invite_portal_client",
   "create_portal_magic_link", "create_portal", "fusebase_token_create", "fusebase_token_revoke",
-  "fusebase_swarm_init", "fusebase_swarm_task_transition", "fusebase_work_run_agent", "fusebase_work_trigger_n8n",
+  "fusebase_swarm_init", "fusebase_swarm_task_transition", "fusebase_work_run_agent", "fusebase_work_scrape_url", "fusebase_work_trigger_n8n",
   "set_sidebar_collapsed", "fusebase_cli_init", "fusebase_cli_deploy", "fusebase_cli_app_update",
   "fusebase_cli_secret_create", "fusebase_cli_sidecar_add", "fusebase_cli_sidecar_remove",
 ]);

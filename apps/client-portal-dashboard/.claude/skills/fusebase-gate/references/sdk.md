@@ -1,7 +1,7 @@
 ---
 version: "1.6.8"
 mcp_prompt: sdk
-last_synced: "2026-08-04"
+last_synced: "2026-09-30"
 title: "Fusebase Gate SDK"
 category: meta
 ---
@@ -41,7 +41,9 @@ For security-sensitive app API operations, use contract-level policy: `x-fusebas
 A required permission is only satisfied if the **calling** app was granted that exact capability (`fusebase app update <appId> --permissions app_api.<namespace>.<capability>.<action>`). Grant it before relying on the guard: declaring a permission no caller holds locks the operation out. These extensions were ignored at runtime until NIM-42740, so an operation that has always been callable may start returning `403 app_api_missing_permissions` once your environment enforces them.
 Those guards are evaluated against the **calling identity**. A browser `fbsfeaturetoken` embeds a Gate service token carrying `client:<productId>`, so it satisfies `x-fusebase-allowed-callers` for its own product and any end user can replay it from devtools. Only `x-fusebase-required-permissions` is browser-proof (`app_api.*` is backend-only and stripped from the browser mint) — pair the two guards on anything sensitive.
 To run a guarded operation for an end user, call `callAppApi` from the app backend with its service token and pass the user's `fbsfeaturetoken` as `onBehalfOfUserToken` in the body. Gate verifies it fail-closed (401 `obo_user_token_invalid`, 403 `obo_user_token_org_mismatch`) and forwards `X-Fusebase-Verified-User-Id` / `X-Fusebase-Verified-User-Source: obo` to the provider runtime — read the user id from those headers instead of hand-rolling dual-token forwarding.
+Every `callAppApi` call also carries `X-Fusebase-Verified-Org-Id`: the organization the call was made for. A managed app serves many orgs from one runtime owned by the publisher, so its app token is minted to run in the calling org — SDK reads and writes already land in the right tenant. Use the header when the app keeps tenant state of its own, not as the thing that makes storage safe.
 The platform proxy strips inbound `X-Fusebase-Verified-*` headers it cannot prove came from Gate, so they cannot be forged through the app URL. Your backend's deploy FQDN is a separate public origin that the proxy does not front, and the backend cannot tell the two apart — so OBO removes the dual-token plumbing, not the trust requirement. Do not treat a verified header as a bearer credential for anything you would not expose to any authenticated peer in the org.
+If the provider operation requires a request header (for example an `Idempotency-Key` on a POST), pass it in the `headers` map of the `callAppApi` body — Gate forwards it verbatim to the provider runtime. Headers Gate sets itself are reserved and rejected with 400: `x-app-token`, `x-app-feature-token`, `cookie`, `authorization`, `host`, `content-length`, and every `X-Fusebase-*` header.
 Denials come back as 403 with a machine-readable `errorCode` under `data` in the error body (`app_api_caller_not_allowed`, `app_api_missing_permissions`, `app_api_operation_private`); an unknown operation is a 404 `app_api_operation_not_found`. Branch on `errorCode`, not on the message.
 
 ## Main SDK Clients
@@ -104,5 +106,5 @@ Always handle SDK operation failures explicitly.
 
 - **Version**: 1.6.8
 - **Category**: meta
-- **Last synced**: 2026-08-04
+- **Last synced**: 2026-09-30
 - **Priority rule**: If the MCP prompt has a higher version, follow the prompt's API Reference as source of truth.
