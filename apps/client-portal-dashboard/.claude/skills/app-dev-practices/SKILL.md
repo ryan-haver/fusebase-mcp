@@ -25,6 +25,7 @@ Run `fusebase scaffold --template spa --dir apps/<name>` before writing any app 
 
 **Ask yourself:** "If two users open this app at the same time, will they interfere with each other?" If yes, the design is wrong.
 
+
 ## Project Structure
 
 Apps are React/Vite apps in `apps/`:
@@ -196,6 +197,7 @@ After creating an app, register it via `fusebase app create` from the project ro
 ```bash
 fusebase app create --name <name> --subdomain <subdomain> --path <path> --dev-command <command> --build-command <command> --output-dir <dir>
 ```
+
 
 **Execute this command automatically** after writing the app code — do not ask the user to run it manually.
 

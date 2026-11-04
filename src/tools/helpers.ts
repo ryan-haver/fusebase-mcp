@@ -3,14 +3,14 @@
  */
 
 import * as path from "path";
-import { fileURLToPath } from "url";
 import TurndownService from "turndown";
+import { getDataDir } from "../crypto.js";
+import { publicErrorMessage } from "../error-redaction.js";
 
-const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 /** Directory that download_attachment may write into (FUSEBASE_DOWNLOAD_DIR or data/downloads). */
 export function downloadRoot(): string {
-  return path.resolve(process.env.FUSEBASE_DOWNLOAD_DIR || path.join(PROJECT_ROOT, "data", "downloads"));
+  return path.resolve(process.env.FUSEBASE_DOWNLOAD_DIR || path.join(getDataDir(), "downloads"));
 }
 
 /**
@@ -31,7 +31,7 @@ export function resolveDownloadPath(filename: string, outputPath?: string): stri
 }
 
 export function errorResult(error: unknown) {
-  const msg = error instanceof Error ? error.message : String(error);
+  const msg = publicErrorMessage(error);
   return {
     content: [{ type: "text" as const, text: `Error: ${msg}` }],
     isError: true,

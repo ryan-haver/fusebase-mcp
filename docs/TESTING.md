@@ -1,7 +1,7 @@
 # Testing and validation
 
-Nothing is committed or pushed without passing validation. The gate is enforced by git hooks
-in `.githooks/`. Install them once per clone:
+Local validation gates are available in `.githooks/`; they apply only when installed and can be bypassed.
+CI independently checks pull requests and master pushes. Install hooks once per clone:
 
 ```bash
 npm run hooks:install   # git config core.hooksPath .githooks
@@ -10,8 +10,8 @@ npm run hooks:install   # git config core.hooksPath .githooks
 | When | What runs | Time |
 | --- | --- | --- |
 | Every commit (`pre-commit`) | Offline checks: typecheck, lint, build, unit tests, tool/README audit | ~1 min |
-| Every push (`pre-push`) | Offline checks, then all live suites against the sandbox workspace, with write verification and a leftover sweep | ~6 min, one 1Password approval |
-| Every pull request (CI) | Offline checks on Node 22 and 24 | ~1 min |
+| Every push (`pre-push`) | Offline checks, then the seven standard live stages against the sandbox workspace, with write verification and a leftover sweep | ~6 min, one 1Password approval |
+| Every pull request (CI) | Offline + packed install on Linux Node 22.19.0/24/26 and Windows 22.19.0; dashboard, container, audits and secret scan | ~1 min |
 
 `git push --no-verify` bypasses the gate. Don't use it for normal work.
 
@@ -27,7 +27,12 @@ These need no credentials. Known bugs are pinned with `it.fails` / `knownGap()`,
 `--offline-only` is accepted as an alias. Unknown options and conflicting offline/live flags
 fail before credentials are loaded or account tests start.
 
-Every run of `scripts/test-all.ts` records each stage's outcome in `.cache/test-results.json`: pass or fail, duration, and the assertion, skip and tool counts the stage printed. `scripts/generate-status-data.ts` publishes those figures on the status dashboard; nothing there is written by hand.
+Every invocation creates a new evidence run, archived under `.cache/test-runs/` and copied to
+`.cache/test-results.json`. It records selected stages, start/end, full commit, source-content hash,
+dirty status, Node version, stage outcomes and counts. Partial runs never inherit old stage results.
+Source changes during a run invalidate it. Dashboard data generation labels stale or incomplete
+records and does not count them as current passing assertions. Cloud health requires separate live evidence.
+After committing, rerun checks to bind results to the new commit before deployment.
 
 ## Live suites
 
@@ -166,3 +171,60 @@ Results are appended to `LIVE_TOKEN_COVERAGE_FILE` (default: `fusebase-token-cov
 2. Prove every write with `verifyWrite` straight after it.
 3. Delete what you created in a `finally` block, inside `duringCleanup()`.
 4. Run the suite once with `LIVE_VERIFY_WRITES=report` to check nothing is unproven.
+
+## Focused stages and fixture recovery
+
+Use `npm run test:all -- --stage="Focused automation"` (or `Account preferences`,
+`Authentication refresh`, `Agent execution`, `Portal email lifecycle`) to record focused evidence.
+Email also requires `FUSEBASE_TEST_SEND_EMAIL=1` and `FUSEBASE_TEST_INVITE_EMAIL`; it refuses an existing
+organization member, creates a disposable workspace/portal, verifies invitation and link issuance,
+and revokes links/removes access/deletes the fixture in cleanup. API success does not prove inbox
+delivery or browser activation. Recovery: `npx tsx tests/live/portal-email-e2e.ts --recover=<journal>`.
+
+Each standard live run journals mutations before sending under `scratch/live-runs/<run-id>/`.
+An uncertain write is never retried with another credential. Inspect its request IDs and fresh upstream
+state before appending an explicit reconciled event. Never delete resources based on a QA-like name.
+`LIVE_FIXTURE_JOURNAL=<journal> npm run test:sweep -- --clean` deletes only confirmed exact IDs in
+that journal, then re-enumerates; incomplete listings or deletion failures fail cleanup. Journals with
+unresolved attempts fail closed. Keep journals private and outside version control.
+
+`npm run test:package` verifies a real tarball installed with production dependencies and lifecycle
+scripts enabled in an isolated consumer. `docker build -t fusebase-mcp:ci .` followed by
+`node scripts/test-container.mjs fusebase-mcp:ci` checks container HTTP/MCP startup without credentials.
+Use `--build-arg FETCH_GUIDES=1` only when a build should fetch external reference content.
+
+### Recovery verification details
+
+Task searches paginate over mixed task/list/board ranges. Follow the returned `nextOffset`, not
+`tasks.length`; a short task array does not prove the last page. The sweep shares this range-aware
+collector. SQL insert fixtures journal the exact dev-store/table/row/run identities before sending;
+recovery verifies the stored row's run identity before deleting it with bound parameters. The reusable
+QA SQL store is retained, while its run-owned rows must be absent.
+
+An explicit HTTP 404/410 from a recorded read can prove deletion through `confirmNotFound`.
+Caught timeouts, 403/500 responses and generic “not found” strings do not count as proof.
+Portal recovery looks up the exact workspace directly because portal workspaces may be absent from
+the normal list. Membership guards use epoch seconds. Failed revocation or membership removal
+keeps the workspace/portal available for recovery, and execution errors are retained alongside cleanup errors.
+A lost workspace-creation response followed by an empty listing remains unresolved; retry recovery
+when visibility returns. An empty list alone must not mark an uncertain creation as cleaned up.
+
+Dirty-source runs are labelled `working-tree`; they never appear as committed release passes.
+The container smoke also tests encrypted credentials, cache, logging and downloads against a read-only
+installation with a separate writable data directory.
+
+
+### Status dashboard and release checks
+
+After installing the root and dashboard dependencies, run the dashboard's lint/build, then
+`npm run test:dashboard` from the repository root. The browser suite covers current, uncommitted,
+stale, incomplete, missing and failed evidence, an offline-only selection, stale cleanup, mobile
+width and the actual production bundle. It uses synthetic local evidence; it does not send email
+or change account data. Screenshots stay under ignored `scratch/dashboard-browser/`.
+
+The pre-push hook runs offline and standard live checks in one runner invocation, preserving one
+complete source identity rather than overwriting offline results with a second live-only record.
+Deployment requires that exact clean, pushed source and passing offline stages. It builds and
+checks the dashboard locally, opens Chromium before publishing, then verifies both the exact
+release manifest and the rendered source hash. A 200 response from an old or broken bundle fails.
+The cloud-health label stays unverified because release identity does not measure backend health.

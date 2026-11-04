@@ -16,6 +16,8 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import { fileURLToPath } from "url";
+import { isReadOperation } from "../../../src/tool-effects.js";
+import { journalMutation, coverageAttempt } from "./fixture-journal.js";
 import { loadEnvironment } from "../../../src/config.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -213,16 +215,19 @@ async function attachTokenTwin(client: Client, name: string, opts: { tier?: "cor
 /** Try the call on the token-only twin; return undefined (after recording why) if it fails. */
 async function callOnTwin(twin: Client, name: string, args: Record<string, unknown>): Promise<{ data: any } | undefined> {
   const at = callSite();
-  const write = WRITE_TOOLS.has(name);
+  const write = !isReadOperation(name, args);
+  return coverageAttempt(write, async () => {
   try {
-    const data = await parseToolResult(name, await twin.callTool({ name, arguments: args }));
+    const invoke = async () => parseToolResult(name, await twin.callTool({ name, arguments: args }));
+    const data = await (write ? journalMutation(name, args, invoke) : invoke());
     coverage.push({ suite: suiteName, tool: name, ok: true, write, writeId: write ? writes.length + 1 : undefined, at });
     return { data };
   } catch (err) {
     const error = (err instanceof Error ? err.message : String(err)).replace(/\s+/g, " ").slice(0, 300);
     coverage.push({ suite: suiteName, tool: name, ok: false, write, error, at });
-    return undefined;
+    throw err;
   }
+  }, async () => undefined);
 }
 
 /** Append this suite's calls, plus a line saying whether the suite ran to the end. */
@@ -242,6 +247,16 @@ export class ToolError extends Error {
   constructor(public tool: string, public detail: string) {
     super(`Tool '${tool}' failed: ${detail}`);
   }
+}
+
+const failedReads = new WeakMap<Error, {name:string; args:Record<string, unknown>}>();
+/** Explicit negative read: only a real read call with an upstream 404/410 proves absence. */
+export function confirmNotFound(error: unknown): boolean {
+  if (!(error instanceof ToolError)) return false;
+  const read = failedReads.get(error);
+  if (!read || !/(?:API error:|HTTP(?: status)?)\s*(?:404|410)\b/i.test(error.detail)) return false;
+  noteRead(read.name, read.args);
+  return true;
 }
 
 /** Returns true when a parsed tool payload is an error envelope rather than data. */
@@ -264,17 +279,17 @@ export function isErrorPayload(data: unknown): boolean {
  */
 export async function callTool(client: Client, name: string, args: Record<string, unknown> = {}, options: { timeoutMs?: number } = {}): Promise<any> {
   stats.executedTools.add(name);
-  noteRead(name);
   const twin = tokenTwins.get(client);
   let twinFailure: CoverageCall | undefined;
   if (twin && SESSION_TOOLS.has(name)) {
     await parseToolResult(name, await twin.callTool({ name, arguments: args }));
   } else if (twin && !isLocalTool(name)) {
-    const proofRead = readCallsInVerification !== undefined && !WRITE_TOOLS.has(name);
+    const proofRead = readCallsInVerification !== undefined && isReadOperation(name, args);
     const viaTwin = await callOnTwin(twin, name, args);
     // A read that proves a write takes its answer from the normal server (the ground truth);
     // the twin's answer is only recorded, so a token-mode read gap can't fake or block a proof.
     if (viaTwin && !proofRead) {
+      noteRead(name, args);
       noteWrite(name, args);
       return viaTwin.data;
     }
@@ -282,13 +297,16 @@ export async function callTool(client: Client, name: string, args: Record<string
   }
   let data: any;
   try {
-    data = await parseToolResult(name, await client.callTool({ name, arguments: args }, undefined,
+    const invoke = async () => parseToolResult(name, await client.callTool({ name, arguments: args }, undefined,
       options.timeoutMs === undefined ? undefined : { timeout: options.timeoutMs }));
+    data = await (isReadOperation(name, args) || isLocalTool(name) || SESSION_TOOLS.has(name) ? invoke() : journalMutation(name, args, invoke));
   } catch (err) {
+    if (err instanceof Error && isReadOperation(name, args)) failedReads.set(err, {name,args});
     // Failing in both modes (e.g. reading a page that was just deleted) says nothing about tokens.
     if (twinFailure) twinFailure.bothFailed = true;
     throw err;
   }
+  noteRead(name, args);
   // Only a successful response claims a write happened, so only then does it need proof.
   noteWrite(name, args);
   return data;
@@ -355,38 +373,12 @@ export function findUserVar(payload: unknown, name: string): { value: unknown } 
 // ─── Write verification ─────────────────────────────────────────────
 //
 // A write's own response ("created", "updated") is not proof that FuseBase stored the data.
-// Every successful call to a WRITE_TOOLS tool is recorded (an error response claims no write),
+// Every successful call classified as a remote mutation is recorded (an error response claims no write),
 // and must then be proven by verifyWrite(): a
 // check that makes at least one fresh read call and passes (retried while FuseBase catches up).
 // Writes that can't be read back are exempted with noReadBack(reason); deletes made during
 // cleanup are proven by the leftover sweep. At the end of a suite, unproven writes are listed
 // and, unless LIVE_VERIFY_WRITES=report, fail the suite.
-
-/** Tools that create, change or delete data. */
-export const WRITE_TOOLS = new Set([
-  // pages, folders, content, tasks, comments, files
-  "create_page", "update_page", "delete_page", "move_page", "create_folder", "append_page_content",
-  "update_page_content", "update_page_tags", "create_interactive_app_page", "create_task", "update_task",
-  "delete_task", "fusebase_post_comment", "fusebase_reply_comment", "fusebase_resolve_thread", "upload_file",
-  // databases, rows, columns, views, relations
-  "create_database", "update_database", "delete_database", "duplicate_database", "delete_dashboard",
-  "create_dashboard_table", "add_database_row", "delete_database_row", "update_database_cell",
-  "batch_put_database_data", "reorder_database_rows", "add_database_column", "delete_database_column",
-  "rename_database_column", "reorder_database_columns", "set_column_width", "add_relation_column",
-  "add_lookup_column", "link_database_rows", "unlink_database_rows", "delete_relation", "create_view",
-  "update_view", "delete_view", "duplicate_view", "set_view_representation", "set_view_grouping",
-  "move_kanban_card", "import_csv",
-  // isolated SQL stores
-  "create_isolated_store", "execute_isolated_sql", "insert_isolated_sql_row", "batch_insert_isolated_sql_rows",
-  "apply_isolated_sql_migrations",
-  // automations, portals, tokens, agents, settings
-  "create_automation_folder", "delete_automation_folder", "create_automation_flow", "update_automation_flow",
-  "delete_automation_flow", "trigger_automation_flow", "publish_page_to_portal", "invite_portal_client",
-  "create_portal_magic_link", "create_portal", "fusebase_token_create", "fusebase_token_revoke",
-  "fusebase_swarm_init", "fusebase_swarm_task_transition", "fusebase_work_run_agent", "fusebase_work_scrape_url", "fusebase_work_trigger_n8n",
-  "set_sidebar_collapsed", "fusebase_cli_init", "fusebase_cli_deploy", "fusebase_cli_app_update",
-  "fusebase_cli_secret_create", "fusebase_cli_sidecar_add", "fusebase_cli_sidecar_remove",
-]);
 
 export interface WriteRecord {
   id: number;
@@ -400,6 +392,7 @@ export interface WriteRecord {
 
 export const writes: WriteRecord[] = [];
 let inCleanup = false;
+const cleanupFailures: unknown[] = [];
 let readCallsInVerification: string[] | undefined;
 
 function callSite(): string {
@@ -416,13 +409,13 @@ function summarizeArgs(args: Record<string, unknown>): string {
   return keep.filter((k) => args[k] !== undefined).map((k) => k + "=" + String(args[k]).slice(0, 40)).join(" ");
 }
 
-/** A read attempt inside a verifyWrite check counts as a fresh read. */
-function noteRead(name: string): void {
-  if (!WRITE_TOOLS.has(name) && readCallsInVerification) readCallsInVerification.push(name);
+/** A successful read inside a verifyWrite check counts as a fresh read. */
+function noteRead(name: string, args: Record<string, unknown>): void {
+  if (isReadOperation(name, args) && readCallsInVerification) readCallsInVerification.push(name);
 }
 
 function noteWrite(name: string, args: Record<string, unknown>): void {
-  if (WRITE_TOOLS.has(name)) {
+  if (!isReadOperation(name, args) && !SESSION_TOOLS.has(name) && (!isLocalTool(name) || /^fusebase_cli_(init|deploy|app_update|secret_create|sidecar_add|sidecar_remove)$/.test(name))) {
     writes.push({ id: writes.length + 1, tool: name, args: summarizeArgs(args), at: callSite(), cleanup: inCleanup || undefined });
   }
 }
@@ -485,7 +478,7 @@ export async function duringCleanup<T>(fn: () => Promise<T>): Promise<T> {
   inCleanup = true;
   try {
     return await fn();
-  } finally {
+  } catch (error) { cleanupFailures.push(error); throw error; } finally {
     inCleanup = was;
   }
 }
@@ -496,7 +489,7 @@ function writeReport(): WriteRecord[] {
   const proven = writes.filter((w) => w.proof).length;
   const exempt = writes.filter((w) => w.exempt);
   const cleanup = writes.filter((w) => w.cleanup).length;
-  console.log("\n🧾 Writes: " + writes.length + " total — " + proven + " proven by a fresh read, " + exempt.length + " exempt, " + cleanup + " cleanup (swept), " + unproven.length + " UNPROVEN");
+  console.log("\n🧾 Writes: " + writes.length + " total — " + proven + " proven by a fresh read, " + exempt.length + " exempt, " + cleanup + " cleanup (pending independent sweep), " + unproven.length + " UNPROVEN");
   for (const w of exempt) console.log("   ⚪ " + w.tool + " at " + w.at + ": no read-back — " + w.exempt);
   for (const w of unproven) console.log("   🔴 " + w.tool + " at " + w.at + " " + w.args);
   return unproven;
@@ -512,6 +505,7 @@ export function runSuite(title: string, main: () => Promise<void>): void {
   const started = Date.now();
   main()
     .then(() => {
+      if (cleanupFailures.length) throw new AggregateError(cleanupFailures, "Cleanup failed; fixture journal retained");
       const unproven = writeReport();
       flushCoverage(unproven.length === 0 || process.env.LIVE_VERIFY_WRITES === "report");
       if (unproven.length > 0 && process.env.LIVE_VERIFY_WRITES !== "report") {

@@ -13,15 +13,15 @@ RUN npm ci --ignore-scripts
 
 # Copy source code and documentation
 COPY src ./src
+COPY scripts/build.mjs ./scripts/build.mjs
 COPY docs ./docs
 
 # Compile TypeScript to dist/
 RUN npm run build
 
-# FuseBase guides for search_guides / get_guide (not committed; downloaded at build).
-# A failed download leaves an empty folder; the guide tools then say how to fetch them.
-COPY scripts/scrape-guides.ts ./scripts/scrape-guides.ts
-RUN mkdir -p .cache/guides && (npx tsx scripts/scrape-guides.ts || echo "guides download failed; continuing without them")
+# Guide retrieval is explicit; ordinary builds do not depend on a documentation website.
+ARG FETCH_GUIDES=0
+RUN mkdir -p .cache/guides && if [ "$FETCH_GUIDES" = "1" ]; then node dist/scrape-guides.js; fi
 
 # ==============================================================================
 # 2. Production Runtime Stage: production dependencies and the compiled server only

@@ -1,3 +1,5 @@
+import { publicErrorMessage } from "../error-redaction.js";
+import { normalizeProfile } from "../config.js";
 import { registerAnnotatedTool } from "./registry.js";
 import { guidesAvailable as guidesAvailableNow, GUIDES_MISSING as GUIDES_MISSING_TEXT } from "../guide-loader.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -140,13 +142,13 @@ export function registerCoreTools(
       profile: z.string().optional().describe("Optional agent profile name to check (e.g. 'default', 'agent-pm')"),
     },
     async ({ profile }) => {
-      const activeProfile = profile || (options.getActiveProfile ? options.getActiveProfile() : undefined);
+      const activeProfile = normalizeProfile(profile || (options.getActiveProfile ? options.getActiveProfile() : undefined));
       const stored = loadEncryptedCookie(activeProfile);
       const storedToken = loadEncryptedToken(activeProfile);
       const client = getClient(activeProfile);
 
       const hasToken = Boolean(client.gateBridge?.isConfigured || storedToken);
-      const hasCookie = Boolean(stored?.cookie);
+      const hasCookie = Boolean(client.getCookie());
 
       if (!hasCookie && !hasToken) {
         return {
@@ -179,7 +181,7 @@ export function registerCoreTools(
           gateIdentity = await client.gateBridge.getIdentity();
           gateOk = true;
         } catch (err: any) {
-          gateError = err.message;
+          gateError = publicErrorMessage(err);
         }
       }
 
@@ -191,7 +193,7 @@ export function registerCoreTools(
         workspacesOk = true;
         workspaceCount = ws.length;
       } catch (err: any) {
-        workspacesError = err.message;
+        workspacesError = publicErrorMessage(err);
       }
 
       const isValid = gateOk || workspacesOk;
@@ -1194,7 +1196,7 @@ export function registerCoreTools(
 
   registerAnnotatedTool(server,
     "search_tasks",
-    "Search tasks in a workspace with full task details, assignees, labels, and board info. Optionally filter by page to see only tasks linked to a specific note, and by text in the task title (query). Supports pagination with offset and limit.",
+    "Search tasks in a workspace with full task details, assignees, labels, and board info. Optionally filter by page to see only tasks linked to a specific note, and by text in the task title (query). Supports pagination with offset and limit. The response includes nextOffset; follow it until null because total includes lists and boards as well as tasks.",
     {
       workspaceId: z.string().describe("Workspace ID"),
       query: z.string().optional().describe("Only tasks whose title contains this text (case-insensitive)"),
@@ -1219,7 +1221,7 @@ export function registerCoreTools(
             {
               type: "text" as const,
               text: JSON.stringify(
-                { total: result.total, tasks: result.tasks },
+                { total: result.total, offset: result.offset, limit: result.limit, nextOffset: result.limit < result.total ? result.limit : null, tasks: result.tasks },
                 null,
                 2,
               ),

@@ -1,0 +1,345 @@
+#!/usr/bin/env node
+
+/**
+ * Fusebase Auth Script
+ *
+ * Uses Playwright with a persistent browser context to capture session cookies.
+ * On first run, opens the login page for the user to authenticate.
+ * On subsequent runs, reuses the stored session (no login needed).
+ *
+ * Usage:
+ *   npx tsx scripts/auth.ts                      # interactive (opens browser)
+ *   npx tsx scripts/auth.ts --headless            # headless (reuses stored session)
+ *   npx tsx scripts/auth.ts --host myorg.nimbusweb.me
+ *
+ * Can also be imported as a module:
+ *   import { refreshCookies } from "./scripts/auth.js";
+ *   const cookieString = await refreshCookies({ host: "yourorg.nimbusweb.me" });
+ */
+
+import { chromium, type Cookie } from "playwright";
+import * as path from "path";
+import { fileURLToPath, pathToFileURL } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// ─── Config ─────────────────────────────────────────────────────
+
+export interface AuthConfig {
+  host: string;
+  headless?: boolean;
+  timeout?: number; // max wait for login in ms (default: 120_000)
+  userDataDir?: string; // persistent browser profile path
+  envFile?: string; // path to .env file to update
+  profile?: string; // name of the agent profile, e.g. "agent-pm"
+  autoCredentials?: { email: string; password: string }; // for headless auto-login
+  proxy?: { server: string; username: string; password: string }; // SOCKS5 proxy
+}
+
+function getCryptoUrl(module = "crypto.js"): string {
+  return new URL(`./${module}`, import.meta.url).href;
+}
+
+// ─── Core ───────────────────────────────────────────────────────
+
+export async function refreshCookies(config: AuthConfig): Promise<string> {
+  const {
+    host,
+    headless = false,
+    timeout = 120_000,
+    profile,
+  } = config;
+
+  // Persistent browser profile (keeps the FuseBase login): data/browser-profiles/<profile>.
+  const userDataDir =
+    config.userDataDir ??
+    path.resolve(process.env.FUSEBASE_DATA_DIR || path.join(__dirname, "..", "data"), "browser-profiles", profile || "default");
+
+  const baseUrl = `https://${host}`;
+  const MAX_ATTEMPTS = 3;
+  const RETRY_DELAY_MS = 5_000;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      if (attempt > 1) {
+        console.error(`[auth] Retry attempt ${attempt}/${MAX_ATTEMPTS} (waiting ${RETRY_DELAY_MS / 1000}s)...`);
+        await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+      }
+
+      console.error(`[auth] Launching browser (headless=${headless})...`);
+      console.error(`[auth] Profile: ${userDataDir}`);
+      if (config.proxy) {
+        console.error(`[auth] Proxy: ${config.proxy.server}`);
+      }
+
+      const launchArgs = ["--disable-blink-features=AutomationControlled"];
+
+      const context = await chromium.launchPersistentContext(userDataDir, {
+        headless,
+        args: launchArgs,
+        viewport: { width: 1280, height: 800 },
+        // Playwright's proxy option (unlike --proxy-server) carries the relay credentials.
+        ...(config.proxy ? { proxy: config.proxy } : {}),
+      });
+
+      try {
+        const page = context.pages()[0] || (await context.newPage());
+
+        // Navigate to Fusebase
+        console.error(`[auth] Navigating to ${baseUrl}...`);
+
+        await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+
+        // Wait a moment for redirects
+        await page.waitForTimeout(2000);
+
+        const currentUrl = page.url();
+        console.error(`[auth] Current URL: ${currentUrl}`);
+
+        if (currentUrl.includes("/auth")) {
+          if (config.autoCredentials) {
+            // Auto-fill login form
+            console.error("[auth] Auto-login: filling credentials...");
+
+            // Look for email input — try common selectors
+            const emailInput = page.locator('input[type="email"], input[name="email"], input[placeholder*="mail" i]').first();
+            await emailInput.waitFor({ state: "visible", timeout: 10_000 });
+            await emailInput.fill(config.autoCredentials.email);
+
+            // Look for password input
+            const passwordInput = page.locator('input[type="password"]').first();
+            await passwordInput.waitFor({ state: "visible", timeout: 10_000 });
+            await passwordInput.fill(config.autoCredentials.password);
+
+            // Submit — try common button patterns
+            const submitBtn = page.locator('button[type="submit"], button:has-text("Sign in"), button:has-text("Log in"), button:has-text("Continue")').first();
+            await submitBtn.click();
+
+            console.error("[auth] Credentials submitted — waiting for redirect...");
+
+            // Debug: wait a moment then check what happened
+            await page.waitForTimeout(5000);
+            console.error(`[auth] URL after submit: ${page.url()}`);
+
+            // Take diagnostic screenshot
+            const screenshotPath = path.resolve(import.meta.dirname ?? ".", "..", "data", "auth-debug.png");
+            await page.screenshot({ path: screenshotPath, fullPage: true });
+            console.error(`[auth] Screenshot saved: ${screenshotPath}`);
+          } else {
+            // Manual login
+            console.error("[auth] Login required — waiting for user to authenticate...");
+            console.error("[auth] Please log in via the browser window.");
+          }
+
+          // Wait for navigation away from /auth/ (login complete)
+          await page.waitForURL((url) => !url.toString().includes("/auth"), {
+            timeout,
+          });
+
+          console.error("[auth] Login detected! Capturing cookies...");
+          // Give the app a moment to fully load and set all cookies
+          await page.waitForTimeout(3000);
+        } else {
+          console.error("[auth] Already logged in! Capturing cookies...");
+        }
+
+        // Capture all cookies for this domain
+        const cookies = await context.cookies(baseUrl);
+        console.error(`[auth] Captured ${cookies.length} cookies`);
+
+        if (cookies.length === 0) {
+          throw new Error("No cookies captured — authentication may have failed");
+        }
+
+        // Build cookie string
+        const cookieString = cookies
+          .map((c: Cookie) => `${c.name}=${c.value}`)
+          .join("; ");
+
+        // Save encrypted cookie to data/cookie.enc
+        const cookieMeta = cookies.map((c: Cookie) => ({
+          name: c.name,
+          domain: c.domain,
+          expires: c.expires,
+        }));
+
+        // Dynamic import to avoid circular deps (scripts/ → src/)
+        const cryptoUrl = getCryptoUrl();
+        const { saveEncryptedCookie } = await import(cryptoUrl);
+        saveEncryptedCookie(
+          cookieString,
+          {
+            host,
+            cookieCount: cookies.length,
+            cookies: cookieMeta,
+          },
+          profile
+        );
+        console.error(`[auth] Cookie saved encrypted (profile: ${profile || "default"})`);
+
+        return cookieString;
+      } finally {
+        await context.close();
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error(`[auth] Attempt ${attempt}/${MAX_ATTEMPTS} failed: ${msg}`);
+
+      if (attempt === MAX_ATTEMPTS) {
+        throw new Error(`Auth failed after ${MAX_ATTEMPTS} attempts. Last error: ${msg}`, { cause: error });
+      }
+    }
+  }
+
+  // Unreachable, but TypeScript needs it
+  throw new Error("Auth failed: exhausted all retry attempts");
+}
+
+// ─── Helpers ────────────────────────────────────────────────────
+
+/**
+ * Check whether the stored cookie is likely still fresh.
+ * Returns true if the file exists and no cookies have expired.
+ */
+export async function isCookieFresh(profile?: string): Promise<boolean> {
+  try {
+    const cryptoUrl = getCryptoUrl();
+    const { isEncryptedCookieFresh } = await import(cryptoUrl);
+    return isEncryptedCookieFresh(profile);
+  } catch {
+    return false;
+  }
+}
+
+// ─── CLI Entry Point ────────────────────────────────────────────
+
+export async function main() {
+  if (process.argv.includes("--help")) { console.log("fusebase-auth [--profile=name] [--host=tenant] [--headless]: authenticate the selected profile; browser installation is explicit."); return; }
+  // Load .env, the 1Password Environment and op:// references (e.g. FUSEBASE_SECRET_KEY),
+  // so files saved here are encrypted with the same key the server uses.
+  const { loadEnvironment } = await import(getCryptoUrl("config.js"));
+  await loadEnvironment();
+
+  const args = process.argv.slice(2);
+
+  // Parse --key=value or --key value
+  function getArg(name: string): string | undefined {
+    const eqArg = args.find((a: string) => a.startsWith(`${name}=`));
+    if (eqArg) return eqArg.split("=")[1];
+    const idx = args.indexOf(name);
+    return idx !== -1 && args[idx + 1] ? args[idx + 1] : undefined;
+  }
+
+  const autoMode = args.includes("--auto");
+  const noProxy = args.includes("--no-proxy");
+  const headless = autoMode || args.includes("--headless");
+
+  let host = getArg("--host") || process.env.FUSEBASE_HOST || "";
+  const profile = getArg("--profile");
+  const token = getArg("--token");
+  const gateToken = getArg("--gate-token");
+  const dashboardsToken = getArg("--dashboards-token");
+
+  // Load credential store — use URL href for ESM compatibility on Windows
+  const cryptoUrl = getCryptoUrl();
+
+  // Direct Token Authentication Mode
+  if (token || gateToken || dashboardsToken) {
+    const bridgeUrl = new URL("../src/gate-bridge.js", import.meta.url).href;
+    const { FusebaseGateBridge } = await import(bridgeUrl);
+    const bridge = new FusebaseGateBridge({
+      token,
+      gateToken,
+      dashboardsToken,
+    });
+
+    console.error("[auth] Connecting to FuseBase Gate & Dashboards via token...");
+    try {
+      const identity = await bridge.init();
+      console.error(`[auth] ✅ Token verified successfully!`);
+      console.error(`[auth] Organization: ${identity.orgId}`);
+      console.error(`[auth] Domain:       ${identity.orgDomain || "cloud"}`);
+      console.error(`[auth] User ID:      ${identity.userId || "unknown"}`);
+      console.error(`[auth] Permissions:  ${identity.permissions.length} operations granted`);
+
+      const { saveEncryptedToken } = await import(cryptoUrl);
+      saveEncryptedToken({
+        token,
+        gateToken,
+        dashboardsToken,
+        orgId: identity.orgId,
+        host: identity.orgDomain,
+      }, profile);
+
+      console.log(`AUTHENTICATED_TOKEN: ${identity.orgId} (${identity.orgDomain || "cloud"})`);
+      process.exit(0);
+    } catch (err: any) {
+      console.error(`[auth] ❌ Token verification failed: ${err.message}`);
+      process.exit(1);
+    }
+  }
+
+  let autoCredentials: { email: string; password: string } | undefined;
+  let proxyForBrowser: { server: string; username: string; password: string } | undefined;
+  let relayStop: (() => void) | undefined;
+
+  if (autoMode || !noProxy) {
+    const { loadCredentialStore } = await import(cryptoUrl);
+    const store = loadCredentialStore();
+
+    // Use stored host if not set via CLI/env
+    if (!host && store?.host) {
+      host = store.host;
+    }
+
+    if (autoMode) {
+      if (!profile) {
+        console.error("[auth] --auto requires --profile. Example: --auto --profile=agent-pm");
+        process.exit(1);
+      }
+      if (!store?.credentials?.[profile!]) {
+        console.error(`[auth] No credentials found for profile '${profile}'.`);
+        console.error("[auth] Run 'node scripts/setup-credentials.mjs' first.");
+        process.exit(1);
+      }
+      autoCredentials = store.credentials[profile!]!;
+      console.error(`[auth] Auto-login mode for ${profile} (${autoCredentials!.email})`);
+    }
+
+    // Start local proxy relay if proxy config exists
+    if (!noProxy && store?.proxy) {
+      const relayUrl = new URL("../src/proxy-relay.js", import.meta.url).href;
+      const { startProxyRelay } = await import(relayUrl);
+      const relay = await startProxyRelay(store.proxy);
+      relayStop = relay.stop;
+      // Give Chromium the local relay and its per-process credentials
+      proxyForBrowser = {
+        server: `http://127.0.0.1:${relay.port}`,
+        username: relay.username,
+        password: relay.password,
+      };
+    }
+  }
+
+  try {
+    const cookie = await refreshCookies({ host, headless, profile, autoCredentials, proxy: proxyForBrowser });
+    console.error(`[auth] Success! Cookie string length: ${cookie.length}`);
+    // Output cookie to stdout for piping
+    console.log(cookie);
+  } catch (error) {
+    console.error(
+      "[auth] Failed:",
+      error instanceof Error ? error.message : error,
+    );
+    process.exit(1);
+  } finally {
+    // Always stop the relay
+    if (relayStop) relayStop();
+  }
+}
+
+// Importing this module from the server must not start a second CLI login or
+// write a cookie to the MCP transport. Only direct CLI invocation runs main.
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  void main();
+}

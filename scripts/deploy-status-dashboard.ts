@@ -3,13 +3,17 @@
  *
  * Synchronizes live project metrics, builds the React/Vite dashboard SPA,
  * deploys the application to the FuseBase Cloud via the FuseBase CLI,
- * and verifies that the production URL is healthy and responding with HTTP 200.
+ * and verifies the exact live manifest and rendered application in Chromium.
  *
  * Usage:
  *   npm run deploy:status
  */
 
-import { execSync } from "child_process";
+import { openVerificationBrowser, verifyDashboardBrowser } from "./lib/dashboard-browser.js";
+import { randomUUID } from "node:crypto";
+import { sourceIdentity, evidenceState, type EvidenceRun } from "./lib/evidence.js";
+import { verifyRelease, type ReleaseManifest } from "./lib/deployment-verification.js";
+import { execSync, execFileSync } from "child_process";
 import * as path from "path";
 import { fileURLToPath } from "url";
 
@@ -48,6 +52,17 @@ async function main() {
     stdio: "inherit",
   });
 
+  const source = sourceIdentity(rootDir);
+  if (source.dirty) throw new Error("Deployment requires a clean committed source tree");
+  const evidence = JSON.parse(fs.readFileSync(path.join(rootDir, ".cache/test-results.json"), "utf8")) as EvidenceRun;
+  const required = ["Typecheck (src, scripts, tests)", "Lint", "Build", "Unit tests", "Tool schema & README audit"];
+  if (evidenceState(evidence, source) !== "current" || required.some(name => !evidence.stages[name]?.passed)) throw new Error("Deployment requires current, complete, passing offline evidence for this exact source");
+  const branch = execFileSync("git", ["branch", "--show-current"], { cwd: rootDir, encoding: "utf8" }).trim();
+  const remote = execFileSync("git", ["ls-remote", "origin", `refs/heads/${branch}`], { cwd: rootDir, encoding: "utf8" }).trim().split(/\s+/)[0];
+  if (!branch || remote !== source.commit) throw new Error("Push this exact commit before deploying");
+  const release: ReleaseManifest = { commit: source.commit, sourceHash: source.sourceHash, buildId: randomUUID(), evidenceRunId: evidence.runId ?? null };
+  fs.mkdirSync(path.join(dashboardSpaDir, "public"), { recursive: true });
+  fs.writeFileSync(path.join(dashboardSpaDir, "public/release.json"), JSON.stringify(release));
   // Step 2: Build dashboard SPA
   console.log("\n[2/4] Building production React/Vite bundle in apps/status-dashboard...");
   execSync("npm run build", {
@@ -55,29 +70,23 @@ async function main() {
     stdio: "inherit",
   });
 
-  // Step 3: Deploy to FuseBase Cloud
-  console.log("\n[3/4] Deploying to FuseBase Cloud (fusebase-mcp.thefusebase.app)...");
-  execSync("fusebase deploy", {
-    cwd: appDir,
-    stdio: "inherit",
-  });
-
-  // Step 4: Healthcheck live URL
-  console.log("\n[4/4] Verifying live cloud deployment health...");
-  const targetUrl = "https://fusebase-mcp.thefusebase.app/";
+  execSync("npm run test:dashboard", { cwd: rootDir, stdio: "inherit" });
+  const browser = await openVerificationBrowser();
   try {
-    const res = await fetch(targetUrl);
-    if (!res.ok) {
-      throw new Error(`Target URL returned HTTP ${res.status} ${res.statusText}`);
-    }
-    const html = await res.text();
-    if (!html.includes("<title>")) {
-      throw new Error("Target response missing HTML title tag");
-    }
-    console.log(`✅ Live URL Verified: ${targetUrl} (HTTP ${res.status} ${res.statusText}, ${html.length} bytes)`);
-  } catch (err: any) {
-    console.error(`⚠️ Healthcheck warning: ${err.message}`);
-  }
+    // Step 3: Deploy to FuseBase Cloud
+    console.log("\n[3/4] Deploying to FuseBase Cloud (fusebase-mcp.thefusebase.app)...");
+    execSync("fusebase deploy", {
+      cwd: appDir,
+      stdio: "inherit",
+    });
+
+    // Step 4: Healthcheck live URL
+    console.log("\n[4/4] Verifying live cloud deployment health...");
+    const targetUrl = "https://fusebase-mcp.thefusebase.app/";
+    await verifyRelease(targetUrl, release);
+    await verifyDashboardBrowser(browser, targetUrl, source.sourceHash);
+    console.log(`Verified release ${release.buildId} and browser rendering at ${targetUrl}`);
+  } finally { await browser.close(); }
 
   console.log("\n================================================================================");
   console.log("🎉 LIVE STATUS DASHBOARD SUCCESSFULLY UPDATED & DEPLOYED!");

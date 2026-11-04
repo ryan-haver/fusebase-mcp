@@ -1,28 +1,74 @@
 name: CI
-
 on:
   push:
     branches: [master]
   pull_request:
-
 permissions:
   contents: read
-
 jobs:
   offline:
-    name: Offline checks (Node ${{ matrix.node }})
-    runs-on: ubuntu-latest
+    name: Offline (${{ matrix.os }}, Node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        node: [22, 24]
+        include:
+          - { os: ubuntu-latest, node: '22.19.0' }
+          - { os: windows-latest, node: '22.19.0' }
+          - { os: ubuntu-latest, node: '24' }
+          - { os: ubuntu-latest, node: '26' }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
           cache: npm
-      # --ignore-scripts skips the Playwright browser download and the prepare build;
-      # the runner builds explicitly.
       - run: npm ci --ignore-scripts
-      - run: npx tsx scripts/test-all.ts --offline
+      - run: npm run test:all -- --offline
+      - run: npm run test:package
+  dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22.19.0'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm ci --ignore-scripts
+        working-directory: apps/client-portal-dashboard
+      - run: npm ci --ignore-scripts
+        working-directory: apps/client-portal-dashboard/apps/status-dashboard
+      - run: npm run lint && npm run build
+        working-directory: apps/client-portal-dashboard/apps/status-dashboard
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:dashboard
+  dependencies:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        directory: ['.', 'apps/client-portal-dashboard', 'apps/client-portal-dashboard/apps/status-dashboard']
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22.19.0'
+      - run: npm audit --package-lock-only --audit-level=high
+        working-directory: ${{ matrix.directory }}
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: docker build -t fusebase-mcp:ci .
+      - run: node scripts/test-container.mjs fusebase-mcp:ci
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: 'false'
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: 'false'

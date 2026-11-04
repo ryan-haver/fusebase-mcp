@@ -1,5 +1,10 @@
 # Token-only tool coverage
 
+> Historical measured coverage. The 2026-11-03 remediation changes the runner to stop on uncertain
+> token mutations instead of replaying them with cookie credentials. These figures are not a fresh
+> validation of that changed runner. A new measurement must record its source identity and cleanup evidence.
+
+
 Measured 2026-11-03 against the sandbox workspace with only Gate and Dashboards tokens (no session cookie). Suites: token-direct-connection, mcp-e2e, block-regression, token-parity, database-e2e, data-validation.
 
 - 177 tools; 156 act on FuseBase; 150 of those were exercised.

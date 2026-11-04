@@ -1,3 +1,4 @@
+import { collectTaskPages } from "./task-pagination.js";
 /**
  * Fusebase HTTP client — wraps all API calls to the Fusebase platform.
  * Auth is cookie-based (browser session cookies).
@@ -24,7 +25,10 @@ import {
   type GateWorkspace,
 } from "./gate-bridge.js";
 import { apiPath } from "./url-path.js";
+import { cachePath, appendApiLog, atomicWrite } from "./runtime-data.js";
+import { getDataDir } from "./crypto.js";
 import { parseAgentStream } from "./agent-stream.js";
+import { publicErrorMessage, redactDiagnosticUrl, redactUpstreamDetail } from "./error-redaction.js";
 import { randomId, LOWER_ALPHANUMERIC } from "./ids.js";
 
 /** Column keys are 8-char nanoid-style ids that may include "_" and "-". */
@@ -87,9 +91,6 @@ import type {
 } from "./types.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = path.resolve(__dirname, "..", "data");
-const LOG_PATH = path.join(DATA_DIR, "api_log.jsonl");
-const CACHE_PATH = path.join(DATA_DIR, "workspace_cache.json");
 
 /** Default timeouts (ms) */
 const TIMEOUT_GET = 10_000;
@@ -243,7 +244,7 @@ export class FusebaseClient {
     this.autoRefresh = config.autoRefresh ?? true;
     this.profile = config.profile;
     this.sessionId = crypto.randomUUID().replace(/-/g, "");
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.mkdirSync(getDataDir(), { recursive: true });
     if (config.proxyRelayUrl) {
       this.proxyDispatcher = new ProxyAgent(config.proxyRelayUrl);
       console.error("[client] Using local proxy relay");
@@ -282,7 +283,7 @@ export class FusebaseClient {
       }
     } catch (err) {
       // Automation calls will then fail with 401 and a clear error; log the root cause (COR-16).
-      console.error(`[client] automation auth failed: ${err instanceof Error ? err.message : err}`);
+      console.error(`[client] automation auth failed: ${publicErrorMessage(err)}`);
     }
     return {
       token: this.automationToken || "",
@@ -379,7 +380,7 @@ export class FusebaseClient {
     if (isLoginRedirect(res)) {
       this.logApiCall(method, path, 401, elapsed, 0, false);
       throw new FusebaseApiError(
-        `Fusebase API error: 401 session expired (redirected to the login page) — ${url}`,
+        `Fusebase API error: 401 session expired (redirected to the login page) — ${redactDiagnosticUrl(url)}`,
         401,
         url,
         "",
@@ -389,7 +390,7 @@ export class FusebaseClient {
       const text = await res.text().catch(() => "");
       this.logApiCall(method, path, res.status, elapsed, text.length, false);
       throw new FusebaseApiError(
-        `Fusebase API error: ${res.status} ${res.statusText} — ${url}\n${text}`,
+        `Fusebase API error: ${res.status} ${redactUpstreamDetail(res.statusText)} — ${redactDiagnosticUrl(url)}\n${redactUpstreamDetail(text)}`,
         res.status,
         url,
         text,
@@ -479,13 +480,13 @@ export class FusebaseClient {
       const entry = JSON.stringify({
         ts: new Date().toISOString(),
         method,
-        path: apiPath.substring(0, 150),
+        path: redactDiagnosticUrl(apiPath).substring(0, 150),
         status,
         ms: elapsedMs,
         bytes: responseSize,
         ok: success,
       });
-      fs.appendFileSync(LOG_PATH, entry + "\n");
+      appendApiLog(entry);
     } catch {
       // Logging should never crash the server
     }
@@ -499,8 +500,8 @@ export class FusebaseClient {
   ): void {
     try {
       let cache: Record<string, unknown> = {};
-      if (fs.existsSync(CACHE_PATH)) {
-        cache = JSON.parse(fs.readFileSync(CACHE_PATH, "utf-8"));
+      if (fs.existsSync(cachePath(this.host, this.orgId, this.profile))) {
+        cache = JSON.parse(fs.readFileSync(cachePath(this.host, this.orgId, this.profile), "utf-8"));
       }
       cache.lastUpdated = new Date().toISOString();
       cache.orgId = this.orgId;
@@ -516,7 +517,7 @@ export class FusebaseClient {
         };
       }
       cache.workspaces = wsMap;
-      fs.writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2));
+      atomicWrite(cachePath(this.host, this.orgId, this.profile), JSON.stringify(cache, null, 2));
     } catch {
       // Cache update should never crash the server
     }
@@ -529,8 +530,8 @@ export class FusebaseClient {
   ): void {
     try {
       let cache: Record<string, unknown> = {};
-      if (fs.existsSync(CACHE_PATH)) {
-        cache = JSON.parse(fs.readFileSync(CACHE_PATH, "utf-8"));
+      if (fs.existsSync(cachePath(this.host, this.orgId, this.profile))) {
+        cache = JSON.parse(fs.readFileSync(cachePath(this.host, this.orgId, this.profile), "utf-8"));
       }
       const wsMap = (cache.workspaces as Record<string, Record<string, unknown>>) || {};
       if (!wsMap[workspaceId]) wsMap[workspaceId] = {};
@@ -541,7 +542,7 @@ export class FusebaseClient {
       }));
       wsMap[workspaceId].foldersUpdated = new Date().toISOString();
       cache.workspaces = wsMap;
-      fs.writeFileSync(CACHE_PATH, JSON.stringify(cache, null, 2));
+      atomicWrite(cachePath(this.host, this.orgId, this.profile), JSON.stringify(cache, null, 2));
     } catch {
       // Cache update should never crash the server
     }
@@ -579,14 +580,7 @@ export class FusebaseClient {
     }
 
     try {
-      // Dynamic import — scripts/ is outside the TS rootDir (src/)
-      // so we resolve the path at runtime (supporting both compiled JS and tsx TS)
-      let authModule: any;
-      try {
-        authModule = await import(/* webpackIgnore: true */ new URL("../scripts/auth.js", import.meta.url).href);
-      } catch {
-        authModule = await import(/* webpackIgnore: true */ new URL("../scripts/auth.ts", import.meta.url).href);
-      }
+      const authModule = await import("./auth.js");
       const newCookie = await authModule.refreshCookies({
         host: this.host,
         headless: true, // try headless first (reuse stored session)
@@ -606,7 +600,7 @@ export class FusebaseClient {
     } catch (error) {
       console.error(
         "[client] Headless auth refresh failed:",
-        error instanceof Error ? error.message : error,
+        publicErrorMessage(error),
       );
     }
     return false;
@@ -618,12 +612,7 @@ export class FusebaseClient {
    */
   async refreshAuthInteractive(): Promise<boolean> {
     try {
-      let authModule: any;
-      try {
-        authModule = await import(/* webpackIgnore: true */ new URL("../scripts/auth.js", import.meta.url).href);
-      } catch {
-        authModule = await import(/* webpackIgnore: true */ new URL("../scripts/auth.ts", import.meta.url).href);
-      }
+      const authModule = await import("./auth.js");
       const newCookie = await authModule.refreshCookies({
         host: this.host,
         headless: false,
@@ -636,7 +625,7 @@ export class FusebaseClient {
     } catch (error) {
       console.error(
         "[client] Interactive auth refresh failed:",
-        error instanceof Error ? error.message : error,
+        publicErrorMessage(error),
       );
     }
     return false;
@@ -655,7 +644,7 @@ export class FusebaseClient {
         return workspaces;
       } catch (err: any) {
         if (!this.gateBridge?.hasGate) throw err;
-        console.warn(`[client] Web API listWorkspaces failed (${err.message}), falling back to Gate bridge...`);
+        console.warn(`[client] Web API listWorkspaces failed (${publicErrorMessage(err)}), falling back to Gate bridge...`);
       }
     }
     if (this.gateBridge?.hasGate) {
@@ -668,7 +657,7 @@ export class FusebaseClient {
         this.updateWorkspaceCache(workspaces);
         return workspaces;
       } catch (err: any) {
-        console.error(`[client] Gate fallback listWorkspaces failed: ${err.message}`);
+        console.error(`[client] Gate fallback listWorkspaces failed: ${publicErrorMessage(err)}`);
         throw err;
       }
     }
@@ -729,7 +718,7 @@ export class FusebaseClient {
         );
       } catch (err: any) {
         if (!this.gateBridge?.hasGate) throw err;
-        console.warn(`[client] Web API listPages failed (${err.message}), falling back to Gate bridge...`);
+        console.warn(`[client] Web API listPages failed (${publicErrorMessage(err)}), falling back to Gate bridge...`);
       }
     }
     if (this.gateBridge?.hasGate) {
@@ -747,7 +736,7 @@ export class FusebaseClient {
         const limit = options?.limit ?? 100;
         return { items: notes.slice(offset, offset + limit), total: notes.length };
       } catch (err: any) {
-        console.error(`[client] Gate fallback listPages failed: ${err.message}`);
+        console.error(`[client] Gate fallback listPages failed: ${publicErrorMessage(err)}`);
         throw err;
       }
     }
@@ -763,7 +752,7 @@ export class FusebaseClient {
         );
       } catch (err: any) {
         if (!this.gateBridge?.hasGate) throw err;
-        console.warn(`[client] Web API getPage failed (${err.message}), falling back to Gate bridge...`);
+        console.warn(`[client] Web API getPage failed (${publicErrorMessage(err)}), falling back to Gate bridge...`);
       }
     }
     if (this.gateBridge?.hasGate) {
@@ -773,7 +762,7 @@ export class FusebaseClient {
         if (!note) throw new Error(`Gate getWorkspaceNote returned no note for ${noteId}`);
         return gateNoteToFusebase(note, workspaceId);
       } catch (err: any) {
-        console.error(`[client] Gate fallback getPage failed: ${err.message}`);
+        console.error(`[client] Gate fallback getPage failed: ${publicErrorMessage(err)}`);
         throw err;
       }
     }
@@ -816,7 +805,7 @@ export class FusebaseClient {
       } catch (err: any) {
         // Only retry through Gate if the web API provably did not create the page.
         if (!this.gateBridge?.hasGate || !isSafeToRetryElsewhere(err)) throw err;
-        console.warn(`[client] Web API createPage failed (${err.message}), falling back to Gate bridge...`);
+        console.warn(`[client] Web API createPage failed (${publicErrorMessage(err)}), falling back to Gate bridge...`);
       }
     }
     if (this.gateBridge?.hasGate) {
@@ -832,7 +821,7 @@ export class FusebaseClient {
         if (!note) throw new Error(`Gate createWorkspaceNote returned no note id: ${JSON.stringify(res)?.slice(0, 200)}`);
         return gateNoteToFusebase(note, workspaceId);
       } catch (err: any) {
-        console.error(`[client] Gate fallback createPage failed: ${err.message}`);
+        console.error(`[client] Gate fallback createPage failed: ${publicErrorMessage(err)}`);
         throw err;
       }
     }
@@ -866,7 +855,7 @@ export class FusebaseClient {
       } catch (err: any) {
         // Only retry through Gate if the web API provably did not create the folder.
         if (!this.gateBridge?.hasGate || !isSafeToRetryElsewhere(err)) throw err;
-        console.warn(`[client] Web API createFolder failed (${err.message}), falling back to Gate bridge...`);
+        console.warn(`[client] Web API createFolder failed (${publicErrorMessage(err)}), falling back to Gate bridge...`);
       }
     }
     if (this.gateBridge?.hasGate) {
@@ -882,7 +871,7 @@ export class FusebaseClient {
         if (!folder) throw new Error(`Gate createWorkspaceNoteFolder returned no folder id: ${JSON.stringify(res)?.slice(0, 200)}`);
         return gateNoteToFusebase(folder, workspaceId, "folder");
       } catch (err: any) {
-        console.error(`[client] Gate fallback createFolder failed: ${err.message}`);
+        console.error(`[client] Gate fallback createFolder failed: ${publicErrorMessage(err)}`);
         throw err;
       }
     }
@@ -982,7 +971,7 @@ export class FusebaseClient {
         return folders;
       } catch (err: any) {
         if (!this.gateBridge?.hasGate) throw err;
-        console.warn(`[client] Web API listFolders failed (${err.message}), falling back to Gate bridge...`);
+        console.warn(`[client] Web API listFolders failed (${publicErrorMessage(err)}), falling back to Gate bridge...`);
       }
     }
     if (this.gateBridge?.hasGate) {
@@ -996,7 +985,7 @@ export class FusebaseClient {
         this.updateFolderCache(workspaceId, folders);
         return folders;
       } catch (err: any) {
-        console.error(`[client] Gate fallback listFolders failed: ${err.message}`);
+        console.error(`[client] Gate fallback listFolders failed: ${publicErrorMessage(err)}`);
         throw err;
       }
     }
@@ -1230,18 +1219,14 @@ export class FusebaseClient {
   ): Promise<FusebaseTaskSearchResult> {
     const query = options?.query?.trim().toLowerCase();
     if (query) {
-      const matches: FusebaseTask[] = [];
-      let first: FusebaseTaskSearchResult | undefined;
-      for (let offset = 0; offset < 5000; offset += 100) {
-        const page = await this.searchTasks(workspaceId, { noteId: options?.noteId, offset, limit: 100 });
-        first ??= page;
-        const tasks = page.tasks ?? [];
-        for (const t of tasks) if (String(t.title ?? "").toLowerCase().includes(query)) matches.push(t);
-        if (tasks.length < 100 || offset + 100 >= (page.total ?? 0)) break;
-      }
+      const { first, tasks } = await collectTaskPages(
+        (offset, limit) => this.searchTasks(workspaceId, { noteId: options?.noteId, offset, limit }),
+        (task: FusebaseTask) => String(task.globalId ?? task.id ?? ""),
+      );
+      const matches = tasks.filter(task => String(task.title ?? "").toLowerCase().includes(query));
       const offset = options?.offset ?? 0;
       const limit = options?.limit ?? 50;
-      return { ...(first as FusebaseTaskSearchResult), offset, limit, total: matches.length, tasks: matches.slice(offset, offset + limit) };
+      return { ...first, offset, limit: Math.min(offset + limit, matches.length), total: matches.length, tasks: matches.slice(offset, offset + limit) };
     }
     const opts = { offset: 0, limit: 50, ...options };
     const filters: Record<string, unknown> = {
@@ -1761,7 +1746,7 @@ export class FusebaseClient {
           return md;
         }
       } catch (err: any) {
-        console.error(`[client] Gate fallback getPageContent failed: ${err.message}`);
+        console.error(`[client] Gate fallback getPageContent failed: ${publicErrorMessage(err)}`);
         throw err;
       }
     }
@@ -1801,7 +1786,7 @@ export class FusebaseClient {
         });
         return { success: true };
       } catch (err: any) {
-        console.error(`[client] Gate fallback appendPageContent failed: ${err.message}`);
+        console.error(`[client] Gate fallback appendPageContent failed: ${publicErrorMessage(err)}`);
         return { success: false, error: err.message };
       }
     }
@@ -4100,7 +4085,7 @@ export class FusebaseClient {
         const res = await this.gateBridge.toolCall("listIsolatedStores", { orgId: org });
         return (res?.data?.stores || res?.stores || []) as IsolatedStore[];
       } catch (err: any) {
-        console.error(`[client] gateBridge.listIsolatedStores fallback: ${err.message}`);
+        console.error(`[client] gateBridge.listIsolatedStores fallback: ${publicErrorMessage(err)}`);
       }
     }
     return this.request<IsolatedStore[]>(
@@ -4144,7 +4129,7 @@ export class FusebaseClient {
         return (res?.data?.store || res?.store || res) as IsolatedStore;
       } catch (err: any) {
         if (!isSafeToRetryElsewhere(err)) throw err;
-        console.error(`[client] gateBridge.createIsolatedStore fallback: ${err.message}`);
+        console.error(`[client] gateBridge.createIsolatedStore fallback: ${publicErrorMessage(err)}`);
       }
     }
     return this.request<IsolatedStore>(
@@ -4185,7 +4170,7 @@ export class FusebaseClient {
         });
         return (res?.data?.result ?? res?.result ?? res?.data ?? res) as IsolatedStoreSqlResult;
       } catch (err: any) {
-        console.error(`[client] gateBridge.queryIsolatedStoreSql fallback: ${err.message}`);
+        console.error(`[client] gateBridge.queryIsolatedStoreSql fallback: ${publicErrorMessage(err)}`);
       }
     }
     return this.request<IsolatedStoreSqlResult>(
@@ -4221,7 +4206,7 @@ export class FusebaseClient {
         return (res?.data?.result ?? res?.result ?? res?.data ?? res) as { rowCount: number; message?: string };
       } catch (err: any) {
         if (!isSafeToRetryElsewhere(err)) throw err;
-        console.error(`[client] gateBridge.executeIsolatedStoreSql fallback: ${err.message}`);
+        console.error(`[client] gateBridge.executeIsolatedStoreSql fallback: ${publicErrorMessage(err)}`);
       }
     }
     return this.request<{ rowCount: number; message?: string }>(
@@ -4248,7 +4233,7 @@ export class FusebaseClient {
         });
         return (res?.data?.tables || res?.tables || []) as Array<{ tableName: string; schema?: string }>;
       } catch (err: any) {
-        console.error(`[client] gateBridge.listIsolatedStoreSqlTables fallback: ${err.message}`);
+        console.error(`[client] gateBridge.listIsolatedStoreSqlTables fallback: ${publicErrorMessage(err)}`);
       }
     }
     return this.request<Array<{ tableName: string; schema?: string }>>(
@@ -4300,7 +4285,7 @@ export class FusebaseClient {
         });
         return (res?.data || res) as { rows: Array<Record<string, unknown>>; total?: number };
       } catch (err: any) {
-        console.error(`[client] gateBridge.selectIsolatedStoreSqlRows fallback: ${err.message}`);
+        console.error(`[client] gateBridge.selectIsolatedStoreSqlRows fallback: ${publicErrorMessage(err)}`);
       }
     }
     return this.request<{ rows: Array<Record<string, unknown>>; total?: number }>(
@@ -4342,7 +4327,7 @@ export class FusebaseClient {
         return (res?.data || res) as { success: boolean; row?: Record<string, unknown> };
       } catch (err: any) {
         if (!isSafeToRetryElsewhere(err)) throw err;
-        console.error(`[client] gateBridge.insertIsolatedStoreSqlRow fallback: ${err.message}`);
+        console.error(`[client] gateBridge.insertIsolatedStoreSqlRow fallback: ${publicErrorMessage(err)}`);
       }
     }
     return this.request<{ success: boolean; row?: Record<string, unknown> }>(
@@ -4377,7 +4362,7 @@ export class FusebaseClient {
         return (res?.data || res) as { success: boolean; insertedCount: number };
       } catch (err: any) {
         if (!isSafeToRetryElsewhere(err)) throw err;
-        console.error(`[client] gateBridge.batchInsertIsolatedStoreSqlRows fallback: ${err.message}`);
+        console.error(`[client] gateBridge.batchInsertIsolatedStoreSqlRows fallback: ${publicErrorMessage(err)}`);
       }
     }
     return this.request<{ success: boolean; insertedCount: number }>(
@@ -4411,7 +4396,7 @@ export class FusebaseClient {
         return (res?.data || res) as IsolatedStoreMigrationResult;
       } catch (err: any) {
         if (!isSafeToRetryElsewhere(err)) throw err;
-        console.error(`[client] gateBridge.applyIsolatedStoreSqlMigrations fallback: ${err.message}`);
+        console.error(`[client] gateBridge.applyIsolatedStoreSqlMigrations fallback: ${publicErrorMessage(err)}`);
       }
     }
     return this.request<IsolatedStoreMigrationResult>(
@@ -4646,11 +4631,13 @@ export class FusebaseClient {
   // ─── Automations (ActivePieces) ────────────────────────────────
 
   /** List automation flows for a project (auto-resolves projectId) */
-  async listAutomationFlows(projectId?: string): Promise<unknown> {
+  async listAutomationFlows(projectId?: string, cursor?: string): Promise<unknown> {
     const auth = await this.ensureAutomationAuth();
     const effectiveProjectId = projectId || auth.projectId;
-    const qs = effectiveProjectId ? `?projectId=${encodeURIComponent(effectiveProjectId)}` : "";
-    return this.request<unknown>(`/automation/api/v1/flows${qs}`);
+    const qs = new URLSearchParams();
+    if (effectiveProjectId) qs.set("projectId", effectiveProjectId);
+    if (cursor) qs.set("cursor", cursor);
+    return this.request<unknown>(`/automation/api/v1/flows${qs.size ? "?" + qs : ""}`);
   }
 
   /** Get details of a specific automation flow */
@@ -4758,7 +4745,7 @@ export class FusebaseClient {
   }
 
   /** List automation workflow folders */
-  async listAutomationFolders(): Promise<{
+  async listAutomationFolders(cursor?: string): Promise<{
     data: Array<{
       id: string;
       projectId: string;
@@ -4769,7 +4756,7 @@ export class FusebaseClient {
     }>;
   }> {
     await this.ensureAutomationAuth();
-    return this.request("/automation/api/v1/folders");
+    return this.request(`/automation/api/v1/folders${cursor ? "?cursor=" + encodeURIComponent(cursor) : ""}`);
   }
 
   /**

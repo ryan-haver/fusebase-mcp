@@ -1,7 +1,7 @@
 # FuseBase MCP Server
 
 [![Version](https://img.shields.io/badge/Version-v2.1.0-3b82f6?style=for-the-badge)](https://github.com/ryan-haver/fusebase-mcp)
-[![Live Status Dashboard](https://img.shields.io/badge/Live%20Status-Operational-10b981?style=for-the-badge&logo=googlecloud&logoColor=white)](https://fusebase-mcp.thefusebase.app/)
+[![Live Status Dashboard](https://img.shields.io/badge/Live%20Status-Release%20verification%20pending-f59e0b?style=for-the-badge&logo=googlecloud&logoColor=white)](https://fusebase-mcp.thefusebase.app/)
 [![MCP Tools](https://img.shields.io/badge/MCP%20Tools-177%20Registered-6366f1?style=for-the-badge)](docs/UPSTREAM-COMPATIBILITY.md)
 [![Offline Checks](https://img.shields.io/badge/Offline%20Checks-Passing-10b981?style=for-the-badge)](docs/UPSTREAM-COMPATIBILITY.md)
 [![Docker Ready](https://img.shields.io/badge/Docker-Stdio%20%26%20SSE-2496ed?style=for-the-badge&logo=docker&logoColor=white)](https://github.com/ryan-haver/fusebase-mcp)
@@ -21,8 +21,11 @@ An unofficial [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) s
 
 ## Validation status
 
-The November 3, 2026 validation passed all five offline stages and **468 unit tests**.
-Focused live checks verified automation outputs, account restoration, hosted deployment/logs,
+The November 4, 2026 remediation run passed **all 17 selected stages**, including 1,783 live assertions and verified fixture cleanup. After a further cleanup regression fix, **540 unit tests** pass on Windows Node 22.19 and Node 26; the portal lifecycle and sweep were retested successfully. Clean Linux Node 22.19 installation, offline checks and packed-package checks also pass.
+
+These figures describe the November 4 working-tree validation. Dashboard evidence states and nine browser checks are now implemented. Each release requires fresh source-matched checks, passing remote CI and exact deployment verification. See the [remediation progress](docs/REVIEW-2026-11-03.md#remediation-progress) for source identities and scope.
+
+Earlier focused live checks verified automation outputs, account restoration, hosted deployment/logs,
 portal invitation and email delivery, login links, agent execution and actual web extraction.
 Temporary remote fixtures were removed and cleanup was read back. The separate Paperclip
 API still requires permissions absent from the tested token; one intermittent malformed
@@ -66,22 +69,25 @@ agent stream remains a documented reliability observation. See the
 
 > 🤖 **AI Coding Agents:** See [AGENTS.md](AGENTS.md) and [CLAUDE.md](CLAUDE.md) for optimized instructions on zero-context-clutter tool tiering and zero-browser token authentication.
 
-**Option A — Install from GitHub (recommended):**
-
-```bash
-npm install -g github:ryan-haver/fusebase-mcp
-```
-
-This installs dependencies and compiles TypeScript. Download Chromium separately with `npm run setup:browser` if you need browser-based cookie authentication.
-
-**Option B — Clone and build manually:**
+**Option A — Clone and build (recommended):**
 
 ```bash
 git clone https://github.com/ryan-haver/fusebase-mcp.git
 cd fusebase-mcp
-npm install
+npm ci --ignore-scripts
 npm run build
 ```
+
+**Option B — Install a built package:**
+
+Run `npm pack` in the checked-out source, then `npm install -g ./fusebase-mcp-2.1.0.tgz`.
+The prepack step builds a clean distribution. The installed package includes `fusebase-mcp`,
+`fusebase-auth`, and `fusebase-guides`; it does not compile source or download browsers during install.
+Direct Git installs are not a supported prebuilt distribution path.
+
+Download Chromium separately with `npm run setup:browser` for browser authentication.
+Fetch reference guides explicitly with `npm run guides:fetch` (or installed `fusebase-guides`).
+The Alpine container supports token mode; interactive browser authentication needs a supported host.
 
 **Option C — Docker (Zero-Install Container):**
 
@@ -117,6 +123,8 @@ Every HTTP session acts with your FuseBase credentials, so the server:
 ### 2. Configure & Authenticate
 
 FuseBase MCP provides three production authentication modes:
+
+Named profiles use only their own encrypted cookies and tokens; they never inherit the default profile's environment credentials. Authenticate each named profile explicitly. For the default profile (including `profile: "default"`), environment credentials retain precedence over its encrypted store. The server uses one configured tenant; stored host/organization metadata, when present, must match `FUSEBASE_HOST` and `FUSEBASE_ORG_ID`.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
@@ -651,6 +659,8 @@ See [ENDPOINT_REFERENCE.md](docs/ENDPOINT_REFERENCE.md) for all discovered and i
 
 ## 🧪 Testing & Validation
 
+The [November 3 project review and remediation plan](docs/REVIEW-2026-11-03.md) records current findings, verification limits, and prioritized acceptance criteria.
+
 Tests are split into **offline** checks (fast, no credentials, run in CI) and **live** suites (talk to FuseBase, run locally against a sandbox workspace).
 
 ```bash
@@ -679,7 +689,7 @@ npm run test:all                # Offline stages, then live suites
 
 ### Before You Push
 
-1. `npm run test:all -- --offline` (CI runs the same stages on Node 22 and 24)
+1. `npm run test:all -- --offline` (CI includes exact Node 22.19.0 on Linux/Windows, Node 24/26, package, dashboard, container, audit and secret checks)
 2. `npm run test:live` for any change that touches API calls, content writing or auth
 3. `npm run deploy:status` if you maintain the status dashboard
 
@@ -693,3 +703,14 @@ npm run test:all                # Offline stages, then live suites
 ## 📄 License
 
 MIT
+
+### Review remediation and release evidence
+
+See [the current review](docs/REVIEW-2026-11-03.md) and [validation instructions](docs/TESTING.md).
+HTTP sessions expire after 15 idle minutes (`MCP_SESSION_IDLE_MS`); invalid session limits fail startup.
+Runtime logs, namespaced caches, credentials and default downloads honor `FUSEBASE_DATA_DIR`.
+Logs retain two bounded files. Named profiles never inherit default credentials.
+
+Deployment is explicit after push: `npm run deploy:status`. It requires a clean pushed source tree,
+passing current offline evidence, and an exact live `release.json` match. A 200 response alone is insufficient.
+Committing or pushing does not deploy the dashboard.

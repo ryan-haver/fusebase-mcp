@@ -204,6 +204,19 @@ describe("executeCommand timeout (COR-14)", () => {
     expect(children[0].kill).not.toHaveBeenCalled();
   });
 
+  it("redacts failed CLI output before returning it to tools", async () => {
+    const children = setup("win32", "C:\\fake\\fusebase.exe");
+    const pending = FusebaseCliManager.executeCommand("deploy");
+    children[0].stdout.emit("data", 'Authorization: Bearer SYNTHETIC_CLI_STDOUT\nDeployment rejected');
+    children[0].stderr.emit("data", 'Cookie: sid=SYNTHETIC_CLI_STDERR\nexit 1');
+    children[0].emit("close", 1);
+    const result = await pending;
+    expect(result.success).toBe(false);
+    expect(JSON.stringify(result)).not.toContain("SYNTHETIC_CLI_");
+    expect(result.stdout).toContain("Deployment rejected");
+    expect(result.stderr).toContain("exit 1");
+  });
+
   it("elsewhere uses a normal kill", async () => {
     const children = setup("linux", "/usr/local/bin/fusebase");
     const res = await FusebaseCliManager.executeCommand("deploy", [], undefined, 20);

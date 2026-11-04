@@ -59,7 +59,7 @@ describe("search_tasks query", () => {
     const all = Array.from({ length: 150 }, (_, i) => ({ globalId: `t${i}`, title: i % 50 === 0 ? `Deploy step ${i}` : `Other ${i}` }));
     vi.stubGlobal("fetch", vi.fn(async (_url: string, init?: RequestInit) => {
       const { offset, limit } = JSON.parse(String(init?.body));
-      return new Response(JSON.stringify({ total: all.length, tasks: all.slice(offset, offset + limit) }), { status: 200, headers: { "content-type": "application/json" } });
+      return new Response(JSON.stringify({ offset, limit: Math.min(offset + limit, all.length), total: all.length, tasks: all.slice(offset, offset + limit) }), { status: 200, headers: { "content-type": "application/json" } });
     }));
     const client = new FusebaseClient({ host: "search-unit.invalid", orgId: "o", cookie: "eversessionid=s", autoRefresh: false } as any);
     const res = await client.searchTasks("ws", { query: "deploy", limit: 2 });
@@ -132,4 +132,10 @@ describe("publish_page_to_portal (COR-29)", () => {
     await client.setPagePortalShare("ws", "p1", true);
     expect(JSON.parse(bodies[0])).toEqual({ note: { isPortalShare: true } });
   });
+});
+
+it("exposes the server task range through MCP without mistaking task count for page size", async () => {
+ const session = await server({searchTasks:async()=>({offset:0,limit:100,total:151,tasks:[{globalId:"first"}]})});
+ const result = JSON.parse((await session.callText("search_tasks",{workspaceId:"ws",limit:100})).text);
+ expect(result).toMatchObject({offset:0,limit:100,total:151,nextOffset:100,tasks:[{globalId:"first"}]});
 });

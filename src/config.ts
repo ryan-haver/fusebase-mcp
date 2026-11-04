@@ -2,14 +2,15 @@
  * Shared configuration loading for the server and the test harness.
  *
  * Single source of truth for:
- *  - .env loading (project root, plus the legacy apps/client-portal-dashboard/.env)
+ *  - .env loading (project root only)
  *  - token resolution, including the legacy GATE_MCP_TOKEN / DASHBOARDS_MCP_TOKEN aliases
  */
 
 import * as fs from "fs";
+import { parseEnv } from "node:util";
 import * as path from "path";
 import { fileURLToPath } from "url";
-import { loadEncryptedToken } from "./crypto.js";
+import { assertValidProfile, loadEncryptedToken, type TokenCredentials } from "./crypto.js";
 import { loadOnePasswordEnvironment, opRead, resolveSecretReferences } from "./secret-refs.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -19,7 +20,7 @@ const PROJECT_ROOT = path.resolve(__dirname, "..");
  * Load configuration into process.env, in order of precedence:
  *   1. the real environment (never overridden),
  *   2. the 1Password Environment named by FUSEBASE_OP_ENVIRONMENT_ID,
- *   3. .env files (project root, then apps/client-portal-dashboard).
+ *   3. .env at the project root.
  * `op://` references are resolved along the way (see secret-refs.ts and docs/1PASSWORD.md).
  * Set FUSEBASE_NO_DOTENV=1 to skip the .env files (used by hermetic tests).
  */
@@ -41,22 +42,11 @@ export function loadDotEnv(): void {
 /** Load .env files; existing env vars win. Returns the names this call set. */
 function loadDotEnvFiles(): Set<string> {
   const set = new Set<string>();
-  const envPaths = [
-    path.join(PROJECT_ROOT, ".env"),
-    path.join(PROJECT_ROOT, "apps", "client-portal-dashboard", ".env"),
-  ];
-  for (const envPath of envPaths) {
-    if (!fs.existsSync(envPath)) continue;
-    const lines = fs.readFileSync(envPath, "utf-8").split("\n");
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
-      const eq = trimmed.indexOf("=");
-      if (eq < 0) continue;
-      const key = trimmed.slice(0, eq).trim();
-      const val = trimmed.slice(eq + 1).trim().replace(/^(["'])(.*)\1$/, "$2");
-      if (!process.env[key]) {
-        process.env[key] = val;
+  const envPath = path.join(PROJECT_ROOT, ".env");
+  if (fs.existsSync(envPath)) {
+    for (const [key, value] of Object.entries(parseEnv(fs.readFileSync(envPath, "utf-8")))) {
+      if (process.env[key] === undefined) {
+        process.env[key] = value;
         set.add(key);
       }
     }
@@ -64,17 +54,22 @@ function loadDotEnvFiles(): Set<string> {
   return set;
 }
 
-export interface TokenConfig {
-  gateToken?: string;
-  dashboardsToken?: string;
-  token?: string;
+export type TokenConfig = TokenCredentials;
+
+/** The public "default" alias always means the unqualified credential store. */
+export function normalizeProfile(profile?: string): string | undefined {
+  const selected = !profile || profile === "default" ? undefined : profile;
+  assertValidProfile(selected);
+  return selected;
 }
 
 /**
- * Resolve Gate / Dashboards / unified tokens from the environment, falling back to
- * the encrypted token store for the given profile when no env token is set.
+ * Named profiles use only their own encrypted tokens. For the default profile, environment
+ * tokens take precedence over the default store; never merge credentials from both sources.
  */
 export function resolveTokens(profile?: string): TokenConfig {
+  profile = normalizeProfile(profile);
+  if (profile) return loadEncryptedToken(profile) ?? {};
   const fromEnv: TokenConfig = {
     gateToken: process.env.FUSEBASE_GATE_TOKEN || process.env.GATE_MCP_TOKEN || undefined,
     dashboardsToken: process.env.FUSEBASE_DASHBOARDS_TOKEN || process.env.DASHBOARDS_MCP_TOKEN || undefined,
@@ -84,11 +79,7 @@ export function resolveTokens(profile?: string): TokenConfig {
 
   const stored = loadEncryptedToken(profile);
   if (!stored) return {};
-  return {
-    gateToken: stored.gateToken,
-    dashboardsToken: stored.dashboardsToken,
-    token: stored.token,
-  };
+  return stored;
 }
 
 export function hasAnyToken(tokens: TokenConfig): boolean {

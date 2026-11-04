@@ -1,3 +1,4 @@
+import { confirmNotFound } from "./lib/harness.js";
 /**
  * Live Data Validation Suite for FuseBase MCP
  *
@@ -120,7 +121,6 @@ function parseTrailingJson(text: unknown, field: string, statusPrefix: string): 
 // ─── Read-back helpers (used inside verifyWrite checks) ─────────────
 
 /** Errors that mean the entity no longer exists. */
-const NOT_FOUND = /\b(404|410)\b|not[ _-]?found|does not exist|no longer exists/i;
 
 /**
  * Run a read that should fail once its entity is deleted. Resolves `{ gone: true }` on a
@@ -130,7 +130,7 @@ async function readUnlessGone<T>(read: () => Promise<T>): Promise<{ gone: true }
   try {
     return { gone: false, value: await read() };
   } catch (e) {
-    if (e instanceof ToolError && NOT_FOUND.test(e.detail)) return { gone: true };
+    if (confirmNotFound(e)) return { gone: true };
     throw e;
   }
 }
@@ -1287,25 +1287,7 @@ async function runAllSuites(client: Client, targetWsId: string) {
         await cleanup(`delete page ${pubTestPageId}`, () => callTool(client, "delete_page", { workspaceId: targetWsId, pageId: pubTestPageId }));
       }
 
-      // These send real email and leave a portal client behind, so they only run when an
-      // address you control is configured.
-      const inviteEmail = process.env.FUSEBASE_TEST_INVITE_EMAIL;
-      const clientAccess = process.env.FUSEBASE_TEST_CLIENT_FULL_ACCESS;
-      if (!inviteEmail || process.env.FUSEBASE_TEST_SEND_EMAIL !== "1" || !["true", "false"].includes(clientAccess ?? "")) {
-        skipAll(["create_portal_magic_link", "invite_portal_client"], "requires FUSEBASE_TEST_SEND_EMAIL=1, FUSEBASE_TEST_INVITE_EMAIL, and explicit FUSEBASE_TEST_CLIENT_FULL_ACCESS=true|false");
-      } else {
-        const inviteClientRes = await callTool(client, "invite_portal_client", { portalId, email: inviteEmail, isFullAccess: clientAccess === "true" });
-        assertJson(inviteClientRes, "invite_portal_client");
-        await verifyWrite("invite_portal_client", "the invited address is listed by list_portal_clients", async () => {
-          const clients = await callTool(client, "list_portal_clients", { portalId });
-          assert(JSON.stringify(clients).toLowerCase().includes(inviteEmail.toLowerCase()), "Invited address should be listed by list_portal_clients");
-        });
-        ok("invite_portal_client", "Verified portal client membership; email delivery is not verified");
-        const magicLinkRes = await callTool(client, "create_portal_magic_link", { portalId, email: inviteEmail });
-        assertJson(magicLinkRes, "create_portal_magic_link");
-        noReadBack("create_portal_magic_link", "link activation and inbox receipt require separate confirmation; API success alone is not delivery evidence");
-        ok("create_portal_magic_link", "Magic-link creation returned successfully; activation and delivery remain unverified");
-      }
+      skipAll(["create_portal_magic_link", "invite_portal_client"], "Run the explicit Portal email lifecycle stage; it creates and cleans up a disposable workspace, portal, membership and links");
     }
   }
 
@@ -1845,8 +1827,10 @@ async function runAllSuites(client: Client, targetWsId: string) {
     assertArray(stages.stages, "isolated store stages");
     if (!stages.stages.some((s: any) => s.stage === SQL_STAGE)) {
       await directSql("initIsolatedStoreStage", { ...stageArgs, body: { stage: SQL_STAGE } });
-      stages = await directSql("listIsolatedStoreStages", stageArgs);
-      assert(stages.stages.some((s: any) => s.stage === SQL_STAGE && s.status === "ready"), "new development stage reads back as ready");
+      await verifyWrite("fusebase_direct_tool_call", "new development stage reads back as ready", async () => {
+        stages = await directSql("listIsolatedStoreStages", stageArgs);
+        assert(stages.stages.some((s: any) => s.stage === SQL_STAGE && s.status === "ready"), "new development stage reads back as ready");
+      });
     }
 
     const table = "qa_validation_events";

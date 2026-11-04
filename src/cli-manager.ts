@@ -5,6 +5,7 @@
 
 import { execSync, spawn, type ChildProcess } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import { publicErrorMessage } from "./error-redaction.js";
 import { homedir } from "node:os";
 import { delimiter, dirname, isAbsolute, join, parse, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -227,7 +228,7 @@ export class FusebaseCliManager {
       workingDir = this.resolveWorkingDir(cwd);
       invocation = this.resolveInvocation(cliPath, [subcommand, ...args]);
     } catch (err) {
-      return { success: false, stdout: "", stderr: err instanceof Error ? err.message : String(err), exitCode: -4 };
+      return { success: false, stdout: "", stderr: publicErrorMessage(err), exitCode: -4 };
     }
 
     type Result = { success: boolean; stdout: string; stderr: string; exitCode: number | null };
@@ -257,7 +258,7 @@ export class FusebaseCliManager {
         child.off("error", onError);
         // Keep swallowing late errors (e.g. from killing it) so they can't crash the server.
         child.on("error", () => {});
-        resolve(result);
+        resolve({ ...result, stdout: result.success ? result.stdout : publicErrorMessage(result.stdout), stderr: publicErrorMessage(result.stderr) });
       };
 
       const onClose = (code: number | null) => {

@@ -10,17 +10,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // The client writes a workspace/folder cache to data/; keep tests off the real file but
 // capture what would have been written.
 const cacheWrites: string[] = [];
-vi.mock("fs", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("fs")>();
-  const isCache = (file: unknown) => String(file).endsWith("workspace_cache.json");
-  return {
-    ...actual,
-    existsSync: vi.fn((file: import("fs").PathLike) => !isCache(file) && actual.existsSync(file)),
-    writeFileSync: vi.fn((...args: Parameters<typeof actual.writeFileSync>) => {
-      if (isCache(args[0])) cacheWrites.push(String(args[1]));
-      else actual.writeFileSync(...args);
-    }),
-  };
+vi.mock("../../src/runtime-data.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../src/runtime-data.js")>();
+  return { ...actual, atomicWrite: vi.fn((_file: string, content: string) => cacheWrites.push(content)) };
 });
 
 import { FusebaseClient } from "../../src/client.js";

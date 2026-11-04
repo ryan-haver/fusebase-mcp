@@ -30,6 +30,7 @@ import { startProxyRelay } from "./proxy-relay.js";
 import { resolveHttpOptions, startHttpServer } from "./http-server.js";
 import { bridgeFor, buildClient, setProxyRelayUrl } from "./client-factory.js";
 import { createFusebaseServer, SERVER_VERSION } from "./server.js";
+import { publicErrorMessage } from "./error-redaction.js";
 
 /** A new MCP server for one client session; each session keeps its own active profile. */
 function newSessionServer() {
@@ -60,7 +61,7 @@ async function main() {
         `[fusebase] Tenant: ${identity.orgId} (${identity.orgDomain || "cloud"}) — Default Workspace: ${identity.defaultWorkspaceId || "none"}`
       );
     } catch (err: any) {
-      console.error(`[fusebase] Warning: Direct token connection check failed: ${err.message}`);
+      console.error(`[fusebase] Warning: Direct token connection check failed: ${publicErrorMessage(err)}`);
     }
   }
 
@@ -72,7 +73,7 @@ async function main() {
       setProxyRelayUrl(relay.url);
       process.on("exit", () => relay.stop());
     } catch (err) {
-      console.error(`[fusebase] Warning: Failed to start proxy relay: ${err instanceof Error ? err.message : err}`);
+      console.error(`[fusebase] Warning: Failed to start proxy relay: ${publicErrorMessage(err)}`);
     }
   }
 
@@ -106,6 +107,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error("Fatal error:", err);
+  console.error("Fatal error:", publicErrorMessage(err));
   process.exit(1);
 });

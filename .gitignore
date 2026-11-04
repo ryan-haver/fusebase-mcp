@@ -46,3 +46,6 @@ _archive/
 
 # Downloaded FuseBase guides (npm run guides:fetch) and other caches
 .cache/
+
+# Generated deployment identity; never contains credentials.
+apps/client-portal-dashboard/apps/status-dashboard/public/release.json

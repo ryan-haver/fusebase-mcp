@@ -1,7 +1,7 @@
 {
   "name": "fusebase-mcp",
   "version": "2.1.0",
-  "description": "MCP server for FuseBase (formerly Nimbus Note) — 177 tools (34 Core, 143 Extended), 8 native resources & 17 prompts for full-stack AI-powered workspace, portal lifecycle, vibe coding apps, automations, swarm orchestration, direct Gate & Dashboards MCP token connection, and AI assistant threads",
+  "description": "MCP server for FuseBase (formerly Nimbus Note) - 177 tools (34 Core, 143 Extended), 8 native resources & 17 prompts for full-stack AI-powered workspace, portal lifecycle, vibe coding apps, automations, swarm orchestration, direct Gate & Dashboards MCP token connection, and AI assistant threads",
   "license": "MIT",
   "author": "Ryan Haver (https://github.com/ryan-haver)",
   "homepage": "https://github.com/ryan-haver/fusebase-mcp#readme",
@@ -18,7 +18,9 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "fusebase-mcp": "dist/index.js"
+    "fusebase-mcp": "dist/index.js",
+    "fusebase-auth": "dist/auth.js",
+    "fusebase-guides": "dist/scrape-guides.js"
   },
   "files": [
     "dist",
@@ -26,12 +28,11 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc",
-    "prepare": "npm run build",
+    "build": "node scripts/build.mjs",
     "dev": "tsc --watch",
     "start": "node dist/index.js",
     "typecheck": "tsc -p tsconfig.check.json",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings=390",
     "pretest": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -55,16 +56,19 @@
     "docker:http": "docker run -d --name fusebase-mcp -p 127.0.0.1:3000:3000 -e MCP_TRANSPORT=http -e MCP_HOST=0.0.0.0 -e MCP_AUTH_TOKEN fusebase-mcp:latest",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "postinstall": "node scripts/postinstall.mjs",
     "hooks:install": "git config core.hooksPath .githooks",
     "test:sweep": "tsx tests/live/sweep-sandbox.ts",
     "coverage:tokens": "tsx scripts/token-coverage-report.ts",
-    "guides:fetch": "tsx scripts/scrape-guides.ts",
-    "setup:browser": "playwright install chromium"
+    "guides:fetch": "node dist/scrape-guides.js",
+    "setup:browser": "playwright install chromium",
+    "auth": "node dist/auth.js",
+    "test:package": "npm run build && node scripts/test-package.mjs",
+    "prepack": "npm run build",
+    "test:dashboard": "node scripts/test-dashboard.mjs"
   },
   "dependencies": {
     "@1password/sdk": "0.5.0",
-    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "cheerio": "^1.2.0",
     "mdast-util-from-markdown": "^2.0.3",
     "mdast-util-gfm": "^3.1.0",
@@ -76,7 +80,8 @@
     "turndown": "^7.2.2",
     "undici": "^8.12.3",
     "y-protocols": "^1.0.7",
-    "yjs": "^13.6.29"
+    "yjs": "^13.6.29",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

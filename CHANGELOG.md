@@ -4,6 +4,10 @@ This project follows [Semantic Versioning](https://semver.org/). Each release is
 
 ## Unreleased
 
+- Addressed REV-01: named profiles no longer inherit default cookies or tokens, including a missing gateway token. Missing credentials and known tenant mismatches fail before requests; the default profile keeps environment precedence.
+- Addressed REV-02: shared bounded error redaction now covers REST exception fields, Gate diagnostics, MCP handler failures, CLI failure output, and transport/client logs. Diagnostic URLs omit credentials, queries, and fragments; successful API payloads remain intact.
+- Remediation validation: the November 4 working-tree run passed all 17 selected stages and 1,783 live assertions. The subsequent cleanup fix passes 540 unit tests and a fresh portal/sweep run. Windows/Linux Node 22.19, package and container checks pass; dashboard browser checks and remote CI/release gates are now enforced.
+
 - Dashboard validation totals, pass rates, failed-check counts, cleanup status and guide counts now come from generated results instead of fixed display strings.
 
 - Added live Gate/Dashboards operation discovery, schema selection and required domain guidance. Direct calls can disable legacy scope injection; discovery errors are no longer hidden as empty catalogs.
@@ -18,7 +22,19 @@ This project follows [Semantic Versioning](https://semver.org/). Each release is
 - Updated portal creation and invitations to current Gate contracts. Client access must be explicit, existing non-client roles are protected, membership reads are scoped to the portal, and magic-link generation verifies membership.
 - Corrected AI Assistant execution to create a thread, submit a separate message and require a completed response stream. Errors retain the thread ID. URL extraction uses a configured scraping agent; it is not a direct Firecrawl call.
 - Verified hosted deployment/logs, account preference restoration and persisted authentication, portal invitation/email delivery/login, agent execution/continuation and real web retrieval. Added an isolated live agent regression with verified cleanup; scraping is included in write accounting.
-- Validation: 468 passing unit tests, five passing offline stages, 32 focused agent assertions, 43 automation assertions and 15 account assertions. See [live validation](docs/LIVE-VALIDATION.md) for scope, cleanup and remaining upstream/permission limitations.
+- Pre-remediation validation: 468 passing unit tests, five passing offline stages, 32 focused agent assertions, 43 automation assertions and 15 account assertions. See [live validation](docs/LIVE-VALIDATION.md) for scope, cleanup and remaining upstream/permission limitations.
+
+### Review remediation
+
+- Package a clean runtime with authentication and guide helpers; remove install-time downloads and source builds.
+- Journal sandbox mutations before sending; refuse ambiguous credential fallback; clean exact owned IDs and verify deletion.
+- Add an opt-in disposable portal/email lifecycle with membership protection and recoverable cleanup.
+- Record per-run source identities; display stale, incomplete and uncommitted evidence explicitly; verify the deployed manifest and rendered source hash. Nine browser scenarios cover evidence states and the production bundle.
+- Bound HTTP sessions and runtime logs; isolate tenant/profile caches under the configured data directory.
+- Share conservative operation effects with write-proof accounting; separate expected restrictions from real failures.
+- Split extended tools into domain modules and cap existing lint warnings. Expand CI to package, dashboard,
+  container, minimum-runtime, dependency and secret checks. See the dated review for outstanding validation gates.
+
 
 ## 2.1.0 — 2026-09-25
 

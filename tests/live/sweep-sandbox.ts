@@ -1,3 +1,4 @@
+import { collectTaskPages } from "../../src/task-pagination.js";
 /**
  * Leftover sweep: proves the live suites cleaned up after themselves.
  *
@@ -7,9 +8,11 @@
  *  - LEFTOVERS: anything in the sandbox workspace created at or after --since (default:
  *    LIVE_RUN_STARTED_AT, set by scripts/test-all.ts). Any leftover fails the sweep.
  *  - ORPHANS: test-named content from earlier runs (e.g. a run that was killed). Reported only.
- * With --clean, deletes leftovers and orphans, but only items with a test-style name, so it
- * can never remove someone's real content.
+ * With --clean, deletes only exact IDs recorded in this run's fixture journal.
+ * Names identify investigation candidates, never deletion authority.
  */
+import { ownedFixtures, readJournal, journalPath } from "./lib/fixture-journal.js";
+import { cleanOwned, ownedItems, paginate, paginateCursor } from "./lib/cleanup-policy.js";
 import { loadEnvironment } from "../../src/config.js";
 import { buildClient } from "../../src/client-factory.js";
 
@@ -18,9 +21,10 @@ await loadEnvironment();
 const TEST_NAME = /\b(QA|E2E|Test|Probe|Parity|parity-test|Validation|Smoke)\b/i;
 
 interface Item {
-  kind: "page" | "folder" | "database" | "automation folder" | "automation flow" | "token" | "task";
+  kind: "page" | "folder" | "database" | "automation folder" | "automation flow" | "token" | "task" | "SQL row";
   id: string;
   name: string;
+  workspaceId: string;
   created?: number; // ms
   remove: () => Promise<unknown>;
 }
@@ -43,11 +47,12 @@ function created(o: Record<string, any>): number | undefined {
 
 function arrayIn(v: any): any[] {
   if (Array.isArray(v)) return v;
-  for (const key of ["data", "items", "notes", "tasks", "flows", "results"]) {
+  for (const key of ["data", "items", "notes", "tasks", "flows", "results", "tokens"]) {
     if (Array.isArray(v?.[key])) return v[key];
     if (Array.isArray(v?.[key]?.data)) return v[key].data;
+    if (v?.[key] && typeof v[key] === "object") { const nested = arrayIn(v[key]); if (nested.length) return nested; }
   }
-  return [];
+  throw new Error("Listing has no recognized collection; refusing unverifiable cleanup");
 }
 
 async function main() {
@@ -57,6 +62,8 @@ async function main() {
   const since = sinceArg ? toMs(sinceArg) : undefined;
   const clean = process.argv.includes("--clean");
   const client = buildClient();
+  const owned = ownedFixtures(readJournal(), workspaceId, process.env.FUSEBASE_ORG_ID || "");
+  const enumerate = async (): Promise<Item[]> => {
   const items: Item[] = [];
   const problems: string[] = [];
   const collect = async (what: string, fn: () => Promise<void>) => {
@@ -70,11 +77,11 @@ async function main() {
   await collect("pages", async () => {
     const seen = new Set<string>();
     for (const rootId of ["default", "root"]) {
-      const res = await client.listPages(workspaceId, { rootId, limit: 500 });
-      for (const p of res.items ?? []) {
+      const pages = await paginate(async (offset, limit) => client.listPages(workspaceId, { rootId, offset, limit }), p => p.globalId);
+      for (const p of pages) {
         if (seen.has(p.globalId)) continue;
         seen.add(p.globalId);
-        items.push({ kind: "page", id: p.globalId, name: p.title ?? "", created: created(p as any), remove: () => client.deletePage(workspaceId, p.globalId) });
+        items.push({ workspaceId, kind: "page", id: p.globalId, name: p.title ?? "", created: created(p as any), remove: () => client.deletePage(workspaceId, p.globalId) });
       }
     }
   });
@@ -84,7 +91,7 @@ async function main() {
         const id = String(f.id ?? "").replace("notesFolder#", "");
         // "default" is the workspace's built-in Unsorted folder.
         if (id && id !== "default" && id !== "root") {
-          items.push({ kind: "folder", id, name: f.name ?? "", created: created(f), remove: () => client.deletePage(workspaceId, id) });
+          items.push({ workspaceId, kind: "folder", id, name: f.name ?? "", created: created(f), remove: () => client.deletePage(workspaceId, id) });
         }
         if (Array.isArray(f.children) && depth < 50) walk(f.children, depth + 1);
       }
@@ -93,35 +100,52 @@ async function main() {
   });
   await collect("databases", async () => {
     for (const d of arrayIn(await client.listAllDatabases())) {
-      items.push({ kind: "database", id: d.global_id, name: d.title ?? "", created: created(d), remove: () => client.deleteDatabase(d.global_id) });
+      items.push({ workspaceId, kind: "database", id: d.global_id, name: d.title ?? "", created: created(d), remove: () => client.deleteDatabase(d.global_id) });
     }
   });
   await collect("automation folders", async () => {
-    for (const f of arrayIn(await client.listAutomationFolders())) {
-      items.push({ kind: "automation folder", id: f.id, name: f.displayName ?? "", created: created(f), remove: () => client.deleteAutomationFolder(f.id) });
+    for (const f of await paginateCursor(cursor => client.listAutomationFolders(cursor), arrayIn, f => String(f.id ?? ""))) {
+      items.push({ workspaceId, kind: "automation folder", id: f.id, name: f.displayName ?? "", created: created(f), remove: () => client.deleteAutomationFolder(f.id) });
     }
   });
   await collect("automation flows", async () => {
-    for (const f of arrayIn(await client.listAutomationFlows())) {
+    for (const f of await paginateCursor(cursor => client.listAutomationFlows(undefined, cursor), arrayIn, f => String(f.id ?? ""))) {
       const name = f.version?.displayName ?? f.displayName ?? "";
-      items.push({ kind: "automation flow", id: f.id, name, created: created(f), remove: () => client.deleteAutomationFlow(f.id) });
+      items.push({ workspaceId, kind: "automation flow", id: f.id, name, created: created(f), remove: () => client.deleteAutomationFlow(f.id) });
     }
   });
   await collect("tokens", async () => {
-    for (const t of arrayIn(await client.listTokens({ limit: 100 }))) {
+    for (const t of await paginate(async (offset, limit) => ({ items: arrayIn(await client.listTokens({ limit, page: Math.floor(offset / limit) + 1 })) }), t => String(t.global_id ?? t.id ?? t.tokenId))) {
       if (t.revokedAt || t.revoked_at || t.status === "revoked") continue;
       const id = t.global_id ?? t.id ?? t.tokenId;
       if (typeof id !== "string" || !id) throw new Error("Token listing is missing its identifier; refusing unverifiable cleanup.");
-      items.push({ kind: "token", id, name: t.name ?? "", created: created(t), remove: () => client.revokeToken(id) });
+      items.push({ workspaceId, kind: "token", id, name: t.name ?? "", created: created(t), remove: () => client.revokeToken(id) });
     }
   });
   await collect("tasks", async () => {
-    for (const t of arrayIn(await client.searchTasks(workspaceId, { limit: 200 }))) {
-      const id = t.globalId ?? t.id;
-      items.push({ kind: "task", id, name: t.title ?? t.name ?? "", created: created(t), remove: () => client.deleteTask(workspaceId, id) });
+    const {tasks} = await collectTaskPages((offset, limit) => client.searchTasks(workspaceId, {limit,offset}), (task: import("../../src/types.js").FusebaseTask) => String(task.globalId ?? task.id ?? ""));
+    for (const t of tasks) {
+      const id = String(t.globalId ?? t.id);
+      items.push({ workspaceId, kind: "task", id, name: String(t.title ?? t.name ?? ""), created: created(t), remove: () => client.deleteTask(workspaceId, id) });
     }
   });
 
+  await collect("SQL rows", async () => {
+    for (const fixture of owned.filter(item => item.kind === "SQL row")) {
+      const sql = fixture.sql;
+      if (!sql || sql.stage !== "dev" || sql.table !== "qa_validation_events" || !/^run-\d+$/.test(sql.runId) || !sql.rowId.startsWith(sql.runId + "-")) throw new Error("Invalid SQL ownership record; refusing cleanup");
+      const result = await client.selectIsolatedStoreSqlRows(sql.storeId,sql.table,{stage:sql.stage,where:{id:sql.rowId},limit:2});
+      if (!Array.isArray(result.rows)) throw new Error("SQL row lookup returned no collection");
+      if (!result.rows.length) continue;
+      if (result.rows.length !== 1 || result.rows[0].id !== sql.rowId || result.rows[0].run_id !== sql.runId) throw new Error("SQL fixture identity changed; refusing deletion");
+      items.push({workspaceId,kind:"SQL row",id:fixture.id,name:sql.rowId,remove:()=>client.executeIsolatedStoreSql(sql.storeId,'DELETE FROM "qa_validation_events" WHERE id = $1 AND run_id = $2',[sql.rowId,sql.runId],"dev",true)});
+    }
+  });
+
+  if (problems.length) throw new Error(`Sweep could not list all sources: ${problems.join("; ")}`);
+  return items;
+  };
+  const items = await enumerate();
   // Pages, folders and tasks are sandbox-scoped; databases, automations and tokens are org-wide, so for
   // those only test-named items count.
   const scoped = (i: Item) => i.kind === "page" || i.kind === "folder" || i.kind === "task";
@@ -129,26 +153,21 @@ async function main() {
   const orphans = items.filter((i) => !leftovers.includes(i) && TEST_NAME.test(i.name));
 
   console.log(`🧹 Leftover sweep of sandbox ${workspaceId}${since ? ` (since ${new Date(since).toISOString()})` : " (no run start time: orphans only)"}`);
-  const kinds: Item["kind"][] = ["page", "folder", "task", "database", "automation folder", "automation flow", "token"];
+  const kinds: Item["kind"][] = ["page", "folder", "task", "database", "automation folder", "automation flow", "token", "SQL row"];
   console.log(`   checked ${items.length} items: ${kinds.map((k) => `${k}s ${items.filter((i) => i.kind === k).length}`).join(", ")}`);
-  for (const p of problems) console.log(`   ⚠️  could not list ${p}`);
+
   for (const i of leftovers) console.log(`   🔴 LEFTOVER ${i.kind} "${i.name}" (${i.id})`);
   for (const i of orphans) console.log(`   🟡 orphan from an earlier run: ${i.kind} "${i.name}" (${i.id})`);
 
+  const confirmed = ownedItems(items, owned);
   if (clean) {
-    for (const i of [...leftovers, ...orphans].filter((x) => TEST_NAME.test(x.name))) {
-      try {
-        await i.remove();
-        console.log(`   🗑️  deleted ${i.kind} "${i.name}"`);
-      } catch (err) {
-        console.log(`   ⚠️  could not delete ${i.kind} "${i.name}": ${err instanceof Error ? err.message.slice(0, 150) : err}`);
-      }
-    }
-  }
+    if (!readJournal().length) throw new Error("Cleanup requires an exact-ID fixture journal; names never authorize deletion");
+    await cleanOwned(confirmed, enumerate);
+  } else if (confirmed.length) throw new Error(`${confirmed.length} owned fixture(s) remain`);
+  const unowned = leftovers.filter(item => !confirmed.includes(item));
+  if (unowned.length) throw new Error(`${unowned.length} unowned candidate(s) require investigation; none deleted`);
+  console.log(`Sweep verified owned fixtures; ${orphans.length} historical candidates reported only. Journal: ${journalPath()}`);
 
-  if (problems.length > 0) throw new Error(`the sweep could not list everything (${problems.length} source(s) failed)`);
-  if (leftovers.length > 0 && !clean) throw new Error(`${leftovers.length} item(s) created by this run were not cleaned up`);
-  console.log(leftovers.length || orphans.length ? "✅ Sweep done" : "✅ No leftovers");
 }
 
 main().catch((err) => {

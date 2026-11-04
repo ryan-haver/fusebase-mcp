@@ -8,7 +8,7 @@
 import { FusebaseClient } from "./client.js";
 import { FusebaseGateBridge } from "./gate-bridge.js";
 import { loadEncryptedCookie } from "./crypto.js";
-import { resolveTokens, hasAnyToken, type TokenConfig } from "./config.js";
+import { normalizeProfile, resolveTokens, hasAnyToken, type TokenConfig } from "./config.js";
 
 const bridges = new Map<string, FusebaseGateBridge>();
 let proxyRelayUrl: string | undefined;
@@ -24,7 +24,9 @@ export function bridgeFor(tokens: TokenConfig): FusebaseGateBridge | undefined {
   const key = `${tokens.gateToken ?? ""}\u0000${tokens.dashboardsToken ?? ""}\u0000${tokens.token ?? ""}`;
   let bridge = bridges.get(key);
   if (!bridge) {
-    bridge = new FusebaseGateBridge({ gateToken: tokens.gateToken, dashboardsToken: tokens.dashboardsToken, token: tokens.token });
+    // Selection is already complete. The bridge must not fill absent named-profile
+    // credentials from the default environment (including the other gateway's token).
+    bridge = new FusebaseGateBridge({ gateToken: tokens.gateToken, dashboardsToken: tokens.dashboardsToken, token: tokens.token, useEnvironment: false });
     bridges.set(key, bridge);
   }
   return bridge;
@@ -32,18 +34,16 @@ export function bridgeFor(tokens: TokenConfig): FusebaseGateBridge | undefined {
 
 /** Create a client for `profile` (undefined = the default profile). */
 export function buildClient(profile?: string): FusebaseClient {
+  profile = normalizeProfile(profile);
   const tokens = resolveTokens(profile);
   const gateBridge = bridgeFor(tokens);
 
   const host = process.env.FUSEBASE_HOST;
   const orgId = process.env.FUSEBASE_ORG_ID;
 
-  let cookie = process.env.FUSEBASE_COOKIE || "";
-  // A profile always uses its own stored cookie; the default profile falls back to disk.
-  if (!cookie || profile) {
-    const stored = loadEncryptedCookie(profile);
-    if (stored?.cookie) cookie = stored.cookie;
-  }
+  const environmentCookie = profile ? "" : process.env.FUSEBASE_COOKIE || "";
+  const stored = environmentCookie ? null : loadEncryptedCookie(profile);
+  const cookie = environmentCookie || stored?.cookie || "";
 
   if (!host || !orgId) {
     // Throw rather than exit: this runs inside tool calls, and the SDK turns a thrown
@@ -54,7 +54,15 @@ export function buildClient(profile?: string): FusebaseClient {
     );
   }
 
+  // The server has one configured tenant. Reject known mismatches before a cookie or
+  // token is sent to that tenant. Older stores without identity metadata remain usable.
+  const sameHost = (a: string, b: string) => a.toLowerCase().replace(/\.$/, "") === b.toLowerCase().replace(/\.$/, "");
+  if ((stored?.meta?.host && !sameHost(stored.meta.host, host)) || (tokens.host && !sameHost(tokens.host, host)) || (tokens.orgId && tokens.orgId !== orgId)) {
+    throw new Error(`Credentials for profile '${profile || "default"}' do not match the configured tenant (FUSEBASE_HOST/FUSEBASE_ORG_ID). Use matching credentials and tenant settings.`);
+  }
+
   if (!cookie && !gateBridge?.isConfigured) {
+    if (profile) throw new Error(`Profile '${profile}' has no usable credentials. Authenticate this profile explicitly; default credentials are not inherited.`);
     console.error(`[fusebase] Warning: Neither cookie nor token found. Run 'npx tsx scripts/auth.ts${profile ? ` --profile ${profile}` : ""}' to authenticate.`);
   }
 

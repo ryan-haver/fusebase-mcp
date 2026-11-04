@@ -19,6 +19,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
+import { publicErrorMessage, redactDiagnosticUrl } from "./error-redaction.js";
 
 export interface HttpServerOptions {
   host: string;
@@ -30,6 +31,7 @@ export interface HttpServerOptions {
   /** Browser origins allowed to call the server (exact match, e.g. "http://localhost:5173"). */
   allowedOrigins: string[];
   maxSessions: number;
+  sessionIdleTimeoutMs?: number;
 }
 
 const LOOPBACK_HOSTS = ["localhost", "127.0.0.1", "::1", "[::1]"];
@@ -57,7 +59,7 @@ function argValue(argv: string[], flag: string): string | undefined {
  */
 export function resolveHttpOptions(argv: string[], env: NodeJS.ProcessEnv): HttpServerOptions {
   const host = argValue(argv, "--host") || env.MCP_HOST || "127.0.0.1";
-  const port = parseInt(argValue(argv, "--port") || env.PORT || "3000", 10);
+  const port = Number(argValue(argv, "--port") || env.PORT || "3000");
   if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error(`Invalid port: ${port}`);
 
   const authToken = env.MCP_AUTH_TOKEN || undefined;
@@ -86,8 +88,14 @@ export function resolveHttpOptions(argv: string[], env: NodeJS.ProcessEnv): Http
     authToken,
     allowedHosts,
     allowedOrigins: csv(env.MCP_ALLOWED_ORIGINS),
-    maxSessions: parseInt(env.MCP_MAX_SESSIONS || "50", 10),
+    maxSessions: positiveInteger(env.MCP_MAX_SESSIONS ?? "50", "MCP_MAX_SESSIONS"),
+    sessionIdleTimeoutMs: positiveInteger(env.MCP_SESSION_IDLE_MS ?? "900000", "MCP_SESSION_IDLE_MS"),
   };
+}
+
+export function positiveInteger(value: string | number, name: string): number {
+  if (!/^\d+$/.test(String(value)) || !Number.isSafeInteger(Number(value)) || Number(value) < 1) throw new Error(`${name} must be a positive integer`);
+  return Number(value);
 }
 
 function hostAllowed(header: string | undefined, allowed: string[] | "*"): boolean {
@@ -140,12 +148,20 @@ export async function startHttpServer(
   createServer: () => McpServer,
   info: { version: string },
 ): Promise<HttpServerHandle> {
-  const streamable = new Map<string, { server: McpServer; transport: StreamableHTTPServerTransport }>();
-  const legacy = new Map<string, { server: McpServer; transport: SSEServerTransport }>();
-  const sessionCount = () => streamable.size + legacy.size;
+  positiveInteger(options.maxSessions, "maxSessions");
+  const idleMs = positiveInteger(options.sessionIdleTimeoutMs ?? 900000, "sessionIdleTimeoutMs");
+  type Activity = { lastUsed: number; active: number };
+  const streamable = new Map<string, { server: McpServer; transport: StreamableHTTPServerTransport } & Activity>();
+  const legacy = new Map<string, { server: McpServer; transport: SSEServerTransport } & Activity>();
+  const servers = new Set<McpServer>();
+  const makeServer = () => { const server = createServer(); servers.add(server); return server; };
+  let pending = 0;
+  let closing = false;
+  const sessionCount = () => streamable.size + legacy.size + pending;
 
   const httpServer = http.createServer(async (req, res) => {
     try {
+      if (closing) return jsonRpcError(res, 503, "Server shutting down");
       // 1. Host header (DNS rebinding protection)
       if (!hostAllowed(req.headers.host, options.allowedHosts)) {
         sendJson(res, 403, { error: "Host not allowed" });
@@ -191,8 +207,12 @@ export async function startHttpServer(
         if (typeof sessionId === "string") {
           const session = streamable.get(sessionId);
           if (!session) return jsonRpcError(res, 404, "Session not found");
-          const body = req.method === "POST" ? await readJsonBody(req) : undefined;
-          await session.transport.handleRequest(req, res, body);
+          session.lastUsed = Date.now();
+          session.active++;
+          try {
+            const body = req.method === "POST" ? await readJsonBody(req) : undefined;
+            await session.transport.handleRequest(req, res, body);
+          } finally { session.active--; session.lastUsed = Date.now(); }
           return;
         }
         if (req.method !== "POST") return jsonRpcError(res, 400, "Missing mcp-session-id header");
@@ -200,18 +220,28 @@ export async function startHttpServer(
         if (!isInitializeRequest(body)) return jsonRpcError(res, 400, "First request must be initialize");
         if (sessionCount() >= options.maxSessions) return jsonRpcError(res, 503, "Too many sessions");
 
-        const server = createServer();
+        const server = makeServer();
+        let reserved = true;
         const transport: StreamableHTTPServerTransport = new StreamableHTTPServerTransport({
           sessionIdGenerator: () => randomUUID(),
           onsessioninitialized: (id) => {
-            streamable.set(id, { server, transport });
+            if (reserved) { pending--; reserved = false; }
+            streamable.set(id, { server, transport, lastUsed: Date.now(), active: 1 });
           },
         });
         transport.onclose = () => {
+          servers.delete(server);
           if (transport.sessionId) streamable.delete(transport.sessionId);
         };
-        await server.connect(transport);
-        await transport.handleRequest(req, res, body);
+        pending++;
+        try {
+          await server.connect(transport);
+          await transport.handleRequest(req, res, body);
+          const current = transport.sessionId ? streamable.get(transport.sessionId) : undefined;
+          if (current) { current.active = 0; current.lastUsed = Date.now(); }
+          else await server.close();
+        } catch (error) { await server.close().catch(() => {}); throw error; }
+        finally { if (reserved) pending--; }
         return;
       }
 
@@ -219,26 +249,30 @@ export async function startHttpServer(
       if (req.method === "GET" && url.pathname === "/sse") {
         if (sessionCount() >= options.maxSessions) return jsonRpcError(res, 503, "Too many sessions");
         const transport = new SSEServerTransport("/message", res);
-        const server = createServer();
-        legacy.set(transport.sessionId, { server, transport });
+        const server = makeServer();
+        legacy.set(transport.sessionId, { server, transport, lastUsed: Date.now(), active: 0 });
         transport.onclose = () => {
+          servers.delete(server);
           legacy.delete(transport.sessionId);
         };
-        await server.connect(transport);
+        try { await server.connect(transport); }
+        catch (error) { legacy.delete(transport.sessionId); await server.close().catch(() => {}); throw error; }
         return;
       }
       if (req.method === "POST" && url.pathname === "/message") {
         const session = legacy.get(url.searchParams.get("sessionId") || "");
         if (!session) return jsonRpcError(res, 404, "Session not found");
-        await session.transport.handlePostMessage(req, res);
+        session.active++;
+        try { await session.transport.handlePostMessage(req, res); }
+        finally { session.active--; session.lastUsed = Date.now(); }
         return;
       }
 
       sendJson(res, 404, { error: "Not found" });
     } catch (err) {
       const status = (err as { status?: number }).status || 500;
-      console.error(`[fusebase] HTTP ${req.method} ${req.url} failed: ${err instanceof Error ? err.message : err}`);
-      if (!res.headersSent) jsonRpcError(res, status, status === 500 ? "Internal server error" : (err as Error).message);
+      console.error(`[fusebase] HTTP ${req.method} ${redactDiagnosticUrl(req.url || "/")} failed: ${publicErrorMessage(err)}`);
+      if (!res.headersSent) jsonRpcError(res, status, status === 500 ? "Internal server error" : publicErrorMessage(err));
     }
   });
 
@@ -246,16 +280,35 @@ export async function startHttpServer(
     httpServer.once("error", reject);
     httpServer.listen(options.port, options.host, () => resolve());
   });
+  const reaper = setInterval(() => {
+    for (const sessions of [streamable, legacy]) {
+      for (const [id, session] of sessions) {
+        if (!session.active && Date.now() - session.lastUsed >= idleMs) {
+          sessions.delete(id);
+          void session.server.close().catch(() => {});
+        }
+      }
+    }
+  }, Math.min(idleMs, 1000));
+  reaper.unref();
   const port = (httpServer.address() as { port: number }).port;
 
   return {
     server: httpServer,
     port,
     async close() {
-      for (const { transport } of [...streamable.values(), ...legacy.values()]) {
-        await transport.close().catch(() => {});
-      }
-      await new Promise<void>((resolve) => httpServer.close(() => resolve()));
+      closing = true;
+      clearInterval(reaper);
+      let force: ReturnType<typeof setTimeout> | undefined;
+      const deadline = new Promise<void>(resolve => {
+        force = setTimeout(() => { httpServer.closeAllConnections(); resolve(); }, 2000);
+        force.unref();
+      });
+      const stopped = new Promise<void>(resolve => httpServer.close(() => resolve()));
+      try {
+        await Promise.race([Promise.all([...servers].map(server => server.close().catch(() => {}))).then(() => stopped), deadline]);
+      } finally { clearTimeout(force); streamable.clear(); legacy.clear(); servers.clear(); }
+
     },
   };
 }

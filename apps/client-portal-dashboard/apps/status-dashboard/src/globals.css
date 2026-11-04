@@ -888,3 +888,24 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+/* Evidence labels carry meaning without relying on color alone. */
+.evidence-label { display: inline-flex; align-items: center; padding: 6px 10px; border: 1px solid currentColor; border-radius: 7px; font-size: 12px; font-weight: 600; }
+.evidence-success { color: #6ee7b7; }
+.evidence-warning { color: #fcd34d; }
+.evidence-danger { color: #fca5a5; }
+.evidence-banner { border: 1px solid currentColor; border-radius: 12px; padding: 18px 22px; margin: 24px 0; background: rgba(0,0,0,.15); }
+.evidence-banner p { margin: 8px 0 14px; color: #d1d5db; }
+.evidence-banner dl { display: flex; gap: 18px 36px; flex-wrap: wrap; font-size: 12px; }
+.evidence-banner dt { color: #9ca3af; margin-bottom: 4px; }
+.evidence-banner dd { margin: 0; overflow-wrap: anywhere; font-family: monospace; }
+.suite-counts { color: #d1d5db; font-size: 12px; }
+@media (max-width: 700px) {
+  .hub-header, .hub-actions, .test-suites-header { flex-wrap: wrap; gap: 12px; }
+  .hub-title-row { flex-wrap: wrap; }
+  .hub-brand, .hub-brand-info, .suite-title-wrap { min-width: 0; }
+  .suite-card-top, .suite-badges { flex-wrap: wrap; gap: 10px; }
+  .hub-nav { overflow-x: auto; }
+  .overview-hero-top { flex-wrap: wrap; gap: 12px; }
+  .hub-footer { flex-wrap: wrap; gap: 10px; }
+}

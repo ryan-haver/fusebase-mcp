@@ -1,3 +1,4 @@
+import { version } from "./version.js";
 /**
  * FuseBase Gate & Dashboards Direct MCP Bridge
  *
@@ -12,6 +13,8 @@
  */
 
 import type { FusebaseFolder, FusebaseNote, FusebaseWorkspace } from "./types.js";
+import { publicErrorMessage, redactUpstreamDetail } from "./error-redaction.js";
+export { redactUpstreamDetail } from "./error-redaction.js";
 
 export interface GateBridgeConfig {
   gateUrl?: string;
@@ -19,6 +22,8 @@ export interface GateBridgeConfig {
   gateToken?: string;
   dashboardsToken?: string;
   token?: string; // Unified token fallback
+  /** False when a caller has already resolved credentials for a specific profile. */
+  useEnvironment?: boolean;
   /** Per-request timeout in ms (default 30 s, or GATE_MCP_TIMEOUT_MS). */
   timeoutMs?: number;
 }
@@ -68,31 +73,6 @@ function describeUpstreamError(err: unknown): string {
   return redactUpstreamDetail(JSON.stringify(err));
 }
 
-const SECRET_HEADER = /("?(?:x-secret|authorization|cookie|set-cookie|x-api-key|api[-_]?key|token|password)"?\s*[:=]\s*)("[^"]*"|[^\s,}]+)/gi;
-const MAX_UPSTREAM_DETAIL = 500;
-
-/**
- * Upstream error text as safe to show and log (SEC-11). FuseBase has returned whole internal
- * request objects in error messages (axios config with internal auth headers and a service
- * secret, stack traces). Keep an embedded JSON error's message/name/code/status, redact
- * secret-looking values, and cap the length.
- */
-export function redactUpstreamDetail(text: string): string {
-  let out = text;
-  const start = out.indexOf("{");
-  if (start >= 0) {
-    try {
-      const obj = JSON.parse(out.slice(start)) as Record<string, unknown>;
-      const keep = ["message", "name", "code", "status"].filter((k) => obj[k] !== undefined && typeof obj[k] !== "object");
-      if (keep.length > 0) out = out.slice(0, start) + JSON.stringify(Object.fromEntries(keep.map((k) => [k, obj[k]])));
-    } catch {
-      // not a single JSON object: fall through to redaction
-    }
-  }
-  out = out.replace(SECRET_HEADER, "$1\"[redacted]\"");
-  return out.length > MAX_UPSTREAM_DETAIL ? out.slice(0, MAX_UPSTREAM_DETAIL) + "…" : out;
-}
-
 /** Split an SSE stream into events and return each event's `data` payload parsed as JSON. */
 export function parseSseMessages(text: string): unknown[] {
   const messages: unknown[] = [];
@@ -132,7 +112,7 @@ function parseRpcBody(text: string, contentType: string | null, id: unknown): an
   if (match) return match;
   if (text.trim() === "") return {};
   if (id !== undefined && responses.length > 0) {
-    throw new Error(`No JSON-RPC response with id ${String(id)} in event stream: ${text.slice(0, 300)}`);
+    throw new Error(`No JSON-RPC response with id ${String(id)} in event stream: ${redactUpstreamDetail(text)}`);
   }
   return { raw: text };
 }
@@ -164,8 +144,9 @@ export class FusebaseGateBridge {
   constructor(config: GateBridgeConfig) {
     this.gateUrl = config.gateUrl || process.env.GATE_MCP_URL || "https://gate-mcp.thefusebase.com/mcp";
     this.dashboardsUrl = config.dashboardsUrl || process.env.DASHBOARDS_MCP_URL || "https://dashboards-mcp.thefusebase.com/mcp";
-    this.gateToken = config.gateToken || config.token || process.env.FUSEBASE_GATE_TOKEN || process.env.GATE_MCP_TOKEN || process.env.FUSEBASE_TOKEN;
-    this.dashboardsToken = config.dashboardsToken || config.token || process.env.FUSEBASE_DASHBOARDS_TOKEN || process.env.DASHBOARDS_MCP_TOKEN || process.env.FUSEBASE_TOKEN;
+    const env = config.useEnvironment === false ? {} : process.env;
+    this.gateToken = config.gateToken || config.token || env.FUSEBASE_GATE_TOKEN || env.GATE_MCP_TOKEN || env.FUSEBASE_TOKEN;
+    this.dashboardsToken = config.dashboardsToken || config.token || env.FUSEBASE_DASHBOARDS_TOKEN || env.DASHBOARDS_MCP_TOKEN || env.FUSEBASE_TOKEN;
     const envTimeout = Number(process.env.GATE_MCP_TIMEOUT_MS);
     this.timeoutMs = config.timeoutMs ?? (envTimeout > 0 ? envTimeout : DEFAULT_TIMEOUT_MS);
   }
@@ -262,7 +243,7 @@ export class FusebaseGateBridge {
         method: "initialize",
         params: {
           protocolVersion: "2024-11-05",
-          clientInfo: { name: "fusebase-mcp-bridge", version: "2.1.0" },
+          clientInfo: { name: "fusebase-mcp-bridge", version },
           capabilities: {},
         },
       },
@@ -314,7 +295,7 @@ export class FusebaseGateBridge {
       try {
         await this.initTarget("dashboards");
       } catch (err: any) {
-        console.error(`[gate-bridge] Dashboards MCP init warning: ${err.message}`);
+        console.error(`[gate-bridge] Dashboards MCP init warning: ${publicErrorMessage(err)}`);
       }
     }
 

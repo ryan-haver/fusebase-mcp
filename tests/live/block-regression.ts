@@ -1,3 +1,4 @@
+import { journalMutation } from "./lib/fixture-journal.js";
 /**
  * Live regression test: writes every block type and inline format to a new page in the
  * sandbox workspace over the Y.js WebSocket, reads it back through the decoder, and checks
@@ -87,9 +88,10 @@ async function main() {
   if (!cookie) throw new Error("A session cookie is required (run: npx tsx scripts/auth.ts).");
 
   const client = new FusebaseClient({ host, orgId, cookie, autoRefresh: false });
-  const page = await client.createPage(workspaceId, `[regression-test] ${new Date().toISOString()}`);
+  const page = await journalMutation("create_page", { workspaceId }, () => client.createPage(workspaceId, `[regression-test] ${new Date().toISOString()}`));
   assert(Boolean(page?.globalId), "createPage should return a globalId");
   const noteId = page.globalId;
+  const failures: unknown[] = [];
 
   try {
     const write = await writeContentViaWebSocket(host, workspaceId, noteId, cookie, BLOCKS, { replace: true, timeout: 20000 });
@@ -155,13 +157,14 @@ async function main() {
     for (const text of ["Full Regression Test", "Nested bullet two", "nested code", "<td>Alpha</td>", "Collapsible body", "Important callout", "Checked item"]) {
       assertIncludes(reread.html ?? "", text, `round trip keeps "${text}"`);
     }
-  } finally {
+  } catch (error) { failures.push(error); } finally {
     try {
       await client.deletePage(workspaceId, noteId);
     } catch (err) {
-      console.error(`⚠️ failed to delete regression page ${noteId}: ${err instanceof Error ? err.message : err}`);
+      failures.push(new Error(`Failed to delete regression page ${noteId}`, { cause: err }));
     }
   }
+  if (failures.length) throw new AggregateError(failures, "Block regression or cleanup failed");
 }
 
 runSuite("Block model regression", main);

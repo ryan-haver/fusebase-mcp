@@ -19,6 +19,7 @@ import {
   Cpu,
 } from 'lucide-react'
 import statusData from './data/project-status.json'
+import { evidencePresentation } from './lib/evidence'
 
 interface Tool {
   name: string
@@ -32,8 +33,10 @@ interface TestSuite {
   id: number
   name: string
   toolsCount: number
-  assertionsCount: number
+  assertionsPassed: number | null
+  assertionsTotal: number | null
   status: string
+  evidenceStatus: string
   description: string
 }
 
@@ -54,8 +57,11 @@ export default function App() {
   const tools: Tool[] = statusData.tools as Tool[]
   const suites: TestSuite[] = statusData.testSuites as TestSuite[]
   const milestones: Milestone[] = statusData.milestones as Milestone[]
-  const failedSuites = suites.filter((suite) => suite.status !== 'passed').length
-  const sweepPassed = suites.some((suite) => suite.name === 'Leftover sweep' && suite.status === 'passed')
+  const failedSuites = suites.filter((suite) => suite.status === 'failed').length
+  const trusted = statusData.evidence.status === 'current'
+  const presentation = evidencePresentation(statusData.evidence.status, failedSuites)
+  const sweepPassed = trusted && suites.some((suite) => suite.name === 'Leftover sweep' && suite.status === 'passed')
+  const passRate = statusData.summary.passRatePercent === null ? 'N/A' : `${statusData.summary.passRatePercent}%`
 
   const categories = useMemo(() => {
     const cats = new Set(tools.map((t) => t.category))
@@ -90,7 +96,7 @@ export default function App() {
   }
 
   return (
-    <div className="hub-container">
+    <div className="hub-container" data-testid="dashboard" data-source-hash={statusData.evidence.source.sourceHash}>
       {/* Top Header */}
       <header className="hub-header">
         <div className="hub-brand">
@@ -107,22 +113,29 @@ export default function App() {
               </span>
             </div>
             <p className="hub-subtitle">
-              Live Platform Operations & Real-Time Engineering Status Dashboard
+              Engineering status and recorded validation evidence
             </p>
           </div>
         </div>
 
         <div className="hub-actions">
-          <div className="live-indicator">
-            <span className="pulse-dot"></span>
-            <span>{suites.length === 0 ? 'No recorded checks' : failedSuites ? 'Some checks failed' : 'Latest checks passed'}</span>
-          </div>
+          <div className={`evidence-label evidence-${presentation.tone}`} data-testid="validation-status">{presentation.label}</div>
           <div className="last-sync-badge">
             <Clock style={{ width: '14px', height: '14px' }} />
             <span>Updated {formatTimeAgo(statusData.lastUpdated)}</span>
           </div>
         </div>
       </header>
+
+      <section className={`evidence-banner evidence-${presentation.tone}`} aria-label="Validation evidence" data-testid="evidence-banner">
+        <strong>{presentation.label}</strong>
+        <p>{presentation.detail}</p>
+        <dl>
+          <div><dt>Run</dt><dd>{statusData.evidence.runId ?? 'None recorded'}</dd></div>
+          <div><dt>Recorded source</dt><dd>{statusData.evidence.recordedSource?.commit ?? 'Unknown'}{statusData.evidence.recordedSource?.dirty ? ' (uncommitted changes)' : ''}</dd></div>
+          <div><dt>Selection</dt><dd>{statusData.evidence.selectedStages.length} stages · {statusData.evidence.complete ? 'Run complete' : 'Run incomplete'}</dd></div>
+        </dl>
+      </section>
 
       {/* KPI Metrics Grid */}
       <section className="kpi-grid">
@@ -146,13 +159,13 @@ export default function App() {
             <ShieldCheck style={{ width: '24px', height: '24px' }} />
           </div>
           <div>
-            <div className="kpi-value" style={{ color: '#34d399' }}>{statusData.summary.passRatePercent}%</div>
-            <div className="kpi-label">Recorded Assertion Pass Rate</div>
+            <div className="kpi-value" data-testid="assertion-rate">{passRate}</div>
+            <div className="kpi-label">Current Source Assertion Pass Rate</div>
             <div className="kpi-subtext">
               <strong style={{ color: '#34d399' }}>
-                {statusData.summary.passedAssertions} / {statusData.summary.totalAssertions}
+                {trusted && statusData.summary.totalAssertions ? `${statusData.summary.passedAssertions} / ${statusData.summary.totalAssertions}` : 'No current assertion totals'}
               </strong>{' '}
-              assertions passed
+              {trusted ? 'assertions passed' : 'for this release'}
             </div>
           </div>
         </div>
@@ -163,7 +176,7 @@ export default function App() {
           </div>
           <div>
             <div className="kpi-value">{statusData.summary.totalSuites}</div>
-            <div className="kpi-label">Functional Test Suites</div>
+            <div className="kpi-label">Selected Validation Stages</div>
             <div className="kpi-subtext">
               <strong style={{ color: '#c084fc' }}>{failedSuites} failed checks</strong> • {sweepPassed ? 'Cleanup sweep passed' : 'Cleanup not verified'}
             </div>
@@ -231,10 +244,7 @@ export default function App() {
                   ActivePieces workflows, client portals, and multi-agent sprint boards with recorded offline and live validation.
                 </p>
               </div>
-              <div className="status-badge-healthy">
-                <CheckCircle2 style={{ width: '16px', height: '16px', color: '#34d399' }} />
-                <span>Cloud Status: HEALTHY</span>
-              </div>
+              <div className="evidence-label evidence-warning" data-testid="cloud-status">Cloud health: {statusData.evidence.cloud}</div>
             </div>
 
             <div className="overview-features-grid">
@@ -347,7 +357,7 @@ export default function App() {
               <div className="stat-rows-group">
                 <div className="stat-row">
                   <span className="stat-row-label">Data Assertions Pass Rate:</span>
-                  <span className="stat-val-emerald">{statusData.summary.passedAssertions} / {statusData.summary.totalAssertions} ({statusData.summary.passRatePercent}%)</span>
+                  <span className="stat-val-emerald">{trusted && statusData.summary.totalAssertions ? `${statusData.summary.passedAssertions} / ${statusData.summary.totalAssertions}` : 'No current assertion totals'} ({statusData.summary.passRatePercent}%)</span>
                 </div>
                 <div className="stat-row">
                   <span className="stat-row-label">MCP Protocol Compliance:</span>
@@ -471,30 +481,29 @@ export default function App() {
                 Recorded Validation Results
               </h2>
               <p style={{ fontSize: '13px', color: '#9ca3af' }}>
-                {suites.length} recorded checks with {statusData.summary.totalAssertions} assertions across offline and live validation.
+                {suites.length} selected stages. Current committed source totals: {statusData.summary.totalAssertions} assertions. Historical counts remain on each stage.
               </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ color: '#34d399', fontWeight: 800, fontSize: '18px' }}>{statusData.summary.passRatePercent}% Assertions Passed</span>
-              <span className="badge-pill badge-success">{failedSuites} Failed Checks</span>
+              <span style={{ color: '#34d399', fontWeight: 800, fontSize: '18px' }}>{passRate} Current Assertions Passed</span>
+              <span className={`evidence-label evidence-${failedSuites ? 'danger' : trusted ? 'success' : 'warning'}`}>{failedSuites} Recorded Failed Checks</span>
             </div>
           </div>
 
           <div className="suites-list">
             {suites.map((suite) => (
-              <div key={suite.id} className="suite-card card-surface">
+              <div key={suite.id} className="suite-card card-surface" data-testid="suite-card">
                 <div className="suite-card-top">
                   <div className="suite-title-wrap">
                     <span className="suite-number">Suite {suite.id}</span>
                     <h3 className="suite-name">{suite.name}</h3>
                   </div>
                   <div className="suite-badges">
-                    <span style={{ fontFamily: 'monospace', fontSize: '11px', background: 'rgba(0,0,0,0.3)', padding: '4px 10px', borderRadius: '6px', color: '#d1d5db', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      {suite.toolsCount} Tools
+                    <span className={`evidence-label evidence-${suite.status === 'failed' ? 'danger' : trusted && suite.status === 'passed' ? 'success' : 'warning'}`}>
+                      {suite.status === 'not-run' ? 'Not run' : suite.status === 'failed' ? 'Failed' : 'Passed'} · {suite.evidenceStatus}
                     </span>
-                    <span style={{ fontFamily: 'monospace', fontSize: '11px', background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(16, 185, 129, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                      <CheckCircle2 style={{ width: '13px', height: '13px' }} />
-                      {suite.assertionsCount} Assertions Passed
+                    <span className="suite-counts">
+                      {suite.assertionsTotal === null ? 'No assertion count reported' : `${suite.assertionsPassed} / ${suite.assertionsTotal} recorded assertions passed`}
                     </span>
                   </div>
                 </div>
@@ -534,7 +543,7 @@ export default function App() {
       {/* Footer */}
       <footer className="hub-footer">
         <div>
-          FuseBase MCP Server • Automated live status synced prior to git push •{' '}
+          FuseBase MCP Server • Status snapshot published through an explicit verified deployment •{' '}
           <a
             href="https://github.com/ryan-haver/fusebase-mcp"
             target="_blank"

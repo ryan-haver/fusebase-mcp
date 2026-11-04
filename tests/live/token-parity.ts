@@ -16,11 +16,13 @@
  * Everything created is deleted at the end.
  */
 
+import { journalMutation } from "./lib/fixture-journal.js";
+import { ExpectedRestriction, requireAuthRejection } from "./lib/restriction.js";
 import { FusebaseClient } from "../../src/client.js";
 import { FusebaseGateBridge } from "../../src/gate-bridge.js";
 import { loadEncryptedCookie } from "../../src/crypto.js";
 import { resolveTokens } from "../../src/config.js";
-import { requireSandboxWorkspace, runSuite } from "./lib/harness.js";
+import { requireSandboxWorkspace, runSuite, stats } from "./lib/harness.js";
 
 type Status = "PASS" | "FAIL" | "KNOWN_GAP" | "RESTRICTED" | "N/A";
 
@@ -53,16 +55,18 @@ async function measure(
 ): Promise<boolean> {
   let ok = false;
   let detail = "";
+  let restricted = false;
   try {
     ok = (await check()) !== false;
     if (!ok) detail = "returned no data";
   } catch (err) {
     detail = errMsg(err).slice(0, 160);
+    restricted = err instanceof ExpectedRestriction;
   }
 
   let status: Status;
   if (expect === "restricted") {
-    status = ok ? "FAIL" : "RESTRICTED";
+    status = !ok && restricted ? "RESTRICTED" : "FAIL";
     if (ok) detail = "expected to be unavailable in this mode but it worked (update the parity docs)";
   } else if (ok) {
     status = "PASS";
@@ -71,6 +75,8 @@ async function measure(
     status = gap ? "KNOWN_GAP" : "FAIL";
     if (gap) detail = `${gap}: ${detail}`;
   }
+  stats.total++;
+  if (status === "PASS" || status === "RESTRICTED") stats.passed++;
   row[mode] = status;
   if (detail) row.notes.push(`[${mode}] ${detail}`);
   console.log(`  [${mode}] ${row.feature}: ${status}${detail ? ` (${detail})` : ""}`);
@@ -107,6 +113,7 @@ async function main() {
 
   const created: Array<{ id: string; kind: string }> = [];
 
+  const cleanupFailures: unknown[] = [];
   try {
     // ─── Identity ──────────────────────────────────────────────────
     console.log("--- Identity ---");
@@ -133,7 +140,7 @@ async function main() {
     const createRow = newRow("Pages", "Create page");
     for (const [mode, client] of [["token", tokenClient], ["cookie", cookieClient]] as const) {
       await measure(createRow, mode, async () => {
-        const note = await client.createPage(workspaceId, `[parity-test ${mode}] ${Date.now()}`);
+        const note = await journalMutation("create_page", { workspaceId }, () => client.createPage(workspaceId, `[parity-test ${mode}] ${Date.now()}`));
         if (!note?.globalId) return false;
         pageIds[mode] = note.globalId;
         created.push({ id: note.globalId, kind: `page (${mode})` });
@@ -186,7 +193,7 @@ async function main() {
       if (!id) throw new Error("no page created");
       const { writeContentViaWebSocket } = await import("../../src/yjs-ws-writer.js");
       const res = await writeContentViaWebSocket(host, workspaceId, id, "", [{ type: "paragraph", children: [{ text: "x" }] }], { replace: true });
-      return res.success;
+      return requireAuthRejection(res);
     }, "restricted");
 
     // ─── Folders ───────────────────────────────────────────────────
@@ -195,7 +202,7 @@ async function main() {
     for (const [mode, client] of [["token", tokenClient], ["cookie", cookieClient]] as const) {
       await measure(folderRow, mode, async () => {
         const title = `[parity-test folder ${mode}] ${Date.now()}`;
-        const folder = await client.createFolder(workspaceId, title);
+        const folder = await journalMutation("create_folder", { workspaceId }, () => client.createFolder(workspaceId, title));
         if (!folder?.globalId) return false;
         created.push({ id: folder.globalId, kind: `folder (${mode})` });
         // The folder list is eventually consistent; allow a few seconds for the new folder.
@@ -242,7 +249,7 @@ async function main() {
     });
     await measure(wsSyncRow, "token", async () => {
       if (!probePage) throw new Error("no page to read");
-      return (await readContentViaWebSocket(host, workspaceId, probePage, "")).success;
+      return requireAuthRejection(await readContentViaWebSocket(host, workspaceId, probePage, ""));
     }, "restricted");
 
     const apRow = newRow("Automations", "Automation engine auth");
@@ -252,19 +259,22 @@ async function main() {
     });
     await measure(apRow, "token", async () => {
       const auth = await tokenClient.ensureAutomationAuth();
+      if (!auth.token && !auth.projectId && tokenClient.getCookie() === "") throw new ExpectedRestriction("Automation cookie precondition rejected");
       return Boolean(auth.token && auth.projectId);
     }, "restricted");
-  } finally {
+  } catch (error) { cleanupFailures.push(error); } finally {
     console.log("\n--- Cleanup ---");
     for (const item of created.reverse()) {
       try {
         await cookieClient.deletePage(workspaceId, item.id);
         console.log(`  deleted ${item.kind} ${item.id}`);
       } catch (err) {
-        console.error(`  ⚠️ failed to delete ${item.kind} ${item.id}: ${errMsg(err)}`);
+        cleanupFailures.push(err);
       }
     }
   }
+
+  if (cleanupFailures.length) throw new AggregateError(cleanupFailures, "Parity execution or cleanup failed; inspect fixture journal and run sweep");
 
   // ─── Report ──────────────────────────────────────────────────────
   console.log("\n| Domain | Feature | Token | Cookie |");

@@ -61,9 +61,7 @@ async function main() {
     const getErr = await expectToolError(() => callTool(client, "fusebase_token_get", { tokenId: "non-existent-probe-id" }), "fusebase_token_get");
     assertString(getErr, "token_get error detail");
 
-    console.log("7. fusebase_token_revoke (nonexistent id)");
-    const revokeErr = await expectToolError(() => callTool(client, "fusebase_token_revoke", { tokenId: "non-existent-probe-id" }), "fusebase_token_revoke");
-    assertString(revokeErr, "token_revoke error detail");
+    // Revocation is verified on an owned token in data-validation; do not send a mutation for a negative probe.
   } finally {
     await client.close();
   }

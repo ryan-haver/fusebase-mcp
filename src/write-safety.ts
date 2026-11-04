@@ -7,7 +7,9 @@
  * twice). Anything ambiguous — timeouts, 5xx, dropped connections mid-request — is not safe.
  */
 
-/** Thrown by FusebaseClient.request() for non-2xx responses. */
+import { publicErrorMessage, redactDiagnosticUrl, redactUpstreamDetail } from "./error-redaction.js";
+
+/** Diagnostic fields are safe to serialize; raw upstream bodies must not escape in errors. */
 export class FusebaseApiError extends Error {
   constructor(
     message: string,
@@ -15,7 +17,9 @@ export class FusebaseApiError extends Error {
     public readonly url: string,
     public readonly body: string,
   ) {
-    super(message);
+    super(publicErrorMessage(message));
+    this.url = url ? redactDiagnosticUrl(url) : "";
+    this.body = redactUpstreamDetail(body);
     this.name = "FusebaseApiError";
   }
 }

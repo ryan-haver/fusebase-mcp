@@ -1,3 +1,5 @@
+import { collectTaskPages } from "../../src/task-pagination.js";
+import { confirmNotFound } from "./lib/harness.js";
 /**
  * Live MCP platform end-to-end suite.
  *
@@ -102,7 +104,6 @@ async function readPage(client: Client, args: Record<string, unknown>): Promise<
 }
 
 /** Error text meaning "this entity doesn't exist" (web API 404/410, Gate "no note", ActivePieces ENTITY_NOT_FOUND). */
-const NOT_FOUND = /\b(404|410)\b|not[ _-]?found|no note|does not exist/i;
 
 /** Prove a deleted entity is gone: `read` must fail with a not-found error (any other error propagates). */
 async function assertGone(what: string, read: () => Promise<unknown>): Promise<void> {
@@ -110,7 +111,7 @@ async function assertGone(what: string, read: () => Promise<unknown>): Promise<v
     await read();
   } catch (err) {
     if (!(err instanceof ToolError)) throw err;
-    assert(NOT_FOUND.test(err.detail), `${what}: expected a not-found error, got: ${firstLine(err.detail)}`);
+    assert(confirmNotFound(err), `${what}: expected a not-found error, got: ${firstLine(err.detail)}`);
     return;
   }
   assert(false, `${what} should be gone, but it can still be read`);
@@ -133,14 +134,12 @@ async function allPages(client: Client, workspaceId: string, folderId = "root"):
 
 /** Every task search_tasks returns for the workspace, following offset pagination to the end. */
 async function allTasks(client: Client, workspaceId: string): Promise<any[]> {
-  const all: any[] = [];
-  for (let n = 0; n < MAX_PAGES; n++) {
-    const res = await callTool(client, "search_tasks", { workspaceId, limit: PAGE_SIZE, offset: n * PAGE_SIZE });
+  const {tasks} = await collectTaskPages(async (offset,limit) => {
+    const res = await callTool(client, "search_tasks", {workspaceId,offset,limit});
     assertArray(res?.tasks, "search_tasks.tasks");
-    all.push(...res.tasks);
-    if (res.tasks.length < PAGE_SIZE || (typeof res.total === "number" && all.length >= res.total)) return all;
-  }
-  throw new Error(`search_tasks returned more than ${MAX_PAGES * PAGE_SIZE} tasks; cannot scan them all`);
+    return res as import("../../src/types.js").FusebaseTaskSearchResult;
+  }, (task: import("../../src/types.js").FusebaseTask) => String(task.globalId ?? task.id ?? ""));
+  return tasks;
 }
 
 function isTask(t: any, taskId: string): boolean {
@@ -572,10 +571,10 @@ async function main() {
         assertEqual(flowDisplayName(stored), flowName, "get_automation_flow version.displayName");
       });
       await callTool(client, "delete_automation_flow", { flowId });
+      flowsToCleanup.splice(flowsToCleanup.indexOf(flowId), 1);
       await verifyWrite("delete_automation_flow", `flow ${flowId} is gone (get_automation_flow not found)`, async () => {
         await assertGone(`automation flow ${flowId}`, () => callTool(client, "get_automation_flow", { flowId }));
       });
-      flowsToCleanup.splice(flowsToCleanup.indexOf(flowId), 1);
     }
 
     const flags = await automation("get_automation_flags", () => callTool(client, "get_automation_flags"));

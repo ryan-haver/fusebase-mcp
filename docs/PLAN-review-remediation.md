@@ -1,5 +1,7 @@
 # Review Remediation Plan
 
+> **Current review:** See [the November 3, 2026 review and remediation plan](REVIEW-2026-11-03.md) for current findings, priorities, and acceptance criteria. This September plan is historical; some completion labels and proposed implementations do not match the current code and are being reconciled under REV-13.
+
 > Plan to fix every finding from the full project review (2026-09-23).
 > Each finding has a stable ID. Commits and PRs should cite the IDs they close.
 
@@ -253,7 +255,7 @@ This is done together with the refactor. Adding annotations and output limits on
 
 | ID | Finding | Status | Fix |
 |---|---|---|---|
-| MNT-1 | `extended-tools.ts` (3.5k lines) repeats the same boilerplate 141 times; `client.ts` is a single class of about 4.6k lines | ✅ | One `defineTool({ name, title, schema, annotations, run })` wrapper that handles `getClient`, errors, truncation and compact JSON. Split the tools into `src/tools/<domain>.ts` and the client into per-domain modules (`pages`, `databases`, `automations`, `portals`, `gate`) sharing one transport |
+| MNT-1 | `extended-tools.ts` (3.5k lines) repeats the same boilerplate 141 times; `client.ts` is a single class of about 4.6k lines | Historical overstatement; partial implementation, see REV-14 | One `defineTool({ name, title, schema, annotations, run })` wrapper that handles `getClient`, errors, truncation and compact JSON. Split the tools into `src/tools/<domain>.ts` and the client into per-domain modules (`pages`, `databases`, `automations`, `portals`, `gate`) sharing one transport |
 | MCP-1 | Missing tool annotations | ✅ fixed 2026-11-03 | All 177 tools use shared `registerTool` registration with read-only, destructive, idempotence and open-world hints. Mixed/dynamic tools retain conservative mutation hints; protocol tests verify annotations. |
 | MCP-2 | Outputs have no size limit (about 130 pretty-printed `JSON.stringify` dumps, full CSV, base64 attachments) | 🔎 | Compact JSON, a default output cap (about 25k characters) with a truncation notice and a pagination hint, `maxLength` default on `get_page_content`, and `saveToDisk` for large blobs |
 | MCP-3 | Tier notifications and inability to return to core | ✅ fixed 2026-11-03 | Public SDK handles enable/disable the extended tools in a notification batch. Exactly one notification per change, none for a no-op; repeated toggles and per-session isolation pass. `/health` is a liveness-only probe and makes no tier claim. |
@@ -333,8 +335,8 @@ Constraints that shape the design:
 | DOC-3 | The plugin manifests say author "FuseBase" with homepage thefusebase.com, which reads as official; they say "MIT" but the repo has no LICENSE | ✅ fixed (manifests: maintainer, repo homepage, "unofficial"; MIT LICENSE added) | Set yourself as author and the GitHub repo as homepage, add "unofficial" to the description, add a `LICENSE` file (see D6) |
 | DOC-4 | `package.json`: no `engines` or `license`; `zod` not declared; `@modelcontextprotocol/sdk` range `^1.0.0` too loose; `postinstall` downloads Chromium for every user; `turndown` unused (until CON-8) | ✅ partly fixed (`license`, `engines`, Playwright opt-in via `setup:browser`; `zod`/SDK range still open, see P5-1) | Fix each; make the Playwright install opt-in (`npm run setup:browser`) |
 | DOC-5 | Docker: Playwright can't refresh cookies on alpine; host-encrypted credentials don't decrypt in the container | ✅ | Document Docker as token-mode only; use `FUSEBASE_SECRET_KEY` (SEC-10) |
-| DOC-6 | Version hardcoded in 3 places | ✅ | Read it from `package.json` |
-| DOC-7 | `loadDotEnv` doesn't handle quoted values and also loads `apps/client-portal-dashboard/.env` | ✅ | Use Node's built-in `process.loadEnvFile` (Node ≥ 20.12) and drop the apps coupling |
+| DOC-6 | Version hardcoded in 3 places | Implemented in 2026-11-03 remediation | Read it from `package.json` |
+| DOC-7 | `loadDotEnv` doesn't handle quoted values and also loads `apps/client-portal-dashboard/.env` | Implemented in 2026-11-03 remediation using `node:util.parseEnv` | Use Node's built-in `process.loadEnvFile` (Node ≥ 20.12) and drop the apps coupling |
 | DOC-8 | Dev tooling (vitest 5) needs Node ≥ 22.12, the Docker image uses `node:20`, and `package.json` has no `engines` field | ✅ fixed (image `node:22-alpine`, verified live; `engines: node >= 22.12`) | Declare `engines` (runtime ≥ 20.12); document Node 22+ for development; consider moving the image to `node:22-alpine` |
 
 ---

@@ -1,124 +1,72 @@
 {
   "project": "FuseBase MCP Server",
   "version": "2.1.0",
-  "lastUpdated": "2026-11-03T21:18:38.021Z",
+  "lastUpdated": "2026-11-04T17:33:48.727Z",
   "git": {
-    "commit": "d4d8ad1",
+    "commit": "5e42b0f",
     "branch": "master",
-    "commitDate": "2026-11-03T11:35:09-07:00"
+    "commitDate": "2026-11-03T14:20:21-07:00"
   },
   "protocol": {
     "specification": "JSON-RPC 2.0",
     "compliance": "RFC 6570",
-    "status": "HEALTHY"
+    "status": "UNVERIFIED"
   },
   "summary": {
     "totalTools": 177,
     "coreTools": 34,
     "extendedTools": 143,
-    "totalSuites": 12,
-    "totalAssertions": 2131,
-    "passedAssertions": 2131,
-    "passRatePercent": 100,
+    "totalSuites": 2,
+    "totalAssertions": 0,
+    "passedAssertions": 0,
+    "passRatePercent": null,
     "documentationGuides": 285,
     "documentationSections": 21
+  },
+  "evidence": {
+    "status": "stale",
+    "runId": "43f76b2f-e5e7-40ed-b009-4d5bdc5c17a8",
+    "source": {
+      "commit": "5e42b0fcd5f6c40bc6e238c1d4617db082aa5837",
+      "sourceHash": "dfdb95a1f8fd799271b973f22e8c321dc5e498cf7480274dceb2b8d147dfa788",
+      "dirty": true
+    },
+    "recordedSource": {
+      "commit": "5e42b0fcd5f6c40bc6e238c1d4617db082aa5837",
+      "sourceHash": "d85b4defcc1f90cab28240f7d8acac3ab9ed4c417173ca23810c250e0abf370d",
+      "dirty": true
+    },
+    "selectedStages": [
+      "Portal email lifecycle",
+      "Leftover sweep"
+    ],
+    "complete": true,
+    "startedAt": "2026-11-04T17:23:01.256Z",
+    "finishedAt": "2026-11-04T17:23:22.388Z",
+    "cloud": "UNVERIFIED"
   },
   "testSuites": [
     {
       "id": 1,
-      "name": "Typecheck (src, scripts, tests)",
+      "name": "Portal email lifecycle",
+      "kind": "live",
       "toolsCount": 0,
-      "assertionsCount": 0,
+      "assertionsPassed": 6,
+      "assertionsTotal": 6,
       "status": "passed",
-      "description": "Offline; last run 2026-11-03 18:35 UTC on d4d8ad1 (2.9s)."
+      "evidenceStatus": "stale",
+      "description": "Live sandbox; run 2026-11-04 17:23 UTC on 5e42b0fcd5f6c40bc6e238c1d4617db082aa5837 (13.6s). 6/6 assertions passed."
     },
     {
       "id": 2,
-      "name": "Lint",
-      "toolsCount": 0,
-      "assertionsCount": 0,
-      "status": "passed",
-      "description": "Offline; last run 2026-11-03 18:35 UTC on d4d8ad1 (3s)."
-    },
-    {
-      "id": 3,
-      "name": "Build",
-      "toolsCount": 0,
-      "assertionsCount": 0,
-      "status": "passed",
-      "description": "Offline; last run 2026-11-03 18:35 UTC on d4d8ad1 (2.6s)."
-    },
-    {
-      "id": 4,
-      "name": "Unit tests",
-      "toolsCount": 0,
-      "assertionsCount": 468,
-      "status": "passed",
-      "description": "Offline; last run 2026-11-03 18:36 UTC on d4d8ad1 (15.2s). 468/468 assertions passed."
-    },
-    {
-      "id": 5,
-      "name": "Tool schema & README audit",
-      "toolsCount": 0,
-      "assertionsCount": 0,
-      "status": "passed",
-      "description": "Offline; last run 2026-11-03 18:36 UTC on d4d8ad1 (1.5s)."
-    },
-    {
-      "id": 6,
-      "name": "Direct token connection",
-      "toolsCount": 7,
-      "assertionsCount": 10,
-      "status": "passed",
-      "description": "Live, against a sandbox workspace; last run 2026-11-03 18:36 UTC on d4d8ad1 (7.8s). 10/10 assertions passed."
-    },
-    {
-      "id": 7,
-      "name": "MCP protocol & page lifecycle",
-      "toolsCount": 56,
-      "assertionsCount": 647,
-      "status": "passed",
-      "description": "Live, against a sandbox workspace; last run 2026-11-03 18:37 UTC on d4d8ad1 (57.8s). 647/647 assertions passed, 1 skipped."
-    },
-    {
-      "id": 8,
-      "name": "Block model regression",
-      "toolsCount": 0,
-      "assertionsCount": 51,
-      "status": "passed",
-      "description": "Live, against a sandbox workspace; last run 2026-11-03 18:38 UTC on d4d8ad1 (10.7s). 51/51 assertions passed."
-    },
-    {
-      "id": 9,
-      "name": "Database engine",
-      "toolsCount": 41,
-      "assertionsCount": 381,
-      "status": "passed",
-      "description": "Live, against a sandbox workspace; last run 2026-11-03 18:38 UTC on d4d8ad1 (35.5s). 381/381 assertions passed."
-    },
-    {
-      "id": 10,
-      "name": "Live data validation",
-      "toolsCount": 165,
-      "assertionsCount": 574,
-      "status": "passed",
-      "description": "Live, against a sandbox workspace; last run 2026-11-03 18:41 UTC on d4d8ad1 (152.2s). 574/574 assertions passed, 12 skipped."
-    },
-    {
-      "id": 11,
-      "name": "Token vs cookie parity",
-      "toolsCount": 0,
-      "assertionsCount": 0,
-      "status": "passed",
-      "description": "Live, against a sandbox workspace; last run 2026-11-03 18:41 UTC on d4d8ad1 (25.1s). 0/0 assertions passed."
-    },
-    {
-      "id": 12,
       "name": "Leftover sweep",
+      "kind": "live",
       "toolsCount": 0,
-      "assertionsCount": 0,
+      "assertionsPassed": null,
+      "assertionsTotal": null,
       "status": "passed",
-      "description": "Live, against a sandbox workspace; last run 2026-11-03 18:41 UTC on d4d8ad1 (5.8s)."
+      "evidenceStatus": "stale",
+      "description": "Live sandbox; run 2026-11-04 17:23 UTC on 5e42b0fcd5f6c40bc6e238c1d4617db082aa5837 (5.8s)."
     }
   ],
   "milestones": [
@@ -176,7 +124,7 @@
       "title": "Write-Verified Live Test Suites",
       "status": "completed",
       "date": "Sept 2026",
-      "description": "Every write the live suites make is proven by a fresh read of the stored data, and a leftover sweep checks the sandbox is clean. Current figures are on the Tests tab"
+      "description": "Historical implementation milestone. Current verification status, selected stages and exceptions are on the Tests tab."
     },
     {
       "id": "m9",
@@ -190,7 +138,7 @@
       "title": "Token-Only Coverage Measured",
       "status": "completed",
       "date": "Sept 2026",
-      "description": "Every tool measured with only Gate and Dashboards tokens: 14 of 129 measured work without a session cookie (docs/TOKEN-COVERAGE.md). Page and folder listing, creation and appends fall back to Gate"
+      "description": "Historical September measurement: 14/129 remote tools. The later recorded measurement was 29/150; neither is current evidence for untested source. See docs/TOKEN-COVERAGE.md."
     },
     {
       "id": "m11",
@@ -485,7 +433,7 @@
     },
     {
       "name": "search_tasks",
-      "description": "Search tasks in a workspace with full task details, assignees, labels, and board info. Optionally filter by page to see only tasks linked to a specific note, and by text in the task title (query). Supports pagination with offset and limit.",
+      "description": "Search tasks in a workspace with full task details, assignees, labels, and board info. Optionally filter by page to see only tasks linked to a specific note, and by text in the task title (query). Supports pagination with offset and limit. The response includes nextOffset; follow it until null because total includes lists and boards as well as tasks.",
       "tier": "core",
       "category": "Tasks & Projects",
       "parameters": [

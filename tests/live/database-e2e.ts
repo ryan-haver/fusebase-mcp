@@ -1,3 +1,4 @@
+import { confirmNotFound } from "./lib/harness.js";
 /**
  * Live database & relational end-to-end suite.
  *
@@ -236,7 +237,7 @@ async function expectNotFound(read: () => Promise<unknown>, what: string): Promi
   try {
     await read();
   } catch (err) {
-    if (err instanceof ToolError && /\b404\b|not.?found|does not exist/i.test(err.detail)) {
+    if (confirmNotFound(err)) {
       assert(true, `${what} is gone`);
       return;
     }

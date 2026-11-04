@@ -1,3 +1,4 @@
+import { sourceIdentity, evidenceState, type EvidenceRun, type RecordedStage } from "./lib/evidence.js";
 import * as fs from "fs";
 import * as path from "path";
 import { execSync } from "child_process";
@@ -77,50 +78,45 @@ try {
 }
 
 /**
- * Test results come from the last recorded run of each stage (.cache/test-results.json, written
+ * Test results come from one explicitly selected run (.cache/test-results.json, written
  * by scripts/test-all.ts), never from hand-written figures. Stages that report no counts
  * (typecheck, lint, build, audit, sweep) appear with 0 assertions and their pass/fail status.
  */
-interface RecordedStage {
-  kind: "offline" | "live";
-  order: number;
-  passed: boolean;
-  secs: number;
-  runAt: string;
-  commit: string;
-  assertions?: { passed: number; total: number };
-  skipped?: number;
-  knownGaps?: number;
-  tools?: number;
-}
-
 const resultsPath = path.resolve(__dirname, "../.cache/test-results.json");
+const source = sourceIdentity(path.resolve(__dirname, ".."));
+let run: Partial<EvidenceRun> | undefined;
 let recorded: Record<string, RecordedStage> = {};
 try {
-  recorded = JSON.parse(fs.readFileSync(resultsPath, "utf-8")).stages ?? {};
+  run = JSON.parse(fs.readFileSync(resultsPath, "utf-8"));
+  recorded = run?.stages ?? {};
 } catch {
   console.warn(`No recorded test results at ${resultsPath}; run npm run test:all first. Publishing no test figures.`);
 }
 
-const testSuites = Object.entries(recorded)
-  .sort(([, a], [, b]) => a.order - b.order)
-  .map(([name, r], i) => {
-    const extras = [
-      r.assertions ? `${r.assertions.passed}/${r.assertions.total} assertions passed` : undefined,
-      r.skipped ? `${r.skipped} skipped` : undefined,
-      r.knownGaps ? `${r.knownGaps} known gaps` : undefined,
-    ].filter(Boolean);
-    return {
-      id: i + 1,
-      name,
-      toolsCount: r.tools ?? 0,
-      assertionsCount: r.assertions?.passed ?? 0,
-      status: r.passed ? "passed" : "failed",
-      description: `${r.kind === "live" ? "Live, against a sandbox workspace" : "Offline"}; last run ${r.runAt.slice(0, 16).replace("T", " ")} UTC on ${r.commit || "unknown commit"} (${r.secs}s)${extras.length ? ". " + extras.join(", ") : ""}.`,
-    };
-  });
-const totalAssertions = Object.values(recorded).reduce((acc, r) => acc + (r.assertions?.total ?? 0), 0);
-const passedAssertions = Object.values(recorded).reduce((acc, r) => acc + (r.assertions?.passed ?? 0), 0);
+const evidenceStatus = evidenceState(run, source);
+const current = evidenceStatus === "current";
+const stageNames = run?.selectedStages ?? [];
+const testSuites = stageNames.map((name, i) => {
+  const r = recorded[name];
+  const extras = r ? [
+    r.assertions ? `${r.assertions.passed}/${r.assertions.total} assertions passed` : undefined,
+    r.skipped ? `${r.skipped} skipped` : undefined,
+    r.knownGaps ? `${r.knownGaps} known gaps` : undefined,
+  ].filter(Boolean) : [];
+  return {
+    id: i + 1,
+    name,
+    kind: r?.kind ?? "unknown",
+    toolsCount: r?.tools ?? 0,
+    assertionsPassed: r?.assertions?.passed ?? null,
+    assertionsTotal: r?.assertions?.total ?? null,
+    status: !r ? "not-run" : r.passed ? "passed" : "failed",
+    evidenceStatus,
+    description: r ? `${r.kind === "live" ? "Live sandbox" : "Offline"}; run ${r.runAt.slice(0, 16).replace("T", " ")} UTC on ${r.commit || "unknown commit"} (${r.secs}s)${extras.length ? ". " + extras.join(", ") : ""}.` : "Selected stage has no recorded result.",
+  };
+});
+const totalAssertions = Object.values(current ? Object.fromEntries(stageNames.filter(name => recorded[name]).map(name => [name, recorded[name]])) : {}).reduce((acc, r) => acc + (r.assertions?.total ?? 0), 0);
+const passedAssertions = Object.values(current ? Object.fromEntries(stageNames.filter(name => recorded[name]).map(name => [name, recorded[name]])) : {}).reduce((acc, r) => acc + (r.assertions?.passed ?? 0), 0);
 
 const milestones = [
   { id: "m1", title: "Web App API Integration", status: "completed", date: "Sept 2026", description: "Integration with the FuseBase web app's APIs, SOCKS5 proxy relay, AES-256-GCM credential storage, and automated re-auth" },
@@ -130,9 +126,9 @@ const milestones = [
   { id: "m5", title: "ActivePieces Automations Integration", status: "completed", date: "Sept 2026", description: "72-piece automation connector library, flow execution trigger engine, and folder organization" },
   { id: "m6", title: "Multi-Agent Swarm Orchestration Engine", status: "completed", date: "Sept 2026", description: "Kanban state machine database for 6 agent roles (PM, Architect, Dev, QA, Review, DevOps)" },
   { id: "m7", title: "Endpoint Reference & Error Diagnostics", status: "completed", date: "Sept 2026", description: "Endpoint reference documenting live and retired endpoints, container diagnostics, and move_page fixes" },
-  { id: "m8", title: "Write-Verified Live Test Suites", status: "completed", date: "Sept 2026", description: "Every write the live suites make is proven by a fresh read of the stored data, and a leftover sweep checks the sandbox is clean. Current figures are on the Tests tab" },
+  { id: "m8", title: "Write-Verified Live Test Suites", status: "completed", date: "Sept 2026", description: "Historical implementation milestone. Current verification status, selected stages and exceptions are on the Tests tab." },
   { id: "m9", title: "Official Remote Gate & Dashboards MCP Token Bridge", status: "completed", date: "Sept 2026", description: "Zero-browser direct API token connection to gate-mcp and dashboards-mcp over Streamable HTTP SSE with automatic tenant identity discovery and first-class token lifecycle management" },
-  { id: "m10", title: "Token-Only Coverage Measured", status: "completed", date: "Sept 2026", description: "Every tool measured with only Gate and Dashboards tokens: 14 of 129 measured work without a session cookie (docs/TOKEN-COVERAGE.md). Page and folder listing, creation and appends fall back to Gate" },
+  { id: "m10", title: "Token-Only Coverage Measured", status: "completed", date: "Sept 2026", description: "Historical September measurement: 14/129 remote tools. The later recorded measurement was 29/150; neither is current evidence for untested source. See docs/TOKEN-COVERAGE.md." },
   { id: "m11", title: "Universal Agent Guidance, Dual Stdio/SSE & Docker Containerization", status: "completed", date: "Sept 2026", description: "Standardized AGENTS.md & CLAUDE.md for zero context clutter, portable relative MCP configs, dual Stdio + HTTP/SSE network transports with /health endpoint, and lightweight multi-stage Docker packaging" },
 ];
 
@@ -152,7 +148,7 @@ const projectStatusData = {
   protocol: {
     specification: "JSON-RPC 2.0",
     compliance: "RFC 6570",
-    status: "HEALTHY",
+    status: "UNVERIFIED",
   },
   summary: {
     totalTools: categorizedTools.length,
@@ -161,18 +157,20 @@ const projectStatusData = {
     totalSuites: testSuites.length,
     totalAssertions,
     passedAssertions,
-    passRatePercent: totalAssertions ? Math.round((passedAssertions / totalAssertions) * 1000) / 10 : 0,
+    passRatePercent: totalAssertions ? Math.round((passedAssertions / totalAssertions) * 1000) / 10 : null,
     documentationGuides: guides.length,
     documentationSections: new Set(guides.map((guide) => guide.section)).size,
   },
+  evidence: { status: evidenceStatus, runId: run?.runId ?? null, source, recordedSource: run?.source ?? null, selectedStages: stageNames, complete: run?.complete ?? false, startedAt: run?.startedAt ?? null, finishedAt: run?.finishedAt ?? null, cloud: "UNVERIFIED" },
   testSuites,
   milestones,
   tools: categorizedTools,
 };
 
-const outputDir = path.resolve(__dirname, "../apps/client-portal-dashboard/apps/status-dashboard/src/data");
+const outputArg = process.argv.find(arg => arg.startsWith("--output="))?.slice(9);
+const outputDir = outputArg ? path.dirname(path.resolve(outputArg)) : path.resolve(__dirname, "../apps/client-portal-dashboard/apps/status-dashboard/src/data");
 fs.mkdirSync(outputDir, { recursive: true });
-const outputPath = path.join(outputDir, "project-status.json");
+const outputPath = outputArg ? path.resolve(outputArg) : path.join(outputDir, "project-status.json");
 fs.writeFileSync(outputPath, JSON.stringify(projectStatusData, null, 2), "utf-8");
 
 console.log(`✅ Generated project status data:`);

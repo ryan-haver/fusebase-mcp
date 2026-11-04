@@ -38,6 +38,10 @@ const post = (base: string, headers: Record<string, string> = {}) =>
   fetch(`${base}/mcp`, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream", ...headers }, body: initBody });
 
 describe("resolveHttpOptions", () => {
+  it.each(["bad", "0", "-1", "2junk", "1.5", "Infinity"])("rejects invalid session limits %s", (value) => {
+    expect(() => resolveHttpOptions([], { MCP_MAX_SESSIONS: value })).toThrow(/positive integer/);
+    expect(() => resolveHttpOptions([], { MCP_SESSION_IDLE_MS: value })).toThrow(/positive integer/);
+  });
   it("binds loopback with no token by default", () => {
     const o = resolveHttpOptions([], {});
     expect(o.host).toBe("127.0.0.1");
@@ -60,6 +64,16 @@ describe("resolveHttpOptions", () => {
 });
 
 describe("HTTP access control (SEC-1)", () => {
+  it("reclaims abandoned initialization sessions after the configured idle period", async () => {
+    const base = await start({ maxSessions: 1, sessionIdleTimeoutMs: 30 });
+    const first = await post(base, auth); await first.text();
+    expect(first.status).toBe(200);
+    const rejected = await post(base, auth); await rejected.text();
+    expect(rejected.status).toBe(503);
+    await new Promise(resolve => setTimeout(resolve, 90));
+    const next = await post(base, auth); await next.text();
+    expect(next.status).toBe(200);
+  });
   it("serves /health without auth and without internal details", async () => {
     const base = await start();
     const res = await fetch(`${base}/health`);
@@ -139,4 +153,27 @@ describe("MCP over HTTP", () => {
     expect((await client.listTools()).tools).toHaveLength(1);
     await client.close();
   });
+});
+
+it("reserves capacity across concurrent initialization requests", async () => {
+  const base = await start({maxSessions:1});
+  const replies = await Promise.all([post(base, auth), post(base, auth), post(base, auth)]);
+  expect(replies.map(r => r.status).sort()).toEqual([200,503,503]);
+  await Promise.all(replies.map(r => r.text()));
+});
+it("keeps an active call alive beyond the idle timeout and closes its session on shutdown", async () => {
+  handle = await startHttpServer({host:"127.0.0.1",port:0,allowedHosts:["127.0.0.1"],allowedOrigins:[],maxSessions:1,sessionIdleTimeoutMs:30}, () => {
+    const server = new McpServer({name:"active",version:"1"});
+    server.registerTool("slow", {inputSchema:{}}, async () => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      return {content:[{type:"text",text:"completed"}]};
+    });
+    return server;
+  }, {version:"1"});
+  const client = new Client({name:"test",version:"1"});
+  await client.connect(new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${handle.port}/mcp`)));
+  expect((await client.callTool({name:"slow",arguments:{}})).isError).not.toBe(true);
+  await handle.close();
+  await expect(client.listTools()).rejects.toThrow();
+  await client.close();
 });
