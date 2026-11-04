@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { evidenceState, type EvidenceRun } from "../../scripts/lib/evidence.js";
+import { evidenceState, requireReleaseEvidence, type EvidenceRun } from "../../scripts/lib/evidence.js";
 import { verifyRelease } from "../../scripts/lib/deployment-verification.js";
 import { requireAuthRejection, ExpectedRestriction } from "../live/lib/restriction.js";
 const source = { commit: "commit", sourceHash: "hash", dirty: false };
@@ -38,4 +38,12 @@ it("does not count timeouts, malformed data or false values as permission restri
   for (const error of ["Timeout", "malformed JSON", "HTTP 500", undefined]) {
     try { requireAuthRejection({ success: false, error }); } catch (failure) { expect(failure).not.toBeInstanceOf(ExpectedRestriction); }
   }
+});
+
+it("requires every selected release stage to pass, even when required offline stages pass", () => {
+  expect(() => requireReleaseEvidence(complete, source, ["Unit"])).not.toThrow();
+  const run = {...complete, selectedStages:["Unit","Live"], stages:{...complete.stages, Live:{...complete.stages.Unit,kind:"live" as const,passed:false}}};
+  expect(() => requireReleaseEvidence(run, source, ["Unit"])).toThrow("passing evidence");
+  expect(() => requireReleaseEvidence(complete, source, ["Missing"])).toThrow();
+  expect(() => requireReleaseEvidence(complete, {...source,dirty:true}, ["Unit"])).toThrow();
 });

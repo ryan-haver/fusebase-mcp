@@ -34,3 +34,10 @@ export function evidenceState(run: Partial<EvidenceRun> | undefined, source: Sou
   if (run.selectedStages.some(name => run.stages?.[name]?.commit !== run.source?.commit)) return "stale";
   return source.dirty || run.source?.dirty ? "working-tree" : "current";
 }
+
+/** Release only a complete, passing selection for the exact clean source. */
+export function requireReleaseEvidence(run: EvidenceRun, source: SourceIdentity, required: string[]): void {
+  if (evidenceState(run, source) !== "current" || required.some(name => !run.selectedStages.includes(name) || !run.stages[name]?.passed) || run.selectedStages.some(name => !run.stages[name]?.passed)) {
+    throw new Error("Deployment requires current, complete, passing evidence, including every required offline stage, for this exact committed source");
+  }
+}

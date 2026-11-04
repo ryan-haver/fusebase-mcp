@@ -189,9 +189,9 @@ export default function App() {
           </div>
           <div>
             <div className="kpi-value" style={{ color: '#22d3ee' }}>JSON-RPC 2.0</div>
-            <div className="kpi-label">MCP Protocol Compliance</div>
+            <div className="kpi-label">Protocol Metadata</div>
             <div className="kpi-subtext">
-              <strong style={{ color: '#22d3ee' }}>RFC 6570</strong> • Universal Client Protocol
+              Verification: {statusData.protocol.status}
             </div>
           </div>
         </div>
@@ -356,12 +356,12 @@ export default function App() {
               </p>
               <div className="stat-rows-group">
                 <div className="stat-row">
-                  <span className="stat-row-label">Data Assertions Pass Rate:</span>
-                  <span className="stat-val-emerald">{trusted && statusData.summary.totalAssertions ? `${statusData.summary.passedAssertions} / ${statusData.summary.totalAssertions}` : 'No current assertion totals'} ({statusData.summary.passRatePercent}%)</span>
+                  <span className="stat-row-label">Current Source Assertions:</span>
+                  <span data-testid="overview-assertion-rate" className={`evidence-label evidence-${failedSuites ? 'danger' : trusted && statusData.summary.totalAssertions ? 'success' : 'warning'}`}>{passRate}</span>
                 </div>
                 <div className="stat-row">
-                  <span className="stat-row-label">MCP Protocol Compliance:</span>
-                  <span className="stat-val-indigo">RFC 6570 + JSON-RPC 2.0</span>
+                  <span className="stat-row-label">Protocol Verification:</span>
+                  <span className="evidence-label evidence-warning">{statusData.protocol.status}</span>
                 </div>
                 <div className="stat-row">
                   <span className="stat-row-label">Offline Documentation Guides:</span>

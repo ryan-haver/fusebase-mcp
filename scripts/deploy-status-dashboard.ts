@@ -11,7 +11,7 @@
 
 import { openVerificationBrowser, verifyDashboardBrowser } from "./lib/dashboard-browser.js";
 import { randomUUID } from "node:crypto";
-import { sourceIdentity, evidenceState, type EvidenceRun } from "./lib/evidence.js";
+import { sourceIdentity, requireReleaseEvidence, type EvidenceRun } from "./lib/evidence.js";
 import { verifyRelease, type ReleaseManifest } from "./lib/deployment-verification.js";
 import { execSync, execFileSync } from "child_process";
 import * as path from "path";
@@ -56,7 +56,7 @@ async function main() {
   if (source.dirty) throw new Error("Deployment requires a clean committed source tree");
   const evidence = JSON.parse(fs.readFileSync(path.join(rootDir, ".cache/test-results.json"), "utf8")) as EvidenceRun;
   const required = ["Typecheck (src, scripts, tests)", "Lint", "Build", "Unit tests", "Tool schema & README audit"];
-  if (evidenceState(evidence, source) !== "current" || required.some(name => !evidence.stages[name]?.passed)) throw new Error("Deployment requires current, complete, passing offline evidence for this exact source");
+  requireReleaseEvidence(evidence, source, required);
   const branch = execFileSync("git", ["branch", "--show-current"], { cwd: rootDir, encoding: "utf8" }).trim();
   const remote = execFileSync("git", ["ls-remote", "origin", `refs/heads/${branch}`], { cwd: rootDir, encoding: "utf8" }).trim().split(/\s+/)[0];
   if (!branch || remote !== source.commit) throw new Error("Push this exact commit before deploying");

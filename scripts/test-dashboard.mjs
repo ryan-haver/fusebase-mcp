@@ -38,6 +38,8 @@ try {
     assert((await page.getByTestId('validation-status').innerText()).includes(label), scenario);
     assert.equal(await page.getByTestId('cloud-status').innerText(),'Cloud health: UNVERIFIED');
     assert.equal(await page.getByTestId('assertion-rate').innerText(),state === 'current'?'100%':'N/A');
+    assert.equal(await page.getByTestId('overview-assertion-rate').innerText(),state === 'current'?'100%':'N/A');
+    if (state !== 'current') assert((await page.getByTestId('overview-assertion-rate').getAttribute('class')).includes('evidence-warning'));
     if (scenario === 'stale-cleanup' || scenario === 'offline-only') assert((await page.locator('body').innerText()).includes('Cleanup not verified'));
     await page.getByRole('button',{name:/Validation Suites/}).click();
     if (scenario === 'incomplete') assert((await page.locator('body').innerText()).includes('Not run'));
