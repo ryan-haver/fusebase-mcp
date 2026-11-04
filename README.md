@@ -1,7 +1,7 @@
 # FuseBase MCP Server
 
 [![Version](https://img.shields.io/badge/Version-v2.1.0-3b82f6?style=for-the-badge)](https://github.com/ryan-haver/fusebase-mcp)
-[![Live Status Dashboard](https://img.shields.io/badge/Live%20Status-Release%20verification%20pending-f59e0b?style=for-the-badge&logo=googlecloud&logoColor=white)](https://fusebase-mcp.thefusebase.app/)
+[![Live Status Dashboard](https://img.shields.io/badge/Status%20Dashboard-View%20snapshot-3b82f6?style=for-the-badge&logo=googlecloud&logoColor=white)](https://fusebase-mcp.thefusebase.app/)
 [![MCP Tools](https://img.shields.io/badge/MCP%20Tools-177%20Registered-6366f1?style=for-the-badge)](docs/UPSTREAM-COMPATIBILITY.md)
 [![Offline Checks](https://img.shields.io/badge/Offline%20Checks-Passing-10b981?style=for-the-badge)](docs/UPSTREAM-COMPATIBILITY.md)
 [![Docker Ready](https://img.shields.io/badge/Docker-Stdio%20%26%20SSE-2496ed?style=for-the-badge&logo=docker&logoColor=white)](https://github.com/ryan-haver/fusebase-mcp)
