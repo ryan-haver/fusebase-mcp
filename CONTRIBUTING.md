@@ -5,14 +5,14 @@ Thanks for helping improve this unofficial FuseBase MCP server.
 ## Set-up
 
 ```bash
-npm install              # also downloads the FuseBase guides into .cache/guides
+npm ci --ignore-scripts  # install locked dependencies; guides/browser are opt-in
 npm run hooks:install    # commit and push validation gate
 npm run build
 ```
 
-- Node 22.12 or later.
+- Node 22.19 or later.
 - Keep secrets in 1Password, not in files. See [docs/1PASSWORD.md](docs/1PASSWORD.md).
-- For browser-based cookie capture (`scripts/auth.ts`), run `npm run setup:browser` once.
+- For browser-based cookie capture (`npm run auth` after building), run `npm run setup:browser` once. Fetch reference guides explicitly with `npm run guides:fetch`.
 
 ## Making changes
 
@@ -22,7 +22,7 @@ npm run build
    - **Live tests** go in `tests/live/` and run against a sandbox workspace. Every write must be proven by a fresh read with `verifyWrite()`. See [docs/TESTING.md](docs/TESTING.md).
    - When fixing a bug pinned with `it.fails` or `knownGap()`, remove the marker.
 3. Commit. The pre-commit hook runs the offline checks: typecheck, lint, build, unit tests and the tool audit.
-4. Push. The pre-push hook also runs the live suites (one 1Password approval), then opens a pull request.
+4. Push. The pre-push hook also runs the live suites (one 1Password approval), and verifies cleanup. Open a pull request separately when needed.
 
 Record findings and fixes in [docs/PLAN-review-remediation.md](docs/PLAN-review-remediation.md) with an ID.
 

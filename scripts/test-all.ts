@@ -160,7 +160,8 @@ async function main() {
     // The leftover sweep flags anything in the sandbox created after this moment.
     process.env.LIVE_RUN_STARTED_AT = String(Date.now());
     process.env.LIVE_RUN_ID = run.runId;
-    process.env.LIVE_FIXTURE_JOURNAL = path.join(rootDir, "scratch", "live-runs", run.runId, "fixtures.jsonl");
+    const liveArtifactRoot = process.env.FUSEBASE_LIVE_ARTIFACT_DIR || path.join(rootDir, "scratch", "live-runs");
+    process.env.LIVE_FIXTURE_JOURNAL = path.resolve(liveArtifactRoot, run.runId, "fixtures.jsonl");
     if (!process.env.FUSEBASE_WORKSPACE_ID) {
       console.error("❌ Live suites need FUSEBASE_WORKSPACE_ID (a sandbox workspace). Set it in .env, or run with --offline.");
       process.exit(1);

@@ -228,3 +228,10 @@ Deployment requires that exact clean, pushed source and passing offline stages. 
 checks the dashboard locally, opens Chromium before publishing, then verifies both the exact
 release manifest and the rendered source hash. A 200 response from an old or broken bundle fails.
 The cloud-health label stays unverified because release identity does not measure backend health.
+
+
+To use host-registered temporary storage, set `FUSEBASE_TEST_ARTIFACT_DIR` before
+`npm run test:package`; isolated consumer installs and their tarballs go there.
+Set `FUSEBASE_LIVE_ARTIFACT_DIR` before the standard runner/pre-push hook to keep
+run-specific mutation journals under an owned evidence directory. Preserve live
+journals as recovery evidence. The normal `.cache` source/result ledger is unchanged.

@@ -4,6 +4,19 @@ This project follows [Semantic Versioning](https://semver.org/). Each release is
 
 ## Unreleased
 
+No changes recorded yet.
+
+## 2.2.0 — 2026-11-08
+
+API/CLI compatibility updates, safer authentication and sandbox validation, reproducible packaging,
+and source-verified dashboard releases. Includes all changes since v2.1.0.
+
+**Upgrade notes:** Node.js 22.19 or later is required. Browser binaries and reference guides are
+explicit opt-ins (`npm run setup:browser`, `npm run guides:fetch` in a source checkout). Named
+profiles must supply their own credentials; they no longer inherit default-account authority.
+Token-only coverage remains partial; cookie/hybrid mode is needed for unsupported operations.
+
+
 - Addressed REV-01: named profiles no longer inherit default cookies or tokens, including a missing gateway token. Missing credentials and known tenant mismatches fail before requests; the default profile keeps environment precedence.
 - Addressed REV-02: shared bounded error redaction now covers REST exception fields, Gate diagnostics, MCP handler failures, CLI failure output, and transport/client logs. Diagnostic URLs omit credentials, queries, and fragments; successful API payloads remain intact.
 - Remediation validation: the November 4 working-tree run passed all 17 selected stages and 1,783 live assertions. The subsequent cleanup fix passes 540 unit tests and a fresh portal/sweep run. Windows/Linux Node 22.19, package and container checks pass; dashboard browser checks and remote CI/release gates are now enforced.

@@ -1,6 +1,6 @@
 # FuseBase MCP Server
 
-[![Version](https://img.shields.io/badge/Version-v2.1.0-3b82f6?style=for-the-badge)](https://github.com/ryan-haver/fusebase-mcp)
+[![Version](https://img.shields.io/badge/Version-v2.2.0-3b82f6?style=for-the-badge)](https://github.com/ryan-haver/fusebase-mcp)
 [![Live Status Dashboard](https://img.shields.io/badge/Status%20Dashboard-View%20snapshot-3b82f6?style=for-the-badge&logo=googlecloud&logoColor=white)](https://fusebase-mcp.thefusebase.app/)
 [![MCP Tools](https://img.shields.io/badge/MCP%20Tools-177%20Registered-6366f1?style=for-the-badge)](docs/UPSTREAM-COMPATIBILITY.md)
 [![Offline Checks](https://img.shields.io/badge/Offline%20Checks-Passing-10b981?style=for-the-badge)](docs/UPSTREAM-COMPATIBILITY.md)
@@ -80,7 +80,7 @@ npm run build
 
 **Option B — Install a built package:**
 
-Run `npm pack` in the checked-out source, then `npm install -g ./fusebase-mcp-2.1.0.tgz`.
+Run `npm pack` in the checked-out source, then `npm install -g ./fusebase-mcp-2.2.0.tgz`.
 The prepack step builds a clean distribution. The installed package includes `fusebase-mcp`,
 `fusebase-auth`, and `fusebase-guides`; it does not compile source or download browsers during install.
 Direct Git installs are not a supported prebuilt distribution path.
